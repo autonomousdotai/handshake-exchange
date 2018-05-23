@@ -1,0 +1,20 @@
+# idea file
+.idea
+
+# build file
+**/web
+
+# log file
+**/*.log
+
+**/*.pdf
+
+vendor
+
+pkg
+
+.env
+credentials/deploy.cred.json
+credentials/staging.cred.json
+credentials/production.cred.json
+credentials/cred.json

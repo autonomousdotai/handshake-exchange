@@ -1,0 +1,77 @@
+package: .
+import:
+- package: github.com/dgrijalva/jwt-go
+  version: v3.1.0
+  subpackages:
+  - request
+- package: github.com/gin-contrib/cors
+  version: v1.2
+- package: github.com/gin-gonic/contrib
+  subpackages:
+  - gzip
+  - sessions
+- package: github.com/gin-gonic/gin
+  version: v1.2
+- package: github.com/google/uuid
+  version: "0.2"
+- package: github.com/jinzhu/gorm
+  version: v1.9.1
+  subpackages:
+  - dialects/mssql
+  - dialects/mysql
+- package: github.com/natefinch/lumberjack
+  version: v2.1
+- package: golang.org/x/crypto
+  subpackages:
+  - bcrypt
+  - pbkdf2
+- package: github.com/go-sql-driver/mysql
+  version: v1.3
+- package: github.com/go-redis/redis
+  version: v6.9.2
+- package: github.com/stretchr/testify
+  version: v1.2.1
+  subpackages:
+  - assert
+- package: github.com/clbanning/mxj
+  version: v1.6.1
+- package: github.com/joho/godotenv
+  version: v1.2.0
+- package: github.com/getsentry/raven-go
+- package: github.com/certifi/gocertifi
+  version: 2018.01.18
+- package: github.com/pkg/errors
+  version: v0.8.0
+- package: github.com/gin-contrib/sentry
+- package: github.com/durango/go-credit-card
+- package: github.com/go-errors/errors
+  version: v1.0.1
+- package: firebase.google.com/go
+  version: v2.6.1
+- package: google.golang.org/api
+  subpackages:
+  - option
+- package: github.com/sendgrid/sendgrid-go
+  version: v3.4.1
+- package: github.com/sendgrid/rest
+  version: v2.4.1
+- package: github.com/nicksnyder/go-i18n
+  version: v1.10.0
+- package: github.com/pelletier/go-toml
+  version: v1.1.0
+- package: github.com/palantir/stacktrace
+- package: github.com/go-playground/validator
+  version: v9.15.0
+- package: github.com/go-playground/universal-translator
+  version: v0.16.0
+- package: github.com/shopspring/decimal
+  version: 1.0.1
+- package: github.com/levigross/grequests
+  version: "0.9"
+- package: github.com/google/go-querystring
+- package: github.com/pquerna/otp
+  version: v1.0.0
+- package: github.com/golang/protobuf
+  version: v1.1.0
+- package: github.com/stripe/stripe-go
+  version: v30.6.1

@@ -1,0 +1,36 @@
+language: go
+sudo: required
+go:
+- 1.9.x
+services:
+- docker
+cache:
+  directories:
+  - "$HOME/google-cloud-sdk/"
+before_install:
+- openssl aes-256-cbc -K $encrypted_a90e0b51084d_key -iv $encrypted_a90e0b51084d_iv
+  -in credentials/staging.cred.json.enc -out credentials/staging.cred.json -d
+- openssl aes-256-cbc -K $encrypted_a90e0b51084d_key -iv $encrypted_a90e0b51084d_iv
+  -in credentials/deploy.cred.json.enc -out credentials/deploy.cred.json -d
+- openssl aes-256-cbc -K $encrypted_a90e0b51084d_key -iv $encrypted_a90e0b51084d_iv
+  -in .env.enc -out .env -d
+- gcloud version || true
+- if [ ! -d "$HOME/google-cloud-sdk/bin" ]; then rm -rf $HOME/google-cloud-sdk; export
+  CLOUDSDK_CORE_DISABLE_PROMPTS=1; curl https://sdk.cloud.google.com | bash; fi
+- source /home/travis/google-cloud-sdk/path.bash.inc
+- gcloud version
+- gcloud components install kubectl || true
+install:
+- make install
+go_import_path: github.com/autonomousdotai/handshake-exchange
+script:
+- make vet
+- make fmt-check
+- make misspell-check
+- make test
+deploy:
+- provider: script
+  skip_cleanup: true
+  script: bash ./deploy.sh staging
+  on:
+    branch: master
