@@ -152,6 +152,10 @@ func AbortNotFound(context *gin.Context) {
 	AbortWithError(context, newError)
 }
 
+func NewErrorSimple(statusKey string) error {
+	return NewErrorCustom(statusKey, "", nil)
+}
+
 func NewError(statusKey string, err error) error {
 	return NewErrorCustom(statusKey, "", err)
 }

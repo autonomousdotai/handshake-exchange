@@ -1,7 +1,7 @@
 package sendgrid_service
 
 import (
-	"github.com/duyhtq/crypto-exchange-service/api_error"
+	"github.com/autonomousdotai/handshake-exchange/api_error"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	"os"
@@ -16,7 +16,7 @@ func SendEmail(fromName string, fromAddress string, toName string, toAddress str
 	message := mail.NewSingleEmail(from, subject, to, body, body)
 
 	_, err := client.Send(message)
-	err = api_error.PropagateError(api_error.SendGridError, err)
+	err = api_error.PropagateError(api_error.ExternalApiFailed, err)
 
 	return err
 }

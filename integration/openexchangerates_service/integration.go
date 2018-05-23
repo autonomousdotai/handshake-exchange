@@ -2,7 +2,7 @@ package openexchangerates_service
 
 import (
 	"fmt"
-	"github.com/duyhtq/crypto-exchange-service/api_error"
+	"github.com/autonomousdotai/handshake-exchange/api_error"
 	"github.com/levigross/grequests"
 	"os"
 )

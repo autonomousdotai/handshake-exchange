@@ -16,6 +16,7 @@ import (
 	//"github.com/nicksnyder/go-i18n/i18n"
 	"github.com/autonomousdotai/handshake-exchange/integration/firebase_service"
 	"github.com/autonomousdotai/handshake-exchange/service/cache"
+	"github.com/autonomousdotai/handshake-exchange/url"
 	"io"
 	"io/ioutil"
 	"log"
@@ -94,9 +95,7 @@ func main() {
 			"Origin",
 			"Content-Type",
 			"Accept",
-			"Custom-Username",
-			"Custom-Token",
-			"Custom-Tfa",
+			"Custom-UserId",
 			"Custom-Language",
 			"Custom-Currency"},
 		ExposeHeaders:    []string{"Content-Length"},
@@ -112,16 +111,21 @@ func main() {
 		})
 	}
 
+	infoUrl := url.InfoUrl{}
+	infoUrl.Create(router)
+	miscUrl := url.MiscUrl{}
+	miscUrl.Create(router)
+	cronJobUrl := url.CronJobUrl{}
+	cronJobUrl.Create(router)
+	creditCardUrl := url.CreditCardUrl{}
+	creditCardUrl.Create(router)
+
 	log.Printf(":%s", os.Getenv("SERVICE_PORT"))
 	router.Run(fmt.Sprintf(":%s", os.Getenv("SERVICE_PORT")))
 }
 
 func RouterMiddleware() gin.HandlerFunc {
 	return func(context *gin.Context) {
-		// begin before request
-		// log.Print("RouterMiddleware: Before request")
-		// end
-
 		requestMethod := context.Request.Method
 		requestURL := context.Request.URL.String()
 
@@ -171,10 +175,6 @@ func RouterMiddleware() gin.HandlerFunc {
 				"create_at":              firestore.ServerTimestamp,
 			})
 		}
-
-		// after request
-		// log.Print("RouterMiddleware: End request")
-		// end
 	}
 }
 
