@@ -16,7 +16,7 @@ const TRANSACTION_STATUS_FAILED = "failed"
 type Transaction struct {
 	Id              string    `json:"id"`
 	Amount          string    `json:"amount" firestore:"amount"`
-	TotalAmount     string    `json:"amount" firestore:"amount"`
+	TotalAmount     string    `json:"total_amount" firestore:"total_amount"`
 	Currency        string    `json:"currency" firestore:"currency"`
 	FiatAmount      string    `json:"fiat_amount" firestore:"fiat_amount"`
 	TotalFiatAmount string    `json:"total_fiat_amount" firestore:"total_fiat_amount"`
