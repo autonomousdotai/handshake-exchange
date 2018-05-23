@@ -19,6 +19,9 @@ const AddDataFailed = "AddDataFailed"
 const UpdateDataFailed = "UpdateDataFailed"
 const DeleteDataFailed = "DeleteDataFailed"
 
+const ProfileExists = "ProfileExists"
+const ProfileNotExist = "ProfileNotExist"
+
 var CodeMessage = map[string]struct {
 	StatusCode int
 	Code       int
@@ -40,20 +43,23 @@ var CodeMessage = map[string]struct {
 	AddDataFailed:    {http.StatusBadRequest, -202, "Add data failed"},
 	UpdateDataFailed: {http.StatusBadRequest, -203, "Update data failed"},
 	DeleteDataFailed: {http.StatusBadRequest, -204, "Delete data failed"},
+
+	ProfileExists:   {http.StatusBadRequest, -205, "Profile exists"},
+	ProfileNotExist: {http.StatusBadRequest, -206, "Profile not exist"},
 }
 
-var ErrorSuccess = NewErrorSimple(Success)
-var ErrorUnexpected = NewErrorSimple(UnexpectedError)
-var ErrorResourceNotFound = NewErrorSimple(ResourceNotFound)
-var ErrorFirebase = NewErrorSimple(FirebaseError)
-var ErrorSendEmail = NewErrorSimple(SendEmailError)
-var ErrorTokenInvalid = NewErrorSimple(TokenInvalid)
-var ErrorInvalidRequestBody = NewErrorSimple(InvalidRequestBody)
-var ErrorInvalidRequestParam = NewErrorSimple(InvalidRequestParam)
-var ErrorInvalidQueryParam = NewErrorSimple(InvalidQueryParam)
-var ErrorExternalApiFailed = NewErrorSimple(ExternalApiFailed)
-var ErrorInvalidNumber = NewErrorSimple(InvalidNumber)
-var ErrorGetDataFailed = NewErrorSimple(GetDataFailed)
-var ErrorAddDataFailed = NewErrorSimple(AddDataFailed)
-var ErrorUpdateDataFailed = NewErrorSimple(UpdateDataFailed)
-var ErrorDeleteDataFailed = NewErrorSimple(DeleteDataFailed)
+//var ErrorSuccess = NewErrorSimple(Success)
+//var ErrorUnexpected = NewErrorSimple(UnexpectedError)
+//var ErrorResourceNotFound = NewErrorSimple(ResourceNotFound)
+//var ErrorFirebase = NewErrorSimple(FirebaseError)
+//var ErrorSendEmail = NewErrorSimple(SendEmailError)
+//var ErrorTokenInvalid = NewErrorSimple(TokenInvalid)
+//var ErrorInvalidRequestBody = NewErrorSimple(InvalidRequestBody)
+//var ErrorInvalidRequestParam = NewErrorSimple(InvalidRequestParam)
+//var ErrorInvalidQueryParam = NewErrorSimple(InvalidQueryParam)
+//var ErrorExternalApiFailed = NewErrorSimple(ExternalApiFailed)
+//var ErrorInvalidNumber = NewErrorSimple(InvalidNumber)
+//var ErrorGetDataFailed = NewErrorSimple(GetDataFailed)
+//var ErrorAddDataFailed = NewErrorSimple(AddDataFailed)
+//var ErrorUpdateDataFailed = NewErrorSimple(UpdateDataFailed)
+//var ErrorDeleteDataFailed = NewErrorSimple(DeleteDataFailed)

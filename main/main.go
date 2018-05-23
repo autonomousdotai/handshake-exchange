@@ -107,6 +107,8 @@ func main() {
 		})
 	}
 
+	userUrl := url.UserUrl{}
+	userUrl.Create(router)
 	infoUrl := url.InfoUrl{}
 	infoUrl.Create(router)
 	miscUrl := url.MiscUrl{}
@@ -142,26 +144,25 @@ func RouterMiddleware() gin.HandlerFunc {
 		}
 
 		requestRemoteAddress := context.Request.RemoteAddr
-		username := context.GetHeader("Custom-Username")
+		userId := context.GetHeader("Custom-UserId")
 
 		dbClient := firebase_service.FirestoreClient
-		docRef := dbClient.Collection("logs").NewDoc()
-		docId := docRef.ID
+		docId := time.Now().UTC().Format("2006-01-02 15:04:05.000000000")
+		docRef := dbClient.Collection("logs").Doc(docId)
+		// docId := docRef.ID
 
 		if needToLog {
-			log.Println(fmt.Sprintf("%s - %s - %s - %s %s - %s", docId, username, requestRemoteAddress, requestMethod, requestURL, body))
+			log.Println(fmt.Sprintf("%s - %s - %s - %s %s - %s", docId, userId, requestRemoteAddress, requestMethod, requestURL, body))
 		}
 
 		context.Next()
 
-		userId, _ := context.Get("UserId")
 		responseStatus := context.Writer.Status()
 		responseData, _ := context.Get("ResponseData")
 		if needToLog {
 			log.Println(fmt.Sprintf("%s - %s - %s - %s", docId, userId, responseStatus, responseData))
 			docRef.Set(context, map[string]interface{}{
 				"uid":                    userId,
-				"username":               username,
 				"request_method":         requestMethod,
 				"request_url":            requestURL,
 				"request_remote_address": requestRemoteAddress,

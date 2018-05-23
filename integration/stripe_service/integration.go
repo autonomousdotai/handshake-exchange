@@ -31,12 +31,12 @@ func CreateToken(cardNum string, date string, cvv string) (string, error) {
 	return token.ID, err
 }
 
-func CreateCustomer(email string, token string) (string, error) {
+func CreateCustomer(description string, token string) (string, error) {
 	sc := &client.API{}
 	sc.Init(os.Getenv("STRIPE_SECRET_KEY"), nil)
 
 	customerParams := &stripe.CustomerParams{
-		Email: email,
+		Desc: description,
 	}
 	customerParams.SetSource(token) // obtained with Stripe.js
 	c, err := sc.Customers.New(customerParams)

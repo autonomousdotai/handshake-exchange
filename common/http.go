@@ -19,12 +19,8 @@ func GetLanguage(context *gin.Context) string {
 	return GetHeaderWithDefault(context, "Custom-Language", "en-US")
 }
 
-func GetUserToken(context *gin.Context) string {
-	return GetHeaderWithDefault(context, "Custom-Token", "")
-}
-
-func GetUser2FAToken(context *gin.Context) string {
-	return GetHeaderWithDefault(context, "Custom-Tfa", "")
+func GetUserId(context *gin.Context) string {
+	return GetHeaderWithDefault(context, "Custom-Userid", "")
 }
 
 func GetCurrency(context *gin.Context) string {

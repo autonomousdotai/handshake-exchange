@@ -214,7 +214,7 @@ func (s CreditCardService) saveCreditCard(userId string, paymentMethodData bean.
 	// Need to create another token to save customer
 	token, err := stripe_service.CreateToken(paymentMethodData.CCNum, paymentMethodData.ExpirationDate, paymentMethodData.CVV)
 	if err == nil {
-		token, _ = stripe_service.CreateCustomer(profile.Email, token)
+		token, _ = stripe_service.CreateCustomer(profile.UserId, token)
 		ccUserLimit, err := UserServiceInst.GetUserCCLimitFirstLevel()
 		if err == nil {
 			err = s.userDao.UpdateProfileCreditCard(userId, bean.UserCreditCard{

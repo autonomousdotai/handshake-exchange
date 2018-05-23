@@ -17,6 +17,20 @@ type UserService struct {
 	miscDao *dao.MiscDao
 }
 
+func (s UserService) AddProfile(profile bean.Profile) error {
+	to := s.dao.GetProfile(profile.UserId)
+	var err error
+	if to.Error == nil {
+		if to.Found {
+			err = errors.New(api_error.ProfileExists)
+		} else {
+			err = s.dao.AddProfile(profile)
+		}
+	}
+
+	return err
+}
+
 func (s UserService) GetCCLimitLevel(userId string) (limit bean.UserCreditCardLimit, ce SimpleContextError) {
 	to := s.dao.GetProfile(userId)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, to) {

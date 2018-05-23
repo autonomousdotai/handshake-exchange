@@ -24,21 +24,14 @@ func (dao UserDao) GetProfile(userId string) (t TransferObject) {
 	return
 }
 
-func (dao UserDao) AddProfile(userId string, profile bean.AddProfile) error {
+func (dao UserDao) AddProfile(profile bean.Profile) error {
 	dbClient := firebase_service.FirestoreClient
 
 	batch := dbClient.Batch()
 
 	// users/{uid}
-	profileRef := dbClient.Collection("users").Doc(userId)
-	batch.Set(profileRef, profile.GetAddProfile(), firestore.MergeAll)
-
-	// users/{uid}/wallets/{currency}
-	//for _, currency := range []bean.Currency{bean.USD, bean.BCH, bean.BTC, bean.ETH, bean.LTC} {
-	//	walletRef := dbClient.Collection("users").Doc(userId).Collection("wallets").Doc(currency.Code)
-	//	batch.Create(walletRef, bean.Wallet{}.GetAddWallet(currency))
-	//
-	//}
+	profileRef := dbClient.Collection("users").Doc(profile.UserId)
+	batch.Set(profileRef, profile.GetAddProfile())
 	_, err := batch.Commit(context.Background())
 
 	return err
