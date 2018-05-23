@@ -21,6 +21,7 @@ const DeleteDataFailed = "DeleteDataFailed"
 
 const ProfileExists = "ProfileExists"
 const ProfileNotExist = "ProfileNotExist"
+const CCOverLimit = "CCOverLimit"
 
 var CodeMessage = map[string]struct {
 	StatusCode int
@@ -44,8 +45,9 @@ var CodeMessage = map[string]struct {
 	UpdateDataFailed: {http.StatusBadRequest, -203, "Update data failed"},
 	DeleteDataFailed: {http.StatusBadRequest, -204, "Delete data failed"},
 
-	ProfileExists:   {http.StatusBadRequest, -205, "Profile exists"},
-	ProfileNotExist: {http.StatusBadRequest, -206, "Profile not exist"},
+	ProfileExists:   {http.StatusBadRequest, -301, "Profile exists"},
+	ProfileNotExist: {http.StatusBadRequest, -302, "Profile not exist"},
+	CCOverLimit:     {http.StatusBadRequest, -303, "CC over limit"},
 }
 
 //var ErrorSuccess = NewErrorSimple(Success)
