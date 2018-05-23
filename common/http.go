@@ -20,7 +20,7 @@ func GetLanguage(context *gin.Context) string {
 }
 
 func GetUserId(context *gin.Context) string {
-	return GetHeaderWithDefault(context, "Custom-Userid", "")
+	return GetHeaderWithDefault(context, "Custom-Uid", "")
 }
 
 func GetCurrency(context *gin.Context) string {

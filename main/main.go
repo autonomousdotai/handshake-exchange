@@ -91,7 +91,7 @@ func main() {
 			"Origin",
 			"Content-Type",
 			"Accept",
-			"Custom-UserId",
+			"Custom-Uid",
 			"Custom-Language",
 			"Custom-Currency"},
 		ExposeHeaders:    []string{"Content-Length"},
