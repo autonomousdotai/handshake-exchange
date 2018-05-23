@@ -83,12 +83,8 @@ func main() {
 	router.Use(gzip.Gzip(gzip.DefaultCompression))
 	router.Use(cors.New(cors.Config{
 		AllowOrigins: []string{
-			"http://localhost:5000",
-			"http://localhost:3000",
-			"http://127.0.0.1:5000",
-			"http://127.0.0.1:3000",
-			"http://35.199.171.18",
-			"http://35.199.176.142",
+			"http://localhost:8080",
+			"http://127.0.0.1:8080",
 		},
 		AllowMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE"},
 		AllowHeaders: []string{
