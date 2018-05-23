@@ -15,6 +15,12 @@ test:
 fmt:
 	$(GOFMT) -w $(GOFILES)
 
+.PHONY: deploy
+deploy:
+	rm credentials.tar.enc;
+	tar cvf credentials.tar credentials/;
+	travis encrypt-file credentials.tar;
+
 .PHONY: fmt-check
 fmt-check:
 	# get all go files and run go fmt on them

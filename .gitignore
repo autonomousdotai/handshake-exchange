@@ -13,8 +13,5 @@ vendor
 
 pkg
 
-.env
-credentials/deploy.cred.json
-credentials/staging.cred.json
-credentials/production.cred.json
-credentials/cred.json
+credentials/*
+credentials.tar

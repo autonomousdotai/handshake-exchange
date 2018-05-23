@@ -27,7 +27,7 @@ import (
 
 func init() {
 	// Load configuration env
-	err := godotenv.Load()
+	err := godotenv.Load(".env", "./credentials/.env")
 	if err != nil {
 		log.Fatal("OrgError loading .env file")
 	}
