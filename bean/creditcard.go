@@ -84,13 +84,13 @@ type InstantOffer struct {
 	Price                string      `json:"price" firestore:"price"`
 	Status               string      `json:"status" firestore:"status"`
 	Type                 string      `json:"type" firestore:"type"`
-	Duration             int64       `json:"duration" firestore:"duration"`
+	Duration             int64       `json:"-" firestore:"duration"`
 	Fee                  string      `json:"-" firestore:"fee"`
 	ExternalFee          string      `json:"-" firestore:"external_fee"`
 	PaymentMethod        string      `json:"-" firestore:"payment_method"`
 	PaymentMethodRef     string      `json:"-" firestore:"payment_method_ref"`
 	PaymentMethodData    interface{} `json:"payment_method_data" validate:"required"`
-	FeePercentage        string      `json:"fee_percentage" firestore:"fee_percentage"`
+	FeePercentage        string      `json:"-" firestore:"fee_percentage"`
 	Provider             string      `json:"-" firestore:"provider"`
 	ProviderData         interface{} `json:"-" firestore:"provider_data"`
 	ProviderWithdrawData interface{} `json:"-" firestore:"provider_withdraw_data"`

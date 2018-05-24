@@ -11,8 +11,9 @@ import (
 	"github.com/autonomousdotai/handshake-exchange/integration/stripe_service"
 	"github.com/shopspring/decimal"
 	"github.com/stripe/stripe-go"
-	"log"
 	"time"
+	"strconv"
+	"os"
 )
 
 type CreditCardService struct {
@@ -69,6 +70,11 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 		return
 	}
 	profile := profileTO.Object.(bean.Profile)
+	// Your CC got problem
+	if profile.CreditCardStatus != bean.CREDIT_CARD_STATUS_OK {
+		ce.SetStatusKey(api_error.InvalidCC)
+		return
+	}
 
 	var err error
 	var paymentMethodData bean.CreditCardInfo
@@ -329,7 +335,8 @@ func setupInstantOffer(offer *bean.InstantOffer, offerTest bean.InstantOffer, gd
 	offer.Fee = offerTest.Fee
 	offer.FeePercentage = offerTest.FeePercentage
 	offer.Price = offerTest.Price
-	offer.Duration = 900
+	duration, _ := strconv.Atoi(os.Getenv("CC_LIMIT_DURATION"))
+	offer.Duration = int64(duration)
 }
 
 func setupCCTransaction(ccTran *bean.CCTransaction, offerBody bean.InstantOffer, stripeCharge *stripe.Charge) {

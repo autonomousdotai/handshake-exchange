@@ -91,6 +91,7 @@ func NewTransactionFromInstantOffer(offer InstantOffer) Transaction {
 	txType := TRANSACTION_TYPE_INSTANT_BUY
 	fromTransaction := Transaction{
 		Amount:          offer.Amount,
+		TotalAmount:     offer.Amount,
 		Currency:        offer.Currency,
 		FiatAmount:      offer.RawFiatAmount,
 		TotalFiatAmount: offer.FiatAmount,

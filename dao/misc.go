@@ -12,6 +12,8 @@ import (
 	"github.com/shopspring/decimal"
 	"google.golang.org/api/iterator"
 	"strconv"
+	"sort"
+	"os"
 )
 
 type MiscDao struct {
@@ -201,6 +203,7 @@ func (dao MiscDao) GetCCLimitFromCache() (t TransferObject) {
 	}
 
 	t.Found = true
+	ccLimits := make([]bean.CCLimit, 0)
 	for _, key := range keys {
 		var tTemp TransferObject
 		GetCacheObject(key, &tTemp, func(val string) interface{} {
@@ -208,7 +211,16 @@ func (dao MiscDao) GetCCLimitFromCache() (t TransferObject) {
 			json.Unmarshal([]byte(val), &obj)
 			return obj
 		})
-		t.Objects = append(t.Objects, tTemp.Object.(bean.CCLimit))
+		ccLimits = append(ccLimits, tTemp.Object.(bean.CCLimit))
+	}
+
+	sort.Slice(ccLimits[:], func(i, j int) bool {
+		return ccLimits[i].Level < ccLimits[j].Level
+	})
+
+	maxLimit, _ := strconv.Atoi(os.Getenv("MAX_CC_LIMIT_LEVEL"))
+	for _, value := range ccLimits[:maxLimit] {
+		t.Objects = append(t.Objects, value)
 	}
 
 	return
