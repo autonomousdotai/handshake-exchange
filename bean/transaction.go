@@ -29,8 +29,8 @@ type Transaction struct {
 	FromUsername    string    `json:"from_username" firestore:"from_username"`
 	To              string    `json:"to" firestore:"to"`
 	ToUsername      string    `json:"to_username" firestore:"to_username"`
-	Fee             string    `json:"fee" firestore:"fee"`
-	FeePercentage   string    `json:"fee_percentage" firestore:"fee_percentage"`
+	Fee             string    `json:"-" firestore:"fee"`
+	FeePercentage   string    `json:"-" firestore:"fee_percentage"`
 	OfferHandshake  string    `json:"offer_handshake" firestore:"offer_handshake"`
 	IsOriginal      bool      `json:"-" firestore:"is_original"`
 	CreatedAt       time.Time `json:"created_at" firestore:"created_at"`

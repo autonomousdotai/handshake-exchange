@@ -49,7 +49,7 @@ var CodeMessage = map[string]struct {
 	ProfileExists:   {http.StatusBadRequest, -301, "Profile exists"},
 	ProfileNotExist: {http.StatusBadRequest, -302, "Profile not exist"},
 	CCOverLimit:     {http.StatusBadRequest, -303, "CC over limit"},
-	InvalidCC:     {http.StatusBadRequest, -304, "CC is invalid"},
+	InvalidCC:       {http.StatusBadRequest, -304, "CC is invalid"},
 }
 
 //var ErrorSuccess = NewErrorSimple(Success)

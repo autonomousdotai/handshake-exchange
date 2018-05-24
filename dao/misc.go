@@ -11,9 +11,9 @@ import (
 	"github.com/autonomousdotai/handshake-exchange/service/cache"
 	"github.com/shopspring/decimal"
 	"google.golang.org/api/iterator"
-	"strconv"
-	"sort"
 	"os"
+	"sort"
+	"strconv"
 )
 
 type MiscDao struct {

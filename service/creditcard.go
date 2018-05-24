@@ -11,9 +11,9 @@ import (
 	"github.com/autonomousdotai/handshake-exchange/integration/stripe_service"
 	"github.com/shopspring/decimal"
 	"github.com/stripe/stripe-go"
-	"time"
-	"strconv"
 	"os"
+	"strconv"
+	"time"
 )
 
 type CreditCardService struct {
