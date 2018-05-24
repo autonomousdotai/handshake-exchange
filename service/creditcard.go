@@ -11,13 +11,15 @@ import (
 	"github.com/autonomousdotai/handshake-exchange/integration/stripe_service"
 	"github.com/shopspring/decimal"
 	"github.com/stripe/stripe-go"
+	"log"
 	"time"
 )
 
 type CreditCardService struct {
-	dao     *dao.CreditCardDao
-	miscDao *dao.MiscDao
-	userDao *dao.UserDao
+	dao      *dao.CreditCardDao
+	miscDao  *dao.MiscDao
+	userDao  *dao.UserDao
+	transDao *dao.TransactionDao
 }
 
 func (s CreditCardService) GetProposeInstantOffer(amountStr string, currency string) (offer bean.InstantOffer, ce SimpleContextError) {
@@ -113,13 +115,11 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 	} else {
 		isSuccess = true
 		gdaxResponse, err = gdax_service.PlaceOrder(offerBody.Amount, offerBody.Currency, offerTest.Price)
-		//if ce.SetError(api_error.ExternalApiFailed, err) {
-		//	isSuccess = false
-		//} else {
-		//	isSuccess = true
-		//}
-		// TODO Uncomment and remove this
-		isSuccess = true
+		if ce.SetError(api_error.ExternalApiFailed, err) {
+			isSuccess = false
+		} else {
+			isSuccess = true
+		}
 	}
 
 	if !isSuccess {
@@ -138,7 +138,9 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 		setupInstantOffer(&offerBody, offerTest, gdaxResponse)
 		offerBody.PaymentMethod = bean.INSTANT_OFFER_PAYMENT_METHOD_CC
 		offerBody.PaymentMethodRef = dao.GetCCTransactionItemPath(offerBody.UID, ccTran.Id)
-		offer, err = s.dao.AddInstantOffer(offerBody, gdaxResponse.Id)
+
+		transaction := bean.NewTransactionFromInstantOffer(offerBody)
+		offer, err = s.dao.AddInstantOffer(offerBody, transaction, gdaxResponse.Id)
 		if ce.SetError(api_error.AddDataFailed, err) {
 			return
 		}
@@ -170,14 +172,7 @@ func (s CreditCardService) FinishInstantOffers() (finishedInstantOffers []bean.I
 		return
 	} else {
 		for _, pendingOffer := range pendingOffers {
-			//gdaxResponse, err := gdax_service.GetOrder(pendingOffer.ProviderId)
-
-			// TODO Remove when moving to production
-			// This init is for testing
-			gdaxResponse := bean.GdaxOrderResponse{
-				Status: "done",
-			}
-
+			gdaxResponse, err := gdax_service.GetOrder(pendingOffer.ProviderId)
 			isDone := false
 			if err == nil {
 				if gdaxResponse.Status == "done" {
@@ -192,8 +187,8 @@ func (s CreditCardService) FinishInstantOffers() (finishedInstantOffers []bean.I
 			}
 
 			if !isDone {
-				// Over 5 minutes
-				if time.Now().UTC().Sub(pendingOffer.CreatedAt).Seconds() > 60*5 {
+				// Over duration
+				if time.Now().UTC().Sub(pendingOffer.CreatedAt).Seconds() > float64(pendingOffer.Duration) {
 					s.cancelInstantOffer(&pendingOffer, &ce)
 					if ce.CheckError() != nil {
 						// return
@@ -249,8 +244,23 @@ func (s CreditCardService) finishInstantOffer(pendingOffer *bean.PendingInstantO
 	ccTran.Status = bean.CC_TRANSACTION_STATUS_CAPTURED
 
 	s.dao.UpdateCCTransactionStatus(ccTran)
-	// TODO Get real transaction here
-	_, err = s.dao.UpdateInstantOffer(offer, bean.Transaction{})
+
+	transTO := s.transDao.GetTransactionByPath(offer.TransactionRef)
+	var trans bean.Transaction
+	if transTO.HasError() {
+		// Just one to make sure we don't lost anything
+		trans = bean.NewTransactionFromInstantOffer(offer)
+	} else {
+		trans = transTO.Object.(bean.Transaction)
+	}
+	trans.Status = bean.TRANSACTION_STATUS_SUCCESS
+
+	gdaxWithdrawResponse, errWithdraw := gdax_service.WithdrawCrypto(offer.Amount, offer.Currency, offer.Address)
+	if errWithdraw == nil {
+		offer.ProviderWithdrawData = gdaxWithdrawResponse
+	}
+
+	_, err = s.dao.UpdateInstantOffer(offer, trans)
 	if ce.SetError(api_error.UpdateDataFailed, err) {
 		return
 	}
@@ -280,8 +290,17 @@ func (s CreditCardService) cancelInstantOffer(pendingOffer *bean.PendingInstantO
 		s.dao.UpdateCCTransactionStatus(ccTran)
 	}
 
-	// TODO Update real transaction
-	_, err = s.dao.UpdateInstantOffer(offer, bean.Transaction{})
+	transTO := s.transDao.GetTransactionByPath(offer.TransactionRef)
+	var trans bean.Transaction
+	if transTO.HasError() {
+		// Just one to make sure we don't lost anything
+		trans = bean.NewTransactionFromInstantOffer(offer)
+	} else {
+		trans = transTO.Object.(bean.Transaction)
+	}
+	trans.Status = bean.TRANSACTION_STATUS_FAILED
+
+	_, err = s.dao.UpdateInstantOffer(offer, trans)
 	if ce.SetError(api_error.UpdateDataFailed, err) {
 		return
 	}
@@ -299,7 +318,10 @@ func (s CreditCardService) cancelInstantOffer(pendingOffer *bean.PendingInstantO
 }
 
 func setupInstantOffer(offer *bean.InstantOffer, offerTest bean.InstantOffer, gdaxResponse bean.GdaxOrderResponse) {
-	// TODO Calculate TotalFiatAmount
+	fiatAmount, _ := decimal.NewFromString(offer.FiatAmount)
+	fee, _ := decimal.NewFromString(offerTest.Fee)
+
+	offer.RawFiatAmount = fiatAmount.Sub(fee).String()
 	offer.Status = bean.INSTANT_OFFER_STATUS_PROCESSING
 	offer.Type = bean.INSTANT_OFFER_TYPE_BUY
 	offer.Provider = bean.INSTANT_OFFER_PROVIDER_GDAX

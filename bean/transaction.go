@@ -92,8 +92,8 @@ func NewTransactionFromInstantOffer(offer InstantOffer) Transaction {
 	fromTransaction := Transaction{
 		Amount:          offer.Amount,
 		Currency:        offer.Currency,
-		FiatAmount:      offer.FiatAmount,
-		TotalFiatAmount: "fiatamount+fee",
+		FiatAmount:      offer.RawFiatAmount,
+		TotalFiatAmount: offer.FiatAmount,
 		FiatCurrency:    offer.FiatCurrency,
 		Price:           offer.Price,
 		Type:            txType,

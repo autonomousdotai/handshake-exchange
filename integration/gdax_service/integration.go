@@ -117,3 +117,21 @@ func GetOrder(orderId string) (bean.GdaxOrderResponse, error) {
 
 	return response, err
 }
+
+func WithdrawCrypto(amount string, currency string, address string) (bean.GdaxWithdrawResponse, error) {
+	client := GdaxClient{}
+	client.Initialize()
+
+	var response bean.GdaxWithdrawResponse
+
+	resp, err := client.Post("/withdrawals/crypto", bean.GdaxWithdrawRequest{
+		Currency: currency,
+		Amount:   amount,
+		Address:  address,
+	}.GetRequestBody())
+	if err == nil {
+		resp.JSON(&response)
+	}
+
+	return response, err
+}

@@ -8,7 +8,8 @@ var UserServiceInst = UserService{
 }
 
 var CreditCardServiceInst = CreditCardService{
-	dao:     &dao.CreditCardDaoInst,
-	miscDao: &dao.MiscDaoInst,
-	userDao: &dao.UserDaoInst,
+	dao:      &dao.CreditCardDaoInst,
+	miscDao:  &dao.MiscDaoInst,
+	userDao:  &dao.UserDaoInst,
+	transDao: &dao.TransactionDaoInst,
 }

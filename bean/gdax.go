@@ -23,11 +23,31 @@ type GdaxOrderResponse struct {
 	Settled       bool
 }
 
+type GdaxWithdrawRequest struct {
+	Address  string
+	Amount   string
+	Currency string
+}
+
+type GdaxWithdrawResponse struct {
+	Id       string
+	Amount   string
+	Currency string
+}
+
 func (request GdaxPlaceOrderRequest) GetRequestBody() map[string]interface{} {
 	return map[string]interface{}{
 		"size":       request.Size,
 		"price":      request.Price,
 		"side":       request.Side,
 		"product_id": request.ProductId,
+	}
+}
+
+func (request GdaxWithdrawRequest) GetRequestBody() map[string]interface{} {
+	return map[string]interface{}{
+		"crypto_address": request.Address,
+		"amount":         request.Amount,
+		"currency":       request.Currency,
 	}
 }

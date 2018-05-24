@@ -18,8 +18,22 @@ func (dao TransactionDao) ListTransactions(userId string, transType string, curr
 	return
 }
 
+func (dao TransactionDao) GetTransaction(userId string, transId string) TransferObject {
+	return dao.GetTransactionByPath(GetTransactionItemPath(userId, transId))
+}
+
+func (dao TransactionDao) GetTransactionByPath(path string) (t TransferObject) {
+	// users/{uid}/transactions/{id}
+	GetObject(path, &t, snapshotToTransaction)
+	return
+}
+
 func GetTransactionPath(userId string) string {
 	return fmt.Sprintf("users/%s/transactions", userId)
+}
+
+func GetTransactionItemPath(userId string, id string) string {
+	return fmt.Sprintf("users/%s/transactions/%s", userId, id)
 }
 
 func snapshotToTransaction(snapshot *firestore.DocumentSnapshot) interface{} {

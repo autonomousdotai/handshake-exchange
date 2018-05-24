@@ -62,7 +62,6 @@ func (cc CCTransaction) GetPageValue() interface{} {
 	return cc.CreatedAt
 }
 
-const INSTANT_OFFER_STATUS_CREATED = "created"
 const INSTANT_OFFER_STATUS_PROCESSING = "processing"
 const INSTANT_OFFER_STATUS_SUCCESS = "success"
 const INSTANT_OFFER_STATUS_CANCELLED = "cancelled"
@@ -75,27 +74,30 @@ const INSTANT_OFFER_PROVIDER_GDAX = "gdax"
 const INSTANT_OFFER_PAYMENT_METHOD_CC = "creditcard"
 
 type InstantOffer struct {
-	Id                string      `json:"id" firestore:"id"`
-	UID               string      `json:"uid" firestore:"uid"`
-	Amount            string      `json:"amount" firestore:"amount" validate:"required"`
-	Currency          string      `json:"currency" firestore:"currency" validate:"required"`
-	FiatAmount        string      `json:"fiat_amount" firestore:"fiat_amount" validate:"required"`
-	TotalFiatAmount   string      `json:"total_fiat_amount" firestore:"total_fiat_amount"`
-	FiatCurrency      string      `json:"fiat_currency" firestore:"fiat_currency" validate:"required"`
-	Price             string      `json:"price" firestore:"price"`
-	Status            string      `json:"status" firestore:"status"`
-	Type              string      `json:"type" firestore:"type"`
-	Duration          int         `json:"duration" firestore:"duration"`
-	Fee               string      `json:"fee" firestore:"fee"`
-	ExternalFee       string      `json:"-" firestore:"external_fee"`
-	PaymentMethod     string      `json:"-" firestore:"payment_method"`
-	PaymentMethodRef  string      `json:"-" firestore:"payment_method_ref"`
-	PaymentMethodData interface{} `json:"payment_method_data" validate:"required"`
-	FeePercentage     string      `json:"fee_percentage" firestore:"fee_percentage"`
-	Provider          string      `json:"-" firestore:"provider"`
-	ProviderData      interface{} `json:"-" firestore:"provider_data"`
-	CreatedAt         time.Time   `json:"created_at" firestore:"created_at"`
-	UpdatedAt         time.Time   `json:"updated_at" firestore:"updated_at"`
+	Id                   string      `json:"id" firestore:"id"`
+	UID                  string      `json:"uid" firestore:"uid"`
+	Amount               string      `json:"amount" firestore:"amount" validate:"required"`
+	Currency             string      `json:"currency" firestore:"currency" validate:"required"`
+	FiatAmount           string      `json:"fiat_amount" firestore:"fiat_amount" validate:"required"`
+	RawFiatAmount        string      `json:"-" firestore:"raw_fiat_amount"`
+	FiatCurrency         string      `json:"fiat_currency" firestore:"fiat_currency" validate:"required"`
+	Price                string      `json:"price" firestore:"price"`
+	Status               string      `json:"status" firestore:"status"`
+	Type                 string      `json:"type" firestore:"type"`
+	Duration             int64       `json:"duration" firestore:"duration"`
+	Fee                  string      `json:"-" firestore:"fee"`
+	ExternalFee          string      `json:"-" firestore:"external_fee"`
+	PaymentMethod        string      `json:"-" firestore:"payment_method"`
+	PaymentMethodRef     string      `json:"-" firestore:"payment_method_ref"`
+	PaymentMethodData    interface{} `json:"payment_method_data" validate:"required"`
+	FeePercentage        string      `json:"fee_percentage" firestore:"fee_percentage"`
+	Provider             string      `json:"-" firestore:"provider"`
+	ProviderData         interface{} `json:"-" firestore:"provider_data"`
+	ProviderWithdrawData interface{} `json:"-" firestore:"provider_withdraw_data"`
+	TransactionRef       string      `json:"-" firestore:"transaction_ref"`
+	Address              string      `json:"address" firestore:"address" validate:"required"`
+	CreatedAt            time.Time   `json:"created_at" firestore:"created_at"`
+	UpdatedAt            time.Time   `json:"updated_at" firestore:"updated_at"`
 }
 
 type CreditCardInfo struct {
@@ -118,7 +120,7 @@ func (offer InstantOffer) GetAddInstantOffer() map[string]interface{} {
 		"amount":             offer.Amount,
 		"currency":           offer.Currency,
 		"fiat_amount":        offer.FiatAmount,
-		"total_fiat_amount":  offer.TotalFiatAmount,
+		"raw_fiat_amount":    offer.RawFiatAmount,
 		"fiat_currency":      offer.FiatCurrency,
 		"price":              offer.Price,
 		"status":             offer.Status,
@@ -130,14 +132,18 @@ func (offer InstantOffer) GetAddInstantOffer() map[string]interface{} {
 		"payment_method_ref": offer.PaymentMethodRef,
 		"provider":           offer.Provider,
 		"provider_data":      offer.ProviderData,
+		"transaction_ref":    offer.TransactionRef,
+		"address":            offer.Address,
 		"created_at":         firestore.ServerTimestamp,
 	}
 }
 
-func (offer InstantOffer) GetUpdateStatus() map[string]interface{} {
+func (offer InstantOffer) GetUpdate() map[string]interface{} {
 	return map[string]interface{}{
-		"status":     offer.Status,
-		"updated_at": firestore.ServerTimestamp,
+		"provider_data":          offer.ProviderData,
+		"provider_withdraw_data": offer.ProviderWithdrawData,
+		"status":                 offer.Status,
+		"updated_at":             firestore.ServerTimestamp,
 	}
 }
 
@@ -150,6 +156,7 @@ type PendingInstantOffer struct {
 	UID             string    `json:"uid" firestore:"uid"`
 	InstantOffer    string    `json:"instant_offer" firestore:"instant_offer"`
 	InstantOfferRef string    `json:"instant_offer_ref" firestore:"instant_offer_ref"`
+	Duration        int64     `json:"duration" firestore:"duration"`
 	Provider        string    `json:"provider" firestore:"provider"`
 	ProviderId      string    `json:"provider_id" firestore:"provider_id"`
 	CreatedAt       time.Time `json:"created_at" firestore:"created_at"`

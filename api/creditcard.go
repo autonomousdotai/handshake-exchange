@@ -50,8 +50,6 @@ func (api CreditCardApi) GetInstantOffers(context *gin.Context) {
 		return
 	}
 	offer := offerTO.Object.(bean.InstantOffer)
-	// TODO Remove this
-	offer.Status = bean.INSTANT_OFFER_STATUS_SUCCESS
 
 	bean.SuccessResponse(context, offer)
 }

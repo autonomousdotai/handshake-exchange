@@ -59,7 +59,7 @@ func (dao CreditCardDao) GetCCTransactionByPath(path string) (t TransferObject) 
 	return
 }
 
-func (dao CreditCardDao) AddInstantOffer(offer bean.InstantOffer, providerId string) (bean.InstantOffer, error) {
+func (dao CreditCardDao) AddInstantOffer(offer bean.InstantOffer, transaction bean.Transaction, providerId string) (bean.InstantOffer, error) {
 	dbClient := firebase_service.FirestoreClient
 
 	docRef := dbClient.Collection(GetInstantOfferPath(offer.UID)).NewDoc()
@@ -69,6 +69,7 @@ func (dao CreditCardDao) AddInstantOffer(offer bean.InstantOffer, providerId str
 		UID:             offer.UID,
 		InstantOffer:    offer.Id,
 		InstantOfferRef: GetInstantOfferItemPath(offer.UID, offer.Id),
+		Duration:        offer.Duration,
 		Provider:        offer.Provider,
 		ProviderId:      providerId,
 	}
@@ -76,8 +77,8 @@ func (dao CreditCardDao) AddInstantOffer(offer bean.InstantOffer, providerId str
 	docPendingRef := dbClient.Doc(GetPendingInstantOfferItemPath(pendingOfferId))
 	pendingOffer.Id = pendingOfferId
 
-	transaction := bean.NewTransactionFromInstantOffer(offer)
 	docTransactionRef := dbClient.Collection(GetTransactionPath(offer.UID)).NewDoc()
+	offer.TransactionRef = GetTransactionItemPath(offer.UID, docTransactionRef.ID)
 
 	batch := dbClient.Batch()
 	batch.Set(docRef, offer.GetAddInstantOffer())
@@ -95,11 +96,10 @@ func (dao CreditCardDao) UpdateInstantOffer(offer bean.InstantOffer, transaction
 	pendingOfferId := fmt.Sprintf("%s-%s", offer.UID, offer.Id)
 	pendingOfferDocRef := dbClient.Doc(GetPendingInstantOfferItemPath(pendingOfferId))
 
-	transactionPath := ""
-	docTransactionRef := dbClient.Doc(transactionPath)
+	docTransactionRef := dbClient.Doc(offer.TransactionRef)
 
 	batch := dbClient.Batch()
-	batch.Set(docRef, offer.GetUpdateStatus(), firestore.MergeAll)
+	batch.Set(docRef, offer.GetUpdate(), firestore.MergeAll)
 	batch.Delete(pendingOfferDocRef)
 	batch.Set(docTransactionRef, transaction.GetUpdateStatus(), firestore.MergeAll)
 	_, err := batch.Commit(context.Background())
