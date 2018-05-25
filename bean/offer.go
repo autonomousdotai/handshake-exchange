@@ -14,12 +14,14 @@ const OFFER_PROVIDER_COINBASE = "coinbase"
 
 // created -> active
 // active -> shaking
-// shaking -> shake
+// shaking -> shake, pre_shake
+// pre_shake -> shake
 // shake -> completing
 // shake -> rejected
 // completing -> completed
 const OFFER_STATUS_CREATED = "created"
 const OFFER_STATUS_ACTIVE = "active"
+const OFFER_STATUS_PRE_SHAKE = "pre_shake"
 const OFFER_STATUS_SHAKING = "shaking"
 const OFFER_STATUS_SHAKE = "shake"
 const OFFER_STATUS_COMPLETING = "completing"
@@ -48,6 +50,7 @@ type Offer struct {
 	ContactInfo    string      `json:"contact_info" firestore:"contact_info" validate:"required"`
 	SystemAddress  string      `json:"system_address" firestore:"system_address"`
 	UserAddress    string      `json:"user_address" firestore:"user_address"`
+	RefundAddress  string      `json:"refund_address" firestore:"refund_address"`
 	Provider       string      `json:"provider" firestore:"provider"`
 	ProviderData   interface{} `json:"provider_data" firestore:"provider_data"`
 	Fee            string      `json:"-" firestore:"fee"`
@@ -80,7 +83,8 @@ func (offer Offer) GetAddOffer() map[string]interface{} {
 		"contact_info":   offer.ContactInfo,
 		"system_address": offer.SystemAddress,
 		"user_address":   offer.UserAddress,
-		"status":         OFFER_STATUS_CREATED,
+		"refund_address": offer.RefundAddress,
+		"status":         offer.Status,
 		"uid":            offer.UID,
 		"username":       offer.Username,
 		"created_at":     firestore.ServerTimestamp,
@@ -93,6 +97,7 @@ func (offer Offer) GetUpdateOfferActive() map[string]interface{} {
 		"price_number_usd": 0,
 		"price":            "0",
 		"price_usd":        "0",
+		"fiat_amount":      "0",
 		"user_address":     offer.UserAddress,
 		"status":           OFFER_STATUS_ACTIVE,
 		"updated_at":       firestore.ServerTimestamp,
@@ -105,7 +110,9 @@ func (offer Offer) GetUpdateOfferShaking() map[string]interface{} {
 		"price_number_usd": offer.PriceNumberUSD,
 		"price":            offer.Price,
 		"price_usd":        offer.PriceUSD,
+		"fiat_amount":      offer.FiatAmount,
 		"user_address":     offer.UserAddress,
+		"refund_address":   offer.RefundAddress,
 		"status":           OFFER_STATUS_SHAKING,
 		"updated_at":       firestore.ServerTimestamp,
 	}
@@ -116,6 +123,24 @@ func (offer Offer) GetUpdateOfferCompleting() map[string]interface{} {
 		"provider":      offer.Provider,
 		"provider_data": offer.ProviderData,
 		"status":        OFFER_STATUS_COMPLETING,
+		"updated_at":    firestore.ServerTimestamp,
+	}
+}
+
+func (offer Offer) GetUpdateOfferClose() map[string]interface{} {
+	return map[string]interface{}{
+		"provider":      offer.Provider,
+		"provider_data": offer.ProviderData,
+		"status":        OFFER_STATUS_CLOSED,
+		"updated_at":    firestore.ServerTimestamp,
+	}
+}
+
+func (offer Offer) GetUpdateOfferReject() map[string]interface{} {
+	return map[string]interface{}{
+		"provider":      offer.Provider,
+		"provider_data": offer.ProviderData,
+		"status":        OFFER_STATUS_REJECTED,
 		"updated_at":    firestore.ServerTimestamp,
 	}
 }
@@ -131,7 +156,11 @@ func (offer Offer) GetPageValue() interface{} {
 	return offer.CreatedAt
 }
 
-type OfferHandshakeRequest struct {
-	Amount string `json:"amount" validate:"required"`
-	// Currency string `json:"currency" validate:"required"`
+type OfferShakeRequest struct {
+	FiatAmount string `json:"fiat_amount" validate:"required"`
+	Address    string `json:"address"`
+}
+
+type OfferCloseRequest struct {
+	Address string `json:"address"`
 }

@@ -19,6 +19,7 @@ func (api OfferApi) CreateOffer(context *gin.Context) {
 		return
 	}
 
+	// status: buy:active or sell:created
 	offer, ce := service.OfferServiceInst.CreateOffer(userId, body)
 	if ce.ContextValidate(context) {
 		return
@@ -37,6 +38,89 @@ func (api OfferApi) ListOffers(context *gin.Context) {
 	}
 
 	bean.SuccessPagingResponse(context, to.Objects, to.CanMove, to.Page)
+}
+
+func (api OfferApi) CloseOffer(context *gin.Context) {
+	userId := common.GetUserId(context)
+	offerId := context.Param("offerId")
+
+	// status: created->closed, active->closed
+	offer, ce := service.OfferServiceInst.CloseOffer(userId, offerId)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, offer)
+}
+
+func (api OfferApi) ShakeOffer(context *gin.Context) {
+	userId := common.GetUserId(context)
+	offerId := context.Param("offerId")
+
+	var body bean.OfferShakeRequest
+	if common.ValidateBody(context, &body) != nil {
+		return
+	}
+
+	// status: active->shaking
+	offer, ce := service.OfferServiceInst.ShakeOffer(userId, offerId, body)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, offer)
+}
+
+func (api OfferApi) AgreeShakingOffer(context *gin.Context) {
+	userId := common.GetUserId(context)
+	offerId := context.Param("offerId")
+
+	// status: buy:shaking->pre_shake, sell:shaking->shake
+	offer, ce := service.OfferServiceInst.AgreeShakingOffer(userId, offerId)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, offer)
+}
+
+func (api OfferApi) CancelShakingOffer(context *gin.Context) {
+	userId := common.GetUserId(context)
+	offerId := context.Param("offerId")
+
+	// status: shaking->active, pre_shake->active
+	offer, ce := service.OfferServiceInst.CancelShakingOffer(userId, offerId)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, offer)
+}
+
+func (api OfferApi) RejectShakeOffer(context *gin.Context) {
+	userId := common.GetUserId(context)
+	offerId := context.Param("offerId")
+
+	// status: shake->closed
+	offer, ce := service.OfferServiceInst.RejectShakeOffer(userId, offerId)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, offer)
+}
+
+func (api OfferApi) CompleteShakeOffer(context *gin.Context) {
+	userId := common.GetUserId(context)
+	offerId := context.Param("offerId")
+
+	// status: shake->completing
+	offer, ce := service.OfferServiceInst.CompleteShakeOffer(userId, offerId)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, offer)
 }
 
 func extractListOfferParams(context *gin.Context) (string, string, string, string, interface{}, int) {

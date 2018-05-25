@@ -25,6 +25,8 @@ const CCOverLimit = "CCOverLimit"
 const InvalidCC = "InvalidCC"
 const UnsupportedOfferType = "UnsupportedOfferType"
 const UnsupportedCurrency = "UnsupportedCurrency"
+const OfferStatusInvalid = "OfferStatusInvalid"
+const OfferPayMyself = "OfferPayMyself"
 
 var CodeMessage = map[string]struct {
 	StatusCode int
@@ -54,6 +56,8 @@ var CodeMessage = map[string]struct {
 	InvalidCC:            {http.StatusBadRequest, -304, "CC is invalid"},
 	UnsupportedCurrency:  {http.StatusBadRequest, -305, "This currency is not supported"},
 	UnsupportedOfferType: {http.StatusBadRequest, -306, "This offer type is not supported"},
+	OfferStatusInvalid:   {http.StatusBadRequest, -307, "This offer status is invalid"},
+	OfferPayMyself:       {http.StatusBadRequest, -308, "You cannot pay offer for yourself"},
 }
 
 //var ErrorSuccess = NewErrorSimple(Success)
