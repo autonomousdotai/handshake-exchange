@@ -54,10 +54,10 @@ var HKD = Currency{
 
 var CurrencyMapping = map[string]Currency{
 	USD.Code: USD,
-	HKD.Code: HKD,
+	// HKD.Code: HKD,
 
 	BTC.Code: BTC,
-	BCH.Code: BCH,
+	// BCH.Code: BCH,
 	ETH.Code: ETH,
-	LTC.Code: LTC,
+	// LTC.Code: LTC,
 }

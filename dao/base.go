@@ -13,6 +13,7 @@ import (
 	"github.com/go-redis/redis"
 	"github.com/shopspring/decimal"
 	"google.golang.org/api/iterator"
+	"log"
 )
 
 type TransferObject struct {
@@ -134,12 +135,11 @@ func ListPagingObjects(collectionPath string, t *TransferObject, limit int, star
 
 	collRef := dbClient.Collection(collectionPath)
 	var query firestore.Query
-
 	isPaging := limit != 0
 	t.Found = true
 	if q != nil {
 		query = q(collRef)
-
+		log.Println("Go Here 1")
 		// Get extra 1 record to process paging
 		if isPaging {
 			query = query.Limit(limit + 1)
@@ -150,6 +150,7 @@ func ListPagingObjects(collectionPath string, t *TransferObject, limit int, star
 		docRef := query.Documents(context.Background())
 		docSnapshots, err := docRef.GetAll()
 		if err == nil {
+			log.Println("Go Here 2")
 			for _, docSnapshot := range docSnapshots {
 				t.Objects = append(t.Objects, f(docSnapshot))
 			}

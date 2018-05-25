@@ -11,12 +11,12 @@ export UNDERLINE='\033[4m'
 #===============================================================
 
 V=$(date "+%Y%m%d_%H%M%S")
-PROJECT="neuron-191011"
-NAMESPACE=staging-exchange
-BACKEND_IMAGE="$NAMESPACE-crypto-exchange"
+PROJECT="handshake-205007"
+NAMESPACE=staging
+BACKEND_IMAGE="$NAMESPACE-exchange-service"
 
 gcloud auth activate-service-account --key-file ./credentials/deploy.cred.json
-gcloud container clusters get-credentials neuron-cluster-1 --zone us-west1-a --project neuron-191011
+gcloud container clusters get-credentials server-cluster1 --zone us-west1-a --project handshake-205007
 
 if [ $1 = "staging" ]
 then
@@ -43,11 +43,11 @@ else
     echo "$OKGREEN gcloud docker -- push gcr.io/$PROJECT/$BACKEND_IMAGE:buildNumber $V $ENDC"
 fi
 
-kubectl --namespace=$NAMESPACE set image deployment/backend backend=gcr.io/$PROJECT/$BACKEND_IMAGE:$buildNumber
+kubectl --namespace=$NAMESPACE set image deployment/exchange-service backend=gcr.io/$PROJECT/$BACKEND_IMAGE:$buildNumber
 
 result=$(echo $?)
 if [ $result != 0 ] ; then
-    echo "$FAIL failed kubectl --namespace=$NAME_SPACE set image deployment/backend backend=gcr.io/$PROJECT/$BACKEND_IMAGE:$buildNumber $ENDC";
+    echo "$FAIL failed kubectl --namespace=$NAME_SPACE set image deployment/exchange-service backend=gcr.io/$PROJECT/$BACKEND_IMAGE:$buildNumber $ENDC";
     exit;
 else
     echo "$OKGREEN DEPLOY SUCESSFULL gcr.io/$PROJECT/$BACKEND_IMAGE:$buildNumber $ENDC"

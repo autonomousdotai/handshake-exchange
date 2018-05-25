@@ -44,7 +44,7 @@ func CreateCustomer(description string, token string) (string, error) {
 	return c.ID, err
 }
 
-func Charge(token string, customerId string, amount decimal.Decimal, description string) (*stripe.Charge, error) {
+func Charge(token string, customerId string, amount decimal.Decimal, statement string, description string) (*stripe.Charge, error) {
 	sc := &client.API{}
 	sc.Init(os.Getenv("STRIPE_SECRET_KEY"), nil)
 
@@ -53,6 +53,7 @@ func Charge(token string, customerId string, amount decimal.Decimal, description
 		Amount:    uint64(stripeAmount),
 		Currency:  "usd",
 		Desc:      description,
+		Statement: statement,
 		NoCapture: true,
 	}
 	if customerId != "" {

@@ -100,7 +100,9 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 	}
 
 	fiatAmount, _ := decimal.NewFromString(offerBody.FiatAmount)
-	stripeCharge, err := stripe_service.Charge(token, paymentMethodData.Token, fiatAmount, fmt.Sprintf("Buy %s %s", offerBody.Amount, offerBody.Currency))
+	statement := ""
+	description := fmt.Sprintf("User %s buys %s %s", offer.UID, offerBody.Amount, offerBody.Currency)
+	stripeCharge, err := stripe_service.Charge(token, paymentMethodData.Token, fiatAmount, statement, description)
 	if ce.SetError(api_error.ExternalApiFailed, err) {
 		return
 	}

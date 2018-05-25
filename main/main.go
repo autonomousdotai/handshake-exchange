@@ -111,6 +111,8 @@ func main() {
 	userUrl.Create(router)
 	infoUrl := url.InfoUrl{}
 	infoUrl.Create(router)
+	offerUrl := url.OfferUrl{}
+	offerUrl.Create(router)
 	miscUrl := url.MiscUrl{}
 	miscUrl.Create(router)
 	cronJobUrl := url.CronJobUrl{}
