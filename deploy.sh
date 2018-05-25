@@ -43,11 +43,11 @@ else
     echo "$OKGREEN gcloud docker -- push gcr.io/$PROJECT/$BACKEND_IMAGE:buildNumber $V $ENDC"
 fi
 
-kubectl --namespace=$NAMESPACE set image deployment/exchange-service backend=gcr.io/$PROJECT/$BACKEND_IMAGE:$buildNumber
+kubectl --namespace=$NAMESPACE set image deployment/exchange-service exchange-service=gcr.io/$PROJECT/$BACKEND_IMAGE:$buildNumber
 
 result=$(echo $?)
 if [ $result != 0 ] ; then
-    echo "$FAIL failed kubectl --namespace=$NAME_SPACE set image deployment/exchange-service backend=gcr.io/$PROJECT/$BACKEND_IMAGE:$buildNumber $ENDC";
+    echo "$FAIL failed kubectl --namespace=$NAME_SPACE set image deployment/exchange-service exchange-service=gcr.io/$PROJECT/$BACKEND_IMAGE:$buildNumber $ENDC";
     exit;
 else
     echo "$OKGREEN DEPLOY SUCESSFULL gcr.io/$PROJECT/$BACKEND_IMAGE:$buildNumber $ENDC"
