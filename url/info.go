@@ -29,6 +29,9 @@ func (url InfoUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	group.GET("/cc-limits", func(context *gin.Context) {
 		miscApi.GetCCLimits(context)
 	})
+	group.POST("/cc-limits", func(context *gin.Context) {
+		miscApi.GetCCLimits(context)
+	})
 
 	return group
 }

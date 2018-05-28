@@ -131,7 +131,7 @@ func RouterMiddleware() gin.HandlerFunc {
 
 		needToLog := false
 		var body interface{}
-		if requestMethod == "POST" || requestMethod == "PUT" || requestMethod == "PATCH" || requestMethod == "DELETE " {
+		if requestMethod == "POST" || requestMethod == "PUT" || requestMethod == "PATCH" || requestMethod == "DELETE" {
 			if !strings.Contains(requestURL, "/cron-job/") {
 				if requestMethod == "POST" || requestMethod == "PUT" || requestMethod == "PATCH" {
 					buf, _ := ioutil.ReadAll(context.Request.Body)
@@ -146,7 +146,7 @@ func RouterMiddleware() gin.HandlerFunc {
 		}
 
 		requestRemoteAddress := context.Request.RemoteAddr
-		userId := context.GetHeader("Custom-UserId")
+		userId := context.GetHeader("Uid")
 
 		dbClient := firebase_service.FirestoreClient
 		docId := time.Now().UTC().Format("2006-01-02 15:04:05.000000000")
