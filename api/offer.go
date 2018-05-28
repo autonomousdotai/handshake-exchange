@@ -71,32 +71,6 @@ func (api OfferApi) ShakeOffer(context *gin.Context) {
 	bean.SuccessResponse(context, offer)
 }
 
-func (api OfferApi) AgreeShakingOffer(context *gin.Context) {
-	userId := common.GetUserId(context)
-	offerId := context.Param("offerId")
-
-	// status: buy:shaking->pre_shake, sell:shaking->shake
-	offer, ce := service.OfferServiceInst.AgreeShakingOffer(userId, offerId)
-	if ce.ContextValidate(context) {
-		return
-	}
-
-	bean.SuccessResponse(context, offer)
-}
-
-func (api OfferApi) CancelShakingOffer(context *gin.Context) {
-	userId := common.GetUserId(context)
-	offerId := context.Param("offerId")
-
-	// status: shaking->active, pre_shake->active
-	offer, ce := service.OfferServiceInst.CancelShakingOffer(userId, offerId)
-	if ce.ContextValidate(context) {
-		return
-	}
-
-	bean.SuccessResponse(context, offer)
-}
-
 func (api OfferApi) RejectShakeOffer(context *gin.Context) {
 	userId := common.GetUserId(context)
 	offerId := context.Param("offerId")

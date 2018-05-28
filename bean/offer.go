@@ -21,7 +21,6 @@ const OFFER_PROVIDER_COINBASE = "coinbase"
 // completing -> completed
 const OFFER_STATUS_CREATED = "created"
 const OFFER_STATUS_ACTIVE = "active"
-const OFFER_STATUS_PRE_SHAKE = "pre_shake"
 const OFFER_STATUS_SHAKING = "shaking"
 const OFFER_STATUS_SHAKE = "shake"
 const OFFER_STATUS_COMPLETING = "completing"
@@ -55,6 +54,8 @@ type Offer struct {
 	ProviderData   interface{} `json:"provider_data" firestore:"provider_data"`
 	Fee            string      `json:"-" firestore:"fee"`
 	FeePercentage  string      `json:"-" firestore:"fee_percentage"`
+	Longitude      float64     `json:"longitude" firestore:"longitude"`
+	Latitude       float64     `json:"latitude" firestore:"latitude"`
 	CreatedAt      time.Time   `json:"created_at" firestore:"created_at"`
 	UpdatedAt      time.Time   `json:"updated_at" firestore:"updated_at"`
 }

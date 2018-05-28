@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/getsentry/raven-go"
-	"github.com/gin-contrib/cors"
+	//"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/sentry"
 	"github.com/gin-gonic/contrib/gzip"
 	"github.com/gin-gonic/contrib/sessions"
@@ -81,23 +81,23 @@ func main() {
 	router.Use(RouterMiddleware())
 	router.Use(sentry.Recovery(raven.DefaultClient, false))
 	router.Use(gzip.Gzip(gzip.DefaultCompression))
-	router.Use(cors.New(cors.Config{
-		AllowOrigins: []string{
-			"http://localhost:8080",
-			"http://127.0.0.1:8080",
-		},
-		AllowMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE"},
-		AllowHeaders: []string{
-			"Origin",
-			"Content-Type",
-			"Accept",
-			"Uid",
-			"Custom-Language",
-			"Custom-Currency"},
-		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: true,
-		MaxAge:           24 * time.Hour,
-	}))
+	//router.Use(cors.New(cors.Config{
+	//	AllowOrigins: []string{
+	//		"http://localhost:8080",
+	//		"http://127.0.0.1:8080",
+	//	},
+	//	AllowMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE"},
+	//	AllowHeaders: []string{
+	//		"Origin",
+	//		"Content-Type",
+	//		"Accept",
+	//		"Uid",
+	//		"Custom-Language",
+	//		"Custom-Currency"},
+	//	ExposeHeaders:    []string{"Content-Length"},
+	//	AllowCredentials: true,
+	//	MaxAge:           24 * time.Hour,
+	//}))
 
 	// Router Index
 	index := router.Group("/")

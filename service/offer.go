@@ -149,39 +149,6 @@ func (s OfferService) ShakeOffer(userId string, offerId string, body bean.OfferS
 	return
 }
 
-func (s OfferService) AgreeShakingOffer(userId string, offerId string) (offer bean.Offer, ce SimpleContextError) {
-	profileTO := s.userDao.GetProfile(userId)
-	if ce.FeedDaoTransfer(api_error.GetDataFailed, profileTO) {
-		return
-	}
-	profile := profileTO.Object.(bean.Profile)
-
-	offerTO := s.dao.GetOffer(offerId)
-	if ce.FeedDaoTransfer(api_error.GetDataFailed, offerTO) {
-		return
-	}
-	offer = offerTO.Object.(bean.Offer)
-	if profile.UserId != offer.UID {
-		ce.SetStatusKey(api_error.InvalidRequestBody)
-		return
-	}
-
-	if offer.Type == bean.OFFER_TYPE_BUY {
-		offer.Status = bean.OFFER_STATUS_PRE_SHAKE
-	} else {
-		offer.Status = bean.OFFER_STATUS_SHAKE
-	}
-
-	err := s.dao.UpdateOffer(offer, offer.GetChangeStatus())
-	if ce.SetError(api_error.UpdateDataFailed, err) {
-		return
-	}
-
-	// TODO Update to Algolia
-
-	return
-}
-
 func (s OfferService) CancelShakingOffer(userId string, offerId string) (offer bean.Offer, ce SimpleContextError) {
 	profileTO := s.userDao.GetProfile(userId)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, profileTO) {
@@ -237,6 +204,11 @@ func (s OfferService) RejectShakeOffer(userId string, offerId string) (offer bea
 		}
 		offer.Provider = bean.OFFER_PROVIDER_COINBASE
 		offer.ProviderData = coinbaseResponse
+
+		err = s.dao.UpdateOffer(offer, offer.GetUpdateOfferReject())
+		if ce.SetError(api_error.UpdateDataFailed, err) {
+			return
+		}
 	} else {
 		ce.SetStatusKey(api_error.InvalidRequestBody)
 	}
@@ -272,6 +244,11 @@ func (s OfferService) CompleteShakeOffer(userId string, offerId string) (offer b
 		}
 		offer.Provider = bean.OFFER_PROVIDER_COINBASE
 		offer.ProviderData = coinbaseResponse
+
+		err = s.dao.UpdateOffer(offer, offer.GetUpdateOfferCompleting())
+		if ce.SetError(api_error.UpdateDataFailed, err) {
+			return
+		}
 	} else {
 		ce.SetStatusKey(api_error.InvalidRequestBody)
 	}
