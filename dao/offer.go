@@ -20,7 +20,7 @@ func (dao OfferDao) AddOffer(offer bean.Offer, profile bean.Profile) (bean.Offer
 
 	batch := dbClient.Batch()
 	batch.Set(docRef, offer.GetAddOffer())
-	batch.Set(profileDocRef, profile.GetUpdateOfferProfile())
+	batch.Set(profileDocRef, profile.GetUpdateOfferProfile(), firestore.MergeAll)
 
 	if offer.SystemAddress != "" {
 		mapping := bean.OfferAddressMap{
@@ -29,7 +29,7 @@ func (dao OfferDao) AddOffer(offer bean.Offer, profile bean.Profile) (bean.Offer
 			OfferRef: GetOfferItemPath(offer.Id),
 			UID:      offer.UID,
 		}
-		mappingDocRef := dbClient.Collection(GetOfferAddressMapPath()).NewDoc()
+		mappingDocRef := dbClient.Doc(GetOfferAddressMapItemPath(offer.Id))
 		batch.Set(mappingDocRef, mapping.GetAddOfferAddressMap())
 	}
 
@@ -77,7 +77,7 @@ func (dao OfferDao) UpdateOfferCompleting(offer bean.Offer, externalId string) e
 	dbClient := firebase_service.FirestoreClient
 
 	docRef := dbClient.Doc(GetOfferItemPath(offer.Id))
-	transferDocRef := dbClient.Collection(GetOfferTransferMapPath()).NewDoc()
+	transferDocRef := dbClient.Collection(GetOfferTransferMapItemPath(offer.Id)).NewDoc()
 
 	batch := dbClient.Batch()
 	batch.Set(docRef, offer.GetUpdateOfferCompleting())
@@ -107,12 +107,16 @@ func GetOfferAddressMapPath() string {
 	return "offer_addresses"
 }
 
+func GetOfferAddressMapItemPath(id string) string {
+	return fmt.Sprintf("offer_addresses/%s", id)
+}
+
 func GetOfferTransferMapPath() string {
 	return "offer_transfers"
 }
 
-func GetOfferAddressMapItemPath(address string) string {
-	return fmt.Sprintf("offer_addresses/%s", address)
+func GetOfferTransferMapItemPath(id string) string {
+	return fmt.Sprintf("offer_transfers/%s", id)
 }
 
 func snapshotToOffer(snapshot *firestore.DocumentSnapshot) interface{} {

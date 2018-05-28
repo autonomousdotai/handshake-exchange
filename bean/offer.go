@@ -35,7 +35,7 @@ type Offer struct {
 	Currency       string      `json:"currency" firestore:"currency" validate:"required"`
 	PriceNumber    float64     `json:"-" firestore:"price_number"`
 	PriceNumberUSD float64     `json:"-" firestore:"price_number_usd"`
-	Price          string      `json:"price" firestore:"price"`
+	Price          string      `json:"price" firestore:"price" validate:"required"`
 	PriceUSD       string      `json:"-" firestore:"price_usd"`
 	Percentage     string      `json:"percentage" firestore:"percentage"`
 	FiatCurrency   string      `json:"fiat_currency" firestore:"fiat_currency" validate:"required"`

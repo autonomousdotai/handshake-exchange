@@ -55,7 +55,7 @@ func (s OfferService) CreateOffer(userId string, offerBody bean.Offer) (offer be
 	profile.ActiveOffers[currencyInst.Code] = true
 
 	// Only BTC need to generate address to transfer in
-	if offer.Currency == bean.BTC.Code {
+	if offerBody.Currency == bean.BTC.Code {
 		addressResponse, err := coinbase_service.GenerateAddress(currencyInst.Code)
 		if err != nil {
 			ce.SetError(api_error.ExternalApiFailed, err)

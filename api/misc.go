@@ -119,6 +119,7 @@ func (api MiscApi) GetCryptoQuote(context *gin.Context) {
 		Currency     string
 		FiatCurrency string
 		FiatAmount   string
+		Price        string
 	}
 
 	quoteType := context.DefaultQuery("type", "")
@@ -151,6 +152,8 @@ func (api MiscApi) GetCryptoQuote(context *gin.Context) {
 		}
 		price, _ := decimal.NewFromString(resp.Amount)
 		fiatAmount = fiatAmount.Mul(price)
+
+		quote.Price = resp.Amount
 	} else if quoteType == "sell" {
 		resp, err := coinbase_service.GetSellPrice(currency)
 		if api_error.PropagateErrorAndAbort(context, api_error.GetDataFailed, err) != nil {
@@ -158,6 +161,8 @@ func (api MiscApi) GetCryptoQuote(context *gin.Context) {
 		}
 		price, _ := decimal.NewFromString(resp.Amount)
 		fiatAmount = fiatAmount.Mul(price)
+
+		quote.Price = resp.Amount
 	} else {
 		if api_error.AbortWithValidateErrorSimple(context, api_error.InvalidQueryParam) != nil {
 			return

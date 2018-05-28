@@ -15,5 +15,6 @@ var CreditCardServiceInst = CreditCardService{
 }
 
 var OfferServiceInst = OfferService{
-	dao: &dao.OfferDaoInst,
+	dao:     &dao.OfferDaoInst,
+	userDao: &dao.UserDaoInst,
 }
