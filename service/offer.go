@@ -45,15 +45,25 @@ func (s OfferService) CreateOffer(userId string, offerBody bean.Offer) (offer be
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, profileTO) {
 		return
 	}
+	profile := profileTO.Object.(bean.Profile)
 	offerBody.UID = userId
 
-	addressResponse, err := coinbase_service.GenerateAddress(currencyInst.Code)
-	if err != nil {
-		ce.SetError(api_error.ExternalApiFailed, err)
+	if profile.ActiveOffers[currencyInst.Code] {
+		ce.SetStatusKey(api_error.TooManyOffer)
+		return
 	}
-	offerBody.SystemAddress = addressResponse.Data.Address
+	profile.ActiveOffers[currencyInst.Code] = true
 
-	offer, err = s.dao.AddOffer(offerBody)
+	// Only BTC need to generate address to transfer in
+	if offer.Currency == bean.BTC.Code {
+		addressResponse, err := coinbase_service.GenerateAddress(currencyInst.Code)
+		if err != nil {
+			ce.SetError(api_error.ExternalApiFailed, err)
+		}
+		offerBody.SystemAddress = addressResponse.Data.Address
+	}
+
+	offer, err := s.dao.AddOffer(offerBody, profile)
 	if ce.SetError(api_error.AddDataFailed, err) {
 		return
 	}
@@ -76,7 +86,8 @@ func (s OfferService) CloseOffer(userId string, offerId string) (offer bean.Offe
 		ce.SetStatusKey(api_error.OfferStatusInvalid)
 	}
 
-	if offer.Type == bean.OFFER_TYPE_SELL && offer.Status == bean.OFFER_STATUS_ACTIVE {
+	// Only BTC can refund
+	if offer.Type == bean.OFFER_TYPE_SELL && offer.Status == bean.OFFER_STATUS_ACTIVE && offer.Currency == bean.BTC.Code {
 		if offer.RefundAddress != "" {
 			//Refund
 			description := fmt.Sprintf("Refund to userId %s due to close the handshake", userId)
@@ -120,10 +131,14 @@ func (s OfferService) ShakeOffer(userId string, offerId string, body bean.OfferS
 		return
 	}
 
+	if offer.Status != bean.OFFER_STATUS_ACTIVE {
+		ce.SetStatusKey(api_error.OfferStatusInvalid)
+	}
+
 	offer.ToUID = userId
-	offer.FiatAmount = body.FiatAmount
 	if offer.Type == bean.OFFER_TYPE_SELL {
-		if body.Address == "" {
+		// Only BTC needs to check
+		if body.Address == "" && offer.Currency == bean.BTC.Code {
 			ce.SetStatusKey(api_error.InvalidRequestBody)
 			return
 		}
@@ -132,43 +147,19 @@ func (s OfferService) ShakeOffer(userId string, offerId string, body bean.OfferS
 			return
 		}
 		offer.UserAddress = body.Address
+		offer.Status = bean.OFFER_STATUS_SHAKE
 	} else {
-		if body.Address == "" {
+		// Only BTC needs to check
+		if body.Address == "" && offer.Currency == bean.BTC.Code {
 			ce.SetStatusKey(api_error.InvalidRequestBody)
 			return
 		}
 		offer.RefundAddress = body.Address
+		offer.Status = bean.OFFER_STATUS_SHAKING
 	}
 	offer.FiatAmount = body.FiatAmount
 
 	err := s.dao.UpdateOffer(offer, offer.GetUpdateOfferShaking())
-	if ce.SetError(api_error.UpdateDataFailed, err) {
-		return
-	}
-
-	return
-}
-
-func (s OfferService) CancelShakingOffer(userId string, offerId string) (offer bean.Offer, ce SimpleContextError) {
-	profileTO := s.userDao.GetProfile(userId)
-	if ce.FeedDaoTransfer(api_error.GetDataFailed, profileTO) {
-		return
-	}
-	profile := profileTO.Object.(bean.Profile)
-
-	offerTO := s.dao.GetOffer(offerId)
-	if ce.FeedDaoTransfer(api_error.GetDataFailed, offerTO) {
-		return
-	}
-	offer = offerTO.Object.(bean.Offer)
-	if profile.UserId != offer.UID {
-		ce.SetStatusKey(api_error.InvalidRequestBody)
-		return
-	}
-
-	offer.Status = bean.OFFER_STATUS_ACTIVE
-
-	err := s.dao.UpdateOffer(offer, offer.GetChangeStatus())
 	if ce.SetError(api_error.UpdateDataFailed, err) {
 		return
 	}
@@ -194,23 +185,30 @@ func (s OfferService) RejectShakeOffer(userId string, offerId string) (offer bea
 		return
 	}
 
-	offer.Status = bean.OFFER_STATUS_CLOSED
-	if offer.RefundAddress != "" {
-		//Refund
-		description := fmt.Sprintf("Refund to userId %s due to reject the handshake", userId)
-		coinbaseResponse, err := coinbase_service.SendTransaction(offer.RefundAddress, offer.Amount, offer.Currency, description, offer.Id)
-		if ce.SetError(api_error.ExternalApiFailed, err) {
-			return
-		}
-		offer.Provider = bean.OFFER_PROVIDER_COINBASE
-		offer.ProviderData = coinbaseResponse
+	if offer.Status != bean.OFFER_STATUS_SHAKE {
+		ce.SetStatusKey(api_error.OfferStatusInvalid)
+	}
 
-		err = s.dao.UpdateOffer(offer, offer.GetUpdateOfferReject())
-		if ce.SetError(api_error.UpdateDataFailed, err) {
-			return
+	offer.Status = bean.OFFER_STATUS_REJECTED
+	if offer.Currency == bean.BTC.Code {
+		// Only BTC can refund
+		if offer.RefundAddress != "" {
+			//Refund
+			description := fmt.Sprintf("Refund to userId %s due to reject the handshake", userId)
+			coinbaseResponse, err := coinbase_service.SendTransaction(offer.RefundAddress, offer.Amount, offer.Currency, description, offer.Id)
+			if ce.SetError(api_error.ExternalApiFailed, err) {
+				return
+			}
+			offer.Provider = bean.OFFER_PROVIDER_COINBASE
+			offer.ProviderData = coinbaseResponse
+
+			err = s.dao.UpdateOffer(offer, offer.GetUpdateOfferReject())
+			if ce.SetError(api_error.UpdateDataFailed, err) {
+				return
+			}
+		} else {
+			ce.SetStatusKey(api_error.InvalidRequestBody)
 		}
-	} else {
-		ce.SetStatusKey(api_error.InvalidRequestBody)
 	}
 
 	return
@@ -234,23 +232,32 @@ func (s OfferService) CompleteShakeOffer(userId string, offerId string) (offer b
 		return
 	}
 
-	offer.Status = bean.OFFER_STATUS_COMPLETING
-	if offer.UserAddress != "" {
-		//Refund
-		description := fmt.Sprintf("Transfer to userId %s due to complete the handshake", userId)
-		coinbaseResponse, err := coinbase_service.SendTransaction(offer.UserAddress, offer.Amount, offer.Currency, description, offer.Id)
-		if ce.SetError(api_error.ExternalApiFailed, err) {
-			return
-		}
-		offer.Provider = bean.OFFER_PROVIDER_COINBASE
-		offer.ProviderData = coinbaseResponse
+	if offer.Status != bean.OFFER_STATUS_SHAKE {
+		ce.SetStatusKey(api_error.OfferStatusInvalid)
+	}
 
-		err = s.dao.UpdateOffer(offer, offer.GetUpdateOfferCompleting())
-		if ce.SetError(api_error.UpdateDataFailed, err) {
-			return
+	offer.Status = bean.OFFER_STATUS_COMPLETING
+	// Only BTC can transfer
+	var externalId string
+	if offer.Currency == bean.BTC.Code {
+		if offer.UserAddress != "" {
+			//Transfer
+			description := fmt.Sprintf("Transfer to userId %s due to complete the handshake", userId)
+			coinbaseResponse, err := coinbase_service.SendTransaction(offer.UserAddress, offer.Amount, offer.Currency, description, offer.Id)
+			if ce.SetError(api_error.ExternalApiFailed, err) {
+				return
+			}
+			offer.Provider = bean.OFFER_PROVIDER_COINBASE
+			offer.ProviderData = coinbaseResponse
+			externalId = coinbaseResponse.Id
+		} else {
+			ce.SetStatusKey(api_error.InvalidRequestBody)
 		}
-	} else {
-		ce.SetStatusKey(api_error.InvalidRequestBody)
+	}
+
+	err := s.dao.UpdateOfferCompleting(offer, externalId)
+	if ce.SetError(api_error.UpdateDataFailed, err) {
+		return
 	}
 
 	return

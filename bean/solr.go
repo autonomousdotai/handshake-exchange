@@ -15,4 +15,5 @@ type SolrOfferObject struct {
 	FiatCurrency string `json:"fiat_currency_s"`
 	FiatAmount   string `json:"fiat_amount_s"`
 	Status       string `json:"status_s"`
+	Location     string `json:"location_p"`
 }

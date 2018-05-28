@@ -13,9 +13,8 @@ const OFFER_TYPE_SELL = "sell"
 const OFFER_PROVIDER_COINBASE = "coinbase"
 
 // created -> active
-// active -> shaking
-// shaking -> shake, pre_shake
-// pre_shake -> shake
+// active -> shaking, shake
+// shaking -> shake
 // shake -> completing
 // shake -> rejected
 // completing -> completed
@@ -38,6 +37,7 @@ type Offer struct {
 	PriceNumberUSD float64     `json:"-" firestore:"price_number_usd"`
 	Price          string      `json:"price" firestore:"price"`
 	PriceUSD       string      `json:"-" firestore:"price_usd"`
+	Percentage     string      `json:"percentage" firestore:"percentage"`
 	FiatCurrency   string      `json:"fiat_currency" firestore:"fiat_currency" validate:"required"`
 	FiatAmount     string      `json:"fiat_amount" firestore:"fiat_amount"`
 	Type           string      `json:"type" firestore:"type" validate:"required"`
@@ -46,6 +46,7 @@ type Offer struct {
 	Username       string      `json:"-" firestore:"username"`
 	ToUID          string      `json:"to_uid" firestore:"to_uid"`
 	ToUsername     string      `json:"to_username" firestore:"to_username"`
+	ContactPhone   string      `json:"contact_phone" firestore:"contact_phone" validate:"required"`
 	ContactInfo    string      `json:"contact_info" firestore:"contact_info" validate:"required"`
 	SystemAddress  string      `json:"system_address" firestore:"system_address"`
 	UserAddress    string      `json:"user_address" firestore:"user_address"`
@@ -74,6 +75,8 @@ func (offer Offer) ValidateNumbers() (invalid bool) {
 }
 
 func (offer Offer) GetAddOffer() map[string]interface{} {
+	priceNumber, _ := decimal.NewFromString(offer.Price)
+	priceFloat, _ := priceNumber.Float64()
 	return map[string]interface{}{
 		"id":             offer.Id,
 		"amount":         offer.Amount,
@@ -81,7 +84,10 @@ func (offer Offer) GetAddOffer() map[string]interface{} {
 		"currency":       strings.ToUpper(offer.Currency),
 		"price_currency": strings.ToUpper(offer.FiatCurrency),
 		"type":           strings.ToLower(offer.Type),
+		"price":          offer.Price,
+		"price_number":   priceFloat,
 		"contact_info":   offer.ContactInfo,
+		"contat_phone":   offer.ContactPhone,
 		"system_address": offer.SystemAddress,
 		"user_address":   offer.UserAddress,
 		"refund_address": offer.RefundAddress,
@@ -94,14 +100,9 @@ func (offer Offer) GetAddOffer() map[string]interface{} {
 
 func (offer Offer) GetUpdateOfferActive() map[string]interface{} {
 	return map[string]interface{}{
-		"price_number":     0,
-		"price_number_usd": 0,
-		"price":            "0",
-		"price_usd":        "0",
-		"fiat_amount":      "0",
-		"user_address":     offer.UserAddress,
-		"status":           OFFER_STATUS_ACTIVE,
-		"updated_at":       firestore.ServerTimestamp,
+		"user_address": offer.UserAddress,
+		"status":       OFFER_STATUS_ACTIVE,
+		"updated_at":   firestore.ServerTimestamp,
 	}
 }
 
@@ -162,6 +163,43 @@ type OfferShakeRequest struct {
 	Address    string `json:"address"`
 }
 
-type OfferCloseRequest struct {
-	Address string `json:"address"`
+type OfferAddressMap struct {
+	UID      string `json:"uid" firestore:"uid"`
+	Address  string `json:"address" firestore:"address"`
+	Offer    string `json:"offer" firestore:"offer"`
+	OfferRef string `json:"offer_ref" firestore:"offer_ref"`
+}
+
+func (offer OfferAddressMap) GetAddOfferAddressMap() map[string]interface{} {
+	return map[string]interface{}{
+		"address":    offer.Address,
+		"offer":      offer.Offer,
+		"uid":        offer.UID,
+		"offer_ref":  offer.OfferRef,
+		"created_at": firestore.ServerTimestamp,
+	}
+}
+
+type OfferTransferMap struct {
+	UID        string `json:"uid" firestore:"uid"`
+	Address    string `json:"address" firestore:"address"`
+	Offer      string `json:"offer" firestore:"offer"`
+	OfferRef   string `json:"offer_ref" firestore:"offer_ref"`
+	ExternalId string `json:"external_id" firestore:"external_id"`
+}
+
+func (offer OfferAddressMap) AddOfferTransferMap() map[string]interface{} {
+	return map[string]interface{}{
+		"address":    offer.Address,
+		"offer":      offer.Offer,
+		"uid":        offer.UID,
+		"offer_ref":  offer.OfferRef,
+		"created_at": firestore.ServerTimestamp,
+	}
+}
+
+func (offer OfferAddressMap) UpdateTick() map[string]interface{} {
+	return map[string]interface{}{
+		"updated_at": firestore.ServerTimestamp,
+	}
 }

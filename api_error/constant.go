@@ -27,6 +27,7 @@ const UnsupportedOfferType = "UnsupportedOfferType"
 const UnsupportedCurrency = "UnsupportedCurrency"
 const OfferStatusInvalid = "OfferStatusInvalid"
 const OfferPayMyself = "OfferPayMyself"
+const TooManyOffer = "TooManyOffer"
 
 var CodeMessage = map[string]struct {
 	StatusCode int
@@ -58,6 +59,7 @@ var CodeMessage = map[string]struct {
 	UnsupportedOfferType: {http.StatusBadRequest, -306, "This offer type is not supported"},
 	OfferStatusInvalid:   {http.StatusBadRequest, -307, "This offer status is invalid"},
 	OfferPayMyself:       {http.StatusBadRequest, -308, "You cannot pay offer for yourself"},
+	TooManyOffer:         {http.StatusBadRequest, -309, "Too many offer"},
 }
 
 //var ErrorSuccess = NewErrorSimple(Success)

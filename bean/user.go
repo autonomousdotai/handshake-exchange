@@ -9,16 +9,28 @@ const CREDIT_CARD_STATUS_OK = "ok"
 const CREDIT_CARD_STATUS_DISPUTED = "disputed"
 
 type Profile struct {
-	UserId           string         `json:"user_id" firestore:"user_id" validate:"required"`
-	CreditCardStatus string         `json:"-" firestore:"credit_card_status"`
-	CreditCard       UserCreditCard `json:"credit_card" firestore:"credit_card"`
+	UserId           string          `json:"user_id" firestore:"user_id" validate:"required"`
+	CreditCardStatus string          `json:"-" firestore:"credit_card_status"`
+	CreditCard       UserCreditCard  `json:"credit_card" firestore:"credit_card"`
+	ActiveOffers     map[string]bool `json:"-" firestore:"active_offers"`
 }
 
 func (profile Profile) GetAddProfile() map[string]interface{} {
+	offerMap := map[string]bool{
+		"ETH": false, "BTC": false,
+	}
 	return map[string]interface{}{
 		"user_id":            profile.UserId,
 		"credit_card_status": CREDIT_CARD_STATUS_OK,
+		"active_offers":      offerMap,
 		"created_at":         firestore.ServerTimestamp,
+	}
+}
+
+func (profile Profile) GetUpdateOfferProfile() map[string]interface{} {
+	return map[string]interface{}{
+		"active_offers": profile.ActiveOffers,
+		"created_at":    firestore.ServerTimestamp,
 	}
 }
 

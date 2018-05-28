@@ -112,6 +112,63 @@ func (api MiscApi) GetCryptoRate(context *gin.Context) {
 	bean.SuccessResponse(context, resp)
 }
 
+func (api MiscApi) GetCryptoQuote(context *gin.Context) {
+	type quoteStruct struct {
+		Type         string
+		Amount       string
+		Currency     string
+		FiatCurrency string
+		FiatAmount   string
+	}
+
+	quoteType := context.DefaultQuery("type", "")
+	amountStr := context.DefaultQuery("amount", "")
+	currency := context.DefaultQuery("currency", "")
+	fiatCurrency := context.DefaultQuery("fiat_currency", "")
+
+	quote := quoteStruct{
+		Type:         quoteType,
+		Amount:       amountStr,
+		Currency:     currency,
+		FiatCurrency: fiatCurrency,
+	}
+
+	amount, numberErr := decimal.NewFromString(amountStr)
+	if api_error.PropagateErrorAndAbort(context, api_error.InvalidQueryParam, numberErr) != nil {
+		return
+	}
+	to := dao.MiscDaoInst.GetCurrencyRateFromCache(bean.USD.Code, fiatCurrency)
+	if to.ContextValidate(context) {
+		return
+	}
+	rate := to.Object.(bean.CurrencyRate)
+	fiatAmount := amount.Mul(decimal.NewFromFloat(rate.Rate))
+
+	if quoteType == "buy" {
+		resp, err := coinbase_service.GetBuyPrice(currency)
+		if api_error.PropagateErrorAndAbort(context, api_error.GetDataFailed, err) != nil {
+			return
+		}
+		price, _ := decimal.NewFromString(resp.Amount)
+		fiatAmount = fiatAmount.Mul(price)
+	} else if quoteType == "sell" {
+		resp, err := coinbase_service.GetSellPrice(currency)
+		if api_error.PropagateErrorAndAbort(context, api_error.GetDataFailed, err) != nil {
+			return
+		}
+		price, _ := decimal.NewFromString(resp.Amount)
+		fiatAmount = fiatAmount.Mul(price)
+	} else {
+		if api_error.AbortWithValidateErrorSimple(context, api_error.InvalidQueryParam) != nil {
+			return
+		}
+	}
+
+	quote.FiatAmount = fiatAmount.Round(2).String()
+
+	bean.SuccessResponse(context, quote)
+}
+
 // CRON JOB
 func (api MiscApi) FinishInstantOffers(context *gin.Context) {
 	offers, ce := service.CreditCardServiceInst.FinishInstantOffers()

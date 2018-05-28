@@ -11,23 +11,26 @@ import (
 type OfferDao struct {
 }
 
-func (dao OfferDao) AddOffer(offer bean.Offer) (bean.Offer, error) {
+func (dao OfferDao) AddOffer(offer bean.Offer, profile bean.Profile) (bean.Offer, error) {
 	dbClient := firebase_service.FirestoreClient
 
+	profileDocRef := dbClient.Doc(GetUserPath(offer.UID))
 	docRef := dbClient.Collection(GetOfferPath()).NewDoc()
 	offer.Id = docRef.ID
 
 	batch := dbClient.Batch()
 	batch.Set(docRef, offer.GetAddOffer())
+	batch.Set(profileDocRef, profile.GetUpdateOfferProfile())
 
 	if offer.SystemAddress != "" {
-		addressDocRef := dbClient.Collection(GetOfferAddressMapPath()).Doc(offer.SystemAddress)
-		batch.Set(addressDocRef, map[string]interface{}{
-			"address":    offer.SystemAddress,
-			"offer":      offer.Id,
-			"offer_ref":  GetOfferItemPath(offer.Id),
-			"created_at": firestore.ServerTimestamp,
-		})
+		mapping := bean.OfferAddressMap{
+			Address:  offer.SystemAddress,
+			Offer:    offer.Id,
+			OfferRef: GetOfferItemPath(offer.Id),
+			UID:      offer.UID,
+		}
+		mappingDocRef := dbClient.Collection(GetOfferAddressMapPath()).NewDoc()
+		batch.Set(mappingDocRef, mapping.GetAddOfferAddressMap())
 	}
 
 	_, err := batch.Commit(context.Background())
@@ -70,6 +73,27 @@ func (dao OfferDao) UpdateOffer(offer bean.Offer, updateData map[string]interfac
 	return err
 }
 
+func (dao OfferDao) UpdateOfferCompleting(offer bean.Offer, externalId string) error {
+	dbClient := firebase_service.FirestoreClient
+
+	docRef := dbClient.Doc(GetOfferItemPath(offer.Id))
+	transferDocRef := dbClient.Collection(GetOfferTransferMapPath()).NewDoc()
+
+	batch := dbClient.Batch()
+	batch.Set(docRef, offer.GetUpdateOfferCompleting())
+	batch.Set(transferDocRef, bean.OfferTransferMap{
+		UID:        offer.UID,
+		Address:    offer.UserAddress,
+		Offer:      offer.Id,
+		OfferRef:   GetOfferItemPath(offer.Id),
+		ExternalId: externalId,
+	})
+
+	_, err := batch.Commit(context.Background())
+
+	return err
+}
+
 // DB path
 func GetOfferPath() string {
 	return "offers"
@@ -81,6 +105,10 @@ func GetOfferItemPath(id string) string {
 
 func GetOfferAddressMapPath() string {
 	return "offer_addresses"
+}
+
+func GetOfferTransferMapPath() string {
+	return "offer_transfers"
 }
 
 func GetOfferAddressMapItemPath(address string) string {

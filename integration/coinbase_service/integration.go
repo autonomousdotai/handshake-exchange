@@ -178,3 +178,17 @@ func GetBuyPrice(currency string) (bean.CoinbaseAmount, error) {
 
 	return response.Data, err
 }
+
+func GetSellPrice(currency string) (bean.CoinbaseAmount, error) {
+	client := CoinbaseClient{}
+	client.Initialize()
+
+	var response bean.CoinbasePriceResponse
+
+	resp, err := client.Get(fmt.Sprintf("/v2/prices/%s-USD/sell", currency))
+	if err == nil {
+		resp.JSON(&response)
+	}
+
+	return response.Data, err
+}
