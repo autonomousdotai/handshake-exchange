@@ -55,8 +55,8 @@ type Offer struct {
 	ProviderData   interface{} `json:"provider_data" firestore:"provider_data"`
 	Fee            string      `json:"-" firestore:"fee"`
 	FeePercentage  string      `json:"-" firestore:"fee_percentage"`
-	Longitude      float64     `json:"longitude" firestore:"longitude"`
-	Latitude       float64     `json:"latitude" firestore:"latitude"`
+	Longitude      float64     `json:"longitude" firestore:"longitude" validate:"required"`
+	Latitude       float64     `json:"latitude" firestore:"latitude" validate:"required"`
 	CreatedAt      time.Time   `json:"created_at" firestore:"created_at"`
 	UpdatedAt      time.Time   `json:"updated_at" firestore:"updated_at"`
 }
@@ -86,13 +86,17 @@ func (offer Offer) GetAddOffer() map[string]interface{} {
 		"type":           strings.ToLower(offer.Type),
 		"price":          offer.Price,
 		"price_number":   priceFloat,
+		"fiat_currency":  offer.FiatCurrency,
+		"percentage":     offer.Percentage,
 		"contact_info":   offer.ContactInfo,
-		"contat_phone":   offer.ContactPhone,
+		"contact_phone":  offer.ContactPhone,
 		"system_address": offer.SystemAddress,
 		"user_address":   offer.UserAddress,
 		"refund_address": offer.RefundAddress,
 		"status":         offer.Status,
 		"uid":            offer.UID,
+		"latitude":       offer.Latitude,
+		"longitude":      offer.Longitude,
 		"username":       offer.Username,
 		"created_at":     firestore.ServerTimestamp,
 	}
@@ -115,7 +119,8 @@ func (offer Offer) GetUpdateOfferShaking() map[string]interface{} {
 		"fiat_amount":      offer.FiatAmount,
 		"user_address":     offer.UserAddress,
 		"refund_address":   offer.RefundAddress,
-		"status":           OFFER_STATUS_SHAKING,
+		"to_uid":           offer.ToUID,
+		"status":           offer.Status,
 		"updated_at":       firestore.ServerTimestamp,
 	}
 }

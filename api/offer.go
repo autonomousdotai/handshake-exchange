@@ -40,6 +40,18 @@ func (api OfferApi) ListOffers(context *gin.Context) {
 	bean.SuccessPagingResponse(context, to.Objects, to.CanMove, to.Page)
 }
 
+func (api OfferApi) GetOffer(context *gin.Context) {
+	userId := common.GetUserId(context)
+	offerId := context.Param("offerId")
+
+	offer, ce := service.OfferServiceInst.GetOffer(userId, offerId)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, offer)
+}
+
 func (api OfferApi) CloseOffer(context *gin.Context) {
 	userId := common.GetUserId(context)
 	offerId := context.Param("offerId")

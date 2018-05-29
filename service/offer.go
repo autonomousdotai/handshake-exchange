@@ -4,14 +4,43 @@ import (
 	"fmt"
 	"github.com/autonomousdotai/handshake-exchange/api_error"
 	"github.com/autonomousdotai/handshake-exchange/bean"
+	"github.com/autonomousdotai/handshake-exchange/common"
 	"github.com/autonomousdotai/handshake-exchange/dao"
 	"github.com/autonomousdotai/handshake-exchange/integration/coinbase_service"
+	"github.com/go-errors/errors"
 	"github.com/shopspring/decimal"
 )
 
 type OfferService struct {
 	dao     *dao.OfferDao
 	userDao *dao.UserDao
+}
+
+func (s OfferService) GetOffer(userId string, offerId string) (offer bean.Offer, ce SimpleContextError) {
+	profileTO := s.userDao.GetProfile(userId)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, profileTO) {
+		return
+	}
+	offerTO := s.dao.GetOffer(offerId)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, profileTO) {
+		return
+	}
+	offer = offerTO.Object.(bean.Offer)
+	price, _ := decimal.NewFromString(offer.Price)
+	percentage, _ := decimal.NewFromString(offer.Percentage)
+
+	price, fiatAmount, err := s.GetQuote(offer.Type, offer.Amount, offer.Currency, offer.FiatCurrency)
+	if offer.Type == bean.OFFER_TYPE_SELL && price.Equal(common.Zero) {
+		if ce.SetError(api_error.GetDataFailed, err) {
+			return
+		}
+		markup := fiatAmount.Mul(percentage)
+		fiatAmount = fiatAmount.Add(markup)
+	}
+	offer.Price = price.String()
+	offer.FiatAmount = fiatAmount.Round(2).String()
+
+	return
 }
 
 func (s OfferService) CreateOffer(userId string, offerBody bean.Offer) (offer bean.Offer, ce SimpleContextError) {
@@ -26,19 +55,30 @@ func (s OfferService) CreateOffer(userId string, offerBody bean.Offer) (offer be
 			ce.SetStatusKey(api_error.InvalidRequestBody)
 			return
 		}
-		offerBody.Status = bean.OFFER_STATUS_CREATED
+		offerBody.Status = bean.OFFER_STATUS_ACTIVE
 	} else {
 		if offerBody.RefundAddress == "" {
 			ce.SetStatusKey(api_error.InvalidRequestBody)
 			return
 		}
-		offerBody.Status = bean.OFFER_STATUS_ACTIVE
+		offerBody.Status = bean.OFFER_STATUS_CREATED
 	}
 
 	currencyInst := bean.CurrencyMapping[offerBody.Currency]
 	if currencyInst.Code == "" {
 		ce.SetStatusKey(api_error.UnsupportedCurrency)
 		return
+	}
+
+	if offerBody.Percentage != "" {
+		// Convert to 0.0x
+		percentage, errFmt := decimal.NewFromString(offer.Percentage)
+		if ce.SetError(api_error.InvalidRequestBody, errFmt) {
+			return
+		}
+		offerBody.Percentage = percentage.Div(decimal.NewFromFloat(100)).String()
+	} else {
+		offerBody.Percentage = "0"
 	}
 
 	profileTO := s.userDao.GetProfile(userId)
@@ -77,6 +117,8 @@ func (s OfferService) CloseOffer(userId string, offerId string) (offer bean.Offe
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, profileTO) {
 		return
 	}
+	profile := profileTO.Object.(bean.Profile)
+
 	offerTO := s.dao.GetOffer(offerId)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, offerTO) {
 		return
@@ -84,6 +126,12 @@ func (s OfferService) CloseOffer(userId string, offerId string) (offer bean.Offe
 	offer = offerTO.Object.(bean.Offer)
 	if offer.Status != bean.OFFER_STATUS_ACTIVE && offer.Status != bean.OFFER_STATUS_CREATED {
 		ce.SetStatusKey(api_error.OfferStatusInvalid)
+	}
+	offerProfile := s.getOfferProfile(offer, profile, &ce)
+	offerProfile.ActiveOffers[offer.Currency] = false
+
+	if ce.HasError() {
+		return
 	}
 
 	// Only BTC can refund
@@ -103,7 +151,7 @@ func (s OfferService) CloseOffer(userId string, offerId string) (offer bean.Offe
 	}
 
 	offer.Status = bean.OFFER_STATUS_CLOSED
-	err := s.dao.UpdateOffer(offer, offer.GetUpdateOfferClose())
+	err := s.dao.UpdateOfferClose(offer, offerProfile)
 	if ce.SetError(api_error.UpdateDataFailed, err) {
 		return
 	}
@@ -133,6 +181,7 @@ func (s OfferService) ShakeOffer(userId string, offerId string, body bean.OfferS
 
 	if offer.Status != bean.OFFER_STATUS_ACTIVE {
 		ce.SetStatusKey(api_error.OfferStatusInvalid)
+		return
 	}
 
 	offer.ToUID = userId
@@ -146,6 +195,7 @@ func (s OfferService) ShakeOffer(userId string, offerId string, body bean.OfferS
 		if ce.SetError(api_error.InvalidNumber, numberErr) {
 			return
 		}
+		offer.FiatAmount = body.FiatAmount
 		offer.UserAddress = body.Address
 		offer.Status = bean.OFFER_STATUS_SHAKE
 	} else {
@@ -157,7 +207,6 @@ func (s OfferService) ShakeOffer(userId string, offerId string, body bean.OfferS
 		offer.RefundAddress = body.Address
 		offer.Status = bean.OFFER_STATUS_SHAKING
 	}
-	offer.FiatAmount = body.FiatAmount
 
 	err := s.dao.UpdateOffer(offer, offer.GetUpdateOfferShaking())
 	if ce.SetError(api_error.UpdateDataFailed, err) {
@@ -179,6 +228,12 @@ func (s OfferService) RejectShakeOffer(userId string, offerId string) (offer bea
 		return
 	}
 	offer = offerTO.Object.(bean.Offer)
+	offerProfile := s.getOfferProfile(offer, profile, &ce)
+	offerProfile.ActiveOffers[offer.Currency] = false
+
+	if ce.HasError() {
+		return
+	}
 
 	if profile.UserId != offer.UID && profile.UserId != offer.ToUID {
 		ce.SetStatusKey(api_error.InvalidRequestBody)
@@ -202,7 +257,7 @@ func (s OfferService) RejectShakeOffer(userId string, offerId string) (offer bea
 			offer.Provider = bean.OFFER_PROVIDER_COINBASE
 			offer.ProviderData = coinbaseResponse
 
-			err = s.dao.UpdateOffer(offer, offer.GetUpdateOfferReject())
+			err = s.dao.UpdateOfferReject(offer, offerProfile)
 			if ce.SetError(api_error.UpdateDataFailed, err) {
 				return
 			}
@@ -226,6 +281,12 @@ func (s OfferService) CompleteShakeOffer(userId string, offerId string) (offer b
 		return
 	}
 	offer = offerTO.Object.(bean.Offer)
+	offerProfile := s.getOfferProfile(offer, profile, &ce)
+	offerProfile.ActiveOffers[offer.Currency] = false
+
+	if ce.HasError() {
+		return
+	}
 
 	if profile.UserId != offer.UID && profile.UserId != offer.ToUID {
 		ce.SetStatusKey(api_error.InvalidRequestBody)
@@ -234,6 +295,7 @@ func (s OfferService) CompleteShakeOffer(userId string, offerId string) (offer b
 
 	if offer.Status != bean.OFFER_STATUS_SHAKE {
 		ce.SetStatusKey(api_error.OfferStatusInvalid)
+		return
 	}
 
 	offer.Status = bean.OFFER_STATUS_COMPLETING
@@ -255,9 +317,55 @@ func (s OfferService) CompleteShakeOffer(userId string, offerId string) (offer b
 		}
 	}
 
-	err := s.dao.UpdateOfferCompleting(offer, externalId)
+	err := s.dao.UpdateOfferCompleting(offer, offerProfile, externalId)
 	if ce.SetError(api_error.UpdateDataFailed, err) {
 		return
+	}
+
+	return
+}
+
+func (s OfferService) GetQuote(quoteType string, amountStr string, currency string, fiatCurrency string) (price decimal.Decimal, fiatAmount decimal.Decimal, err error) {
+	amount, numberErr := decimal.NewFromString(amountStr)
+	to := dao.MiscDaoInst.GetCurrencyRateFromCache(bean.USD.Code, fiatCurrency)
+	if numberErr != nil {
+		err = numberErr
+	}
+	rate := to.Object.(bean.CurrencyRate)
+	tmpAmount := amount.Mul(decimal.NewFromFloat(rate.Rate))
+
+	if quoteType == "buy" {
+		resp, errResp := coinbase_service.GetBuyPrice(currency)
+		err = errResp
+		if err != nil {
+			return
+		}
+		price, _ = decimal.NewFromString(resp.Amount)
+		fiatAmount = tmpAmount.Mul(price)
+	} else if quoteType == "sell" {
+		resp, errResp := coinbase_service.GetSellPrice(currency)
+		err = errResp
+		if err != nil {
+			return
+		}
+		price, _ := decimal.NewFromString(resp.Amount)
+		fiatAmount = tmpAmount.Mul(price)
+	} else {
+		err = errors.New(api_error.InvalidQueryParam)
+	}
+
+	return
+}
+
+func (s OfferService) getOfferProfile(offer bean.Offer, profile bean.Profile, ce *SimpleContextError) (offerProfile bean.Profile) {
+	if profile.UserId == offer.UID {
+		offerProfile = profile
+	} else {
+		offerProfileTO := s.userDao.GetProfile(offer.UID)
+		if ce.FeedDaoTransfer(api_error.GetDataFailed, offerProfileTO) {
+			return
+		}
+		offerProfile = offerProfileTO.Object.(bean.Profile)
 	}
 
 	return

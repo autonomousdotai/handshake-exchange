@@ -73,14 +73,46 @@ func (dao OfferDao) UpdateOffer(offer bean.Offer, updateData map[string]interfac
 	return err
 }
 
-func (dao OfferDao) UpdateOfferCompleting(offer bean.Offer, externalId string) error {
+func (dao OfferDao) UpdateOfferClose(offer bean.Offer, profile bean.Profile) error {
 	dbClient := firebase_service.FirestoreClient
 
+	profileDocRef := dbClient.Doc(GetUserPath(offer.UID))
 	docRef := dbClient.Doc(GetOfferItemPath(offer.Id))
-	transferDocRef := dbClient.Collection(GetOfferTransferMapItemPath(offer.Id)).NewDoc()
 
 	batch := dbClient.Batch()
-	batch.Set(docRef, offer.GetUpdateOfferCompleting())
+	batch.Set(docRef, offer.GetUpdateOfferClose(), firestore.MergeAll)
+	batch.Set(profileDocRef, profile.GetUpdateOfferProfile(), firestore.MergeAll)
+
+	_, err := batch.Commit(context.Background())
+
+	return err
+}
+
+func (dao OfferDao) UpdateOfferReject(offer bean.Offer, profile bean.Profile) error {
+	dbClient := firebase_service.FirestoreClient
+
+	profileDocRef := dbClient.Doc(GetUserPath(offer.UID))
+	docRef := dbClient.Doc(GetOfferItemPath(offer.Id))
+
+	batch := dbClient.Batch()
+	batch.Set(docRef, offer.GetUpdateOfferReject(), firestore.MergeAll)
+	batch.Set(profileDocRef, profile.GetUpdateOfferProfile(), firestore.MergeAll)
+
+	_, err := batch.Commit(context.Background())
+
+	return err
+}
+
+func (dao OfferDao) UpdateOfferCompleting(offer bean.Offer, profile bean.Profile, externalId string) error {
+	dbClient := firebase_service.FirestoreClient
+
+	profileDocRef := dbClient.Doc(GetUserPath(offer.UID))
+	docRef := dbClient.Doc(GetOfferItemPath(offer.Id))
+	transferDocRef := dbClient.Doc(GetOfferTransferMapItemPath(offer.Id))
+
+	batch := dbClient.Batch()
+	batch.Set(docRef, offer.GetUpdateOfferCompleting(), firestore.MergeAll)
+	batch.Set(profileDocRef, profile.GetUpdateOfferProfile(), firestore.MergeAll)
 	batch.Set(transferDocRef, bean.OfferTransferMap{
 		UID:        offer.UID,
 		Address:    offer.UserAddress,
