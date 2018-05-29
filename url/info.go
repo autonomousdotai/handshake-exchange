@@ -29,6 +29,9 @@ func (url InfoUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	group.GET("/crypto-quote", func(context *gin.Context) {
 		miscApi.GetCryptoQuote(context)
 	})
+	group.GET("/crypto-quotes", func(context *gin.Context) {
+		miscApi.GetAllCryptoQuotes(context)
+	})
 	group.GET("/cc-limits", func(context *gin.Context) {
 		miscApi.GetCCLimits(context)
 	})

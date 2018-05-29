@@ -76,6 +76,21 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 		return
 	}
 
+	// Minimum amount
+	amount, _ := decimal.NewFromString(offerBody.Amount)
+	if offerBody.Currency == bean.ETH.Code {
+		if amount.LessThan(decimal.NewFromFloat(0.01)) {
+			ce.SetStatusKey(api_error.AmountIsTooSmall)
+			return
+		}
+	}
+	if offerBody.Currency == bean.BTC.Code {
+		if amount.LessThan(decimal.NewFromFloat(0.1)) {
+			ce.SetStatusKey(api_error.AmountIsTooSmall)
+			return
+		}
+	}
+
 	var err error
 	var paymentMethodData bean.CreditCardInfo
 	b, _ := json.Marshal(&offerBody.PaymentMethodData)

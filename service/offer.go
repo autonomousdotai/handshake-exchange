@@ -31,7 +31,7 @@ func (s OfferService) GetOffer(userId string, offerId string) (offer bean.Offer,
 	price, _ := decimal.NewFromString(offer.Price)
 	percentage, _ := decimal.NewFromString(offer.Percentage)
 
-	price, fiatAmount, err := s.GetQuote(offer.Type, offer.Amount, offer.Currency, offer.FiatCurrency)
+	price, fiatPrice, fiatAmount, err := s.GetQuote(offer.Type, offer.Amount, offer.Currency, offer.FiatCurrency)
 	if offer.Type == bean.OFFER_TYPE_SELL && price.Equal(common.Zero) {
 		if ce.SetError(api_error.GetDataFailed, err) {
 			return
@@ -39,7 +39,7 @@ func (s OfferService) GetOffer(userId string, offerId string) (offer bean.Offer,
 		markup := fiatAmount.Mul(percentage)
 		fiatAmount = fiatAmount.Add(markup)
 	}
-	offer.Price = price.String()
+	offer.Price = fiatPrice.Round(2).String()
 	offer.FiatAmount = fiatAmount.Round(2).String()
 
 	return
@@ -51,6 +51,7 @@ func (s OfferService) CreateOffer(userId string, offerBody bean.Offer) (offer be
 		ce.SetStatusKey(api_error.UnsupportedOfferType)
 		return
 	}
+
 	if offerBody.Type == bean.OFFER_TYPE_BUY {
 		// Need to set address to receive crypto
 		if offerBody.UserAddress == "" {
@@ -70,6 +71,24 @@ func (s OfferService) CreateOffer(userId string, offerBody bean.Offer) (offer be
 	if currencyInst.Code == "" {
 		ce.SetStatusKey(api_error.UnsupportedCurrency)
 		return
+	}
+
+	// Minimum amount
+	amount, errFmt := decimal.NewFromString(offerBody.Amount)
+	if ce.SetError(api_error.InvalidRequestBody, errFmt) {
+		return
+	}
+	if currencyInst.Code == bean.ETH.Code {
+		if amount.LessThan(decimal.NewFromFloat(0.01)) {
+			ce.SetStatusKey(api_error.AmountIsTooSmall)
+			return
+		}
+	}
+	if currencyInst.Code == bean.BTC.Code {
+		if amount.LessThan(decimal.NewFromFloat(0.1)) {
+			ce.SetStatusKey(api_error.AmountIsTooSmall)
+			return
+		}
 	}
 
 	if offerBody.Percentage != "" {
@@ -113,6 +132,10 @@ func (s OfferService) CreateOffer(userId string, offerBody bean.Offer) (offer be
 	offer.CreatedAt = time.Now()
 	solr_service.UpdateObject(bean.NewSolrFromOffer(offer))
 
+	return
+}
+
+func (s OfferService) ActiveOffer(offerId string) (offer bean.Offer, ce SimpleContextError) {
 	return
 }
 
@@ -335,14 +358,16 @@ func (s OfferService) CompleteShakeOffer(userId string, offerId string) (offer b
 	return
 }
 
-func (s OfferService) GetQuote(quoteType string, amountStr string, currency string, fiatCurrency string) (price decimal.Decimal, fiatAmount decimal.Decimal, err error) {
+func (s OfferService) GetQuote(quoteType string, amountStr string, currency string, fiatCurrency string) (price decimal.Decimal, fiatPrice decimal.Decimal,
+	fiatAmount decimal.Decimal, err error) {
 	amount, numberErr := decimal.NewFromString(amountStr)
 	to := dao.MiscDaoInst.GetCurrencyRateFromCache(bean.USD.Code, fiatCurrency)
 	if numberErr != nil {
 		err = numberErr
 	}
 	rate := to.Object.(bean.CurrencyRate)
-	tmpAmount := amount.Mul(decimal.NewFromFloat(rate.Rate))
+	rateNumber := decimal.NewFromFloat(rate.Rate)
+	tmpAmount := amount.Mul(rateNumber)
 
 	if quoteType == "buy" {
 		resp, errResp := coinbase_service.GetBuyPrice(currency)
@@ -351,6 +376,7 @@ func (s OfferService) GetQuote(quoteType string, amountStr string, currency stri
 			return
 		}
 		price, _ = decimal.NewFromString(resp.Amount)
+		fiatPrice = price.Mul(rateNumber)
 		fiatAmount = tmpAmount.Mul(price)
 	} else if quoteType == "sell" {
 		resp, errResp := coinbase_service.GetSellPrice(currency)
@@ -359,6 +385,7 @@ func (s OfferService) GetQuote(quoteType string, amountStr string, currency stri
 			return
 		}
 		price, _ := decimal.NewFromString(resp.Amount)
+		fiatPrice = price.Mul(rateNumber)
 		fiatAmount = tmpAmount.Mul(price)
 	} else {
 		err = errors.New(api_error.InvalidQueryParam)

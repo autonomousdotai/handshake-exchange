@@ -28,6 +28,7 @@ const UnsupportedCurrency = "UnsupportedCurrency"
 const OfferStatusInvalid = "OfferStatusInvalid"
 const OfferPayMyself = "OfferPayMyself"
 const TooManyOffer = "TooManyOffer"
+const AmountIsTooSmall = "AmountIsTooSmall"
 
 var CodeMessage = map[string]struct {
 	StatusCode int
@@ -60,20 +61,5 @@ var CodeMessage = map[string]struct {
 	OfferStatusInvalid:   {http.StatusBadRequest, -307, "This offer status is invalid"},
 	OfferPayMyself:       {http.StatusBadRequest, -308, "You cannot pay offer for yourself"},
 	TooManyOffer:         {http.StatusBadRequest, -309, "Too many offer"},
+	AmountIsTooSmall:     {http.StatusBadRequest, -310, "Amount is too small"},
 }
-
-//var ErrorSuccess = NewErrorSimple(Success)
-//var ErrorUnexpected = NewErrorSimple(UnexpectedError)
-//var ErrorResourceNotFound = NewErrorSimple(ResourceNotFound)
-//var ErrorFirebase = NewErrorSimple(FirebaseError)
-//var ErrorSendEmail = NewErrorSimple(SendEmailError)
-//var ErrorTokenInvalid = NewErrorSimple(TokenInvalid)
-//var ErrorInvalidRequestBody = NewErrorSimple(InvalidRequestBody)
-//var ErrorInvalidRequestParam = NewErrorSimple(InvalidRequestParam)
-//var ErrorInvalidQueryParam = NewErrorSimple(InvalidQueryParam)
-//var ErrorExternalApiFailed = NewErrorSimple(ExternalApiFailed)
-//var ErrorInvalidNumber = NewErrorSimple(InvalidNumber)
-//var ErrorGetDataFailed = NewErrorSimple(GetDataFailed)
-//var ErrorAddDataFailed = NewErrorSimple(AddDataFailed)
-//var ErrorUpdateDataFailed = NewErrorSimple(UpdateDataFailed)
-//var ErrorDeleteDataFailed = NewErrorSimple(DeleteDataFailed)

@@ -134,44 +134,75 @@ func (api MiscApi) GetCryptoQuote(context *gin.Context) {
 		FiatCurrency: fiatCurrency,
 	}
 
-	amount, numberErr := decimal.NewFromString(amountStr)
-	if api_error.PropagateErrorAndAbort(context, api_error.InvalidQueryParam, numberErr) != nil {
+	_, fiatPrice, fiatAmount, err := service.OfferServiceInst.GetQuote(quoteType, amountStr, currency, fiatCurrency)
+	if api_error.PropagateErrorAndAbort(context, api_error.GetDataFailed, err) != nil {
 		return
 	}
-	to := dao.MiscDaoInst.GetCurrencyRateFromCache(bean.USD.Code, fiatCurrency)
-	if to.ContextValidate(context) {
-		return
-	}
-	rate := to.Object.(bean.CurrencyRate)
-	fiatAmount := amount.Mul(decimal.NewFromFloat(rate.Rate))
-
-	if quoteType == "buy" {
-		resp, err := coinbase_service.GetBuyPrice(currency)
-		if api_error.PropagateErrorAndAbort(context, api_error.GetDataFailed, err) != nil {
-			return
-		}
-		price, _ := decimal.NewFromString(resp.Amount)
-		fiatAmount = fiatAmount.Mul(price)
-
-		quote.Price = resp.Amount
-	} else if quoteType == "sell" {
-		resp, err := coinbase_service.GetSellPrice(currency)
-		if api_error.PropagateErrorAndAbort(context, api_error.GetDataFailed, err) != nil {
-			return
-		}
-		price, _ := decimal.NewFromString(resp.Amount)
-		fiatAmount = fiatAmount.Mul(price)
-
-		quote.Price = resp.Amount
-	} else {
-		if api_error.AbortWithValidateErrorSimple(context, api_error.InvalidQueryParam) != nil {
-			return
-		}
-	}
-
+	quote.Price = fiatPrice.Round(2).String()
 	quote.FiatAmount = fiatAmount.Round(2).String()
 
 	bean.SuccessResponse(context, quote)
+}
+
+func (api MiscApi) GetAllCryptoQuotes(context *gin.Context) {
+	type quoteStruct struct {
+		Type         string
+		Currency     string
+		FiatCurrency string
+		// FiatAmount   string
+		Price string
+	}
+
+	fiatCurrency := context.DefaultQuery("fiat_currency", "")
+
+	var quote quoteStruct
+	quotes := make([]quoteStruct, 4)
+
+	quote = quoteStruct{
+		Type:         bean.OFFER_TYPE_SELL,
+		Currency:     bean.BTC.Code,
+		FiatCurrency: fiatCurrency,
+	}
+	_, fiatPrice, fiatAmount, _ := service.OfferServiceInst.GetQuote(quote.Type, "1", quote.Currency, fiatCurrency)
+	quote.Price = fiatPrice.Round(2).String()
+	// quote.FiatAmount = fiatAmount.Round(2).String()
+
+	quotes[0] = quote
+
+	quote = quoteStruct{
+		Type:         bean.OFFER_TYPE_BUY,
+		Currency:     bean.BTC.Code,
+		FiatCurrency: fiatCurrency,
+	}
+	_, fiatPrice, fiatAmount, _ = service.OfferServiceInst.GetQuote(quote.Type, "1", quote.Currency, fiatCurrency)
+	quote.Price = fiatPrice.Round(2).String()
+	// quote.FiatAmount = fiatAmount.Round(2).String()
+
+	quotes[1] = quote
+
+	quote = quoteStruct{
+		Type:         bean.OFFER_TYPE_SELL,
+		Currency:     bean.ETH.Code,
+		FiatCurrency: fiatCurrency,
+	}
+	_, fiatPrice, fiatAmount, _ = service.OfferServiceInst.GetQuote(quote.Type, "1", quote.Currency, fiatCurrency)
+	quote.Price = fiatPrice.Round(2).String()
+	// quote.FiatAmount = fiatAmount.Round(2).String()
+
+	quotes[2] = quote
+
+	quote = quoteStruct{
+		Type:         bean.OFFER_TYPE_BUY,
+		Currency:     bean.ETH.Code,
+		FiatCurrency: fiatCurrency,
+	}
+	_, fiatPrice, fiatAmount, _ = service.OfferServiceInst.GetQuote(quote.Type, "1", quote.Currency, fiatCurrency)
+	quote.Price = fiatPrice.Round(2).String()
+	// quote.FiatAmount = fiatAmount.Round(2).String()
+
+	quotes[3] = quote
+
+	bean.SuccessResponse(context, quotes)
 }
 
 // CRON JOB
