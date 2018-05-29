@@ -1,4 +1,4 @@
-package algolia_service
+package solr_service
 
 import (
 	"bytes"
@@ -9,7 +9,7 @@ import (
 	"os"
 )
 
-func UpdateObject(uri string, body interface{}) (*grequests.Response, error) {
+func UpdateObject(body interface{}) (*grequests.Response, error) {
 	type addBodyStruct struct {
 		Add []interface{} `json:"add"`
 	}

@@ -7,6 +7,7 @@ import (
 	"github.com/autonomousdotai/handshake-exchange/common"
 	"github.com/autonomousdotai/handshake-exchange/dao"
 	"github.com/autonomousdotai/handshake-exchange/integration/coinbase_service"
+	"github.com/autonomousdotai/handshake-exchange/integration/solr_service"
 	"github.com/go-errors/errors"
 	"github.com/shopspring/decimal"
 )
@@ -107,7 +108,11 @@ func (s OfferService) CreateOffer(userId string, offerBody bean.Offer) (offer be
 	if ce.SetError(api_error.AddDataFailed, err) {
 		return
 	}
-	// TODO Add to Algolia
+
+	_, err = solr_service.UpdateObject(bean.NewSolrFromOffer(offer))
+	if ce.SetError(api_error.AddDataFailed, err) {
+		return
+	}
 
 	return
 }
