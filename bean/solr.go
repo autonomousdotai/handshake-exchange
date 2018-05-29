@@ -1,6 +1,7 @@
 package bean
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 )
@@ -17,16 +18,19 @@ type SolrOfferObject struct {
 	ViewCount     int      `json:"view_count_i"`
 	CommentCount  int      `json:"comment_count_i"`
 	TextSearch    []string `json:"text_search_ss"`
+	ExtraData     string   `json:"extra_data_s"`
+	Location      string   `json:"location_p"`
+}
 
-	OfferId           string `json:"offer_id_s"`
-	OfferType         string `json:"offer_type_s"`
-	OfferAmount       string `json:"offer_amount_s"`
-	OfferCurrency     string `json:"offer_currency_s"`
-	OfferFiatCurrency string `json:"offer_fiat_currency_s"`
-	OfferFiatAmount   string `json:"offer_fiat_amount_s"`
-	OfferPrice        string `json:"offer_price_s"`
-	OfferStatus       string `json:"offer_status_s"`
-	OfferLocation     string `json:"offer_location_p"`
+type SolrOfferExtraData struct {
+	Id           string `json:"id"`
+	Type         string `json:"type"`
+	Amount       string `json:"amount"`
+	Currency     string `json:"currency"`
+	FiatCurrency string `json:"fiat_currency"`
+	FiatAmount   string `json:"fiat_amount"`
+	Price        string `json:"price"`
+	Status       string `json:"status"`
 }
 
 var statusMap = map[string]int{
@@ -53,15 +57,20 @@ func NewSolrFromOffer(offer Offer) (solr SolrOfferObject) {
 		solr.ShakedUserIds = make([]int, 0)
 	}
 	solr.TextSearch = make([]string, 0)
-	solr.OfferId = offer.Id
-	solr.OfferType = offer.Type
-	solr.OfferAmount = offer.Amount
-	solr.OfferCurrency = offer.Currency
-	solr.OfferFiatAmount = offer.FiatAmount
-	solr.OfferFiatCurrency = offer.FiatCurrency
-	solr.OfferPrice = offer.Price
-	solr.OfferStatus = offer.Status
-	solr.OfferLocation = fmt.Sprintf("%f,%f", offer.Latitude, offer.Longitude)
+	solr.Location = fmt.Sprintf("%f,%f", offer.Latitude, offer.Longitude)
+
+	extraData := SolrOfferExtraData{
+		Id:           offer.Id,
+		Type:         offer.Type,
+		Amount:       offer.Amount,
+		Currency:     offer.Currency,
+		FiatAmount:   offer.FiatAmount,
+		FiatCurrency: offer.FiatCurrency,
+		Price:        offer.Price,
+		Status:       offer.Status,
+	}
+	b, _ := json.Marshal(&extraData)
+	solr.ExtraData = string(b)
 
 	return
 }

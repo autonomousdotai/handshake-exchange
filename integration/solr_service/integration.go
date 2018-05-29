@@ -45,13 +45,13 @@ func UpdateObject(body interface{}) (*grequests.Response, error) {
 	return resp, err
 }
 
-func DeleteObject(uri string, objectId string) (*grequests.Response, error) {
+func DeleteObject(objectId string) (*grequests.Response, error) {
 	type deleteBodyStruct struct {
 		Delete []string `json:"delete"`
 	}
 
 	host := os.Getenv("SOLR_SERVICE_URL")
-	url := fmt.Sprintf("%s/handshake/delete", host)
+	url := fmt.Sprintf("%s/handshake/update", host)
 
 	bodyStr := ""
 	arrBody := make([]string, 1)
