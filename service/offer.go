@@ -10,6 +10,7 @@ import (
 	"github.com/autonomousdotai/handshake-exchange/integration/solr_service"
 	"github.com/go-errors/errors"
 	"github.com/shopspring/decimal"
+	"time"
 )
 
 type OfferService struct {
@@ -109,10 +110,8 @@ func (s OfferService) CreateOffer(userId string, offerBody bean.Offer) (offer be
 		return
 	}
 
-	_, err = solr_service.UpdateObject(bean.NewSolrFromOffer(offer))
-	if ce.SetError(api_error.AddDataFailed, err) {
-		return
-	}
+	offer.CreatedAt = time.Now()
+	solr_service.UpdateObject(bean.NewSolrFromOffer(offer))
 
 	return
 }
@@ -161,7 +160,7 @@ func (s OfferService) CloseOffer(userId string, offerId string) (offer bean.Offe
 		return
 	}
 
-	// TODO Remove from Algolia
+	solr_service.DeleteObject(offer.Id)
 
 	return
 }
@@ -218,6 +217,8 @@ func (s OfferService) ShakeOffer(userId string, offerId string, body bean.OfferS
 		return
 	}
 
+	solr_service.UpdateObject(bean.NewSolrFromOffer(offer))
+
 	return
 }
 
@@ -270,6 +271,8 @@ func (s OfferService) RejectShakeOffer(userId string, offerId string) (offer bea
 			ce.SetStatusKey(api_error.InvalidRequestBody)
 		}
 	}
+
+	solr_service.DeleteObject(offer.Id)
 
 	return
 }
@@ -326,6 +329,8 @@ func (s OfferService) CompleteShakeOffer(userId string, offerId string) (offer b
 	if ce.SetError(api_error.UpdateDataFailed, err) {
 		return
 	}
+
+	solr_service.DeleteObject(offer.Id)
 
 	return
 }

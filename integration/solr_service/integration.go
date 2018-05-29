@@ -55,7 +55,7 @@ func DeleteObject(objectId string) (*grequests.Response, error) {
 
 	bodyStr := ""
 	arrBody := make([]string, 1)
-	arrBody[0] = objectId
+	arrBody[0] = fmt.Sprintf("exchange_%s", objectId)
 	deleteBody := deleteBodyStruct{
 		Delete: arrBody,
 	}

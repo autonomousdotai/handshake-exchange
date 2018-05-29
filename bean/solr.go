@@ -3,7 +3,9 @@ package bean
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/shopspring/decimal"
 	"strconv"
+	"time"
 )
 
 type SolrOfferObject struct {
@@ -20,6 +22,8 @@ type SolrOfferObject struct {
 	TextSearch    []string `json:"text_search_ss"`
 	ExtraData     string   `json:"extra_data_s"`
 	Location      string   `json:"location_p"`
+	InitAt        int64    `json:"init_at_i"`
+	LastUpdateAt  int64    `json:"last_update_at_i"`
 }
 
 type SolrOfferExtraData struct {
@@ -30,6 +34,9 @@ type SolrOfferExtraData struct {
 	FiatCurrency string `json:"fiat_currency"`
 	FiatAmount   string `json:"fiat_amount"`
 	Price        string `json:"price"`
+	Percentage   string `json:"percentage"`
+	ContactPhone string `json:"contact_phone"`
+	ContactInfo  string `json:"contact_info"`
 	Status       string `json:"status"`
 }
 
@@ -58,7 +65,10 @@ func NewSolrFromOffer(offer Offer) (solr SolrOfferObject) {
 	}
 	solr.TextSearch = make([]string, 0)
 	solr.Location = fmt.Sprintf("%f,%f", offer.Latitude, offer.Longitude)
+	solr.InitAt = offer.CreatedAt.UTC().Unix()
+	solr.LastUpdateAt = time.Now().UTC().Unix()
 
+	percentage, _ := decimal.NewFromString(offer.Percentage)
 	extraData := SolrOfferExtraData{
 		Id:           offer.Id,
 		Type:         offer.Type,
@@ -67,6 +77,9 @@ func NewSolrFromOffer(offer Offer) (solr SolrOfferObject) {
 		FiatAmount:   offer.FiatAmount,
 		FiatCurrency: offer.FiatCurrency,
 		Price:        offer.Price,
+		Percentage:   percentage.Mul(decimal.NewFromFloat(100)).String(),
+		ContactInfo:  offer.ContactInfo,
+		ContactPhone: offer.ContactPhone,
 		Status:       offer.Status,
 	}
 	b, _ := json.Marshal(&extraData)
