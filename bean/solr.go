@@ -19,7 +19,7 @@ type SolrOfferObject struct {
 	TextSearch    []string `json:"text_search_ss"`
 
 	OfferId           string `json:"offer_id_s"`
-	OfferType         string `json:"offer_type_p"`
+	OfferType         string `json:"offer_type_s"`
 	OfferAmount       string `json:"offer_amount_s"`
 	OfferCurrency     string `json:"offer_currency_s"`
 	OfferFiatCurrency string `json:"offer_fiat_currency_s"`
@@ -49,7 +49,10 @@ func NewSolrFromOffer(offer Offer) (solr SolrOfferObject) {
 	if offer.ToUID != "" {
 		userId, _ := strconv.Atoi(offer.ToUID)
 		solr.ShakedUserIds = []int{userId}
+	} else {
+		solr.ShakedUserIds = make([]int, 0)
 	}
+	solr.TextSearch = make([]string, 0)
 	solr.OfferId = offer.Id
 	solr.OfferType = offer.Type
 	solr.OfferAmount = offer.Amount

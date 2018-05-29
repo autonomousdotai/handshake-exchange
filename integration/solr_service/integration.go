@@ -29,9 +29,13 @@ func UpdateObject(body interface{}) (*grequests.Response, error) {
 		return nil, errBody
 	}
 	bodyStr = string(b)
+
 	r := bytes.NewReader([]byte(bodyStr))
 
-	ro := &grequests.RequestOptions{RequestBody: r}
+	headers := map[string]string{
+		"Content-Type": "application/json",
+	}
+	ro := &grequests.RequestOptions{RequestBody: r, Headers: headers}
 	resp, err := grequests.Post(url, ro)
 
 	if resp.Ok != true {
@@ -47,7 +51,7 @@ func DeleteObject(uri string, objectId string) (*grequests.Response, error) {
 	}
 
 	host := os.Getenv("SOLR_SERVICE_URL")
-	url := fmt.Sprintf("%s/handshake/update", host)
+	url := fmt.Sprintf("%s/handshake/delete", host)
 
 	bodyStr := ""
 	arrBody := make([]string, 1)
@@ -63,7 +67,10 @@ func DeleteObject(uri string, objectId string) (*grequests.Response, error) {
 	bodyStr = string(b)
 	r := bytes.NewReader([]byte(bodyStr))
 
-	ro := &grequests.RequestOptions{RequestBody: r}
+	headers := map[string]string{
+		"Content-Type": "application/json",
+	}
+	ro := &grequests.RequestOptions{RequestBody: r, Headers: headers}
 	resp, err := grequests.Post(url, ro)
 
 	if resp.Ok != true {
