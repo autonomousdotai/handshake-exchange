@@ -58,7 +58,7 @@ func NewSolrFromOffer(offer Offer) (solr SolrOfferObject) {
 	solr.OfferFiatCurrency = offer.FiatCurrency
 	solr.OfferPrice = offer.Price
 	solr.OfferStatus = offer.Status
-	solr.OfferLocation = fmt.Sprintf("%s,%s", offer.Latitude, offer.Longitude)
+	solr.OfferLocation = fmt.Sprintf("%f,%f", offer.Latitude, offer.Longitude)
 
 	return
 }
