@@ -163,7 +163,7 @@ func (api MiscApi) GetAllCryptoQuotes(context *gin.Context) {
 		Currency:     bean.BTC.Code,
 		FiatCurrency: fiatCurrency,
 	}
-	_, fiatPrice, fiatAmount, _ := service.OfferServiceInst.GetQuote(quote.Type, "1", quote.Currency, fiatCurrency)
+	_, fiatPrice, _, _ := service.OfferServiceInst.GetQuote(quote.Type, "1", quote.Currency, fiatCurrency)
 	quote.Price = fiatPrice.Round(2).String()
 	// quote.FiatAmount = fiatAmount.Round(2).String()
 
@@ -174,7 +174,7 @@ func (api MiscApi) GetAllCryptoQuotes(context *gin.Context) {
 		Currency:     bean.BTC.Code,
 		FiatCurrency: fiatCurrency,
 	}
-	_, fiatPrice, fiatAmount, _ = service.OfferServiceInst.GetQuote(quote.Type, "1", quote.Currency, fiatCurrency)
+	_, fiatPrice, _, _ = service.OfferServiceInst.GetQuote(quote.Type, "1", quote.Currency, fiatCurrency)
 	quote.Price = fiatPrice.Round(2).String()
 	// quote.FiatAmount = fiatAmount.Round(2).String()
 
@@ -185,7 +185,7 @@ func (api MiscApi) GetAllCryptoQuotes(context *gin.Context) {
 		Currency:     bean.ETH.Code,
 		FiatCurrency: fiatCurrency,
 	}
-	_, fiatPrice, fiatAmount, _ = service.OfferServiceInst.GetQuote(quote.Type, "1", quote.Currency, fiatCurrency)
+	_, fiatPrice, _, _ = service.OfferServiceInst.GetQuote(quote.Type, "1", quote.Currency, fiatCurrency)
 	quote.Price = fiatPrice.Round(2).String()
 	// quote.FiatAmount = fiatAmount.Round(2).String()
 
@@ -196,7 +196,7 @@ func (api MiscApi) GetAllCryptoQuotes(context *gin.Context) {
 		Currency:     bean.ETH.Code,
 		FiatCurrency: fiatCurrency,
 	}
-	_, fiatPrice, fiatAmount, _ = service.OfferServiceInst.GetQuote(quote.Type, "1", quote.Currency, fiatCurrency)
+	_, fiatPrice, _, _ = service.OfferServiceInst.GetQuote(quote.Type, "1", quote.Currency, fiatCurrency)
 	quote.Price = fiatPrice.Round(2).String()
 	// quote.FiatAmount = fiatAmount.Round(2).String()
 

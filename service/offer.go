@@ -135,7 +135,16 @@ func (s OfferService) CreateOffer(userId string, offerBody bean.Offer) (offer be
 	return
 }
 
-func (s OfferService) ActiveOffer(offerId string) (offer bean.Offer, ce SimpleContextError) {
+func (s OfferService) ActiveOffer(offerId string, amount string) (offer bean.Offer, ce SimpleContextError) {
+	offerTO := s.dao.GetOffer(offerId)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, offerTO) {
+		return
+	}
+	offer = offerTO.Object.(bean.Offer)
+	if offer.Status != bean.OFFER_STATUS_ACTIVE && offer.Status != bean.OFFER_STATUS_CREATED {
+		ce.SetStatusKey(api_error.OfferStatusInvalid)
+	}
+
 	return
 }
 
