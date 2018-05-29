@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/autonomousdotai/handshake-exchange/bean"
 	"github.com/autonomousdotai/handshake-exchange/integration/firebase_service"
+	"google.golang.org/api/iterator"
 )
 
 type OfferDao struct {
@@ -29,7 +30,7 @@ func (dao OfferDao) AddOffer(offer bean.Offer, profile bean.Profile) (bean.Offer
 			OfferRef: GetOfferItemPath(offer.Id),
 			UID:      offer.UID,
 		}
-		mappingDocRef := dbClient.Doc(GetOfferAddressMapItemPath(offer.Id))
+		mappingDocRef := dbClient.Doc(GetOfferAddressMapItemPath(offer.SystemAddress))
 		batch.Set(mappingDocRef, mapping.GetAddOfferAddressMap())
 	}
 
@@ -57,6 +58,29 @@ func (dao OfferDao) ListOffers(userId string, offerType string, currency string,
 	return
 }
 
+func (dao OfferDao) ListTransferMaps() ([]bean.OfferTransferMap, error) {
+	dbClient := firebase_service.FirestoreClient
+
+	// pending_instant_offers
+	iter := dbClient.Collection(GetOfferTransferMapPath()).Documents(context.Background())
+	offers := make([]bean.OfferTransferMap, 0)
+
+	for {
+		var offer bean.OfferTransferMap
+		doc, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return offers, err
+		}
+		doc.DataTo(&offer)
+		offers = append(offers, offer)
+	}
+
+	return offers, nil
+}
+
 func (dao OfferDao) GetOffer(offerId string) (t TransferObject) {
 	// offers/{id}
 	GetObject(GetOfferItemPath(offerId), &t, snapshotToOffer)
@@ -69,6 +93,21 @@ func (dao OfferDao) UpdateOffer(offer bean.Offer, updateData map[string]interfac
 
 	docRef := dbClient.Doc(GetOfferItemPath(offer.Id))
 	_, err := docRef.Set(context.Background(), updateData, firestore.MergeAll)
+
+	return err
+}
+
+func (dao OfferDao) UpdateOfferActive(offer bean.Offer) error {
+	dbClient := firebase_service.FirestoreClient
+
+	docRef := dbClient.Doc(GetOfferItemPath(offer.Id))
+	addressMapDocRef := dbClient.Doc(GetOfferAddressMapItemPath(offer.UserAddress))
+
+	batch := dbClient.Batch()
+	batch.Set(docRef, offer.GetChangeStatus(), firestore.MergeAll)
+	batch.Delete(addressMapDocRef)
+
+	_, err := batch.Commit(context.Background())
 
 	return err
 }
@@ -119,11 +158,41 @@ func (dao OfferDao) UpdateOfferCompleting(offer bean.Offer, profile bean.Profile
 		Offer:      offer.Id,
 		OfferRef:   GetOfferItemPath(offer.Id),
 		ExternalId: externalId,
-	})
+		Currency:   offer.Currency,
+	}.GetAddOfferTransferMap())
 
 	_, err := batch.Commit(context.Background())
 
 	return err
+}
+
+func (dao OfferDao) UpdateOfferCompleted(offer bean.Offer) error {
+	dbClient := firebase_service.FirestoreClient
+
+	docRef := dbClient.Doc(GetOfferItemPath(offer.Id))
+	transferDocRef := dbClient.Doc(GetOfferTransferMapItemPath(offer.Id))
+
+	batch := dbClient.Batch()
+	batch.Set(docRef, offer.GetUpdateOfferCompleted(), firestore.MergeAll)
+	batch.Delete(transferDocRef)
+
+	_, err := batch.Commit(context.Background())
+
+	return err
+}
+
+func (dao OfferDao) GetOfferAddress(address string) (t TransferObject) {
+	// offer_addresses/{id}
+	GetObject(GetOfferAddressMapItemPath(address), &t, snapshotToOfferAddressMap)
+
+	return
+}
+
+func (dao OfferDao) UpdateTickTransferMap(transferMap bean.OfferTransferMap) {
+	dbClient := firebase_service.FirestoreClient
+
+	transferDocRef := dbClient.Doc(GetOfferTransferMapItemPath(transferMap.Offer))
+	transferDocRef.Set(context.Background(), transferMap.UpdateTick(), firestore.MergeAll)
 }
 
 // DB path
@@ -155,5 +224,11 @@ func snapshotToOffer(snapshot *firestore.DocumentSnapshot) interface{} {
 	var obj bean.Offer
 	snapshot.DataTo(&obj)
 	obj.Id = snapshot.Ref.ID
+	return obj
+}
+
+func snapshotToOfferAddressMap(snapshot *firestore.DocumentSnapshot) interface{} {
+	var obj bean.OfferAddressMap
+	snapshot.DataTo(&obj)
 	return obj
 }

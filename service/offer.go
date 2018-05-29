@@ -135,14 +135,35 @@ func (s OfferService) CreateOffer(userId string, offerBody bean.Offer) (offer be
 	return
 }
 
-func (s OfferService) ActiveOffer(offerId string, amount string) (offer bean.Offer, ce SimpleContextError) {
-	offerTO := s.dao.GetOffer(offerId)
+func (s OfferService) ActiveOffer(address string, amountStr string) (offer bean.Offer, ce SimpleContextError) {
+	addressMapTO := s.dao.GetOfferAddress(address)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, addressMapTO) {
+		return
+	}
+	addressMap := addressMapTO.Object.(bean.OfferAddressMap)
+
+	offerTO := s.dao.GetOffer(addressMap.Offer)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, offerTO) {
 		return
 	}
 	offer = offerTO.Object.(bean.Offer)
-	if offer.Status != bean.OFFER_STATUS_ACTIVE && offer.Status != bean.OFFER_STATUS_CREATED {
+	if offer.Status != bean.OFFER_STATUS_CREATED {
 		ce.SetStatusKey(api_error.OfferStatusInvalid)
+	}
+	inputAmount, _ := decimal.NewFromString(amountStr)
+	offerAmount, _ := decimal.NewFromString(offer.Amount)
+	sub := offerAmount.Sub(inputAmount)
+	if sub.Equal(common.Zero) {
+		// Good
+		offer.Status = bean.OFFER_STATUS_ACTIVE
+		err := s.dao.UpdateOfferActive(offer)
+		if ce.SetError(api_error.UpdateDataFailed, err) {
+			return
+		}
+
+		solr_service.UpdateObject(bean.NewSolrFromOffer(offer))
+	} else {
+		// TODO Process to refund?
 	}
 
 	return
@@ -192,7 +213,7 @@ func (s OfferService) CloseOffer(userId string, offerId string) (offer bean.Offe
 		return
 	}
 
-	solr_service.DeleteObject(offer.Id)
+	solr_service.UpdateObject(bean.NewSolrFromOffer(offer))
 
 	return
 }
@@ -304,7 +325,7 @@ func (s OfferService) RejectShakeOffer(userId string, offerId string) (offer bea
 		}
 	}
 
-	solr_service.DeleteObject(offer.Id)
+	solr_service.UpdateObject(bean.NewSolrFromOffer(offer))
 
 	return
 }
@@ -321,6 +342,17 @@ func (s OfferService) CompleteShakeOffer(userId string, offerId string) (offer b
 		return
 	}
 	offer = offerTO.Object.(bean.Offer)
+
+	if offer.Type == bean.OFFER_TYPE_SELL {
+		if offer.UID != userId {
+			ce.SetStatusKey(api_error.InvalidUserToCompleteHandshake)
+		}
+	} else {
+		if offer.ToUID != userId {
+			ce.SetStatusKey(api_error.InvalidUserToCompleteHandshake)
+		}
+	}
+
 	offerProfile := s.getOfferProfile(offer, profile, &ce)
 	offerProfile.ActiveOffers[offer.Currency] = false
 
@@ -363,6 +395,51 @@ func (s OfferService) CompleteShakeOffer(userId string, offerId string) (offer b
 	}
 
 	solr_service.DeleteObject(offer.Id)
+
+	return
+}
+
+func (s OfferService) EndOffers() (ce SimpleContextError) {
+	transferMaps, err := s.dao.ListTransferMaps()
+	if ce.SetError(api_error.GetDataFailed, err) {
+		return
+	}
+
+	for _, transferMap := range transferMaps {
+		resp, err := coinbase_service.GetTransaction(transferMap.ExternalId, transferMap.Currency)
+		if err == nil {
+			if resp.Status == "completed" {
+				offer := s.endOffer(transferMap.Offer, resp, &ce)
+				if !ce.HasError() {
+					solr_service.UpdateObject(bean.NewSolrFromOffer(offer))
+				}
+			} else {
+				s.dao.UpdateTickTransferMap(transferMap)
+			}
+		}
+	}
+
+	return
+}
+
+func (s OfferService) endOffer(offerId string, providerData interface{}, ce *SimpleContextError) (offer bean.Offer) {
+	offerTO := s.dao.GetOffer(offerId)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, offerTO) {
+		return
+	}
+	offer = offerTO.Object.(bean.Offer)
+	if offer.Status != bean.OFFER_STATUS_COMPLETING {
+		ce.SetStatusKey(api_error.OfferStatusInvalid)
+	}
+
+	offer.ProviderData = providerData
+	offer.Status = bean.OFFER_STATUS_COMPLETED
+	err := s.dao.UpdateOfferCompleted(offer)
+	if ce.SetError(api_error.UpdateDataFailed, err) {
+		return
+	}
+
+	solr_service.UpdateObject(bean.NewSolrFromOffer(offer))
 
 	return
 }

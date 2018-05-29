@@ -134,6 +134,14 @@ func (offer Offer) GetUpdateOfferCompleting() map[string]interface{} {
 	}
 }
 
+func (offer Offer) GetUpdateOfferCompleted() map[string]interface{} {
+	return map[string]interface{}{
+		"provider_data": offer.ProviderData,
+		"status":        OFFER_STATUS_COMPLETED,
+		"updated_at":    firestore.ServerTimestamp,
+	}
+}
+
 func (offer Offer) GetUpdateOfferClose() map[string]interface{} {
 	return map[string]interface{}{
 		"provider":      offer.Provider,
@@ -191,19 +199,21 @@ type OfferTransferMap struct {
 	Offer      string `json:"offer" firestore:"offer"`
 	OfferRef   string `json:"offer_ref" firestore:"offer_ref"`
 	ExternalId string `json:"external_id" firestore:"external_id"`
+	Currency   string `json:"currency" firestore:"currency"`
 }
 
-func (offer OfferAddressMap) AddOfferTransferMap() map[string]interface{} {
+func (offer OfferTransferMap) GetAddOfferTransferMap() map[string]interface{} {
 	return map[string]interface{}{
 		"address":    offer.Address,
 		"offer":      offer.Offer,
 		"uid":        offer.UID,
 		"offer_ref":  offer.OfferRef,
+		"currency":   offer.Currency,
 		"created_at": firestore.ServerTimestamp,
 	}
 }
 
-func (offer OfferAddressMap) UpdateTick() map[string]interface{} {
+func (offer OfferTransferMap) UpdateTick() map[string]interface{} {
 	return map[string]interface{}{
 		"updated_at": firestore.ServerTimestamp,
 	}

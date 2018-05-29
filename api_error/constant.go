@@ -29,6 +29,7 @@ const OfferStatusInvalid = "OfferStatusInvalid"
 const OfferPayMyself = "OfferPayMyself"
 const TooManyOffer = "TooManyOffer"
 const AmountIsTooSmall = "AmountIsTooSmall"
+const InvalidUserToCompleteHandshake = "InvalidUserToCompleteHandshake"
 
 var CodeMessage = map[string]struct {
 	StatusCode int
@@ -52,14 +53,15 @@ var CodeMessage = map[string]struct {
 	UpdateDataFailed: {http.StatusBadRequest, -203, "Update data failed"},
 	DeleteDataFailed: {http.StatusBadRequest, -204, "Delete data failed"},
 
-	ProfileExists:        {http.StatusBadRequest, -301, "Profile exists"},
-	ProfileNotExist:      {http.StatusBadRequest, -302, "Profile not exist"},
-	CCOverLimit:          {http.StatusBadRequest, -303, "CC over limit"},
-	InvalidCC:            {http.StatusBadRequest, -304, "CC is invalid"},
-	UnsupportedCurrency:  {http.StatusBadRequest, -305, "This currency is not supported"},
-	UnsupportedOfferType: {http.StatusBadRequest, -306, "This offer type is not supported"},
-	OfferStatusInvalid:   {http.StatusBadRequest, -307, "This offer status is invalid"},
-	OfferPayMyself:       {http.StatusBadRequest, -308, "You cannot pay offer for yourself"},
-	TooManyOffer:         {http.StatusBadRequest, -309, "Too many offer"},
-	AmountIsTooSmall:     {http.StatusBadRequest, -310, "Amount is too small"},
+	ProfileExists:                  {http.StatusBadRequest, -301, "Profile exists"},
+	ProfileNotExist:                {http.StatusBadRequest, -302, "Profile not exist"},
+	CCOverLimit:                    {http.StatusBadRequest, -303, "CC over limit"},
+	InvalidCC:                      {http.StatusBadRequest, -304, "CC is invalid"},
+	UnsupportedCurrency:            {http.StatusBadRequest, -305, "This currency is not supported"},
+	UnsupportedOfferType:           {http.StatusBadRequest, -306, "This offer type is not supported"},
+	OfferStatusInvalid:             {http.StatusBadRequest, -307, "This offer status is invalid"},
+	OfferPayMyself:                 {http.StatusBadRequest, -308, "You cannot pay offer for yourself"},
+	TooManyOffer:                   {http.StatusBadRequest, -309, "Too many offer"},
+	AmountIsTooSmall:               {http.StatusBadRequest, -310, "Amount is too small"},
+	InvalidUserToCompleteHandshake: {http.StatusBadRequest, -311, "Invalid user to complete handshake"},
 }

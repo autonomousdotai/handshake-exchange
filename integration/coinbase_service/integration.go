@@ -129,6 +129,19 @@ func GenerateAddress(currency string) (bean.CoinbaseAddressResponse, error) {
 	return response, err
 }
 
+func GetTransaction(transId string, currency string) (bean.CoinbaseTransaction, error) {
+	client := CoinbaseClient{}
+	client.Initialize()
+
+	var response bean.CoinbaseTransactionResponse
+	resp, err := client.Get("/v2/accounts/" + client.GetAccount(currency) + "/transactions" + transId)
+	if err == nil {
+		resp.JSON(&response)
+	}
+
+	return response.Data, err
+}
+
 func SendTransaction(address string, amount string, currency string, description string, withdrawId string) (bean.CoinbaseTransaction, error) {
 	client := CoinbaseClient{}
 	client.Initialize()
