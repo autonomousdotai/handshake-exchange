@@ -27,9 +27,9 @@ func (url CronJobUrl) Create(router *gin.Engine) *gin.RouterGroup {
 		miscApi.FinishInstantOffers(context)
 	})
 	// CRON JOB
-	group.POST("/transfer-tracking", func(context *gin.Context) {
-		miscApi.UpdateTransferTracking(context)
-	})
+	//group.POST("/transfer-tracking", func(context *gin.Context) {
+	//	miscApi.UpdateTransferTracking(context)
+	//})
 	// CRON JOB
 	group.POST("/update-cc-limit-track", func(context *gin.Context) {
 		miscApi.UpdateUserCCLimitTracks(context)
@@ -44,6 +44,11 @@ func (url CronJobUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	group.POST("/cc-limits", func(context *gin.Context) {
 		miscApi.UpdateCCLimits(context)
 	})
+	group.POST("/sync-to-solr/:offerId", func(context *gin.Context) {
+		miscApi.SyncToSolr(context)
+	})
+
+	// Internal
 	group.POST("/test-coinbase-receive", func(context *gin.Context) {
 		miscApi.TestCoinbaseReceive(context)
 	})

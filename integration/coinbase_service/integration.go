@@ -41,7 +41,7 @@ func (c *CoinbaseClient) Initialize() {
 }
 
 func (c CoinbaseClient) buildHeader(method string, url string, body string) map[string]string {
-	timestamp := strconv.FormatInt(time.Now().Unix(), 10)
+	timestamp := strconv.FormatInt(time.Now().UTC().Unix(), 10)
 
 	message := []byte(timestamp + method + url + body)
 	mac := hmac.New(sha256.New, []byte(c.apiSecret))

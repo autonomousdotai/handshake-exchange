@@ -127,54 +127,73 @@ func (dao OfferDao) UpdateOfferClose(offer bean.Offer, profile bean.Profile) err
 	return err
 }
 
-func (dao OfferDao) UpdateOfferReject(offer bean.Offer, profile bean.Profile) error {
+func (dao OfferDao) UpdateOfferReject(offer bean.Offer, profile bean.Profile, transactionCount bean.TransactionCount) error {
 	dbClient := firebase_service.FirestoreClient
 
 	profileDocRef := dbClient.Doc(GetUserPath(offer.UID))
 	docRef := dbClient.Doc(GetOfferItemPath(offer.Id))
+	transCountDocRef := dbClient.Doc(GetTransactionCountItemPath(offer.UID, offer.Currency))
 
 	batch := dbClient.Batch()
 	batch.Set(docRef, offer.GetUpdateOfferReject(), firestore.MergeAll)
 	batch.Set(profileDocRef, profile.GetUpdateOfferProfile(), firestore.MergeAll)
+	batch.Set(transCountDocRef, transactionCount.GetUpdateFailed(), firestore.MergeAll)
 
 	_, err := batch.Commit(context.Background())
 
 	return err
 }
 
-func (dao OfferDao) UpdateOfferCompleting(offer bean.Offer, profile bean.Profile, externalId string) error {
+//func (dao OfferDao) UpdateOfferCompleting(offer bean.Offer, profile bean.Profile, externalId string) error {
+//	dbClient := firebase_service.FirestoreClient
+//
+//	profileDocRef := dbClient.Doc(GetUserPath(offer.UID))
+//	docRef := dbClient.Doc(GetOfferItemPath(offer.Id))
+//	transferDocRef := dbClient.Doc(GetOfferTransferMapItemPath(offer.Id))
+//
+//	batch := dbClient.Batch()
+//	batch.Set(docRef, offer.GetUpdateOfferCompleted(), firestore.MergeAll)
+//	batch.Set(profileDocRef, profile.GetUpdateOfferProfile(), firestore.MergeAll)
+//	batch.Set(transferDocRef, bean.OfferTransferMap{
+//		UID:        offer.UID,
+//		Address:    offer.UserAddress,
+//		Offer:      offer.Id,
+//		OfferRef:   GetOfferItemPath(offer.Id),
+//		ExternalId: externalId,
+//		Currency:   offer.Currency,
+//	}.GetAddOfferTransferMap())
+//
+//	_, err := batch.Commit(context.Background())
+//
+//	return err
+//}
+
+func (dao OfferDao) UpdateOfferCompleted(offer bean.Offer, profile bean.Profile, transactionCount bean.TransactionCount) error {
 	dbClient := firebase_service.FirestoreClient
 
+	docRef := dbClient.Doc(GetOfferItemPath(offer.Id))
 	profileDocRef := dbClient.Doc(GetUserPath(offer.UID))
-	docRef := dbClient.Doc(GetOfferItemPath(offer.Id))
-	transferDocRef := dbClient.Doc(GetOfferTransferMapItemPath(offer.Id))
-
-	batch := dbClient.Batch()
-	batch.Set(docRef, offer.GetUpdateOfferCompleting(), firestore.MergeAll)
-	batch.Set(profileDocRef, profile.GetUpdateOfferProfile(), firestore.MergeAll)
-	batch.Set(transferDocRef, bean.OfferTransferMap{
-		UID:        offer.UID,
-		Address:    offer.UserAddress,
-		Offer:      offer.Id,
-		OfferRef:   GetOfferItemPath(offer.Id),
-		ExternalId: externalId,
-		Currency:   offer.Currency,
-	}.GetAddOfferTransferMap())
-
-	_, err := batch.Commit(context.Background())
-
-	return err
-}
-
-func (dao OfferDao) UpdateOfferCompleted(offer bean.Offer) error {
-	dbClient := firebase_service.FirestoreClient
-
-	docRef := dbClient.Doc(GetOfferItemPath(offer.Id))
-	transferDocRef := dbClient.Doc(GetOfferTransferMapItemPath(offer.Id))
+	// transferDocRef := dbClient.Doc(GetOfferTransferMapItemPath(offer.Id))
+	transCountDocRef := dbClient.Doc(GetTransactionCountItemPath(offer.UID, offer.Currency))
 
 	batch := dbClient.Batch()
 	batch.Set(docRef, offer.GetUpdateOfferCompleted(), firestore.MergeAll)
-	batch.Delete(transferDocRef)
+	batch.Set(profileDocRef, profile.GetUpdateOfferProfile(), firestore.MergeAll)
+	batch.Set(transCountDocRef, transactionCount.GetUpdateSuccess(), firestore.MergeAll)
+	// batch.Delete(transferDocRef)
+
+	_, err := batch.Commit(context.Background())
+
+	return err
+}
+
+func (dao OfferDao) UpdateOfferWithdraw(offer bean.Offer) error {
+	dbClient := firebase_service.FirestoreClient
+
+	docRef := dbClient.Doc(GetOfferItemPath(offer.Id))
+
+	batch := dbClient.Batch()
+	batch.Set(docRef, offer.GetUpdateOfferWithdraw(), firestore.MergeAll)
 
 	_, err := batch.Commit(context.Background())
 

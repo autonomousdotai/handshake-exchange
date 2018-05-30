@@ -22,10 +22,12 @@ const OFFER_STATUS_CREATED = "created"
 const OFFER_STATUS_ACTIVE = "active"
 const OFFER_STATUS_SHAKING = "shaking"
 const OFFER_STATUS_SHAKE = "shake"
-const OFFER_STATUS_COMPLETING = "completing"
+
+// const OFFER_STATUS_COMPLETING = "completing"
 const OFFER_STATUS_COMPLETED = "completed"
 const OFFER_STATUS_CLOSED = "closed"
 const OFFER_STATUS_REJECTED = "rejected"
+const OFFER_STATUS_WITHDRAW = "withdraw"
 
 type Offer struct {
 	Id             string      `json:"id"`
@@ -125,19 +127,28 @@ func (offer Offer) GetUpdateOfferShaking() map[string]interface{} {
 	}
 }
 
-func (offer Offer) GetUpdateOfferCompleting() map[string]interface{} {
-	return map[string]interface{}{
-		"provider":      offer.Provider,
-		"provider_data": offer.ProviderData,
-		"status":        OFFER_STATUS_COMPLETING,
-		"updated_at":    firestore.ServerTimestamp,
-	}
-}
+//func (offer Offer) GetUpdateOfferCompleting() map[string]interface{} {
+//	return map[string]interface{}{
+//		"provider":      offer.Provider,
+//		"provider_data": offer.ProviderData,
+//		"status":        OFFER_STATUS_COMPLETING,
+//		"updated_at":    firestore.ServerTimestamp,
+//	}
+//}
 
 func (offer Offer) GetUpdateOfferCompleted() map[string]interface{} {
 	return map[string]interface{}{
+		// "provider_data": offer.ProviderData,
+		"status":     OFFER_STATUS_COMPLETED,
+		"updated_at": firestore.ServerTimestamp,
+	}
+}
+
+func (offer Offer) GetUpdateOfferWithdraw() map[string]interface{} {
+	return map[string]interface{}{
+		"provider":      offer.Provider,
 		"provider_data": offer.ProviderData,
-		"status":        OFFER_STATUS_COMPLETED,
+		"status":        OFFER_STATUS_WITHDRAW,
 		"updated_at":    firestore.ServerTimestamp,
 	}
 }

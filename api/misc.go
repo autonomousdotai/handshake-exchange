@@ -264,20 +264,31 @@ func (api MiscApi) UpdateUserCCLimitTracks(context *gin.Context) {
 }
 
 // CRON JOB
-func (api MiscApi) UpdateTransferTracking(context *gin.Context) {
-	ce := service.OfferServiceInst.EndOffers()
-	if ce.ContextValidate(context) {
-		return
-	}
-
-	bean.SuccessResponse(context, true)
-}
+//func (api MiscApi) UpdateTransferTracking(context *gin.Context) {
+//	ce := service.OfferServiceInst.EndOffers()
+//	if ce.ContextValidate(context) {
+//		return
+//	}
+//
+//	bean.SuccessResponse(context, true)
+//}
 
 func (api MiscApi) TestCoinbaseReceive(context *gin.Context) {
 	address := context.DefaultQuery("address", "")
 	amount := context.DefaultQuery("amount", "")
 
 	offer, ce := service.OfferServiceInst.ActiveOffer(address, amount)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, offer)
+}
+
+func (api MiscApi) SyncToSolr(context *gin.Context) {
+	offerId := context.Param("offerId")
+
+	offer, ce := service.OfferServiceInst.SyncToSolr(offerId)
 	if ce.ContextValidate(context) {
 		return
 	}

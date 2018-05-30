@@ -30,7 +30,7 @@ func (c *GdaxClient) Initialize() {
 }
 
 func (c GdaxClient) buildHeader(method string, url string, body string) map[string]string {
-	timestamp := strconv.FormatInt(time.Now().Unix(), 10)
+	timestamp := strconv.FormatInt(time.Now().UTC().Unix(), 10)
 
 	key, _ := base64.StdEncoding.DecodeString(c.apiSecret)
 	message := []byte(timestamp + method + url + body)

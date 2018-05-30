@@ -36,6 +36,10 @@ func GetTransactionItemPath(userId string, id string) string {
 	return fmt.Sprintf("users/%s/transactions/%s", userId, id)
 }
 
+func GetTransactionCountItemPath(userId string, currency string) string {
+	return fmt.Sprintf("users/%s/transaction_counts/%s", userId, currency)
+}
+
 func snapshotToTransaction(snapshot *firestore.DocumentSnapshot) interface{} {
 	var obj bean.Transaction
 	snapshot.DataTo(&obj)

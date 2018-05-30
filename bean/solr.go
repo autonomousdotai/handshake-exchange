@@ -14,6 +14,7 @@ type SolrOfferObject struct {
 	State         int      `json:"state_i"`
 	Status        int      `json:"status_i"`
 	Hid           string   `json:"hid_s"`
+	IsPrivate     int      `json:"is_private_i"`
 	InitUserId    int      `json:"init_user_id_i"`
 	ShakedUserIds []int    `json:"shaked_user_ids_is"`
 	ShakeCount    int      `json:"shake_count_i"`
@@ -41,13 +42,13 @@ type SolrOfferExtraData struct {
 }
 
 var statusMap = map[string]int{
-	OFFER_STATUS_CREATED:    0,
-	OFFER_STATUS_ACTIVE:     1,
-	OFFER_STATUS_CLOSED:     2,
-	OFFER_STATUS_SHAKING:    3,
-	OFFER_STATUS_SHAKE:      4,
-	OFFER_STATUS_COMPLETING: 5,
-	OFFER_STATUS_COMPLETED:  6,
+	OFFER_STATUS_CREATED:   0,
+	OFFER_STATUS_ACTIVE:    1,
+	OFFER_STATUS_CLOSED:    2,
+	OFFER_STATUS_SHAKING:   3,
+	OFFER_STATUS_SHAKE:     4,
+	OFFER_STATUS_COMPLETED: 5,
+	OFFER_STATUS_WITHDRAW:  6,
 }
 
 func NewSolrFromOffer(offer Offer) (solr SolrOfferObject) {
@@ -55,8 +56,10 @@ func NewSolrFromOffer(offer Offer) (solr SolrOfferObject) {
 	solr.Type = 2
 	if offer.Status == OFFER_STATUS_ACTIVE {
 		solr.State = 1
+		solr.IsPrivate = 0
 	} else {
 		solr.State = 0
+		solr.IsPrivate = 1
 	}
 	solr.Status = statusMap[offer.Status]
 	solr.Hid = ""
