@@ -100,3 +100,50 @@ func NewSolrFromOffer(offer Offer) (solr SolrOfferObject) {
 
 	return
 }
+
+//func NewSolrFromInstantOffer(offer InstantOffer) (solr SolrOfferObject) {
+//	solr.Id = fmt.Sprintf("exchange_%s", offer.Id)
+//	solr.Type = 2
+//	if offer.Status == OFFER_STATUS_ACTIVE {
+//		solr.State = 1
+//		solr.IsPrivate = 0
+//	} else {
+//		solr.State = 0
+//		solr.IsPrivate = 1
+//	}
+//	solr.Status = statusMap[offer.Status]
+//	solr.Hid = ""
+//	userId, _ := strconv.Atoi(offer.UID)
+//	solr.InitUserId = userId
+//	if offer.ToUID != "" {
+//		userId, _ := strconv.Atoi(offer.ToUID)
+//		solr.ShakeUserIds = []int{userId}
+//	} else {
+//		solr.ShakeUserIds = make([]int, 0)
+//	}
+//	solr.TextSearch = make([]string, 0)
+//	solr.Location = fmt.Sprintf("%f,%f", offer.Latitude, offer.Longitude)
+//	solr.InitAt = offer.CreatedAt.UTC().Unix()
+//	solr.LastUpdateAt = time.Now().UTC().Unix()
+//
+//	percentage, _ := decimal.NewFromString(offer.Percentage)
+//	extraData := SolrOfferExtraData{
+//		Id:           offer.Id,
+//		Type:         offer.Type,
+//		Amount:       offer.Amount,
+//		Currency:     offer.Currency,
+//		FiatAmount:   offer.FiatAmount,
+//		FiatCurrency: offer.FiatCurrency,
+//		Price:        offer.Price,
+//		Percentage:   percentage.Mul(decimal.NewFromFloat(100)).String(),
+//		ContactInfo:  offer.ContactInfo,
+//		ContactPhone: offer.ContactPhone,
+//		Status:       offer.Status,
+//		Success:      offer.TransactionCount.Success,
+//		Failed:       offer.TransactionCount.Failed,
+//	}
+//	b, _ := json.Marshal(&extraData)
+//	solr.ExtraData = string(b)
+//
+//	return
+//}

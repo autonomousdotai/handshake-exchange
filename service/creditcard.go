@@ -137,12 +137,13 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 	if ce.SetError(api_error.AddDataFailed, err) {
 	} else {
 		isSuccess = true
-		gdaxResponse, err = gdax_service.PlaceOrder(offerBody.Amount, offerBody.Currency, offerTest.Price)
-		if ce.SetError(api_error.ExternalApiFailed, err) {
-			isSuccess = false
-		} else {
-			isSuccess = true
-		}
+		//gdaxResponse, err = gdax_service.PlaceOrder(offerBody.Amount, offerBody.Currency, offerTest.Price)
+		//if ce.SetError(api_error.ExternalApiFailed, err) {
+		//	isSuccess = false
+		//} else {
+		//	isSuccess = true
+		//}
+		//isSuccess = true
 	}
 
 	if !isSuccess {
