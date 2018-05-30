@@ -101,7 +101,7 @@ func (dao OfferDao) UpdateOfferActive(offer bean.Offer) error {
 	dbClient := firebase_service.FirestoreClient
 
 	docRef := dbClient.Doc(GetOfferItemPath(offer.Id))
-	addressMapDocRef := dbClient.Doc(GetOfferAddressMapItemPath(offer.UserAddress))
+	addressMapDocRef := dbClient.Doc(GetOfferAddressMapItemPath(offer.SystemAddress))
 
 	batch := dbClient.Batch()
 	batch.Set(docRef, offer.GetChangeStatus(), firestore.MergeAll)
