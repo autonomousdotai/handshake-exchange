@@ -81,13 +81,13 @@ func (s OfferService) CreateOffer(userId string, offerBody bean.Offer) (offer be
 		return
 	}
 	if currencyInst.Code == bean.ETH.Code {
-		if amount.LessThan(decimal.NewFromFloat(0.1)) {
+		if amount.LessThan(decimal.NewFromFloat(0.1).Round(1)) {
 			ce.SetStatusKey(api_error.AmountIsTooSmall)
 			return
 		}
 	}
 	if currencyInst.Code == bean.BTC.Code {
-		if amount.LessThan(decimal.NewFromFloat(0.01)) {
+		if amount.LessThan(decimal.NewFromFloat(0.01).Round(2)) {
 			ce.SetStatusKey(api_error.AmountIsTooSmall)
 			return
 		}
@@ -134,6 +134,11 @@ func (s OfferService) CreateOffer(userId string, offerBody bean.Offer) (offer be
 	}
 
 	offerBody.TransactionCount = transCount
+	s.setupOfferAmount(&offerBody, &ce)
+	if ce.HasError() {
+		return
+	}
+
 	offer, err := s.dao.AddOffer(offerBody, profile)
 	if ce.SetError(api_error.AddDataFailed, err) {
 		return
@@ -160,9 +165,19 @@ func (s OfferService) ActiveOffer(address string, amountStr string) (offer bean.
 	if offer.Status != bean.OFFER_STATUS_CREATED {
 		ce.SetStatusKey(api_error.OfferStatusInvalid)
 	}
+
 	inputAmount, _ := decimal.NewFromString(amountStr)
 	offerAmount, _ := decimal.NewFromString(offer.Amount)
-	sub := offerAmount.Sub(inputAmount)
+	totalAmount, _ := decimal.NewFromString(offer.TotalAmount)
+
+	// Check amount need to deposit
+	sub := decimal.NewFromFloat(1)
+	if offer.Type == bean.OFFER_TYPE_BUY {
+		sub = totalAmount.Sub(inputAmount)
+	} else {
+		sub = offerAmount.Sub(inputAmount)
+	}
+
 	if sub.Equal(common.Zero) {
 		// Good
 		offer.Status = bean.OFFER_STATUS_ACTIVE
@@ -412,17 +427,34 @@ func (s OfferService) WithdrawOffer(userId string, offerId string) (offer bean.O
 
 	// Only BTC can transfer
 	//var externalId string
+	var err error
 	if offer.Currency == bean.BTC.Code {
 		if offer.Status == bean.OFFER_STATUS_COMPLETED {
 			if offer.UserAddress != "" {
 				//Transfer
 				description := fmt.Sprintf("Transfer to userId %s offerId %s status %s", userId, offer.Id, offer.Status)
-				coinbaseResponse, err := coinbase_service.SendTransaction(offer.UserAddress, offer.Amount, offer.Currency, description, offer.Id)
+
+				var coinbaseResponse1 bean.CoinbaseTransaction
+				var coinbaseResponse2 bean.CoinbaseTransaction
+				if offer.Type == bean.OFFER_TYPE_BUY {
+					// Amount = 1, transfer 1
+					coinbaseResponse1, err = coinbase_service.SendTransaction(offer.UserAddress, offer.Amount, offer.Currency, description, offer.Id)
+				} else {
+					// Amount = 1, transfer 0.09 (if fee = 1%)
+					coinbaseResponse1, err = coinbase_service.SendTransaction(offer.UserAddress, offer.TotalAmount, offer.Currency, description, offer.Id)
+				}
+
+				// Transfer reward
+				if offer.RewardAddress != "" {
+					rewardDescription := fmt.Sprintf("Transfer reward to userId %s offerId %s", userId, offer.Id)
+					_, err = coinbase_service.SendTransaction(offer.RewardAddress, offer.Reward, offer.Currency, rewardDescription, fmt.Sprintf("%s_reward", offer.Id))
+				}
+
 				if ce.SetError(api_error.ExternalApiFailed, err) {
 					return
 				}
 				offer.Provider = bean.OFFER_PROVIDER_COINBASE
-				offer.ProviderData = coinbaseResponse
+				offer.ProviderData = []bean.CoinbaseTransaction{coinbaseResponse1, coinbaseResponse2}
 				//externalId = coinbaseResponse.Id
 			} else {
 				ce.SetStatusKey(api_error.InvalidRequestBody)
@@ -431,8 +463,13 @@ func (s OfferService) WithdrawOffer(userId string, offerId string) (offer bean.O
 		} else if offer.Status == bean.OFFER_STATUS_REJECTED || offer.Status == bean.OFFER_STATUS_CLOSED {
 			if offer.RefundAddress != "" {
 				//Refund
+				var coinbaseResponse bean.CoinbaseTransaction
 				description := fmt.Sprintf("Refund to userId %s offerId %s status %s", userId, offer.Id, offer.Status)
-				coinbaseResponse, err := coinbase_service.SendTransaction(offer.RefundAddress, offer.Amount, offer.Currency, description, offer.Id)
+				if offer.Type == bean.OFFER_TYPE_BUY {
+					coinbaseResponse, err = coinbase_service.SendTransaction(offer.RefundAddress, offer.TotalAmount, offer.Currency, description, offer.Id)
+				} else {
+					coinbaseResponse, err = coinbase_service.SendTransaction(offer.RefundAddress, offer.Amount, offer.Currency, description, offer.Id)
+				}
 				if ce.SetError(api_error.ExternalApiFailed, err) {
 					return
 				}
@@ -447,7 +484,7 @@ func (s OfferService) WithdrawOffer(userId string, offerId string) (offer bean.O
 	}
 
 	offer.Status = bean.OFFER_STATUS_WITHDRAW
-	err := s.dao.UpdateOfferWithdraw(offer)
+	err = s.dao.UpdateOfferWithdraw(offer)
 	if ce.SetError(api_error.UpdateDataFailed, err) {
 		return
 	}
@@ -610,5 +647,7 @@ func (s OfferService) setupOfferAmount(offer *bean.Offer, ce *SimpleContextError
 	offer.Reward = fee.Mul(exchComm).String()
 	if offer.Type == bean.OFFER_TYPE_SELL {
 		offer.TotalAmount = amount.Sub(fee).String()
+	} else if offer.Type == bean.OFFER_TYPE_BUY {
+		offer.TotalAmount = amount.Add(fee).String()
 	}
 }

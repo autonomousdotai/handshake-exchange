@@ -65,9 +65,9 @@ type Offer struct {
 	Longitude        float64          `json:"longitude" firestore:"longitude" validate:"required"`
 	Latitude         float64          `json:"latitude" firestore:"latitude" validate:"required"`
 	TransactionCount TransactionCount `json:"transaction_count" firestore:"transaction_count"`
-
-	CreatedAt time.Time `json:"created_at" firestore:"created_at"`
-	UpdatedAt time.Time `json:"updated_at" firestore:"updated_at"`
+	ChainId          int64            `json:"chain_id" firestore:"chain_id"`
+	CreatedAt        time.Time        `json:"created_at" firestore:"created_at"`
+	UpdatedAt        time.Time        `json:"updated_at" firestore:"updated_at"`
 }
 
 func (offer Offer) ValidateNumbers() (invalid bool) {
@@ -97,6 +97,10 @@ func (offer Offer) GetAddOffer() map[string]interface{} {
 		"price_number":      priceFloat,
 		"fiat_currency":     offer.FiatCurrency,
 		"percentage":        offer.Percentage,
+		"fee_percentage":    offer.FeePercentage,
+		"fee":               offer.Fee,
+		"reward_percentage": offer.RewardPercentage,
+		"reward":            offer.Reward,
 		"contact_info":      offer.ContactInfo,
 		"contact_phone":     offer.ContactPhone,
 		"system_address":    offer.SystemAddress,

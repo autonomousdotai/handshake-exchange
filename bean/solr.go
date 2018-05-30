@@ -16,7 +16,7 @@ type SolrOfferObject struct {
 	Hid          string   `json:"hid_s"`
 	IsPrivate    int      `json:"is_private_i"`
 	InitUserId   int      `json:"init_user_id_i"`
-	ChainId      int      `json:"chain_id_i"`
+	ChainId      int64    `json:"chain_id_i"`
 	ShakeUserIds []int    `json:"shake_user_ids_is"`
 	ShakeCount   int      `json:"shake_count_i"`
 	ViewCount    int      `json:"view_count_i"`
@@ -81,6 +81,7 @@ func NewSolrFromOffer(offer Offer) (solr SolrOfferObject) {
 	}
 	solr.Status = offerStatusMap[offer.Status]
 	solr.Hid = ""
+	solr.ChainId = offer.ChainId
 	userId, _ := strconv.Atoi(offer.UID)
 	solr.InitUserId = userId
 	if offer.ToUID != "" {

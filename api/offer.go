@@ -6,6 +6,7 @@ import (
 	"github.com/autonomousdotai/handshake-exchange/dao"
 	"github.com/autonomousdotai/handshake-exchange/service"
 	"github.com/gin-gonic/gin"
+	"strconv"
 )
 
 type OfferApi struct {
@@ -13,6 +14,7 @@ type OfferApi struct {
 
 func (api OfferApi) CreateOffer(context *gin.Context) {
 	userId := common.GetUserId(context)
+	chainId := common.GetChainId(context)
 
 	var body bean.Offer
 	if common.ValidateBody(context, &body) != nil {
@@ -20,6 +22,8 @@ func (api OfferApi) CreateOffer(context *gin.Context) {
 	}
 
 	// status: buy:active or sell:created
+	id, _ := strconv.Atoi(chainId)
+	body.ChainId = int64(id)
 	offer, ce := service.OfferServiceInst.CreateOffer(userId, body)
 	if ce.ContextValidate(context) {
 		return

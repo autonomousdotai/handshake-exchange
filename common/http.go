@@ -23,6 +23,10 @@ func GetUserId(context *gin.Context) string {
 	return GetHeaderWithDefault(context, "Uid", "")
 }
 
+func GetChainId(context *gin.Context) string {
+	return GetHeaderWithDefault(context, "Chainid", "0")
+}
+
 func GetCurrency(context *gin.Context) string {
 	return GetHeaderWithDefault(context, "Custom-Currency", "USD")
 }
