@@ -109,6 +109,19 @@ func (api OfferApi) CompleteShakeOffer(context *gin.Context) {
 	bean.SuccessResponse(context, offer)
 }
 
+func (api OfferApi) WithdrawOffer(context *gin.Context) {
+	userId := common.GetUserId(context)
+	offerId := context.Param("offerId")
+
+	// status: shake->completing
+	offer, ce := service.OfferServiceInst.WithdrawOffer(userId, offerId)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, offer)
+}
+
 func extractListOfferParams(context *gin.Context) (string, string, string, string, interface{}, int) {
 	offerType := context.DefaultQuery("type", "")
 	currency := context.DefaultQuery("currency", "")

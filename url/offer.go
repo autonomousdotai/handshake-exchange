@@ -30,6 +30,9 @@ func (url OfferUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	group.POST("/:offerId/shake", func(context *gin.Context) {
 		offerApi.CompleteShakeOffer(context)
 	})
+	group.POST("/:offerId/withdraw", func(context *gin.Context) {
+		offerApi.WithdrawOffer(context)
+	})
 	group.DELETE("/:offerId/shake", func(context *gin.Context) {
 		offerApi.RejectShakeOffer(context)
 	})

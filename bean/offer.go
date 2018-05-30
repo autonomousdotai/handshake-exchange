@@ -15,9 +15,11 @@ const OFFER_PROVIDER_COINBASE = "coinbase"
 // created -> active
 // active -> shaking, shake
 // shaking -> shake
-// shake -> completing
+// shake -> completed
 // shake -> rejected
-// completing -> completed
+// completed -> withdraw
+// rejected -> withdraw
+// closed -> withdraw
 const OFFER_STATUS_CREATED = "created"
 const OFFER_STATUS_ACTIVE = "active"
 const OFFER_STATUS_SHAKING = "shaking"
@@ -30,37 +32,39 @@ const OFFER_STATUS_REJECTED = "rejected"
 const OFFER_STATUS_WITHDRAW = "withdraw"
 
 type Offer struct {
-	Id             string      `json:"id"`
-	Amount         string      `json:"amount" firestore:"amount" validate:"required"`
-	AmountNumber   float64     `json:"-" firestore:"amount_number"`
-	TotalAmount    string      `json:"total_amount" firestore:"total_amount"`
-	Currency       string      `json:"currency" firestore:"currency" validate:"required"`
-	PriceNumber    float64     `json:"-" firestore:"price_number"`
-	PriceNumberUSD float64     `json:"-" firestore:"price_number_usd"`
-	Price          string      `json:"price" firestore:"price" validate:"required"`
-	PriceUSD       string      `json:"-" firestore:"price_usd"`
-	Percentage     string      `json:"percentage" firestore:"percentage"`
-	FiatCurrency   string      `json:"fiat_currency" firestore:"fiat_currency" validate:"required"`
-	FiatAmount     string      `json:"fiat_amount" firestore:"fiat_amount"`
-	Type           string      `json:"type" firestore:"type" validate:"required"`
-	Status         string      `json:"status" firestore:"status"`
-	UID            string      `json:"uid" firestore:"uid"`
-	Username       string      `json:"-" firestore:"username"`
-	ToUID          string      `json:"to_uid" firestore:"to_uid"`
-	ToUsername     string      `json:"to_username" firestore:"to_username"`
-	ContactPhone   string      `json:"contact_phone" firestore:"contact_phone" validate:"required"`
-	ContactInfo    string      `json:"contact_info" firestore:"contact_info" validate:"required"`
-	SystemAddress  string      `json:"system_address" firestore:"system_address"`
-	UserAddress    string      `json:"user_address" firestore:"user_address"`
-	RefundAddress  string      `json:"refund_address" firestore:"refund_address"`
-	Provider       string      `json:"provider" firestore:"provider"`
-	ProviderData   interface{} `json:"provider_data" firestore:"provider_data"`
-	Fee            string      `json:"-" firestore:"fee"`
-	FeePercentage  string      `json:"-" firestore:"fee_percentage"`
-	Longitude      float64     `json:"longitude" firestore:"longitude" validate:"required"`
-	Latitude       float64     `json:"latitude" firestore:"latitude" validate:"required"`
-	CreatedAt      time.Time   `json:"created_at" firestore:"created_at"`
-	UpdatedAt      time.Time   `json:"updated_at" firestore:"updated_at"`
+	Id               string           `json:"id"`
+	Amount           string           `json:"amount" firestore:"amount" validate:"required"`
+	AmountNumber     float64          `json:"-" firestore:"amount_number"`
+	TotalAmount      string           `json:"total_amount" firestore:"total_amount"`
+	Currency         string           `json:"currency" firestore:"currency" validate:"required"`
+	PriceNumber      float64          `json:"-" firestore:"price_number"`
+	PriceNumberUSD   float64          `json:"-" firestore:"price_number_usd"`
+	Price            string           `json:"price" firestore:"price" validate:"required"`
+	PriceUSD         string           `json:"-" firestore:"price_usd"`
+	Percentage       string           `json:"percentage" firestore:"percentage"`
+	FiatCurrency     string           `json:"fiat_currency" firestore:"fiat_currency" validate:"required"`
+	FiatAmount       string           `json:"fiat_amount" firestore:"fiat_amount"`
+	Type             string           `json:"type" firestore:"type" validate:"required"`
+	Status           string           `json:"status" firestore:"status"`
+	UID              string           `json:"uid" firestore:"uid"`
+	Username         string           `json:"-" firestore:"username"`
+	ToUID            string           `json:"to_uid" firestore:"to_uid"`
+	ToUsername       string           `json:"to_username" firestore:"to_username"`
+	ContactPhone     string           `json:"contact_phone" firestore:"contact_phone" validate:"required"`
+	ContactInfo      string           `json:"contact_info" firestore:"contact_info" validate:"required"`
+	SystemAddress    string           `json:"system_address" firestore:"system_address"`
+	UserAddress      string           `json:"user_address" firestore:"user_address"`
+	RefundAddress    string           `json:"refund_address" firestore:"refund_address"`
+	Provider         string           `json:"provider" firestore:"provider"`
+	ProviderData     interface{}      `json:"provider_data" firestore:"provider_data"`
+	Fee              string           `json:"-" firestore:"fee"`
+	FeePercentage    string           `json:"-" firestore:"fee_percentage"`
+	Longitude        float64          `json:"longitude" firestore:"longitude" validate:"required"`
+	Latitude         float64          `json:"latitude" firestore:"latitude" validate:"required"`
+	TransactionCount TransactionCount `json:"transaction_count" firestore:"transaction_count"`
+
+	CreatedAt time.Time `json:"created_at" firestore:"created_at"`
+	UpdatedAt time.Time `json:"updated_at" firestore:"updated_at"`
 }
 
 func (offer Offer) ValidateNumbers() (invalid bool) {
@@ -80,27 +84,28 @@ func (offer Offer) GetAddOffer() map[string]interface{} {
 	priceNumber, _ := decimal.NewFromString(offer.Price)
 	priceFloat, _ := priceNumber.Float64()
 	return map[string]interface{}{
-		"id":             offer.Id,
-		"amount":         offer.Amount,
-		"amount_number":  offer.AmountNumber,
-		"currency":       strings.ToUpper(offer.Currency),
-		"price_currency": strings.ToUpper(offer.FiatCurrency),
-		"type":           strings.ToLower(offer.Type),
-		"price":          offer.Price,
-		"price_number":   priceFloat,
-		"fiat_currency":  offer.FiatCurrency,
-		"percentage":     offer.Percentage,
-		"contact_info":   offer.ContactInfo,
-		"contact_phone":  offer.ContactPhone,
-		"system_address": offer.SystemAddress,
-		"user_address":   offer.UserAddress,
-		"refund_address": offer.RefundAddress,
-		"status":         offer.Status,
-		"uid":            offer.UID,
-		"latitude":       offer.Latitude,
-		"longitude":      offer.Longitude,
-		"username":       offer.Username,
-		"created_at":     firestore.ServerTimestamp,
+		"id":                offer.Id,
+		"amount":            offer.Amount,
+		"amount_number":     offer.AmountNumber,
+		"currency":          strings.ToUpper(offer.Currency),
+		"price_currency":    strings.ToUpper(offer.FiatCurrency),
+		"type":              strings.ToLower(offer.Type),
+		"price":             offer.Price,
+		"price_number":      priceFloat,
+		"fiat_currency":     offer.FiatCurrency,
+		"percentage":        offer.Percentage,
+		"contact_info":      offer.ContactInfo,
+		"contact_phone":     offer.ContactPhone,
+		"system_address":    offer.SystemAddress,
+		"user_address":      offer.UserAddress,
+		"refund_address":    offer.RefundAddress,
+		"status":            offer.Status,
+		"uid":               offer.UID,
+		"latitude":          offer.Latitude,
+		"longitude":         offer.Longitude,
+		"username":          offer.Username,
+		"transaction_count": offer.TransactionCount,
+		"created_at":        firestore.ServerTimestamp,
 	}
 }
 

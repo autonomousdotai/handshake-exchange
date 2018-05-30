@@ -31,7 +31,7 @@ type Transaction struct {
 	ToUsername      string    `json:"to_username" firestore:"to_username"`
 	Fee             string    `json:"-" firestore:"fee"`
 	FeePercentage   string    `json:"-" firestore:"fee_percentage"`
-	OfferHandshake  string    `json:"offer_handshake" firestore:"offer_handshake"`
+	Offer           string    `json:"offer" firestore:"offer"`
 	IsOriginal      bool      `json:"-" firestore:"is_original"`
 	CreatedAt       time.Time `json:"created_at" firestore:"created_at"`
 	UpdatedAt       time.Time `json:"updated_at" firestore:"updated_at"`
@@ -55,7 +55,7 @@ func NewTransactionFromOfferHandshake(offer Offer) (Transaction, Transaction) {
 		ToUsername:      offer.ToUsername,
 		Fee:             offer.Fee,
 		FeePercentage:   offer.FeePercentage,
-		OfferHandshake:  offer.Id,
+		Offer:           offer.Id,
 		IsOriginal:      true,
 	}
 
@@ -80,7 +80,7 @@ func NewTransactionFromOfferHandshake(offer Offer) (Transaction, Transaction) {
 		ToUsername:      offer.Username,
 		Fee:             offer.Fee,
 		FeePercentage:   offer.FeePercentage,
-		OfferHandshake:  offer.Id,
+		Offer:           offer.Id,
 		IsOriginal:      false,
 	}
 
@@ -102,7 +102,7 @@ func NewTransactionFromInstantOffer(offer InstantOffer) Transaction {
 		From:            offer.UID,
 		Fee:             offer.Fee,
 		FeePercentage:   offer.FeePercentage,
-		OfferHandshake:  offer.Id,
+		Offer:           offer.Id,
 		IsOriginal:      true,
 	}
 
@@ -127,7 +127,7 @@ func (transaction Transaction) GetAddTransaction() map[string]interface{} {
 		"to_username":       transaction.ToUsername,
 		"fee":               transaction.Fee,
 		"fee_percentage":    transaction.FeePercentage,
-		"offer_handshake":   transaction.OfferHandshake,
+		"offer":             transaction.Offer,
 		"is_original":       transaction.IsOriginal,
 		"created_at":        firestore.ServerTimestamp,
 	}

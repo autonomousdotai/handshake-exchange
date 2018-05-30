@@ -9,22 +9,23 @@ import (
 )
 
 type SolrOfferObject struct {
-	Id            string   `json:"id"`
-	Type          int      `json:"type_i"`
-	State         int      `json:"state_i"`
-	Status        int      `json:"status_i"`
-	Hid           string   `json:"hid_s"`
-	IsPrivate     int      `json:"is_private_i"`
-	InitUserId    int      `json:"init_user_id_i"`
-	ShakedUserIds []int    `json:"shaked_user_ids_is"`
-	ShakeCount    int      `json:"shake_count_i"`
-	ViewCount     int      `json:"view_count_i"`
-	CommentCount  int      `json:"comment_count_i"`
-	TextSearch    []string `json:"text_search_ss"`
-	ExtraData     string   `json:"extra_data_s"`
-	Location      string   `json:"location_p"`
-	InitAt        int64    `json:"init_at_i"`
-	LastUpdateAt  int64    `json:"last_update_at_i"`
+	Id           string   `json:"id"`
+	Type         int      `json:"type_i"`
+	State        int      `json:"state_i"`
+	Status       int      `json:"status_i"`
+	Hid          string   `json:"hid_s"`
+	IsPrivate    int      `json:"is_private_i"`
+	InitUserId   int      `json:"init_user_id_i"`
+	ChainId      int      `json:"chain_id_i"`
+	ShakeUserIds []int    `json:"shake_user_ids_is"`
+	ShakeCount   int      `json:"shake_count_i"`
+	ViewCount    int      `json:"view_count_i"`
+	CommentCount int      `json:"comment_count_i"`
+	TextSearch   []string `json:"text_search_ss"`
+	ExtraData    string   `json:"extra_data_s"`
+	Location     string   `json:"location_p"`
+	InitAt       int64    `json:"init_at_i"`
+	LastUpdateAt int64    `json:"last_update_at_i"`
 }
 
 type SolrOfferExtraData struct {
@@ -39,6 +40,8 @@ type SolrOfferExtraData struct {
 	ContactPhone string `json:"contact_phone"`
 	ContactInfo  string `json:"contact_info"`
 	Status       string `json:"status"`
+	Success      int64  `json:"success"`
+	Failed       int64  `json:"failed"`
 }
 
 var statusMap = map[string]int{
@@ -67,9 +70,9 @@ func NewSolrFromOffer(offer Offer) (solr SolrOfferObject) {
 	solr.InitUserId = userId
 	if offer.ToUID != "" {
 		userId, _ := strconv.Atoi(offer.ToUID)
-		solr.ShakedUserIds = []int{userId}
+		solr.ShakeUserIds = []int{userId}
 	} else {
-		solr.ShakedUserIds = make([]int, 0)
+		solr.ShakeUserIds = make([]int, 0)
 	}
 	solr.TextSearch = make([]string, 0)
 	solr.Location = fmt.Sprintf("%f,%f", offer.Latitude, offer.Longitude)
@@ -89,6 +92,8 @@ func NewSolrFromOffer(offer Offer) (solr SolrOfferObject) {
 		ContactInfo:  offer.ContactInfo,
 		ContactPhone: offer.ContactPhone,
 		Status:       offer.Status,
+		Success:      offer.TransactionCount.Success,
+		Failed:       offer.TransactionCount.Failed,
 	}
 	b, _ := json.Marshal(&extraData)
 	solr.ExtraData = string(b)

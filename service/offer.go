@@ -14,8 +14,9 @@ import (
 )
 
 type OfferService struct {
-	dao     *dao.OfferDao
-	userDao *dao.UserDao
+	dao      *dao.OfferDao
+	userDao  *dao.UserDao
+	transDao *dao.TransactionDao
 }
 
 func (s OfferService) GetOffer(userId string, offerId string) (offer bean.Offer, ce SimpleContextError) {
@@ -115,6 +116,12 @@ func (s OfferService) CreateOffer(userId string, offerBody bean.Offer) (offer be
 	}
 	profile.ActiveOffers[currencyInst.Code] = true
 
+	transCountTO := s.transDao.GetTransactionCount(offerBody.UID, offerBody.Currency)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, transCountTO) {
+		return
+	}
+	transCount := transCountTO.Object.(bean.TransactionCount)
+
 	// Only BTC need to generate address to transfer in
 	if offerBody.Currency == bean.BTC.Code {
 		addressResponse, err := coinbase_service.GenerateAddress(currencyInst.Code)
@@ -125,6 +132,7 @@ func (s OfferService) CreateOffer(userId string, offerBody bean.Offer) (offer be
 		offerBody.SystemAddress = addressResponse.Data.Address
 	}
 
+	offerBody.TransactionCount = transCount
 	offer, err := s.dao.AddOffer(offerBody, profile)
 	if ce.SetError(api_error.AddDataFailed, err) {
 		return
@@ -190,22 +198,6 @@ func (s OfferService) CloseOffer(userId string, offerId string) (offer bean.Offe
 
 	if ce.HasError() {
 		return
-	}
-
-	// Only BTC can refund
-	if offer.Type == bean.OFFER_TYPE_SELL && offer.Status == bean.OFFER_STATUS_ACTIVE && offer.Currency == bean.BTC.Code {
-		if offer.RefundAddress != "" {
-			//Refund
-			description := fmt.Sprintf("Refund to userId %s due to close the handshake", userId)
-			coinbaseResponse, err := coinbase_service.SendTransaction(offer.RefundAddress, offer.Amount, offer.Currency, description, offer.Id)
-			if ce.SetError(api_error.ExternalApiFailed, err) {
-				return
-			}
-			offer.Provider = bean.OFFER_PROVIDER_COINBASE
-			offer.ProviderData = coinbaseResponse
-		} else {
-			ce.SetStatusKey(api_error.InvalidRequestBody)
-		}
 	}
 
 	offer.Status = bean.OFFER_STATUS_CLOSED
@@ -305,25 +297,10 @@ func (s OfferService) RejectShakeOffer(userId string, offerId string) (offer bea
 	}
 
 	offer.Status = bean.OFFER_STATUS_REJECTED
-	if offer.Currency == bean.BTC.Code {
-		// Only BTC can refund
-		if offer.RefundAddress != "" {
-			//Refund
-			//description := fmt.Sprintf("Refund to userId %s due to reject the handshake", userId)
-			//coinbaseResponse, err := coinbase_service.SendTransaction(offer.RefundAddress, offer.Amount, offer.Currency, description, offer.Id)
-			//if ce.SetError(api_error.ExternalApiFailed, err) {
-			//	return
-			//}
-			//offer.Provider = bean.OFFER_PROVIDER_COINBASE
-			//offer.ProviderData = coinbaseResponse
-
-			err := s.dao.UpdateOfferReject(offer, offerProfile, bean.TransactionCount{})
-			if ce.SetError(api_error.UpdateDataFailed, err) {
-				return
-			}
-		} else {
-			ce.SetStatusKey(api_error.InvalidRequestBody)
-		}
+	transCount := s.getFailedTransCount(offer)
+	err := s.dao.UpdateOfferReject(offer, offerProfile, transCount)
+	if ce.SetError(api_error.UpdateDataFailed, err) {
+		return
 	}
 
 	solr_service.UpdateObject(bean.NewSolrFromOffer(offer))
@@ -372,32 +349,135 @@ func (s OfferService) CompleteShakeOffer(userId string, offerId string) (offer b
 	}
 
 	offer.Status = bean.OFFER_STATUS_COMPLETED
-	// Only BTC can transfer
-	//var externalId string
-	//if offer.Currency == bean.BTC.Code {
-	//	if offer.UserAddress != "" {
-	//		//Transfer
-	//		description := fmt.Sprintf("Transfer to userId %s due to complete the handshake", userId)
-	//		coinbaseResponse, err := coinbase_service.SendTransaction(offer.UserAddress, offer.Amount, offer.Currency, description, offer.Id)
-	//		if ce.SetError(api_error.ExternalApiFailed, err) {
-	//			return
-	//		}
-	//		offer.Provider = bean.OFFER_PROVIDER_COINBASE
-	//		offer.ProviderData = coinbaseResponse
-	//		externalId = coinbaseResponse.Id
-	//	} else {
-	//		ce.SetStatusKey(api_error.InvalidRequestBody)
-	//	}
-	//}
-
-	err := s.dao.UpdateOfferCompleted(offer, offerProfile, bean.TransactionCount{})
+	transCount := s.getSuccessTransCount(offer)
+	err := s.dao.UpdateOfferCompleted(offer, offerProfile, transCount)
 	if ce.SetError(api_error.UpdateDataFailed, err) {
 		return
 	}
 
-	solr_service.DeleteObject(offer.Id)
+	solr_service.UpdateObject(bean.NewSolrFromOffer(offer))
 
 	return
+}
+
+func (s OfferService) WithdrawOffer(userId string, offerId string) (offer bean.Offer, ce SimpleContextError) {
+	profileTO := s.userDao.GetProfile(userId)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, profileTO) {
+		return
+	}
+	profile := profileTO.Object.(bean.Profile)
+
+	offerTO := s.dao.GetOffer(offerId)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, offerTO) {
+		return
+	}
+	offer = offerTO.Object.(bean.Offer)
+
+	if profile.UserId != offer.UID && profile.UserId != offer.ToUID {
+		ce.SetStatusKey(api_error.InvalidRequestBody)
+		return
+	}
+
+	if offer.Status != bean.OFFER_STATUS_CLOSED && offer.Status != bean.OFFER_STATUS_REJECTED && offer.Status != bean.OFFER_STATUS_COMPLETED {
+		ce.SetStatusKey(api_error.OfferStatusInvalid)
+		return
+	}
+
+	if offer.Type == bean.OFFER_TYPE_SELL {
+		if offer.Status == bean.OFFER_STATUS_REJECTED || offer.Status == bean.OFFER_STATUS_CLOSED {
+			if offer.UID != userId {
+				ce.SetStatusKey(api_error.InvalidUserToCompleteHandshake)
+				return
+			}
+		} else if offer.Status == bean.OFFER_STATUS_COMPLETED {
+			if offer.ToUID != userId {
+				ce.SetStatusKey(api_error.InvalidUserToCompleteHandshake)
+				return
+			}
+		}
+	} else {
+		if offer.Status == bean.OFFER_STATUS_REJECTED {
+			if offer.ToUID != userId {
+				ce.SetStatusKey(api_error.InvalidUserToCompleteHandshake)
+				return
+			}
+		} else if offer.Status == bean.OFFER_STATUS_COMPLETED {
+			if offer.UID != userId {
+				ce.SetStatusKey(api_error.InvalidUserToCompleteHandshake)
+				return
+			}
+		}
+	}
+
+	// Only BTC can transfer
+	//var externalId string
+	if offer.Currency == bean.BTC.Code {
+		if offer.Status == bean.OFFER_STATUS_COMPLETED {
+			if offer.UserAddress != "" {
+				//Transfer
+				description := fmt.Sprintf("Transfer to userId %s offerId %s status %s", userId, offer.Id, offer.Status)
+				coinbaseResponse, err := coinbase_service.SendTransaction(offer.UserAddress, offer.Amount, offer.Currency, description, offer.Id)
+				if ce.SetError(api_error.ExternalApiFailed, err) {
+					return
+				}
+				offer.Provider = bean.OFFER_PROVIDER_COINBASE
+				offer.ProviderData = coinbaseResponse
+				//externalId = coinbaseResponse.Id
+			} else {
+				ce.SetStatusKey(api_error.InvalidRequestBody)
+				return
+			}
+		} else if offer.Status == bean.OFFER_STATUS_REJECTED || offer.Status == bean.OFFER_STATUS_CLOSED {
+			if offer.RefundAddress != "" {
+				//Refund
+				description := fmt.Sprintf("Refund to userId %s offerId %s status %s", userId, offer.Id, offer.Status)
+				coinbaseResponse, err := coinbase_service.SendTransaction(offer.RefundAddress, offer.Amount, offer.Currency, description, offer.Id)
+				if ce.SetError(api_error.ExternalApiFailed, err) {
+					return
+				}
+				offer.Provider = bean.OFFER_PROVIDER_COINBASE
+				offer.ProviderData = coinbaseResponse
+			} else {
+				ce.SetStatusKey(api_error.InvalidRequestBody)
+				return
+			}
+		}
+
+	}
+
+	offer.Status = bean.OFFER_STATUS_WITHDRAW
+	err := s.dao.UpdateOfferWithdraw(offer)
+	if ce.SetError(api_error.UpdateDataFailed, err) {
+		return
+	}
+
+	solr_service.UpdateObject(bean.NewSolrFromOffer(offer))
+
+	return
+}
+
+func (s OfferService) getSuccessTransCount(offer bean.Offer) bean.TransactionCount {
+	transCountTO := s.transDao.GetTransactionCount(offer.UID, offer.Currency)
+	var transCount bean.TransactionCount
+	if !transCountTO.HasError() {
+		transCount = transCountTO.Object.(bean.TransactionCount)
+	}
+	transCount.Currency = offer.Currency
+	transCount.Success += 1
+
+	return transCount
+}
+
+func (s OfferService) getFailedTransCount(offer bean.Offer) bean.TransactionCount {
+	transCountTO := s.transDao.GetTransactionCount(offer.UID, offer.Currency)
+	var transCount bean.TransactionCount
+	if !transCountTO.HasError() {
+		transCount = transCountTO.Object.(bean.TransactionCount)
+	}
+	transCount.Currency = offer.Currency
+	transCount.Failed += 1
+
+	return transCount
 }
 
 //func (s OfferService) EndOffers() (ce SimpleContextError) {

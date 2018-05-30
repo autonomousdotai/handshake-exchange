@@ -176,10 +176,16 @@ func (dao OfferDao) UpdateOfferCompleted(offer bean.Offer, profile bean.Profile,
 	// transferDocRef := dbClient.Doc(GetOfferTransferMapItemPath(offer.Id))
 	transCountDocRef := dbClient.Doc(GetTransactionCountItemPath(offer.UID, offer.Currency))
 
+	trans1, trans2 := bean.NewTransactionFromOfferHandshake(offer)
+	trans1DocRef := dbClient.Collection(GetTransactionPath(offer.UID)).NewDoc()
+	trans2DocRef := dbClient.Collection(GetTransactionPath(offer.ToUID)).NewDoc()
+
 	batch := dbClient.Batch()
 	batch.Set(docRef, offer.GetUpdateOfferCompleted(), firestore.MergeAll)
 	batch.Set(profileDocRef, profile.GetUpdateOfferProfile(), firestore.MergeAll)
 	batch.Set(transCountDocRef, transactionCount.GetUpdateSuccess(), firestore.MergeAll)
+	batch.Set(trans1DocRef, trans1.GetAddTransaction(), firestore.MergeAll)
+	batch.Set(trans2DocRef, trans2.GetAddTransaction(), firestore.MergeAll)
 	// batch.Delete(transferDocRef)
 
 	_, err := batch.Commit(context.Background())
