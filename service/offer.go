@@ -95,7 +95,7 @@ func (s OfferService) CreateOffer(userId string, offerBody bean.Offer) (offer be
 
 	if offerBody.Percentage != "" {
 		// Convert to 0.0x
-		percentage, errFmt := decimal.NewFromString(offer.Percentage)
+		percentage, errFmt := decimal.NewFromString(offerBody.Percentage)
 		if ce.SetError(api_error.InvalidRequestBody, errFmt) {
 			return
 		}
