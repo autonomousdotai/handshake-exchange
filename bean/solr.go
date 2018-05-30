@@ -41,17 +41,22 @@ type SolrOfferExtraData struct {
 }
 
 var statusMap = map[string]int{
-	OFFER_STATUS_CREATED: 0,
-	OFFER_STATUS_ACTIVE:  1,
+	OFFER_STATUS_CREATED:    0,
+	OFFER_STATUS_ACTIVE:     1,
+	OFFER_STATUS_CLOSED:     2,
+	OFFER_STATUS_SHAKING:    3,
+	OFFER_STATUS_SHAKE:      4,
+	OFFER_STATUS_COMPLETING: 5,
+	OFFER_STATUS_COMPLETED:  6,
 }
 
 func NewSolrFromOffer(offer Offer) (solr SolrOfferObject) {
 	solr.Id = fmt.Sprintf("exchange_%s", offer.Id)
 	solr.Type = 2
-	if offer.Status == OFFER_STATUS_CREATED {
-		solr.State = 0
-	} else {
+	if offer.Status == OFFER_STATUS_ACTIVE {
 		solr.State = 1
+	} else {
+		solr.State = 0
 	}
 	solr.Status = statusMap[offer.Status]
 	solr.Hid = ""
