@@ -7,18 +7,19 @@ import (
 	"github.com/autonomousdotai/handshake-exchange/dao"
 	"github.com/autonomousdotai/handshake-exchange/service"
 	"github.com/gin-gonic/gin"
+	"strconv"
 )
 
 type ProfileApi struct {
 }
 
 func (api ProfileApi) AddProfile(context *gin.Context) {
-	var body bean.Profile
+	var body bean.ProfileRequest
 	if common.ValidateBody(context, &body) != nil {
 		return
 	}
 
-	err := service.UserServiceInst.AddProfile(body)
+	err := service.UserServiceInst.AddProfile(bean.Profile{UserId: strconv.Itoa(body.Id)})
 	if api_error.PropagateErrorAndAbort(context, api_error.UpdateDataFailed, err) != nil {
 		return
 	}

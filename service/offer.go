@@ -120,6 +120,7 @@ func (s OfferService) CreateOffer(userId string, offerBody bean.Offer) (offer be
 		addressResponse, err := coinbase_service.GenerateAddress(currencyInst.Code)
 		if err != nil {
 			ce.SetError(api_error.ExternalApiFailed, err)
+			return
 		}
 		offerBody.SystemAddress = addressResponse.Data.Address
 	}

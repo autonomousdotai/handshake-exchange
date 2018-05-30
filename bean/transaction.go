@@ -143,3 +143,25 @@ func (transaction Transaction) GetUpdateStatus() map[string]interface{} {
 func (transaction Transaction) GetPageValue() interface{} {
 	return transaction.CreatedAt
 }
+
+type TransactionCount struct {
+	Currency string `json:"currency" firestore:"currency"`
+	Success  int64  `json:"success" firestore:"success"`
+	Failed   int64  `json:"failed" firestore:"failed"`
+}
+
+func (t TransactionCount) GetUpdateSuccess() map[string]interface{} {
+	return map[string]interface{}{
+		"currency":   t.Currency,
+		"success":    t.Success,
+		"updated_at": firestore.ServerTimestamp,
+	}
+}
+
+func (t TransactionCount) GetUpdateFailed() map[string]interface{} {
+	return map[string]interface{}{
+		"currency":   t.Currency,
+		"failed":     t.Failed,
+		"updated_at": firestore.ServerTimestamp,
+	}
+}

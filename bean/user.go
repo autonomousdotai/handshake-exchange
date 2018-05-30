@@ -8,8 +8,12 @@ import (
 const CREDIT_CARD_STATUS_OK = "ok"
 const CREDIT_CARD_STATUS_DISPUTED = "disputed"
 
+type ProfileRequest struct {
+	Id int `json:"id" validate:"required"`
+}
+
 type Profile struct {
-	UserId           string          `json:"id" firestore:"user_id" validate:"required"`
+	UserId           string          `json:"-" firestore:"user_id"`
 	CreditCardStatus string          `json:"-" firestore:"credit_card_status"`
 	CreditCard       UserCreditCard  `json:"credit_card" firestore:"credit_card"`
 	ActiveOffers     map[string]bool `json:"-" firestore:"active_offers"`
