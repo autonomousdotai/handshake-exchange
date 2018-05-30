@@ -17,6 +17,7 @@ type OfferService struct {
 	dao      *dao.OfferDao
 	userDao  *dao.UserDao
 	transDao *dao.TransactionDao
+	miscDao  *dao.MiscDao
 }
 
 func (s OfferService) GetOffer(userId string, offerId string) (offer bean.Offer, ce SimpleContextError) {
@@ -80,13 +81,13 @@ func (s OfferService) CreateOffer(userId string, offerBody bean.Offer) (offer be
 		return
 	}
 	if currencyInst.Code == bean.ETH.Code {
-		if amount.LessThan(decimal.NewFromFloat(0.01)) {
+		if amount.LessThan(decimal.NewFromFloat(0.1)) {
 			ce.SetStatusKey(api_error.AmountIsTooSmall)
 			return
 		}
 	}
 	if currencyInst.Code == bean.BTC.Code {
-		if amount.LessThan(decimal.NewFromFloat(0.1)) {
+		if amount.LessThan(decimal.NewFromFloat(0.01)) {
 			ce.SetStatusKey(api_error.AmountIsTooSmall)
 			return
 		}
@@ -138,7 +139,7 @@ func (s OfferService) CreateOffer(userId string, offerBody bean.Offer) (offer be
 		return
 	}
 
-	offer.CreatedAt = time.Now()
+	offer.CreatedAt = time.Now().UTC()
 	solr_service.UpdateObject(bean.NewSolrFromOffer(offer))
 
 	return
@@ -584,4 +585,30 @@ func (s OfferService) getOfferProfile(offer bean.Offer, profile bean.Profile, ce
 	}
 
 	return
+}
+
+func (s OfferService) setupOfferAmount(offer *bean.Offer, ce *SimpleContextError) {
+	exchFeeTO := s.miscDao.GetSystemFeeFromCache(bean.FEE_KEY_EXCHANGE)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, exchFeeTO) {
+		return
+	}
+	exchFeeObj := exchFeeTO.Object.(bean.SystemFee)
+	exchCommTO := s.miscDao.GetSystemFeeFromCache(bean.FEE_KEY_EXCHANGE_COMMISSION)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, exchCommTO) {
+		return
+	}
+	exchCommObj := exchCommTO.Object.(bean.SystemFee)
+
+	exchFee := decimal.NewFromFloat(exchFeeObj.Value).Round(6)
+	exchComm := decimal.NewFromFloat(exchCommObj.Value).Round(6)
+	amount, _ := decimal.NewFromString(offer.Amount)
+	fee := amount.Mul(exchFee)
+
+	offer.FeePercentage = exchFee.String()
+	offer.RewardPercentage = exchComm.String()
+	offer.Fee = fee.String()
+	offer.Reward = fee.Mul(exchComm).String()
+	if offer.Type == bean.OFFER_TYPE_SELL {
+		offer.TotalAmount = amount.Sub(fee).String()
+	}
 }

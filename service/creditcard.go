@@ -8,6 +8,7 @@ import (
 	"github.com/autonomousdotai/handshake-exchange/common"
 	"github.com/autonomousdotai/handshake-exchange/dao"
 	"github.com/autonomousdotai/handshake-exchange/integration/gdax_service"
+	"github.com/autonomousdotai/handshake-exchange/integration/solr_service"
 	"github.com/autonomousdotai/handshake-exchange/integration/stripe_service"
 	"github.com/shopspring/decimal"
 	"github.com/stripe/stripe-go"
@@ -164,6 +165,7 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 		offerBody.PaymentMethodRef = dao.GetCCTransactionItemPath(offerBody.UID, ccTran.Id)
 
 		transaction := bean.NewTransactionFromInstantOffer(offerBody)
+		offerBody.CreatedAt = time.Now().UTC()
 		offer, err = s.dao.AddInstantOffer(offerBody, transaction, gdaxResponse.Id)
 		if ce.SetError(api_error.AddDataFailed, err) {
 			return
@@ -180,6 +182,8 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 		}
 		// Update CC Track amount
 		s.userDao.UpdateUserCCLimitAmount(userId, token, fiatAmount)
+
+		solr_service.UpdateObject(bean.NewSolrFromInstantOffer(offer))
 	}
 
 	paymentMethodData.CCNum = ""
@@ -279,15 +283,17 @@ func (s CreditCardService) finishInstantOffer(pendingOffer *bean.PendingInstantO
 	}
 	trans.Status = bean.TRANSACTION_STATUS_SUCCESS
 
-	gdaxWithdrawResponse, errWithdraw := gdax_service.WithdrawCrypto(offer.Amount, offer.Currency, offer.Address)
-	if errWithdraw == nil {
-		offer.ProviderWithdrawData = gdaxWithdrawResponse
-	}
+	//TODO: Withdraw crypto
+	//gdaxWithdrawResponse, errWithdraw := gdax_service.WithdrawCrypto(offer.Amount, offer.Currency, offer.Address)
+	//if errWithdraw == nil {
+	//	offer.ProviderWithdrawData = gdaxWithdrawResponse
+	//}
 
 	_, err = s.dao.UpdateInstantOffer(offer, trans)
 	if ce.SetError(api_error.UpdateDataFailed, err) {
 		return
 	}
+	solr_service.UpdateObject(bean.NewSolrFromInstantOffer(offer))
 
 	return
 }

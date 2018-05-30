@@ -55,10 +55,13 @@ type Offer struct {
 	SystemAddress    string           `json:"system_address" firestore:"system_address"`
 	UserAddress      string           `json:"user_address" firestore:"user_address"`
 	RefundAddress    string           `json:"refund_address" firestore:"refund_address"`
+	RewardAddress    string           `json:"reward_address" firestore:"reward_address"`
 	Provider         string           `json:"provider" firestore:"provider"`
 	ProviderData     interface{}      `json:"provider_data" firestore:"provider_data"`
 	Fee              string           `json:"-" firestore:"fee"`
 	FeePercentage    string           `json:"-" firestore:"fee_percentage"`
+	Reward           string           `json:"-" firestore:"reward"`
+	RewardPercentage string           `json:"-" firestore:"reward_percentage"`
 	Longitude        float64          `json:"longitude" firestore:"longitude" validate:"required"`
 	Latitude         float64          `json:"latitude" firestore:"latitude" validate:"required"`
 	TransactionCount TransactionCount `json:"transaction_count" firestore:"transaction_count"`

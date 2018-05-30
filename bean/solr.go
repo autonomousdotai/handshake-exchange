@@ -44,7 +44,7 @@ type SolrOfferExtraData struct {
 	Failed       int64  `json:"failed"`
 }
 
-var statusMap = map[string]int{
+var offerStatusMap = map[string]int{
 	OFFER_STATUS_CREATED:   0,
 	OFFER_STATUS_ACTIVE:    1,
 	OFFER_STATUS_CLOSED:    2,
@@ -52,6 +52,21 @@ var statusMap = map[string]int{
 	OFFER_STATUS_SHAKE:     4,
 	OFFER_STATUS_COMPLETED: 5,
 	OFFER_STATUS_WITHDRAW:  6,
+}
+
+type SolrInstantOfferExtraData struct {
+	Id           string `json:"id"`
+	Amount       string `json:"amount"`
+	Currency     string `json:"currency"`
+	FiatCurrency string `json:"fiat_currency"`
+	FiatAmount   string `json:"fiat_amount"`
+	Status       string `json:"status"`
+}
+
+var instantOfferStatusMap = map[string]int{
+	INSTANT_OFFER_STATUS_PROCESSING: 0,
+	INSTANT_OFFER_STATUS_SUCCESS:    1,
+	INSTANT_OFFER_STATUS_CANCELLED:  2,
 }
 
 func NewSolrFromOffer(offer Offer) (solr SolrOfferObject) {
@@ -64,7 +79,7 @@ func NewSolrFromOffer(offer Offer) (solr SolrOfferObject) {
 		solr.State = 0
 		solr.IsPrivate = 1
 	}
-	solr.Status = statusMap[offer.Status]
+	solr.Status = offerStatusMap[offer.Status]
 	solr.Hid = ""
 	userId, _ := strconv.Atoi(offer.UID)
 	solr.InitUserId = userId
@@ -76,7 +91,7 @@ func NewSolrFromOffer(offer Offer) (solr SolrOfferObject) {
 	}
 	solr.TextSearch = make([]string, 0)
 	solr.Location = fmt.Sprintf("%f,%f", offer.Latitude, offer.Longitude)
-	solr.InitAt = offer.CreatedAt.UTC().Unix()
+	solr.InitAt = offer.CreatedAt.Unix()
 	solr.LastUpdateAt = time.Now().UTC().Unix()
 
 	percentage, _ := decimal.NewFromString(offer.Percentage)
@@ -101,49 +116,30 @@ func NewSolrFromOffer(offer Offer) (solr SolrOfferObject) {
 	return
 }
 
-//func NewSolrFromInstantOffer(offer InstantOffer) (solr SolrOfferObject) {
-//	solr.Id = fmt.Sprintf("exchange_%s", offer.Id)
-//	solr.Type = 2
-//	if offer.Status == OFFER_STATUS_ACTIVE {
-//		solr.State = 1
-//		solr.IsPrivate = 0
-//	} else {
-//		solr.State = 0
-//		solr.IsPrivate = 1
-//	}
-//	solr.Status = statusMap[offer.Status]
-//	solr.Hid = ""
-//	userId, _ := strconv.Atoi(offer.UID)
-//	solr.InitUserId = userId
-//	if offer.ToUID != "" {
-//		userId, _ := strconv.Atoi(offer.ToUID)
-//		solr.ShakeUserIds = []int{userId}
-//	} else {
-//		solr.ShakeUserIds = make([]int, 0)
-//	}
-//	solr.TextSearch = make([]string, 0)
-//	solr.Location = fmt.Sprintf("%f,%f", offer.Latitude, offer.Longitude)
-//	solr.InitAt = offer.CreatedAt.UTC().Unix()
-//	solr.LastUpdateAt = time.Now().UTC().Unix()
-//
-//	percentage, _ := decimal.NewFromString(offer.Percentage)
-//	extraData := SolrOfferExtraData{
-//		Id:           offer.Id,
-//		Type:         offer.Type,
-//		Amount:       offer.Amount,
-//		Currency:     offer.Currency,
-//		FiatAmount:   offer.FiatAmount,
-//		FiatCurrency: offer.FiatCurrency,
-//		Price:        offer.Price,
-//		Percentage:   percentage.Mul(decimal.NewFromFloat(100)).String(),
-//		ContactInfo:  offer.ContactInfo,
-//		ContactPhone: offer.ContactPhone,
-//		Status:       offer.Status,
-//		Success:      offer.TransactionCount.Success,
-//		Failed:       offer.TransactionCount.Failed,
-//	}
-//	b, _ := json.Marshal(&extraData)
-//	solr.ExtraData = string(b)
-//
-//	return
-//}
+func NewSolrFromInstantOffer(offer InstantOffer) (solr SolrOfferObject) {
+	solr.Id = fmt.Sprintf("exchange_%s", offer.Id)
+	solr.Type = 2
+	solr.State = 0
+	solr.IsPrivate = 1
+	solr.Status = instantOfferStatusMap[offer.Status]
+	solr.Hid = ""
+	userId, _ := strconv.Atoi(offer.UID)
+	solr.InitUserId = userId
+	solr.ShakeUserIds = make([]int, 0)
+	solr.TextSearch = make([]string, 0)
+	solr.InitAt = offer.CreatedAt.Unix()
+	solr.LastUpdateAt = time.Now().UTC().Unix()
+
+	extraData := SolrInstantOfferExtraData{
+		Id:           offer.Id,
+		Amount:       offer.Amount,
+		Currency:     offer.Currency,
+		FiatAmount:   offer.FiatAmount,
+		FiatCurrency: offer.FiatCurrency,
+		Status:       offer.Status,
+	}
+	b, _ := json.Marshal(&extraData)
+	solr.ExtraData = string(b)
+
+	return
+}
