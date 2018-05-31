@@ -13,7 +13,7 @@ type SolrOfferObject struct {
 	Type         int      `json:"type_i"`
 	State        int      `json:"state_i"`
 	Status       int      `json:"status_i"`
-	Hid          string   `json:"hid_s"`
+	Hid          int64    `json:"hid_l"`
 	IsPrivate    int      `json:"is_private_i"`
 	InitUserId   int      `json:"init_user_id_i"`
 	ChainId      int64    `json:"chain_id_i"`
@@ -80,7 +80,7 @@ func NewSolrFromOffer(offer Offer) (solr SolrOfferObject) {
 		solr.IsPrivate = 1
 	}
 	solr.Status = offerStatusMap[offer.Status]
-	solr.Hid = ""
+	solr.Hid = offer.Hid
 	solr.ChainId = offer.ChainId
 	userId, _ := strconv.Atoi(offer.UID)
 	solr.InitUserId = userId

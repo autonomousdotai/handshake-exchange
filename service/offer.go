@@ -251,17 +251,20 @@ func (s OfferService) ShakeOffer(userId string, offerId string, body bean.OfferS
 	}
 
 	offer.ToUID = userId
+	s.setupOfferPrice(&offer, &ce)
+	if ce.HasError() {
+		return
+	}
 	if offer.Type == bean.OFFER_TYPE_SELL {
 		// Only BTC needs to check
 		if body.Address == "" && offer.Currency == bean.BTC.Code {
 			ce.SetStatusKey(api_error.InvalidRequestBody)
 			return
 		}
-		_, numberErr := decimal.NewFromString(body.FiatAmount)
-		if ce.SetError(api_error.InvalidNumber, numberErr) {
-			return
-		}
-		offer.FiatAmount = body.FiatAmount
+		//_, numberErr := decimal.NewFromString(body.FiatAmount)
+		//if ce.SetError(api_error.InvalidNumber, numberErr) {
+		//	return
+		//}
 		offer.UserAddress = body.Address
 		offer.Status = bean.OFFER_STATUS_SHAKE
 	} else {
@@ -622,6 +625,19 @@ func (s OfferService) getOfferProfile(offer bean.Offer, profile bean.Profile, ce
 	}
 
 	return
+}
+
+func (s OfferService) setupOfferPrice(offer *bean.Offer, ce *SimpleContextError) {
+	price, fiatPrice, fiatAmount, err := s.GetQuote(offer.Type, offer.Amount, offer.Currency, offer.FiatCurrency)
+	if ce.SetError(api_error.GetDataFailed, err) {
+		return
+	}
+
+	offer.Price = fiatPrice.Round(2).String()
+	offer.PriceUSD = price.Round(2).String()
+	offer.PriceNumberUSD, _ = price.Float64()
+	offer.PriceNumber, _ = fiatPrice.Float64()
+	offer.FiatAmount = fiatAmount.Round(2).String()
 }
 
 func (s OfferService) setupOfferAmount(offer *bean.Offer, ce *SimpleContextError) {

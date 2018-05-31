@@ -33,6 +33,7 @@ const OFFER_STATUS_WITHDRAW = "withdraw"
 
 type Offer struct {
 	Id               string           `json:"id"`
+	Hid              int64            `json:"hid" firestore:"hid"`
 	Amount           string           `json:"amount" firestore:"amount" validate:"required"`
 	AmountNumber     float64          `json:"-" firestore:"amount_number"`
 	TotalAmount      string           `json:"total_amount" firestore:"total_amount"`
@@ -50,7 +51,7 @@ type Offer struct {
 	Username         string           `json:"-" firestore:"username"`
 	ToUID            string           `json:"to_uid" firestore:"to_uid"`
 	ToUsername       string           `json:"to_username" firestore:"to_username"`
-	ContactPhone     string           `json:"contact_phone" firestore:"contact_phone" validate:"required"`
+	ContactPhone     string           `json:"contact_phone" firestore:"contact_phone"`
 	ContactInfo      string           `json:"contact_info" firestore:"contact_info" validate:"required"`
 	SystemAddress    string           `json:"system_address" firestore:"system_address"`
 	UserAddress      string           `json:"user_address" firestore:"user_address"`
@@ -88,6 +89,7 @@ func (offer Offer) GetAddOffer() map[string]interface{} {
 	priceFloat, _ := priceNumber.Float64()
 	return map[string]interface{}{
 		"id":                offer.Id,
+		"hid":               offer.Hid,
 		"amount":            offer.Amount,
 		"amount_number":     offer.AmountNumber,
 		"currency":          strings.ToUpper(offer.Currency),
