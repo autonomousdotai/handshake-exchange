@@ -52,6 +52,7 @@ var offerStatusMap = map[string]int{
 	OFFER_STATUS_SHAKE:     4,
 	OFFER_STATUS_COMPLETED: 5,
 	OFFER_STATUS_WITHDRAW:  6,
+	OFFER_STATUS_REJECTED:  7,
 }
 
 type SolrInstantOfferExtraData struct {
@@ -123,7 +124,7 @@ func NewSolrFromInstantOffer(offer InstantOffer) (solr SolrOfferObject) {
 	solr.State = 0
 	solr.IsPrivate = 1
 	solr.Status = instantOfferStatusMap[offer.Status]
-	solr.Hid = ""
+	solr.Hid = 0
 	userId, _ := strconv.Atoi(offer.UID)
 	solr.InitUserId = userId
 	solr.ShakeUserIds = make([]int, 0)

@@ -75,3 +75,5 @@ import:
   version: v1.1.0
 - package: github.com/stripe/stripe-go
   version: v30.6.1
+- package: github.com/ethereum/go-ethereum
+  version: 1.8.10
