@@ -112,6 +112,7 @@ func (offer Offer) GetAddOffer() map[string]interface{} {
 		"longitude":         offer.Longitude,
 		"username":          offer.Username,
 		"transaction_count": offer.TransactionCount,
+		"chain_id":          offer.ChainId,
 		"created_at":        firestore.ServerTimestamp,
 	}
 }
