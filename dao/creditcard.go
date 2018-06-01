@@ -72,6 +72,7 @@ func (dao CreditCardDao) AddInstantOffer(offer bean.InstantOffer, transaction be
 		Duration:        offer.Duration,
 		Provider:        offer.Provider,
 		ProviderId:      providerId,
+		CCMode:          offer.CCMode,
 	}
 	pendingOfferId := fmt.Sprintf("%s-%s", offer.UID, offer.Id)
 	docPendingRef := dbClient.Doc(GetPendingInstantOfferItemPath(pendingOfferId))

@@ -41,6 +41,9 @@ func (url CronJobUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	group.POST("/system-fees", func(context *gin.Context) {
 		miscApi.UpdateSystemFee(context)
 	})
+	group.POST("/system-configs", func(context *gin.Context) {
+		miscApi.UpdateSystemConfig(context)
+	})
 	group.POST("/cc-limits", func(context *gin.Context) {
 		miscApi.UpdateCCLimits(context)
 	})

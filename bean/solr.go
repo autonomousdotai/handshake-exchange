@@ -29,19 +29,24 @@ type SolrOfferObject struct {
 }
 
 type SolrOfferExtraData struct {
-	Id           string `json:"id"`
-	Type         string `json:"type"`
-	Amount       string `json:"amount"`
-	Currency     string `json:"currency"`
-	FiatCurrency string `json:"fiat_currency"`
-	FiatAmount   string `json:"fiat_amount"`
-	Price        string `json:"price"`
-	Percentage   string `json:"percentage"`
-	ContactPhone string `json:"contact_phone"`
-	ContactInfo  string `json:"contact_info"`
-	Status       string `json:"status"`
-	Success      int64  `json:"success"`
-	Failed       int64  `json:"failed"`
+	Id            string `json:"id"`
+	FeedType      string `json:"feed_type"`
+	Type          string `json:"type"`
+	Amount        string `json:"amount"`
+	Currency      string `json:"currency"`
+	FiatCurrency  string `json:"fiat_currency"`
+	FiatAmount    string `json:"fiat_amount"`
+	TotalAmount   string `json:"total_amount"`
+	Fee           string `json:"fee"`
+	Reward        string `json:"reward"`
+	Price         string `json:"price"`
+	Percentage    string `json:"percentage"`
+	ContactPhone  string `json:"contact_phone"`
+	ContactInfo   string `json:"contact_info"`
+	SystemAddress string `json:"system_address"`
+	Status        string `json:"status"`
+	Success       int64  `json:"success"`
+	Failed        int64  `json:"failed"`
 }
 
 var offerStatusMap = map[string]int{
@@ -57,6 +62,7 @@ var offerStatusMap = map[string]int{
 
 type SolrInstantOfferExtraData struct {
 	Id           string `json:"id"`
+	FeedType     string `json:"feed_type"`
 	Amount       string `json:"amount"`
 	Currency     string `json:"currency"`
 	FiatCurrency string `json:"fiat_currency"`
@@ -98,19 +104,24 @@ func NewSolrFromOffer(offer Offer) (solr SolrOfferObject) {
 
 	percentage, _ := decimal.NewFromString(offer.Percentage)
 	extraData := SolrOfferExtraData{
-		Id:           offer.Id,
-		Type:         offer.Type,
-		Amount:       offer.Amount,
-		Currency:     offer.Currency,
-		FiatAmount:   offer.FiatAmount,
-		FiatCurrency: offer.FiatCurrency,
-		Price:        offer.Price,
-		Percentage:   percentage.Mul(decimal.NewFromFloat(100)).String(),
-		ContactInfo:  offer.ContactInfo,
-		ContactPhone: offer.ContactPhone,
-		Status:       offer.Status,
-		Success:      offer.TransactionCount.Success,
-		Failed:       offer.TransactionCount.Failed,
+		Id:            offer.Id,
+		FeedType:      "exchange",
+		Type:          offer.Type,
+		Amount:        offer.Amount,
+		TotalAmount:   offer.TotalAmount,
+		Currency:      offer.Currency,
+		FiatAmount:    offer.FiatAmount,
+		FiatCurrency:  offer.FiatCurrency,
+		Price:         offer.Price,
+		Fee:           offer.Fee,
+		Reward:        offer.Reward,
+		Percentage:    percentage.Mul(decimal.NewFromFloat(100)).String(),
+		ContactInfo:   offer.ContactInfo,
+		ContactPhone:  offer.ContactPhone,
+		SystemAddress: offer.SystemAddress,
+		Status:        offer.Status,
+		Success:       offer.TransactionCount.Success,
+		Failed:        offer.TransactionCount.Failed,
 	}
 	b, _ := json.Marshal(&extraData)
 	solr.ExtraData = string(b)
@@ -125,6 +136,7 @@ func NewSolrFromInstantOffer(offer InstantOffer) (solr SolrOfferObject) {
 	solr.IsPrivate = 1
 	solr.Status = instantOfferStatusMap[offer.Status]
 	solr.Hid = 0
+	solr.ChainId = offer.ChainId
 	userId, _ := strconv.Atoi(offer.UID)
 	solr.InitUserId = userId
 	solr.ShakeUserIds = make([]int, 0)
@@ -134,6 +146,7 @@ func NewSolrFromInstantOffer(offer InstantOffer) (solr SolrOfferObject) {
 
 	extraData := SolrInstantOfferExtraData{
 		Id:           offer.Id,
+		FeedType:     "instant",
 		Amount:       offer.Amount,
 		Currency:     offer.Currency,
 		FiatAmount:   offer.FiatAmount,

@@ -23,6 +23,9 @@ func (url InfoUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	group.GET("/system-fees/:feeKey", func(context *gin.Context) {
 		miscApi.GetSystemFee(context)
 	})
+	group.GET("/system-configs/:systemKey", func(context *gin.Context) {
+		miscApi.GetSystemConfig(context)
+	})
 	group.GET("/instant-buy/price", func(context *gin.Context) {
 		creditCardAPi.GetProposeInstantOffer(context)
 	})

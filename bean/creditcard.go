@@ -95,7 +95,9 @@ type InstantOffer struct {
 	ProviderData         interface{} `json:"-" firestore:"provider_data"`
 	ProviderWithdrawData interface{} `json:"-" firestore:"provider_withdraw_data"`
 	TransactionRef       string      `json:"-" firestore:"transaction_ref"`
+	CCMode               string      `json:"-" firestore:"cc_mode"`
 	Address              string      `json:"address" firestore:"address" validate:"required"`
+	ChainId              int64       `json:"chain_id" firestore:"chain_id"`
 	CreatedAt            time.Time   `json:"created_at" firestore:"created_at"`
 	UpdatedAt            time.Time   `json:"updated_at" firestore:"updated_at"`
 }
@@ -128,12 +130,15 @@ func (offer InstantOffer) GetAddInstantOffer() map[string]interface{} {
 		"fee":                offer.Fee,
 		"external_fee":       offer.ExternalFee,
 		"fee_percentage":     offer.FeePercentage,
+		"duration":           offer.Duration,
 		"payment_method":     offer.PaymentMethod,
 		"payment_method_ref": offer.PaymentMethodRef,
 		"provider":           offer.Provider,
 		"provider_data":      offer.ProviderData,
+		"cc_mode":            offer.CCMode,
 		"transaction_ref":    offer.TransactionRef,
 		"address":            offer.Address,
+		"chain_id":           offer.ChainId,
 		"created_at":         firestore.ServerTimestamp,
 	}
 }
@@ -159,6 +164,7 @@ type PendingInstantOffer struct {
 	Duration        int64     `json:"duration" firestore:"duration"`
 	Provider        string    `json:"provider" firestore:"provider"`
 	ProviderId      string    `json:"provider_id" firestore:"provider_id"`
+	CCMode          string    `json:"cc_mode" firestore:"cc_mode"`
 	CreatedAt       time.Time `json:"created_at" firestore:"created_at"`
 }
 
@@ -170,6 +176,8 @@ func (offer PendingInstantOffer) GetAddInstantOffer() map[string]interface{} {
 		"instant_offer_ref": offer.InstantOfferRef,
 		"provider":          offer.Provider,
 		"provider_id":       offer.ProviderId,
+		"duration":          offer.Duration,
+		"cc_mode":           offer.CCMode,
 		"created_at":        firestore.ServerTimestamp,
 	}
 }

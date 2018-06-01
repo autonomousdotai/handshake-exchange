@@ -6,6 +6,7 @@ import (
 	"github.com/autonomousdotai/handshake-exchange/dao"
 	"github.com/autonomousdotai/handshake-exchange/service"
 	"github.com/gin-gonic/gin"
+	"strconv"
 )
 
 type CreditCardApi struct {
@@ -25,6 +26,7 @@ func (api CreditCardApi) GetProposeInstantOffer(context *gin.Context) {
 
 func (api CreditCardApi) PayInstantOffer(context *gin.Context) {
 	userId := common.GetUserId(context)
+	chainId := common.GetChainId(context)
 
 	var body bean.InstantOffer
 	if common.ValidateBody(context, &body) != nil {
@@ -32,6 +34,8 @@ func (api CreditCardApi) PayInstantOffer(context *gin.Context) {
 	}
 
 	body.UID = userId
+	id, _ := strconv.Atoi(chainId)
+	body.ChainId = int64(id)
 	offer, ce := service.CreditCardServiceInst.PayInstantOffer(userId, body)
 	if ce.ContextValidate(context) {
 		return

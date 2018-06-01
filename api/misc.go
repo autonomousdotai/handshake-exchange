@@ -70,6 +70,15 @@ func (api MiscApi) UpdateSystemFee(context *gin.Context) {
 	bean.SuccessResponse(context, systemFees)
 }
 
+func (api MiscApi) UpdateSystemConfig(context *gin.Context) {
+	systemFees, err := dao.MiscDaoInst.LoadSystemConfigToCache()
+	if api_error.PropagateErrorAndAbort(context, api_error.UpdateDataFailed, err) != nil {
+		return
+	}
+
+	bean.SuccessResponse(context, systemFees)
+}
+
 func (api MiscApi) GetCurrencyRate(context *gin.Context) {
 	currency := context.Param("currency")
 	to := dao.MiscDaoInst.GetCurrencyRateFromCache(currency[:3], currency[3:])
@@ -100,6 +109,17 @@ func (api MiscApi) GetSystemFee(context *gin.Context) {
 	systemFee := to.Object.(bean.SystemFee)
 
 	bean.SuccessResponse(context, systemFee)
+}
+
+func (api MiscApi) GetSystemConfig(context *gin.Context) {
+	feeKey := context.Param("systemKey")
+	to := dao.MiscDaoInst.GetSystemConfigFromCache(feeKey)
+	if to.ContextValidate(context) {
+		return
+	}
+	systemConfig := to.Object.(bean.SystemConfig)
+
+	bean.SuccessResponse(context, systemConfig)
 }
 
 func (api MiscApi) GetCryptoRate(context *gin.Context) {

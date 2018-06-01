@@ -86,6 +86,19 @@ func (c GdaxClient) Post(uri string, body interface{}) (*grequests.Response, err
 	return resp, err
 }
 
+func (c GdaxClient) Delete(uri string) (*grequests.Response, error) {
+	url := c.url + uri
+	headers := c.buildHeader("DELETE", uri, "")
+	ro := &grequests.RequestOptions{Headers: headers}
+	resp, err := grequests.Delete(url, ro)
+
+	if resp.Ok != true {
+		return nil, api_error.NewErrorCustom(api_error.ExternalApiFailed, resp.String(), nil)
+	}
+
+	return resp, err
+}
+
 func PlaceOrder(amount string, currency string, price string) (bean.GdaxOrderResponse, error) {
 	client := GdaxClient{}
 	client.Initialize()
@@ -111,6 +124,20 @@ func GetOrder(orderId string) (bean.GdaxOrderResponse, error) {
 	var response bean.GdaxOrderResponse
 
 	resp, err := client.Get(fmt.Sprintf("/orders/%s", orderId))
+	if err == nil {
+		resp.JSON(&response)
+	}
+
+	return response, err
+}
+
+func CancelOrder(orderId string) (bean.GdaxOrderResponse, error) {
+	client := GdaxClient{}
+	client.Initialize()
+
+	var response bean.GdaxOrderResponse
+
+	resp, err := client.Delete(fmt.Sprintf("/orders/%s", orderId))
 	if err == nil {
 		resp.JSON(&response)
 	}

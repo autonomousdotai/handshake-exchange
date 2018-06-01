@@ -236,6 +236,49 @@ func (dao MiscDao) GetCCLimitByLevelFromCache(level string) (t TransferObject) {
 	return
 }
 
+func (dao MiscDao) LoadSystemConfigToCache() ([]bean.SystemConfig, error) {
+	dbClient := firebase_service.FirestoreClient
+
+	ClearCache(GetSystemConfigCacheKey("*"))
+
+	// system_configs/
+	addressesIter := dbClient.Collection(GetSystemConfigPath()).Documents(context.Background())
+	systemConfigs := make([]bean.SystemConfig, 0)
+
+	for {
+		var systemConfig bean.SystemConfig
+		doc, err := addressesIter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return systemConfigs, err
+		}
+		doc.DataTo(&systemConfig)
+		systemConfigs = append(systemConfigs, systemConfig)
+
+		// To cache
+		key := GetSystemConfigCacheKey(systemConfig.Key)
+		cache.RedisClient.Set(key, systemConfig.Value, 0)
+	}
+
+	return systemConfigs, nil
+}
+
+func (dao MiscDao) GetSystemConfigFromCache(key string) (t TransferObject) {
+	systemConfig := bean.SystemConfig{
+		Key: key,
+	}
+
+	GetCacheObject(GetSystemConfigCacheKey(key), &t, func(val string) interface{} {
+		systemConfig.Value = val
+
+		return systemConfig
+	})
+
+	return
+}
+
 func GetCurrencyRateItemPath(currency string) string {
 	return fmt.Sprintf("currency_rates/%s", currency)
 }
@@ -270,4 +313,12 @@ func GetCCLimitItemPath(level string) string {
 
 func GetCCLimitCacheKey(level string) string {
 	return fmt.Sprintf("handshake_exchange.cc_limits.%s", level)
+}
+
+func GetSystemConfigPath() string {
+	return "system_configs"
+}
+
+func GetSystemConfigCacheKey(fee string) string {
+	return fmt.Sprintf("handshake_exchange.system_configs.%s", fee)
 }
