@@ -121,13 +121,14 @@ func (offer Offer) GetAddOffer() map[string]interface{} {
 
 func (offer Offer) GetUpdateOfferActive() map[string]interface{} {
 	return map[string]interface{}{
-		"user_address": offer.UserAddress,
-		"status":       OFFER_STATUS_ACTIVE,
-		"updated_at":   firestore.ServerTimestamp,
+		// "user_address": offer.UserAddress,
+		"hid":        offer.Hid,
+		"status":     OFFER_STATUS_ACTIVE,
+		"updated_at": firestore.ServerTimestamp,
 	}
 }
 
-func (offer Offer) GetUpdateOfferShaking() map[string]interface{} {
+func (offer Offer) GetUpdateOfferShake() map[string]interface{} {
 	return map[string]interface{}{
 		"price_number":     offer.PriceNumber,
 		"price_number_usd": offer.PriceNumberUSD,
@@ -239,8 +240,13 @@ func (offer OfferTransferMap) GetAddOfferTransferMap() map[string]interface{} {
 	}
 }
 
-func (offer OfferTransferMap) UpdateTick() map[string]interface{} {
+func (offer OfferTransferMap) GetUpdateTick() map[string]interface{} {
 	return map[string]interface{}{
 		"updated_at": firestore.ServerTimestamp,
 	}
+}
+
+type OfferOnchain struct {
+	Hid   int64
+	Offer string
 }

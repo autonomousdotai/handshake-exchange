@@ -101,11 +101,52 @@ func (dao OfferDao) UpdateOfferActive(offer bean.Offer) error {
 	dbClient := firebase_service.FirestoreClient
 
 	docRef := dbClient.Doc(GetOfferItemPath(offer.Id))
-	addressMapDocRef := dbClient.Doc(GetOfferAddressMapItemPath(offer.SystemAddress))
 
 	batch := dbClient.Batch()
-	batch.Set(docRef, offer.GetChangeStatus(), firestore.MergeAll)
-	batch.Delete(addressMapDocRef)
+	batch.Set(docRef, offer.GetUpdateOfferActive(), firestore.MergeAll)
+	if offer.SystemAddress != "" {
+		addressMapDocRef := dbClient.Doc(GetOfferAddressMapItemPath(offer.SystemAddress))
+		batch.Delete(addressMapDocRef)
+	}
+
+	_, err := batch.Commit(context.Background())
+
+	return err
+}
+
+func (dao OfferDao) UpdateOfferShaking(offer bean.Offer) error {
+	dbClient := firebase_service.FirestoreClient
+
+	docRef := dbClient.Doc(GetOfferItemPath(offer.Id))
+
+	batch := dbClient.Batch()
+	batch.Set(docRef, offer.GetUpdateOfferShake(), firestore.MergeAll)
+	if offer.SystemAddress != "" {
+		mapping := bean.OfferAddressMap{
+			Address:  offer.SystemAddress,
+			Offer:    offer.Id,
+			OfferRef: GetOfferItemPath(offer.Id),
+			UID:      offer.UID,
+		}
+		mappingDocRef := dbClient.Doc(GetOfferAddressMapItemPath(offer.SystemAddress))
+		batch.Set(mappingDocRef, mapping.GetAddOfferAddressMap())
+	}
+
+	_, err := batch.Commit(context.Background())
+
+	return err
+}
+
+func (dao OfferDao) UpdateOfferShake(offer bean.Offer) error {
+	dbClient := firebase_service.FirestoreClient
+
+	docRef := dbClient.Doc(GetOfferItemPath(offer.Id))
+	batch := dbClient.Batch()
+	batch.Set(docRef, offer.GetUpdateOfferShake(), firestore.MergeAll)
+	if offer.SystemAddress != "" {
+		addressMapDocRef := dbClient.Doc(GetOfferAddressMapItemPath(offer.SystemAddress))
+		batch.Delete(addressMapDocRef)
+	}
 
 	_, err := batch.Commit(context.Background())
 
@@ -217,7 +258,7 @@ func (dao OfferDao) UpdateTickTransferMap(transferMap bean.OfferTransferMap) {
 	dbClient := firebase_service.FirestoreClient
 
 	transferDocRef := dbClient.Doc(GetOfferTransferMapItemPath(transferMap.Offer))
-	transferDocRef.Set(context.Background(), transferMap.UpdateTick(), firestore.MergeAll)
+	transferDocRef.Set(context.Background(), transferMap.GetUpdateTick(), firestore.MergeAll)
 }
 
 // DB path

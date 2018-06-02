@@ -13,6 +13,7 @@ func (url CronJobUrl) Create(router *gin.Engine) *gin.RouterGroup {
 
 	miscApi := api.MiscApi{}
 	coinbaseApi := api.CoinbaseApi{}
+	onChainApi := api.OnChainApi{}
 
 	// CRON JOB
 	group.POST("/currency-rates", func(context *gin.Context) {
@@ -33,6 +34,13 @@ func (url CronJobUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	// CRON JOB
 	group.POST("/update-cc-limit-track", func(context *gin.Context) {
 		miscApi.UpdateUserCCLimitTracks(context)
+	})
+	// CRON JOB
+	group.POST("/update-offer-init-on-chain", func(context *gin.Context) {
+		onChainApi.UpdateOfferInit(context)
+	})
+	group.POST("/update-offer-shake-on-chain", func(context *gin.Context) {
+		onChainApi.UpdateOfferShake(context)
 	})
 
 	group.POST("/coinbase/callback", func(context *gin.Context) {

@@ -17,6 +17,10 @@ const CONFIG_KEY_CC_MODE = "CC_MODE"
 const CC_MODE_GDAX = "gdax"
 const CC_MODE_INVENTORY = "inventory"
 
+const CONFIG_BTC_WALLET = "BTC_WALLET"
+const BTC_WALLET_COINBASE = "coinbase"
+const BTC_WALLET_BLOCKCHAINIO = "blockchainio"
+
 type SystemFee struct {
 	Key   string  `json:"key" firestore:"key"`
 	Value float64 `json:"value" firestore:"value"`

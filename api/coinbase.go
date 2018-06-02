@@ -69,9 +69,16 @@ func (api CoinbaseApi) ReceiveCallback(context *gin.Context) {
 				if addressObj, ok := data["address"]; !ok || addressObj.(string) != "" {
 					address = addressObj.(string)
 
-					_, ce := service.OfferServiceInst.ActiveOffer(address, amountObj.(string))
+					offer, ce := service.OfferServiceInst.ActiveOffer(address, amountObj.(string))
 					if ce.HasError() {
-						// TODO Need to do some notification if get error
+						if ce.StatusKey == api_error.OfferStatusInvalid {
+							_, ce = service.OfferServiceInst.UpdateShakeOffer(offer)
+							if ce.HasError() {
+								// TODO Need to do some notification if get error
+							}
+						} else {
+							// TODO Need to do some notification if get error
+						}
 					}
 				} else {
 					// Data from Coinbase is not valid

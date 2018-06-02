@@ -123,15 +123,7 @@ func (s OfferService) CreateOffer(userId string, offerBody bean.Offer) (offer be
 	}
 	transCount := transCountTO.Object.(bean.TransactionCount)
 
-	// Only BTC need to generate address to transfer in
-	if offerBody.Currency == bean.BTC.Code {
-		addressResponse, err := coinbase_service.GenerateAddress(currencyInst.Code)
-		if err != nil {
-			ce.SetError(api_error.ExternalApiFailed, err)
-			return
-		}
-		offerBody.SystemAddress = addressResponse.Data.Address
-	}
+	s.generateSystemAddress(&offerBody, &ce)
 
 	offerBody.TransactionCount = transCount
 	s.setupOfferAmount(&offerBody, &ce)
@@ -164,6 +156,7 @@ func (s OfferService) ActiveOffer(address string, amountStr string) (offer bean.
 	offer = offerTO.Object.(bean.Offer)
 	if offer.Status != bean.OFFER_STATUS_CREATED {
 		ce.SetStatusKey(api_error.OfferStatusInvalid)
+		return
 	}
 
 	inputAmount, _ := decimal.NewFromString(amountStr)
@@ -194,6 +187,30 @@ func (s OfferService) ActiveOffer(address string, amountStr string) (offer bean.
 	return
 }
 
+func (s OfferService) ActiveOnChainOffer(offerId string, hid int64) (offer bean.Offer, ce SimpleContextError) {
+	fmt.Println(offerId)
+	offerTO := s.dao.GetOffer(offerId)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, offerTO) {
+		return
+	}
+	offer = offerTO.Object.(bean.Offer)
+	if offer.Status != bean.OFFER_STATUS_CREATED {
+		ce.SetStatusKey(api_error.OfferStatusInvalid)
+		return
+	}
+
+	// Good
+	offer.Hid = hid
+	offer.Status = bean.OFFER_STATUS_ACTIVE
+	err := s.dao.UpdateOfferActive(offer)
+	if ce.SetError(api_error.UpdateDataFailed, err) {
+		return
+	}
+	solr_service.UpdateObject(bean.NewSolrFromOffer(offer))
+
+	return
+}
+
 func (s OfferService) CloseOffer(userId string, offerId string) (offer bean.Offer, ce SimpleContextError) {
 	profileTO := s.userDao.GetProfile(userId)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, profileTO) {
@@ -208,6 +225,7 @@ func (s OfferService) CloseOffer(userId string, offerId string) (offer bean.Offe
 	offer = offerTO.Object.(bean.Offer)
 	if offer.Status != bean.OFFER_STATUS_ACTIVE && offer.Status != bean.OFFER_STATUS_CREATED {
 		ce.SetStatusKey(api_error.OfferStatusInvalid)
+		return
 	}
 	offerProfile := s.getOfferProfile(offer, profile, &ce)
 	offerProfile.ActiveOffers[offer.Currency] = false
@@ -277,7 +295,49 @@ func (s OfferService) ShakeOffer(userId string, offerId string, body bean.OfferS
 		offer.Status = bean.OFFER_STATUS_SHAKING
 	}
 
-	err := s.dao.UpdateOffer(offer, offer.GetUpdateOfferShaking())
+	err := s.dao.UpdateOffer(offer, offer.GetUpdateOfferShake())
+	if ce.SetError(api_error.UpdateDataFailed, err) {
+		return
+	}
+
+	solr_service.UpdateObject(bean.NewSolrFromOffer(offer))
+
+	return
+}
+
+func (s OfferService) UpdateShakeOffer(offerBody bean.Offer) (offer bean.Offer, ce SimpleContextError) {
+	if offerBody.Status != bean.OFFER_STATUS_SHAKING {
+		ce.SetStatusKey(api_error.OfferStatusInvalid)
+		return
+	}
+
+	// Good
+	offerBody.Status = bean.OFFER_STATUS_SHAKE
+	err := s.dao.UpdateOffer(offerBody, offerBody.GetChangeStatus())
+	if ce.SetError(api_error.UpdateDataFailed, err) {
+		return
+	}
+
+	solr_service.UpdateObject(bean.NewSolrFromOffer(offerBody))
+	offer = offerBody
+
+	return
+}
+
+func (s OfferService) ShakeOnChainOffer(offerId string) (offer bean.Offer, ce SimpleContextError) {
+	offerTO := s.dao.GetOffer(offerId)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, offerTO) {
+		return
+	}
+	offer = offerTO.Object.(bean.Offer)
+	if offer.Status != bean.OFFER_STATUS_SHAKING {
+		ce.SetStatusKey(api_error.OfferStatusInvalid)
+		return
+	}
+
+	// Good
+	offer.Status = bean.OFFER_STATUS_SHAKE
+	err := s.dao.UpdateOffer(offer, offer.GetChangeStatus())
 	if ce.SetError(api_error.UpdateDataFailed, err) {
 		return
 	}
@@ -521,51 +581,6 @@ func (s OfferService) getFailedTransCount(offer bean.Offer) bean.TransactionCoun
 	return transCount
 }
 
-//func (s OfferService) EndOffers() (ce SimpleContextError) {
-//	transferMaps, err := s.dao.ListTransferMaps()
-//	if ce.SetError(api_error.GetDataFailed, err) {
-//		return
-//	}
-//
-//	for _, transferMap := range transferMaps {
-//		resp, err := coinbase_service.GetTransaction(transferMap.ExternalId, transferMap.Currency)
-//		if err == nil {
-//			if resp.Status == "completed" {
-//				offer := s.endOffer(transferMap.Offer, resp, &ce)
-//				if !ce.HasError() {
-//					solr_service.UpdateObject(bean.NewSolrFromOffer(offer))
-//				}
-//			} else {
-//				s.dao.UpdateTickTransferMap(transferMap)
-//			}
-//		}
-//	}
-//
-//	return
-//}
-//
-//func (s OfferService) endOffer(offerId string, providerData interface{}, ce *SimpleContextError) (offer bean.Offer) {
-//	offerTO := s.dao.GetOffer(offerId)
-//	if ce.FeedDaoTransfer(api_error.GetDataFailed, offerTO) {
-//		return
-//	}
-//	offer = offerTO.Object.(bean.Offer)
-//	if offer.Status != bean.OFFER_STATUS_COMPLETING {
-//		ce.SetStatusKey(api_error.OfferStatusInvalid)
-//	}
-//
-//	offer.ProviderData = providerData
-//	offer.Status = bean.OFFER_STATUS_COMPLETED
-//	err := s.dao.UpdateOfferCompleted(offer)
-//	if ce.SetError(api_error.UpdateDataFailed, err) {
-//		return
-//	}
-//
-//	solr_service.UpdateObject(bean.NewSolrFromOffer(offer))
-//
-//	return
-//}
-
 func (s OfferService) GetQuote(quoteType string, amountStr string, currency string, fiatCurrency string) (price decimal.Decimal, fiatPrice decimal.Decimal,
 	fiatAmount decimal.Decimal, err error) {
 	amount, numberErr := decimal.NewFromString(amountStr)
@@ -665,5 +680,28 @@ func (s OfferService) setupOfferAmount(offer *bean.Offer, ce *SimpleContextError
 		offer.TotalAmount = amount.Sub(fee).String()
 	} else if offer.Type == bean.OFFER_TYPE_BUY {
 		offer.TotalAmount = amount.Add(fee).String()
+	}
+}
+
+func (s OfferService) generateSystemAddress(offer *bean.Offer, ce *SimpleContextError) {
+	// Only BTC need to generate address to transfer in
+	if offer.Currency == bean.BTC.Code {
+		systemConfigTO := s.miscDao.GetSystemConfigFromCache(bean.CONFIG_BTC_WALLET)
+		if ce.FeedDaoTransfer(api_error.GetDataFailed, systemConfigTO) {
+			return
+		}
+		systemConfig := systemConfigTO.Object.(bean.SystemConfig)
+
+		if systemConfig.Value == bean.BTC_WALLET_COINBASE {
+			addressResponse, err := coinbase_service.GenerateAddress(offer.Currency)
+			if err != nil {
+				ce.SetError(api_error.ExternalApiFailed, err)
+				return
+			}
+			offer.SystemAddress = addressResponse.Data.Address
+		} else if systemConfig.Value == bean.BTC_WALLET_BLOCKCHAINIO {
+			address := ""
+			offer.SystemAddress = address
+		}
 	}
 }
