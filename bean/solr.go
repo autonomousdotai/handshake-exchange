@@ -63,6 +63,7 @@ var offerStatusMap = map[string]int{
 type SolrInstantOfferExtraData struct {
 	Id           string `json:"id"`
 	FeedType     string `json:"feed_type"`
+	Type         string `json:"type"`
 	Amount       string `json:"amount"`
 	Currency     string `json:"currency"`
 	FiatCurrency string `json:"fiat_currency"`
@@ -147,6 +148,7 @@ func NewSolrFromInstantOffer(offer InstantOffer) (solr SolrOfferObject) {
 	extraData := SolrInstantOfferExtraData{
 		Id:           offer.Id,
 		FeedType:     "instant",
+		Type:         "buy",
 		Amount:       offer.Amount,
 		Currency:     offer.Currency,
 		FiatAmount:   offer.FiatAmount,
