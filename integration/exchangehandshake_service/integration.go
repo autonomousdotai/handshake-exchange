@@ -41,7 +41,7 @@ func (c *ExchangeHandshakeClient) GetInitEvent(startBlock uint64) (offers []bean
 	opt := &bind.FilterOpts{
 		Start: startBlock,
 	}
-	past, errInit := c.handshake.FilterInit(opt)
+	past, errInit := c.handshake.FilterInitByCoinOwner(opt)
 	if errInit != nil {
 		err = errInit
 		return
@@ -56,8 +56,6 @@ func (c *ExchangeHandshakeClient) GetInitEvent(startBlock uint64) (offers []bean
 				Hid:   int64(past.Event.Hid.Uint64()),
 				Offer: string(bytes.Trim(past.Event.Offchain[:], "\x00")),
 			})
-			fmt.Println("Offer log")
-			fmt.Println(string(bytes.Trim(past.Event.Offchain[:], "\x00")))
 		}
 	}
 	c.close()
@@ -77,6 +75,7 @@ func (c *ExchangeHandshakeClient) GetShakeEvent(startBlock uint64) (offers []bea
 		return
 	}
 	notEmpty := true
+	endBlock = startBlock
 	for notEmpty {
 		notEmpty = past.Next()
 		if notEmpty {
