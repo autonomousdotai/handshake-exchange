@@ -60,7 +60,12 @@ func (s OfferService) CreateOffer(userId string, offerBody bean.Offer) (offer be
 			ce.SetStatusKey(api_error.InvalidRequestBody)
 			return
 		}
-		offerBody.Status = bean.OFFER_STATUS_ACTIVE
+		if offerBody.Currency == bean.BTC.Code {
+			offerBody.Status = bean.OFFER_STATUS_ACTIVE
+		} else {
+			// Only ETH To match with smart contract, it still created
+			offerBody.Status = bean.OFFER_STATUS_CREATED
+		}
 	} else {
 		if offerBody.RefundAddress == "" {
 			ce.SetStatusKey(api_error.InvalidRequestBody)
@@ -279,12 +284,13 @@ func (s OfferService) ShakeOffer(userId string, offerId string, body bean.OfferS
 			ce.SetStatusKey(api_error.InvalidRequestBody)
 			return
 		}
-		//_, numberErr := decimal.NewFromString(body.FiatAmount)
-		//if ce.SetError(api_error.InvalidNumber, numberErr) {
-		//	return
-		//}
 		offer.UserAddress = body.Address
-		offer.Status = bean.OFFER_STATUS_SHAKE
+		if offer.Currency == bean.BTC.Code {
+			offer.Status = bean.OFFER_STATUS_SHAKE
+		} else {
+			// Only ETH To match with smart contract, it still shaking
+			offer.Status = bean.OFFER_STATUS_SHAKING
+		}
 	} else {
 		// Only BTC needs to check
 		if body.Address == "" && offer.Currency == bean.BTC.Code {

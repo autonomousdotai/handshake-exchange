@@ -58,6 +58,25 @@ func (c *ExchangeHandshakeClient) GetInitEvent(startBlock uint64) (offers []bean
 			})
 		}
 	}
+
+	past2, errInit := c.handshake.FilterInitByCashOwner(opt)
+	if errInit != nil {
+		err = errInit
+		return
+	}
+	notEmpty = true
+	endBlock = startBlock
+	for notEmpty {
+		notEmpty = past2.Next()
+		if notEmpty {
+			endBlock = past2.Event.Raw.BlockNumber
+			offers = append(offers, bean.OfferOnchain{
+				Hid:   int64(past2.Event.Hid.Uint64()),
+				Offer: string(bytes.Trim(past2.Event.Offchain[:], "\x00")),
+			})
+		}
+	}
+
 	c.close()
 
 	return
