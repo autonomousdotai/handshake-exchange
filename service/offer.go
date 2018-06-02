@@ -193,7 +193,6 @@ func (s OfferService) ActiveOffer(address string, amountStr string) (offer bean.
 }
 
 func (s OfferService) ActiveOnChainOffer(offerId string, hid int64) (offer bean.Offer, ce SimpleContextError) {
-	fmt.Println(offerId)
 	offerTO := s.dao.GetOffer(offerId)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, offerTO) {
 		return

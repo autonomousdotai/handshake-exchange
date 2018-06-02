@@ -2,7 +2,6 @@ package exchangehandshake_service
 
 import (
 	"bytes"
-	"fmt"
 	"github.com/autonomousdotai/handshake-exchange/abi"
 	"github.com/autonomousdotai/handshake-exchange/bean"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -47,11 +46,11 @@ func (c *ExchangeHandshakeClient) GetInitEvent(startBlock uint64) (offers []bean
 		return
 	}
 	notEmpty := true
-	endBlock = startBlock
+	endBlock1 := startBlock
 	for notEmpty {
 		notEmpty = past.Next()
 		if notEmpty {
-			endBlock = past.Event.Raw.BlockNumber
+			endBlock1 = past.Event.Raw.BlockNumber
 			offers = append(offers, bean.OfferOnchain{
 				Hid:   int64(past.Event.Hid.Uint64()),
 				Offer: string(bytes.Trim(past.Event.Offchain[:], "\x00")),
@@ -65,16 +64,22 @@ func (c *ExchangeHandshakeClient) GetInitEvent(startBlock uint64) (offers []bean
 		return
 	}
 	notEmpty = true
-	endBlock = startBlock
+	endBlock2 := startBlock
 	for notEmpty {
 		notEmpty = past2.Next()
 		if notEmpty {
-			endBlock = past2.Event.Raw.BlockNumber
+			endBlock2 = past2.Event.Raw.BlockNumber
 			offers = append(offers, bean.OfferOnchain{
 				Hid:   int64(past2.Event.Hid.Uint64()),
 				Offer: string(bytes.Trim(past2.Event.Offchain[:], "\x00")),
 			})
 		}
+	}
+
+	if endBlock1 > endBlock2 {
+		endBlock = endBlock1
+	} else {
+		endBlock = endBlock2
 	}
 
 	c.close()
