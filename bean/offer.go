@@ -49,8 +49,10 @@ type Offer struct {
 	Status           string           `json:"status" firestore:"status"`
 	UID              string           `json:"uid" firestore:"uid"`
 	Username         string           `json:"-" firestore:"username"`
+	Email            string           `json:"email" firestore:"email"`
 	ToUID            string           `json:"to_uid" firestore:"to_uid"`
 	ToUsername       string           `json:"to_username" firestore:"to_username"`
+	ToEmail          string           `json:"to_email" firestore:"to_email"`
 	ContactPhone     string           `json:"contact_phone" firestore:"contact_phone"`
 	ContactInfo      string           `json:"contact_info" firestore:"contact_info" validate:"required"`
 	SystemAddress    string           `json:"system_address" firestore:"system_address"`
@@ -201,6 +203,7 @@ func (offer Offer) GetPageValue() interface{} {
 type OfferShakeRequest struct {
 	FiatAmount string `json:"fiat_amount" validate:"required"`
 	Address    string `json:"address"`
+	ToEmail    string `json:"to_email"`
 }
 
 type OfferAddressMap struct {

@@ -14,6 +14,7 @@ func (url CronJobUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	miscApi := api.MiscApi{}
 	coinbaseApi := api.CoinbaseApi{}
 	onChainApi := api.OnChainApi{}
+	blockchainIoApi := api.BlockChainApi{}
 
 	// CRON JOB
 	group.POST("/currency-rates", func(context *gin.Context) {
@@ -45,6 +46,9 @@ func (url CronJobUrl) Create(router *gin.Engine) *gin.RouterGroup {
 
 	group.POST("/coinbase/callback", func(context *gin.Context) {
 		coinbaseApi.ReceiveCallback(context)
+	})
+	group.POST("/blockchainio/callback", func(context *gin.Context) {
+		blockchainIoApi.ReceiveCallback(context)
 	})
 	group.POST("/system-fees", func(context *gin.Context) {
 		miscApi.UpdateSystemFee(context)

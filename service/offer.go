@@ -6,6 +6,7 @@ import (
 	"github.com/autonomousdotai/handshake-exchange/bean"
 	"github.com/autonomousdotai/handshake-exchange/common"
 	"github.com/autonomousdotai/handshake-exchange/dao"
+	"github.com/autonomousdotai/handshake-exchange/integration/blockchainio_service"
 	"github.com/autonomousdotai/handshake-exchange/integration/coinbase_service"
 	"github.com/autonomousdotai/handshake-exchange/integration/solr_service"
 	"github.com/go-errors/errors"
@@ -705,7 +706,12 @@ func (s OfferService) generateSystemAddress(offer *bean.Offer, ce *SimpleContext
 			}
 			offer.SystemAddress = addressResponse.Data.Address
 		} else if systemConfig.Value == bean.BTC_WALLET_BLOCKCHAINIO {
-			address := ""
+			client := blockchainio_service.BlockChainIOClient{}
+			address, err := client.GenerateAddress(offer.Id)
+			if err != nil {
+				ce.SetError(api_error.ExternalApiFailed, err)
+				return
+			}
 			offer.SystemAddress = address
 		}
 	}

@@ -23,6 +23,7 @@ type CCTransaction struct {
 	ExternalId   string      `json:"-" firestore:"external_id"`
 	Type         string      `json:"-" firestore:"type"`
 	DataRef      string      `json:"-" firestore:"data_ref"`
+	Email        string      `json:"email" firestore:"email"`
 	CreatedAt    time.Time   `json:"created_at" firestore:"created_at"`
 	UpdatedAt    time.Time   `json:"updated_at" firestore:"updated_at"`
 }

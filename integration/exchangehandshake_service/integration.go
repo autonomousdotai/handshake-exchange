@@ -98,12 +98,14 @@ func (c *ExchangeHandshakeClient) GetShakeEvent(startBlock uint64) (offers []bea
 		err = errInit
 		return
 	}
+
 	notEmpty := true
 	endBlock = startBlock
 	for notEmpty {
 		notEmpty = past.Next()
 		if notEmpty {
 			endBlock = past.Event.Raw.BlockNumber
+
 			offers = append(offers, bean.OfferOnchain{
 				Hid:   int64(past.Event.Hid.Uint64()),
 				Offer: string(bytes.Trim(past.Event.Offchain[:], "\x00")),
