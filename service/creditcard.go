@@ -9,8 +9,8 @@ import (
 	"github.com/autonomousdotai/handshake-exchange/dao"
 	"github.com/autonomousdotai/handshake-exchange/integration/crypto_service"
 	"github.com/autonomousdotai/handshake-exchange/integration/gdax_service"
-	"github.com/autonomousdotai/handshake-exchange/integration/solr_service"
 	"github.com/autonomousdotai/handshake-exchange/integration/stripe_service"
+	"github.com/autonomousdotai/handshake-exchange/service/notification"
 	"github.com/shopspring/decimal"
 	"github.com/stripe/stripe-go"
 	"os"
@@ -206,7 +206,7 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 		// Update CC Track amount
 		s.userDao.UpdateUserCCLimitAmount(userId, token, fiatAmount)
 
-		solr_service.UpdateObject(bean.NewSolrFromInstantOffer(offer))
+		notification.SendInstantOfferNotification(offer)
 	}
 
 	paymentMethodData.CCNum = ""
@@ -342,7 +342,8 @@ func (s CreditCardService) finishInstantOffer(pendingOffer *bean.PendingInstantO
 	if ce.SetError(api_error.UpdateDataFailed, err) {
 		return
 	}
-	solr_service.UpdateObject(bean.NewSolrFromInstantOffer(offer))
+
+	notification.SendInstantOfferNotification(offer)
 
 	return
 }
@@ -400,6 +401,7 @@ func (s CreditCardService) cancelInstantOffer(pendingOffer *bean.PendingInstantO
 		}
 	}
 
+	notification.SendInstantOfferNotification(offer)
 }
 
 func setupInstantOffer(offer *bean.InstantOffer, offerTest bean.InstantOffer, gdaxResponse bean.GdaxOrderResponse) {

@@ -99,6 +99,7 @@ type InstantOffer struct {
 	CCMode               string      `json:"-" firestore:"cc_mode"`
 	Address              string      `json:"address" firestore:"address" validate:"required"`
 	Email                string      `json:"email" firestore:"email"`
+	Language             string      `json:"language" firestore:"language"`
 	ChainId              int64       `json:"chain_id" firestore:"chain_id"`
 	CreatedAt            time.Time   `json:"created_at" firestore:"created_at"`
 	UpdatedAt            time.Time   `json:"updated_at" firestore:"updated_at"`
@@ -141,6 +142,7 @@ func (offer InstantOffer) GetAddInstantOffer() map[string]interface{} {
 		"transaction_ref":    offer.TransactionRef,
 		"address":            offer.Address,
 		"email":              offer.Email,
+		"language":           offer.Language,
 		"chain_id":           offer.ChainId,
 		"created_at":         firestore.ServerTimestamp,
 	}

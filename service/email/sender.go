@@ -1,8 +1,6 @@
 package email
 
 import (
-	"github.com/autonomousdotai/handshake-exchange/common"
-	"github.com/gin-gonic/gin"
 	"github.com/nicksnyder/go-i18n/i18n"
 	"os"
 	"strings"

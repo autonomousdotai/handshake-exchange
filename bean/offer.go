@@ -52,9 +52,11 @@ type Offer struct {
 	UID              string           `json:"uid" firestore:"uid"`
 	Username         string           `json:"-" firestore:"username"`
 	Email            string           `json:"email" firestore:"email"`
+	Language         string           `json:"language" firestore:"language"`
 	ToUID            string           `json:"to_uid" firestore:"to_uid"`
 	ToUsername       string           `json:"to_username" firestore:"to_username"`
 	ToEmail          string           `json:"to_email" firestore:"to_email"`
+	ToLanguage       string           `json:"to_language" firestore:"to_language"`
 	ContactPhone     string           `json:"contact_phone" firestore:"contact_phone"`
 	ContactInfo      string           `json:"contact_info" firestore:"contact_info" validate:"required"`
 	SystemAddress    string           `json:"system_address" firestore:"system_address"`
@@ -111,6 +113,7 @@ func (offer Offer) GetAddOffer() map[string]interface{} {
 		"contact_info":      offer.ContactInfo,
 		"contact_phone":     offer.ContactPhone,
 		"email":             offer.Email,
+		"language":          offer.Language,
 		"system_address":    offer.SystemAddress,
 		"user_address":      offer.UserAddress,
 		"refund_address":    offer.RefundAddress,
@@ -142,6 +145,8 @@ func (offer Offer) GetUpdateOfferShake() map[string]interface{} {
 		"price":            offer.Price,
 		"price_usd":        offer.PriceUSD,
 		"fiat_amount":      offer.FiatAmount,
+		"to_email":         offer.ToEmail,
+		"to_language":      offer.ToLanguage,
 		"user_address":     offer.UserAddress,
 		"refund_address":   offer.RefundAddress,
 		"to_uid":           offer.ToUID,
@@ -209,6 +214,7 @@ type OfferShakeRequest struct {
 	FiatAmount string `json:"fiat_amount" validate:"required"`
 	Address    string `json:"address"`
 	Email      string `json:"email"`
+	Language   string `json:"language"`
 }
 
 type OfferAddressMap struct {

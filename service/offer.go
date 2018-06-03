@@ -317,7 +317,9 @@ func (s OfferService) ShakeOffer(userId string, offerId string, body bean.OfferS
 	}
 
 	offer.ToEmail = body.Email
-	err := s.dao.UpdateOffer(offer, offer.GetUpdateOfferShake())
+	offer.ToLanguage = body.Language
+	// err := s.dao.UpdateOffer(offer, offer.GetUpdateOfferShake())
+	err := s.dao.UpdateOfferShaking(offer)
 	if ce.SetError(api_error.UpdateDataFailed, err) {
 		return
 	}
@@ -335,7 +337,8 @@ func (s OfferService) UpdateShakeOffer(offerBody bean.Offer) (offer bean.Offer, 
 
 	// Good
 	offerBody.Status = bean.OFFER_STATUS_SHAKE
-	err := s.dao.UpdateOffer(offerBody, offerBody.GetChangeStatus())
+	// err := s.dao.UpdateOffer(offerBody, offerBody.GetChangeStatus())
+	err := s.dao.UpdateOfferShake(offer)
 	if ce.SetError(api_error.UpdateDataFailed, err) {
 		return
 	}
