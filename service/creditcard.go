@@ -238,7 +238,7 @@ func (s CreditCardService) FinishInstantOffers() (finishedInstantOffers []bean.I
 						}
 					}
 				}
-				fmt.Println(gdaxResponse)
+				// fmt.Println(gdaxResponse)
 			} else {
 				// From inventory
 				offer := s.finishInstantOffer(&pendingOffer, ccMode, nil, &ce)

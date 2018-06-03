@@ -21,6 +21,8 @@ const CONFIG_BTC_WALLET = "BTC_WALLET"
 const BTC_WALLET_COINBASE = "coinbase"
 const BTC_WALLET_BLOCKCHAINIO = "blockchainio"
 
+const CONFIG_OFFER_REJECT_LOCK = "OFFER_REJECT_LOCK"
+
 type SystemFee struct {
 	Key   string  `json:"key" firestore:"key"`
 	Value float64 `json:"value" firestore:"value"`

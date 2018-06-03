@@ -24,6 +24,20 @@ func (dao OnChainDao) UpdateOfferInitEventBlock(offer bean.OfferEventBlock) erro
 	return err
 }
 
+func (dao OnChainDao) GetOfferCloseEventBlock() (t TransferObject) {
+	GetObject(GetOfferCloseEventBlockPath(), &t, snapshotToOfferEventBlock)
+	return
+}
+
+func (dao OnChainDao) UpdateOfferCloseEventBlock(offer bean.OfferEventBlock) error {
+	dbClient := firebase_service.FirestoreClient
+	docRef := dbClient.Doc(GetOfferCloseEventBlockPath())
+
+	_, err := docRef.Set(context.Background(), offer.GetUpdate())
+
+	return err
+}
+
 func (dao OnChainDao) GetOfferShakeEventBlock() (t TransferObject) {
 	GetObject(GetOfferShakeEventBlockPath(), &t, snapshotToOfferEventBlock)
 	return
@@ -38,12 +52,70 @@ func (dao OnChainDao) UpdateOfferShakeEventBlock(offer bean.OfferEventBlock) err
 	return err
 }
 
+func (dao OnChainDao) GetOfferRejectEventBlock() (t TransferObject) {
+	GetObject(GetOfferRejectEventBlockPath(), &t, snapshotToOfferEventBlock)
+	return
+}
+
+func (dao OnChainDao) UpdateOfferRejectEventBlock(offer bean.OfferEventBlock) error {
+	dbClient := firebase_service.FirestoreClient
+	docRef := dbClient.Doc(GetOfferRejectEventBlockPath())
+
+	_, err := docRef.Set(context.Background(), offer.GetUpdate())
+
+	return err
+}
+
+func (dao OnChainDao) GetOfferCompleteEventBlock() (t TransferObject) {
+	GetObject(GetOfferCompleteEventBlockPath(), &t, snapshotToOfferEventBlock)
+	return
+}
+
+func (dao OnChainDao) UpdateOfferCompleteEventBlock(offer bean.OfferEventBlock) error {
+	dbClient := firebase_service.FirestoreClient
+	docRef := dbClient.Doc(GetOfferCompleteEventBlockPath())
+
+	_, err := docRef.Set(context.Background(), offer.GetUpdate())
+
+	return err
+}
+
+func (dao OnChainDao) GetOfferWithdrawEventBlock() (t TransferObject) {
+	GetObject(GetOfferWithdrawEventBlockPath(), &t, snapshotToOfferEventBlock)
+	return
+}
+
+func (dao OnChainDao) UpdateOfferWithdrawEventBlock(offer bean.OfferEventBlock) error {
+	dbClient := firebase_service.FirestoreClient
+	docRef := dbClient.Doc(GetOfferWithdrawEventBlockPath())
+
+	_, err := docRef.Set(context.Background(), offer.GetUpdate())
+
+	return err
+}
+
 func GetOfferInitEventBlockPath() string {
 	return "onchain_events/offer_init"
 }
 
+func GetOfferCloseEventBlockPath() string {
+	return "onchain_events/offer_close"
+}
+
 func GetOfferShakeEventBlockPath() string {
 	return "onchain_events/offer_shake"
+}
+
+func GetOfferRejectEventBlockPath() string {
+	return "onchain_events/offer_reject"
+}
+
+func GetOfferCompleteEventBlockPath() string {
+	return "onchain_events/offer_complete"
+}
+
+func GetOfferWithdrawEventBlockPath() string {
+	return "onchain_events/offer_withdraw"
 }
 
 func snapshotToOfferEventBlock(snapshot *firestore.DocumentSnapshot) interface{} {

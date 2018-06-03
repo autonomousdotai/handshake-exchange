@@ -17,6 +17,19 @@ type Profile struct {
 	CreditCardStatus string          `json:"-" firestore:"credit_card_status"`
 	CreditCard       UserCreditCard  `json:"credit_card" firestore:"credit_card"`
 	ActiveOffers     map[string]bool `json:"-" firestore:"active_offers"`
+	OfferRejectLock  OfferRejectLock `json:"offer_reject_lock" firestore:"offer_reject_lock"`
+}
+
+type OfferRejectLock struct {
+	Duration  int64     `json:"duration" firestore:"duration"`
+	CreatedAt time.Time `json:"created_at" firestore:"created_at"`
+}
+
+func (o OfferRejectLock) GetAddOfferRejectLock() map[string]interface{} {
+	return map[string]interface{}{
+		"duration":   o.Duration,
+		"created_at": firestore.ServerTimestamp,
+	}
 }
 
 func (profile Profile) GetAddProfile() map[string]interface{} {
@@ -34,7 +47,14 @@ func (profile Profile) GetAddProfile() map[string]interface{} {
 func (profile Profile) GetUpdateOfferProfile() map[string]interface{} {
 	return map[string]interface{}{
 		"active_offers": profile.ActiveOffers,
-		"created_at":    firestore.ServerTimestamp,
+		"updated_at":    firestore.ServerTimestamp,
+	}
+}
+
+func (profile Profile) GetUpdateOfferRejectLock() map[string]interface{} {
+	return map[string]interface{}{
+		"offer_reject_lock": profile.OfferRejectLock.GetAddOfferRejectLock(),
+		"updated_at":        firestore.ServerTimestamp,
 	}
 }
 

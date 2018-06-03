@@ -13,6 +13,7 @@ const InvalidRequestParam = "InvalidRequestParam"
 const InvalidQueryParam = "InvalidQueryParam"
 const ExternalApiFailed = "ExternalApiFailed"
 const InvalidNumber = "InvalidNumber"
+const InvalidConfig = "InvalidConfig"
 
 const GetDataFailed = "GetDataFailed"
 const AddDataFailed = "AddDataFailed"
@@ -30,6 +31,7 @@ const OfferPayMyself = "OfferPayMyself"
 const TooManyOffer = "TooManyOffer"
 const AmountIsTooSmall = "AmountIsTooSmall"
 const InvalidUserToCompleteHandshake = "InvalidUserToCompleteHandshake"
+const OfferActionLocked = "OfferActionLocked"
 
 var CodeMessage = map[string]struct {
 	StatusCode int
@@ -47,6 +49,7 @@ var CodeMessage = map[string]struct {
 	InvalidQueryParam:   {http.StatusBadRequest, -6, "Query param is invalid"},
 	ExternalApiFailed:   {http.StatusBadRequest, -7, "External API failed"},
 	InvalidNumber:       {http.StatusBadRequest, -8, "Invalid number"},
+	InvalidConfig:       {http.StatusBadRequest, -9, "Invalid config"},
 
 	GetDataFailed:    {http.StatusBadRequest, -201, "Get data failed"},
 	AddDataFailed:    {http.StatusBadRequest, -202, "Add data failed"},
@@ -64,4 +67,5 @@ var CodeMessage = map[string]struct {
 	TooManyOffer:                   {http.StatusBadRequest, -309, "Too many offer"},
 	AmountIsTooSmall:               {http.StatusBadRequest, -310, "Amount is too small"},
 	InvalidUserToCompleteHandshake: {http.StatusBadRequest, -311, "Invalid user to complete handshake"},
+	OfferActionLocked:              {http.StatusBadRequest, -312, "Your offer action is locked"},
 }

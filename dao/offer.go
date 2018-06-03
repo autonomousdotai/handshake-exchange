@@ -185,30 +185,6 @@ func (dao OfferDao) UpdateOfferReject(offer bean.Offer, profile bean.Profile, tr
 	return err
 }
 
-//func (dao OfferDao) UpdateOfferCompleting(offer bean.Offer, profile bean.Profile, externalId string) error {
-//	dbClient := firebase_service.FirestoreClient
-//
-//	profileDocRef := dbClient.Doc(GetUserPath(offer.UID))
-//	docRef := dbClient.Doc(GetOfferItemPath(offer.Id))
-//	transferDocRef := dbClient.Doc(GetOfferTransferMapItemPath(offer.Id))
-//
-//	batch := dbClient.Batch()
-//	batch.Set(docRef, offer.GetUpdateOfferCompleted(), firestore.MergeAll)
-//	batch.Set(profileDocRef, profile.GetUpdateOfferProfile(), firestore.MergeAll)
-//	batch.Set(transferDocRef, bean.OfferTransferMap{
-//		UID:        offer.UID,
-//		Address:    offer.UserAddress,
-//		Offer:      offer.Id,
-//		OfferRef:   GetOfferItemPath(offer.Id),
-//		ExternalId: externalId,
-//		Currency:   offer.Currency,
-//	}.GetAddOfferTransferMap())
-//
-//	_, err := batch.Commit(context.Background())
-//
-//	return err
-//}
-
 func (dao OfferDao) UpdateOfferCompleted(offer bean.Offer, profile bean.Profile, transactionCount bean.TransactionCount) error {
 	dbClient := firebase_service.FirestoreClient
 

@@ -159,3 +159,27 @@ func (s UserService) UpdateUserCCLimitTracks() (ce SimpleContextError) {
 
 	return
 }
+
+func (s UserService) UpdateOfferRejectLock(userId string) (ce SimpleContextError) {
+	systemConfigTO := s.miscDao.GetSystemConfigFromCache(bean.CONFIG_BTC_WALLET)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, systemConfigTO) {
+		return
+	}
+	systemConfig := systemConfigTO.Object.(bean.SystemConfig)
+	d, _ := strconv.Atoi(systemConfig.Value)
+	duration := int64(d)
+
+	err := s.dao.UpdateProfileOfferRejectLock(userId, bean.OfferRejectLock{
+		Duration: duration,
+	})
+	if ce.SetError(api_error.UpdateDataFailed, err) {
+		return
+	}
+
+	return
+}
+
+func (s UserService) CheckOfferLocked(profile bean.Profile) bool {
+	// now - created at < duration
+	return int64(time.Now().UTC().Sub(profile.OfferRejectLock.CreatedAt).Minutes()) < profile.OfferRejectLock.Duration
+}

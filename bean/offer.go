@@ -24,11 +24,13 @@ const OFFER_STATUS_CREATED = "created"
 const OFFER_STATUS_ACTIVE = "active"
 const OFFER_STATUS_SHAKING = "shaking"
 const OFFER_STATUS_SHAKE = "shake"
-
-// const OFFER_STATUS_COMPLETING = "completing"
+const OFFER_STATUS_COMPLETING = "completing"
 const OFFER_STATUS_COMPLETED = "completed"
+const OFFER_STATUS_CLOSING = "closing"
 const OFFER_STATUS_CLOSED = "closed"
+const OFFER_STATUS_REJECTING = "rejecting"
 const OFFER_STATUS_REJECTED = "rejected"
+const OFFER_STATUS_WITHDRAWING = "withdrawing"
 const OFFER_STATUS_WITHDRAW = "withdraw"
 
 type Offer struct {
@@ -61,6 +63,7 @@ type Offer struct {
 	RewardAddress    string           `json:"reward_address" firestore:"reward_address"`
 	Provider         string           `json:"provider" firestore:"provider"`
 	ProviderData     interface{}      `json:"provider_data" firestore:"provider_data"`
+	WalletProvider   string           `json:"wallet_provider" firestore:"wallet_provider"`
 	Fee              string           `json:"-" firestore:"fee"`
 	FeePercentage    string           `json:"-" firestore:"fee_percentage"`
 	Reward           string           `json:"-" firestore:"reward"`
@@ -117,6 +120,7 @@ func (offer Offer) GetAddOffer() map[string]interface{} {
 		"username":          offer.Username,
 		"transaction_count": offer.TransactionCount,
 		"chain_id":          offer.ChainId,
+		"wallet_provider":   offer.WalletProvider,
 		"created_at":        firestore.ServerTimestamp,
 	}
 }
@@ -157,7 +161,7 @@ func (offer Offer) GetUpdateOfferShake() map[string]interface{} {
 func (offer Offer) GetUpdateOfferCompleted() map[string]interface{} {
 	return map[string]interface{}{
 		// "provider_data": offer.ProviderData,
-		"status":     OFFER_STATUS_COMPLETED,
+		"status":     offer.Status,
 		"updated_at": firestore.ServerTimestamp,
 	}
 }
@@ -166,7 +170,7 @@ func (offer Offer) GetUpdateOfferWithdraw() map[string]interface{} {
 	return map[string]interface{}{
 		"provider":      offer.Provider,
 		"provider_data": offer.ProviderData,
-		"status":        OFFER_STATUS_WITHDRAW,
+		"status":        offer.Status,
 		"updated_at":    firestore.ServerTimestamp,
 	}
 }
@@ -175,7 +179,7 @@ func (offer Offer) GetUpdateOfferClose() map[string]interface{} {
 	return map[string]interface{}{
 		"provider":      offer.Provider,
 		"provider_data": offer.ProviderData,
-		"status":        OFFER_STATUS_CLOSED,
+		"status":        offer.Status,
 		"updated_at":    firestore.ServerTimestamp,
 	}
 }
@@ -184,7 +188,7 @@ func (offer Offer) GetUpdateOfferReject() map[string]interface{} {
 	return map[string]interface{}{
 		"provider":      offer.Provider,
 		"provider_data": offer.ProviderData,
-		"status":        OFFER_STATUS_REJECTED,
+		"status":        offer.Status,
 		"updated_at":    firestore.ServerTimestamp,
 	}
 }

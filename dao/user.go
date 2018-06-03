@@ -82,6 +82,19 @@ func (dao UserDao) UpdateUserCCLimitAmount(userId string, token string, amount d
 	return err
 }
 
+func (dao UserDao) UpdateProfileOfferRejectLock(userId string, lock bean.OfferRejectLock) error {
+	dbClient := firebase_service.FirestoreClient
+
+	batch := dbClient.Batch()
+
+	profileRef := dbClient.Collection("users").Doc(userId)
+	profileRef.Set(context.Background(), lock.GetAddOfferRejectLock(), firestore.MergeAll)
+
+	_, err := batch.Commit(context.Background())
+
+	return err
+}
+
 func (dao UserDao) GetCCLimit(userId string, token string) (t TransferObject) {
 	// users/{uid}/cc_limit/{token}
 	GetObject(GetUserCCLimitItemPath(userId, token), &t, snapshotUserCCLimit)
