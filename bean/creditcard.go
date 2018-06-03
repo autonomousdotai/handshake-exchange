@@ -157,6 +157,13 @@ func (offer InstantOffer) GetUpdate() map[string]interface{} {
 	}
 }
 
+func (offer InstantOffer) GetNotificationUpdate() map[string]interface{} {
+	return map[string]interface{}{
+		"id":     offer.Id,
+		"status": offer.Status,
+	}
+}
+
 func (offer InstantOffer) GetPageValue() interface{} {
 	return offer.CreatedAt
 }

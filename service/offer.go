@@ -9,6 +9,7 @@ import (
 	"github.com/autonomousdotai/handshake-exchange/integration/blockchainio_service"
 	"github.com/autonomousdotai/handshake-exchange/integration/coinbase_service"
 	"github.com/autonomousdotai/handshake-exchange/integration/solr_service"
+	"github.com/autonomousdotai/handshake-exchange/service/notification"
 	"github.com/go-errors/errors"
 	"github.com/shopspring/decimal"
 	"time"
@@ -148,7 +149,7 @@ func (s OfferService) CreateOffer(userId string, offerBody bean.Offer) (offer be
 	}
 
 	offer.CreatedAt = time.Now().UTC()
-	solr_service.UpdateObject(bean.NewSolrFromOffer(offer))
+	notification.SendOfferNotification(offer)
 
 	return
 }
@@ -190,7 +191,7 @@ func (s OfferService) ActiveOffer(address string, amountStr string) (offer bean.
 			return
 		}
 
-		solr_service.UpdateObject(bean.NewSolrFromOffer(offer))
+		notification.SendOfferNotification(offer)
 	} else {
 		// TODO Process to refund?
 	}
@@ -216,7 +217,7 @@ func (s OfferService) ActiveOnChainOffer(offerId string, hid int64) (offer bean.
 	if ce.SetError(api_error.UpdateDataFailed, err) {
 		return
 	}
-	solr_service.UpdateObject(bean.NewSolrFromOffer(offer))
+	notification.SendOfferNotification(offer)
 
 	return
 }
@@ -256,7 +257,7 @@ func (s OfferService) CloseOffer(userId string, offerId string) (offer bean.Offe
 		return
 	}
 
-	solr_service.UpdateObject(bean.NewSolrFromOffer(offer))
+	notification.SendOfferNotification(offer)
 
 	return
 }
@@ -324,7 +325,7 @@ func (s OfferService) ShakeOffer(userId string, offerId string, body bean.OfferS
 		return
 	}
 
-	solr_service.UpdateObject(bean.NewSolrFromOffer(offer))
+	notification.SendOfferNotification(offer)
 
 	return
 }
@@ -343,8 +344,8 @@ func (s OfferService) UpdateShakeOffer(offerBody bean.Offer) (offer bean.Offer, 
 		return
 	}
 
-	solr_service.UpdateObject(bean.NewSolrFromOffer(offerBody))
 	offer = offerBody
+	notification.SendOfferNotification(offer)
 
 	return
 }
@@ -390,7 +391,7 @@ func (s OfferService) RejectShakeOffer(userId string, offerId string) (offer bea
 	}
 
 	UserServiceInst.UpdateOfferRejectLock(userId)
-	solr_service.UpdateObject(bean.NewSolrFromOffer(offer))
+	notification.SendOfferNotification(offer)
 
 	return
 }
@@ -446,7 +447,7 @@ func (s OfferService) CompleteShakeOffer(userId string, offerId string) (offer b
 		return
 	}
 
-	solr_service.UpdateObject(bean.NewSolrFromOffer(offer))
+	notification.SendOfferNotification(offer)
 
 	return
 }
@@ -519,7 +520,7 @@ func (s OfferService) WithdrawOffer(userId string, offerId string) (offer bean.O
 		return
 	}
 
-	solr_service.UpdateObject(bean.NewSolrFromOffer(offer))
+	notification.SendOfferNotification(offer)
 
 	return
 }
@@ -542,7 +543,7 @@ func (s OfferService) UpdateOnChainOffer(offerId string, oldStatus string, newSt
 		return
 	}
 
-	solr_service.UpdateObject(bean.NewSolrFromOffer(offer))
+	notification.SendOfferNotification(offer)
 
 	return
 }

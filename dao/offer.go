@@ -223,6 +223,16 @@ func (dao OfferDao) UpdateOfferWithdraw(offer bean.Offer) error {
 	return err
 }
 
+//Firebase
+func (dao OfferDao) UpdateNotificationOffer(offer bean.Offer) error {
+	dbClient := firebase_service.NotificationFirebaseClient
+
+	ref := dbClient.NewRef(GetNotificationOfferItemPath(offer.UID, offer.Id))
+	err := ref.Set(context.Background(), offer.GetNotificationUpdate())
+
+	return err
+}
+
 func (dao OfferDao) GetOfferAddress(address string) (t TransferObject) {
 	// offer_addresses/{id}
 	GetObject(GetOfferAddressMapItemPath(address), &t, snapshotToOfferAddressMap)
@@ -246,9 +256,13 @@ func GetOfferItemPath(id string) string {
 	return fmt.Sprintf("offers/%s", id)
 }
 
-func GetOfferAddressMapPath() string {
-	return "offer_addresses"
+func GetNotificationOfferItemPath(userId string, id string) string {
+	return fmt.Sprintf("users/%s/offers/%s", userId, id)
 }
+
+//func GetOfferAddressMapPath() string {
+//	return "offer_addresses"
+//}
 
 func GetOfferAddressMapItemPath(id string) string {
 	return fmt.Sprintf("offer_addresses/%s", id)

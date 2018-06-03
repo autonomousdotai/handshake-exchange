@@ -150,6 +150,15 @@ func (dao CreditCardDao) ListPendingInstantOffer() ([]bean.PendingInstantOffer, 
 	return offers, nil
 }
 
+func (dao CreditCardDao) UpdateNotificationInstantOffer(offer bean.InstantOffer) error {
+	dbClient := firebase_service.NotificationFirebaseClient
+
+	ref := dbClient.NewRef(GetNotificationInstantOfferItemPath(offer.UID, offer.Id))
+	err := ref.Set(context.Background(), offer.GetNotificationUpdate())
+
+	return err
+}
+
 func GetCCTransactionPath(userId string) string {
 	return fmt.Sprintf("users/%s/cc_transactions", userId)
 }
@@ -172,6 +181,11 @@ func GetPendingInstantOfferPath() string {
 
 func GetPendingInstantOfferItemPath(pendingOfferId string) string {
 	return fmt.Sprintf("%s/%s", GetPendingInstantOfferPath(), pendingOfferId)
+}
+
+// Firebase
+func GetNotificationInstantOfferItemPath(userId string, offerId string) string {
+	return fmt.Sprintf("users/%s/instant_offers/%s", userId, offerId)
 }
 
 func snapshotToCCTransaction(snapshot *firestore.DocumentSnapshot) interface{} {

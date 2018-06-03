@@ -72,6 +72,10 @@ func main() {
 	//i18n.MustLoadTranslationFile("./translations/zh-HK.flat.yaml")
 	// End
 
+	// DB
+	firebase_service.Intialize()
+	// End
+
 	// Setting router
 	router := gin.New()
 	// Define session

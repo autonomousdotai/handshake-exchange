@@ -206,6 +206,13 @@ func (offer Offer) GetChangeStatus() map[string]interface{} {
 	}
 }
 
+func (offer Offer) GetNotificationUpdate() map[string]interface{} {
+	return map[string]interface{}{
+		"id":     offer.Id,
+		"status": strings.ToLower(offer.Status),
+	}
+}
+
 func (offer Offer) GetPageValue() interface{} {
 	return offer.CreatedAt
 }
