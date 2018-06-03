@@ -316,6 +316,7 @@ func (s OfferService) ShakeOffer(userId string, offerId string, body bean.OfferS
 		offer.Status = bean.OFFER_STATUS_SHAKING
 	}
 
+	offer.ToEmail = body.Email
 	err := s.dao.UpdateOffer(offer, offer.GetUpdateOfferShake())
 	if ce.SetError(api_error.UpdateDataFailed, err) {
 		return

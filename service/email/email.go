@@ -26,7 +26,7 @@ func SendEmailWithTemplate(fromName string, fromAddress string, toName string, t
 	if err == nil {
 		err = sendgrid_service.SendEmail(fromName, fromAddress, toName, toAddress, subject, buffer.String())
 	} else {
-		err = api_error.PropagateError(api_error.ReadTemplateError, err)
+		err = api_error.PropagateError(api_error.UnexpectedError, err)
 	}
 
 	return err

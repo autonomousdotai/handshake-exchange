@@ -110,6 +110,7 @@ func (offer Offer) GetAddOffer() map[string]interface{} {
 		"reward":            offer.Reward,
 		"contact_info":      offer.ContactInfo,
 		"contact_phone":     offer.ContactPhone,
+		"email":             offer.Email,
 		"system_address":    offer.SystemAddress,
 		"user_address":      offer.UserAddress,
 		"refund_address":    offer.RefundAddress,
@@ -207,7 +208,7 @@ func (offer Offer) GetPageValue() interface{} {
 type OfferShakeRequest struct {
 	FiatAmount string `json:"fiat_amount" validate:"required"`
 	Address    string `json:"address"`
-	ToEmail    string `json:"to_email"`
+	Email      string `json:"email"`
 }
 
 type OfferAddressMap struct {

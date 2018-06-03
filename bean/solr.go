@@ -43,6 +43,7 @@ type SolrOfferExtraData struct {
 	Percentage    string `json:"percentage"`
 	ContactPhone  string `json:"contact_phone"`
 	ContactInfo   string `json:"contact_info"`
+	Email         string `json:"email"`
 	SystemAddress string `json:"system_address"`
 	Status        string `json:"status"`
 	Success       int64  `json:"success"`
@@ -73,6 +74,7 @@ type SolrInstantOfferExtraData struct {
 	FiatCurrency string `json:"fiat_currency"`
 	FiatAmount   string `json:"fiat_amount"`
 	Status       string `json:"status"`
+	Email        string `json:"email"`
 }
 
 var instantOfferStatusMap = map[string]int{
@@ -123,6 +125,7 @@ func NewSolrFromOffer(offer Offer) (solr SolrOfferObject) {
 		Percentage:    percentage.Mul(decimal.NewFromFloat(100)).String(),
 		ContactInfo:   offer.ContactInfo,
 		ContactPhone:  offer.ContactPhone,
+		Email:         offer.Email,
 		SystemAddress: offer.SystemAddress,
 		Status:        offer.Status,
 		Success:       offer.TransactionCount.Success,
@@ -158,6 +161,7 @@ func NewSolrFromInstantOffer(offer InstantOffer) (solr SolrOfferObject) {
 		FiatAmount:   offer.FiatAmount,
 		FiatCurrency: offer.FiatCurrency,
 		Status:       offer.Status,
+		Email:        offer.Email,
 	}
 	b, _ := json.Marshal(&extraData)
 	solr.ExtraData = string(b)

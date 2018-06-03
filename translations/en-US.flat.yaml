@@ -1,0 +1,14 @@
+greeting:
+  other: "Hello {{.Name}}"
+email_order_success_subject:
+  other: "Success! you have just ordered {{.Currency}}"
+email_order_cancelled_subject:
+  other: "You have just cancelled your order on Exchange"
+email_order_from_success_subject:
+    other: "Success!"
+email_order_instant_cc_success_subject:
+  other: "Success! you have just ordered using your credit card"
+email_create_buying_offer_success_subject:
+  other: "You want to buy {{.Currency}} for ${{.Price}}"
+email_create_selling_offer_success_subject:
+  other: "Your listing to sell {{.Currency}} is live"
