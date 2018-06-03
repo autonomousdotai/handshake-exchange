@@ -152,9 +152,11 @@ func SendOrderInstantCCSuccessEmail(language string, emailAddress string, amount
 	subject := T("email_order_instant_cc_success_subject")
 
 	data := struct {
+		Name     string
 		Currency string
 		Amount   string
 	}{
+		Name:     emailAddress,
 		Currency: currency,
 		Amount:   amount,
 	}

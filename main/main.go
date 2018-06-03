@@ -7,16 +7,16 @@ import (
 	"fmt"
 	"github.com/getsentry/raven-go"
 	//"github.com/gin-contrib/cors"
+	"github.com/autonomousdotai/handshake-exchange/integration/firebase_service"
+	"github.com/autonomousdotai/handshake-exchange/service/cache"
+	"github.com/autonomousdotai/handshake-exchange/url"
 	"github.com/gin-contrib/sentry"
 	"github.com/gin-gonic/contrib/gzip"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/natefinch/lumberjack"
-	//"github.com/nicksnyder/go-i18n/i18n"
-	"github.com/autonomousdotai/handshake-exchange/integration/firebase_service"
-	"github.com/autonomousdotai/handshake-exchange/service/cache"
-	"github.com/autonomousdotai/handshake-exchange/url"
+	"github.com/nicksnyder/go-i18n/i18n"
 	"io"
 	"io/ioutil"
 	"log"
@@ -68,7 +68,7 @@ func main() {
 	// End
 
 	// Load translation
-	//i18n.MustLoadTranslationFile("./translations/en-US.flat.yaml")
+	i18n.MustLoadTranslationFile("./translations/en-US.flat.yaml")
 	//i18n.MustLoadTranslationFile("./translations/zh-HK.flat.yaml")
 	// End
 

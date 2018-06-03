@@ -27,6 +27,7 @@ func (api CreditCardApi) GetProposeInstantOffer(context *gin.Context) {
 func (api CreditCardApi) PayInstantOffer(context *gin.Context) {
 	userId := common.GetUserId(context)
 	chainId := common.GetChainId(context)
+	language := common.GetLanguage(context)
 
 	var body bean.InstantOffer
 	if common.ValidateBody(context, &body) != nil {
@@ -36,6 +37,7 @@ func (api CreditCardApi) PayInstantOffer(context *gin.Context) {
 	body.UID = userId
 	id, _ := strconv.Atoi(chainId)
 	body.ChainId = int64(id)
+	body.Language = language
 	offer, ce := service.CreditCardServiceInst.PayInstantOffer(userId, body)
 	if ce.ContextValidate(context) {
 		return
