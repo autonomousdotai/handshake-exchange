@@ -150,11 +150,11 @@ func (api OnChainApi) UpdateOfferWithdraw(context *gin.Context) {
 		return
 	}
 	for _, offerOnChain := range offerOnChains {
-		service.OfferServiceInst.CompleteOnChainOffer(offerOnChain.Offer)
+		service.OfferServiceInst.WithdrawOnChainOffer(offerOnChain.Offer)
 	}
 
 	block.LastBlock = int64(lastBlock)
-	err = dao.OnChainDaoInst.UpdateOfferCompleteEventBlock(block)
+	err = dao.OnChainDaoInst.UpdateOfferWithdrawEventBlock(block)
 	if api_error.PropagateErrorAndAbort(context, api_error.UpdateDataFailed, err) != nil {
 		return
 	}
