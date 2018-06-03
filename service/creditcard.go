@@ -238,7 +238,6 @@ func (s CreditCardService) FinishInstantOffers() (finishedInstantOffers []bean.I
 						}
 					}
 				}
-				// fmt.Println(gdaxResponse)
 			} else {
 				// From inventory
 				offer := s.finishInstantOffer(&pendingOffer, ccMode, nil, &ce)
@@ -252,8 +251,6 @@ func (s CreditCardService) FinishInstantOffers() (finishedInstantOffers []bean.I
 
 			if !isDone {
 				// Over duration
-				fmt.Println(fmt.Sprintf("%f", time.Now().UTC().Sub(pendingOffer.CreatedAt).Seconds()))
-				fmt.Println(pendingOffer.Duration)
 				if time.Now().UTC().Sub(pendingOffer.CreatedAt).Seconds() > float64(pendingOffer.Duration) {
 					s.cancelInstantOffer(&pendingOffer, &ce)
 					if ce.CheckError() != nil {

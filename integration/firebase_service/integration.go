@@ -3,7 +3,7 @@ package firebase_service
 import (
 	"cloud.google.com/go/firestore"
 	"firebase.google.com/go"
-	"firebase.google.com/go/auth"
+	// "firebase.google.com/go/auth"
 	"firebase.google.com/go/db"
 	"golang.org/x/net/context"
 	"google.golang.org/api/option"
