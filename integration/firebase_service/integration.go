@@ -12,6 +12,7 @@ import (
 
 var firebaseService *firebase.App
 var notificationFirebaseService *firebase.App
+
 // var AuthClient *auth.Client
 var FirestoreClient *firestore.Client
 var NotificationFirebaseClient *db.Client
