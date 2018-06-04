@@ -9,23 +9,25 @@ import (
 )
 
 type SolrOfferObject struct {
-	Id           string   `json:"id"`
-	Type         int      `json:"type_i"`
-	State        int      `json:"state_i"`
-	Status       int      `json:"status_i"`
-	Hid          int64    `json:"hid_l"`
-	IsPrivate    int      `json:"is_private_i"`
-	InitUserId   int      `json:"init_user_id_i"`
-	ChainId      int64    `json:"chain_id_i"`
-	ShakeUserIds []int    `json:"shake_user_ids_is"`
-	ShakeCount   int      `json:"shake_count_i"`
-	ViewCount    int      `json:"view_count_i"`
-	CommentCount int      `json:"comment_count_i"`
-	TextSearch   []string `json:"text_search_ss"`
-	ExtraData    string   `json:"extra_data_s"`
-	Location     string   `json:"location_p"`
-	InitAt       int64    `json:"init_at_i"`
-	LastUpdateAt int64    `json:"last_update_at_i"`
+	Id            string   `json:"id"`
+	Type          int      `json:"type_i"`
+	State         int      `json:"state_i"`
+	Status        int      `json:"status_i"`
+	Hid           int64    `json:"hid_l"`
+	IsPrivate     int      `json:"is_private_i"`
+	InitUserId    int      `json:"init_user_id_i"`
+	ChainId       int64    `json:"chain_id_i"`
+	ShakeUserIds  []int    `json:"shake_user_ids_is"`
+	ShakeCount    int      `json:"shake_count_i"`
+	ViewCount     int      `json:"view_count_i"`
+	CommentCount  int      `json:"comment_count_i"`
+	TextSearch    []string `json:"text_search_ss"`
+	ExtraData     string   `json:"extra_data_s"`
+	OfferFeedType string   `json:"feed_type"`
+	OfferType     string   `json:"type"`
+	Location      string   `json:"location_p"`
+	InitAt        int64    `json:"init_at_i"`
+	LastUpdateAt  int64    `json:"last_update_at_i"`
 }
 
 type SolrOfferExtraData struct {
@@ -109,6 +111,9 @@ func NewSolrFromOffer(offer Offer) (solr SolrOfferObject) {
 	solr.InitAt = offer.CreatedAt.Unix()
 	solr.LastUpdateAt = time.Now().UTC().Unix()
 
+	solr.OfferFeedType = "exchange"
+	solr.OfferType = offer.Type
+
 	percentage, _ := decimal.NewFromString(offer.Percentage)
 	extraData := SolrOfferExtraData{
 		Id:            offer.Id,
@@ -151,6 +156,9 @@ func NewSolrFromInstantOffer(offer InstantOffer) (solr SolrOfferObject) {
 	solr.TextSearch = make([]string, 0)
 	solr.InitAt = offer.CreatedAt.Unix()
 	solr.LastUpdateAt = time.Now().UTC().Unix()
+
+	solr.OfferFeedType = "instant"
+	solr.OfferType = "buy"
 
 	extraData := SolrInstantOfferExtraData{
 		Id:           offer.Id,

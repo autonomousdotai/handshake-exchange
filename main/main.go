@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"cloud.google.com/go/firestore"
 	"encoding/json"
 	"fmt"
 	"github.com/getsentry/raven-go"
@@ -133,9 +132,10 @@ func RouterMiddleware() gin.HandlerFunc {
 		requestRemoteAddress := context.Request.RemoteAddr
 		userId := context.GetHeader("Uid")
 
-		dbClient := firebase_service.FirestoreClient
+		//TODO Enable log
+		//dbClient := firebase_service.FirestoreClient
 		docId := time.Now().UTC().Format("2006-01-02 15:04:05.000000000")
-		docRef := dbClient.Collection("logs").Doc(docId)
+		//docRef := dbClient.Collection("logs").Doc(docId)
 		// docId := docRef.ID
 
 		if needToLog {
@@ -148,16 +148,16 @@ func RouterMiddleware() gin.HandlerFunc {
 		responseData, _ := context.Get("ResponseData")
 		if needToLog {
 			log.Println(fmt.Sprintf("%s - %s - %s - %s", docId, userId, responseStatus, responseData))
-			docRef.Set(context, map[string]interface{}{
-				"uid":                    userId,
-				"request_method":         requestMethod,
-				"request_url":            requestURL,
-				"request_remote_address": requestRemoteAddress,
-				"request_data":           body,
-				"response_status":        responseStatus,
-				"response_data":          responseData,
-				"create_at":              firestore.ServerTimestamp,
-			})
+			//docRef.Set(context, map[string]interface{}{
+			//	"uid":                    userId,
+			//	"request_method":         requestMethod,
+			//	"request_url":            requestURL,
+			//	"request_remote_address": requestRemoteAddress,
+			//	"request_data":           body,
+			//	"response_status":        responseStatus,
+			//	"response_data":          responseData,
+			//	"create_at":              firestore.ServerTimestamp,
+			//})
 		}
 	}
 }

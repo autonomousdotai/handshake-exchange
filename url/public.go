@@ -79,6 +79,9 @@ func (url CronJobUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	group.POST("/sync-to-solr/:offerId", func(context *gin.Context) {
 		miscApi.SyncToSolr(context)
 	})
+	group.POST("/init-handshake-block", func(context *gin.Context) {
+		onChainApi.StartOnChainBlock(context)
+	})
 
 	// Internal
 	group.POST("/test-coinbase-receive", func(context *gin.Context) {

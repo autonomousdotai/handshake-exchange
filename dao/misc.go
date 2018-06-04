@@ -20,25 +20,25 @@ type MiscDao struct {
 }
 
 func (dao MiscDao) UpdateCurrencyRate(rates map[string]float64) error {
-	dbClient := firebase_service.FirestoreClient
+	//dbClient := firebase_service.FirestoreClient
 
-	batch := dbClient.Batch()
+	//batch := dbClient.Batch()
 
 	for k := range rates {
-		// currency_rates/{USDHKD}
-		docRef := dbClient.Doc(GetCurrencyRateItemPath(fmt.Sprintf("USD%s", k)))
-		batch.Set(docRef, bean.CurrencyRate{
-			From: bean.USD.Code,
-			To:   k,
-			Rate: rates[k],
-		})
+		//// currency_rates/{USDHKD}
+		//docRef := dbClient.Doc(GetCurrencyRateItemPath(fmt.Sprintf("USD%s", k)))
+		//batch.Set(docRef, bean.CurrencyRate{
+		//	From: bean.USD.Code,
+		//	To:   k,
+		//	Rate: rates[k],
+		//})
 		key := GetCurrencyRateItemCacheKey(fmt.Sprintf("USD%s", k))
 		cache.RedisClient.Set(key, rates[k], 0)
 	}
 
-	_, err := batch.Commit(context.Background())
+	//_, err := batch.Commit(context.Background())
 
-	return err
+	return nil
 }
 
 func (dao MiscDao) GetCurrencyRate(from string, to string) (t TransferObject) {
@@ -68,24 +68,24 @@ func (dao MiscDao) GetCurrencyRateFromCache(from string, to string) (t TransferO
 }
 
 func (dao MiscDao) UpdateCryptoRates(rates map[string][]bean.CryptoRate) error {
-	dbClient := firebase_service.FirestoreClient
+	//dbClient := firebase_service.FirestoreClient
 
-	batch := dbClient.Batch()
+	//batch := dbClient.Batch()
 
 	for k := range rates {
 		// crypto_rates/{BTC}
 		for _, item := range rates[k] {
-			docRef := dbClient.Doc(GetCryptoRateItemPath(k, item.Exchange))
-			batch.Set(docRef, item)
+			//docRef := dbClient.Doc(GetCryptoRateItemPath(k, item.Exchange))
+			//batch.Set(docRef, item)
 			b, _ := json.Marshal(&item)
 			key := GetCryptoRateItemCacheKey(fmt.Sprintf("%s.%s", k, item.Exchange))
 			cache.RedisClient.Set(key, string(b), 0)
 		}
 	}
 
-	_, err := batch.Commit(context.Background())
+	//_, err := batch.Commit(context.Background())
 
-	return err
+	return nil
 }
 
 func (dao MiscDao) GetCryptoRatesFromCache(from string) (t TransferObject) {

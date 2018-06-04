@@ -7,6 +7,8 @@ import (
 	"github.com/autonomousdotai/handshake-exchange/integration/exchangehandshake_service"
 	"github.com/autonomousdotai/handshake-exchange/service"
 	"github.com/gin-gonic/gin"
+	"os"
+	"strconv"
 )
 
 type OnChainApi struct {
@@ -160,4 +162,29 @@ func (api OnChainApi) UpdateOfferWithdraw(context *gin.Context) {
 	}
 
 	bean.SuccessResponse(context, true)
+}
+
+func (api OnChainApi) StartOnChainBlock(context *gin.Context) {
+	blockStr := os.Getenv("ETH_EXCHANGE_HANDSHAKE_BLOCK")
+	blockInt, _ := strconv.Atoi(blockStr)
+	block := int64(blockInt)
+
+	dao.OnChainDaoInst.UpdateOfferInitEventBlock(bean.OfferEventBlock{
+		LastBlock: block,
+	})
+	dao.OnChainDaoInst.UpdateOfferShakeEventBlock(bean.OfferEventBlock{
+		LastBlock: block,
+	})
+	dao.OnChainDaoInst.UpdateOfferCloseEventBlock(bean.OfferEventBlock{
+		LastBlock: block,
+	})
+	dao.OnChainDaoInst.UpdateOfferRejectEventBlock(bean.OfferEventBlock{
+		LastBlock: block,
+	})
+	dao.OnChainDaoInst.UpdateOfferCompleteEventBlock(bean.OfferEventBlock{
+		LastBlock: block,
+	})
+	dao.OnChainDaoInst.UpdateOfferWithdrawEventBlock(bean.OfferEventBlock{
+		LastBlock: block,
+	})
 }
