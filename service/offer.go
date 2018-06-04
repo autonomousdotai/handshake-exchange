@@ -682,15 +682,16 @@ func (s OfferService) setupOfferAmount(offer *bean.Offer, ce *SimpleContextError
 	exchComm := decimal.NewFromFloat(exchCommObj.Value).Round(6)
 	amount, _ := decimal.NewFromString(offer.Amount)
 	fee := amount.Mul(exchFee)
+	reward := amount.Mul(exchComm)
 
 	offer.FeePercentage = exchFee.String()
 	offer.RewardPercentage = exchComm.String()
 	offer.Fee = fee.String()
-	offer.Reward = fee.Mul(exchComm).String()
+	offer.Reward = reward.String()
 	if offer.Type == bean.OFFER_TYPE_SELL {
-		offer.TotalAmount = amount.Sub(fee).String()
+		offer.TotalAmount = amount.Sub(fee.Add(reward)).String()
 	} else if offer.Type == bean.OFFER_TYPE_BUY {
-		offer.TotalAmount = amount.Add(fee).String()
+		offer.TotalAmount = amount.Add(fee.Add(reward)).String()
 	}
 }
 
