@@ -54,11 +54,11 @@ func (api CoinbaseApi) ReceiveCallback(context *gin.Context) {
 		var address string
 
 		additionalData := bodyNotification.AdditionalData
-		if amountNode, ok := additionalData["amount"]; ok {
-			amountNodeMap := amountNode.(map[string]interface{})
-			amountObj, ok1 := amountNodeMap["amount"]
-			currencyObj, ok2 := amountNodeMap["currency"]
-			if ok1 && ok2 && amountObj.(string) != "" && currencyObj.(string) != "" {
+		ok := true
+		if amountNode := additionalData.Amount; ok {
+			amountObj := amountNode.Amount
+			currencyObj := amountNode.Currency
+			if amountObj != "" && currencyObj != "" {
 				if err != nil {
 					// Data from Coinbase is not valid
 					api_error.AbortWithValidateErrorSimple(context, api_error.GetDataFailed)
@@ -69,10 +69,20 @@ func (api CoinbaseApi) ReceiveCallback(context *gin.Context) {
 				if addressObj, ok := data["address"]; !ok || addressObj.(string) != "" {
 					address = addressObj.(string)
 
-					offer, ce := service.OfferServiceInst.ActiveOffer(address, amountObj.(string))
+					offer, ce := service.OfferServiceInst.ActiveOffer(address, amountObj)
 					if ce.HasError() {
 						if ce.StatusKey == api_error.OfferStatusInvalid {
-							_, ce = service.OfferServiceInst.UpdateShakeOffer(offer)
+							bodyTransaction, err := coinbase_service.GetTransaction(bodyNotification.AdditionalData.Transaction.Id, currencyObj)
+							if err != nil {
+								api_error.AbortWithValidateErrorSimple(context, api_error.GetDataFailed)
+								return
+							}
+							if bodyTransaction.Status == "completed" {
+								_, ce = service.OfferServiceInst.UpdateShakeOffer(offer)
+							} else {
+								// TODO Add tracking
+							}
+
 							if ce.HasError() {
 								// TODO Need to do some notification if get error
 							}

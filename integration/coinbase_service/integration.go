@@ -134,7 +134,7 @@ func GetTransaction(transId string, currency string) (bean.CoinbaseTransaction, 
 	client.Initialize()
 
 	var response bean.CoinbaseTransactionResponse
-	resp, err := client.Get("/v2/accounts/" + client.GetAccount(currency) + "/transactions" + transId)
+	resp, err := client.Get("/v2/accounts/" + client.GetAccount(currency) + "/transactions/" + transId)
 	if err == nil {
 		resp.JSON(&response)
 	}
@@ -148,20 +148,19 @@ func SendTransaction(address string, amount string, currency string, description
 
 	var response bean.CoinbaseTransactionResponse
 
-	//resp, err := client.Post("/v2/accounts/"+client.GetAccount(currency)+"/transactions", bean.CoinbaseSendMoneyRequest{
-	//	To:          address,
-	//	Amount:      amount,
-	//	Currency:    currency,
-	//	Description: description,
-	//	Idem:        withdrawId,
-	//}.GetRequestBody())
-	//
-	//if err == nil {
-	//	resp.JSON(&response)
-	//}
+	resp, err := client.Post("/v2/accounts/"+client.GetAccount(currency)+"/transactions", bean.CoinbaseSendMoneyRequest{
+		To:          address,
+		Amount:      amount,
+		Currency:    currency,
+		Description: description,
+		Idem:        withdrawId,
+	}.GetRequestBody())
 
-	// TODO When going to production, CHANGE nil to err
-	return response.Data, nil
+	if err == nil {
+		resp.JSON(&response)
+	}
+
+	return response.Data, err
 }
 
 func GetNotification(resource string) (bean.CoinbaseNotification, error) {

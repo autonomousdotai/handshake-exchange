@@ -344,7 +344,7 @@ func (s OfferService) UpdateShakeOffer(offerBody bean.Offer) (offer bean.Offer, 
 	// Good
 	offerBody.Status = bean.OFFER_STATUS_SHAKE
 	// err := s.dao.UpdateOffer(offerBody, offerBody.GetChangeStatus())
-	err := s.dao.UpdateOfferShake(offer)
+	err := s.dao.UpdateOfferShake(offerBody)
 	if ce.SetError(api_error.UpdateDataFailed, err) {
 		return
 	}
@@ -442,7 +442,7 @@ func (s OfferService) CompleteShakeOffer(userId string, offerId string) (offer b
 		return
 	}
 
-	if offer.Status == bean.BTC.Code {
+	if offer.Currency == bean.BTC.Code {
 		offer.Status = bean.OFFER_STATUS_COMPLETED
 	} else {
 		offer.Status = bean.OFFER_STATUS_COMPLETING
@@ -723,10 +723,10 @@ func (s OfferService) transferCrypto(offer *bean.Offer, userId string, ce *Simpl
 				response2 = s.sendTransaction(offer.RewardAddress, offer.Reward, offer.Currency, rewardDescription,
 					fmt.Sprintf("%s_reward", offer.Id), *offer, ce)
 			}
-
-			if ce.HasError() {
-				return
-			}
+			// Just logging the error, don't throw it
+			//if ce.HasError() {
+			//	return
+			//}
 			offer.Provider = bean.OFFER_PROVIDER_COINBASE
 			offer.ProviderData = []interface{}{response1, response2}
 			//externalId = coinbaseResponse.Id

@@ -124,6 +124,7 @@ func (offer Offer) GetAddOffer() map[string]interface{} {
 		"system_address":    offer.SystemAddress,
 		"user_address":      offer.UserAddress,
 		"refund_address":    offer.RefundAddress,
+		"reward_address":    offer.RewardAddress,
 		"status":            offer.Status,
 		"uid":               offer.UID,
 		"latitude":          offer.Latitude,

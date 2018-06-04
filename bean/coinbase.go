@@ -15,7 +15,13 @@ type CoinbaseNotification struct {
 	ResourcePath   string                 `json:"resource_path" firestore:"resource_path"`
 	CreatedAt      string                 `json:"created_at" firestore:"created_at"`
 	Transaction    map[string]interface{} `json:"transaction" firestore:"transaction"`
-	AdditionalData map[string]interface{} `json:"additional_data" firestore:"additional_data"`
+	AdditionalData CoinbaseAdditionalData `json:"additional_data" firestore:"additional_data"`
+}
+
+type CoinbaseAdditionalData struct {
+	Amount      CoinbaseAmount      `json:"amount" firestore:"amount"`
+	Hash        string              `json:"hash" firestore:"hash"`
+	Transaction CoinbaseTransaction `json:"transaction" firestore:"transaction"`
 }
 
 type CoinbaseCurrency struct {
@@ -88,6 +94,7 @@ type CoinbaseTransaction struct {
 	Description  string          `json:"description"`
 	CreatedAt    time.Time       `json:"created_at"`
 	UpdatedAt    time.Time       `json:"updated_at"`
+	Resource     string          `json:"resource"`
 	ResourcePath string          `json:"resource_path"`
 	Network      CoinbaseNetwork `json:"network"`
 	To           CoinbaseAddress `json:"to"`
