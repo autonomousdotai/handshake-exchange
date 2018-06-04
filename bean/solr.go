@@ -23,8 +23,8 @@ type SolrOfferObject struct {
 	CommentCount  int      `json:"comment_count_i"`
 	TextSearch    []string `json:"text_search_ss"`
 	ExtraData     string   `json:"extra_data_s"`
-	OfferFeedType string   `json:"feed_type"`
-	OfferType     string   `json:"type"`
+	OfferFeedType string   `json:"offer_feed_type_s"`
+	OfferType     string   `json:"offer_type_s"`
 	Location      string   `json:"location_p"`
 	InitAt        int64    `json:"init_at_i"`
 	LastUpdateAt  int64    `json:"last_update_at_i"`
