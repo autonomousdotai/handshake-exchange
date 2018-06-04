@@ -21,11 +21,13 @@ gcloud container clusters get-credentials server-cluster1 --zone us-west1-a --pr
 if [ $1 = "staging" ]
 then
     cp -a ./credentials/staging.cred.json ./credentials/cred.json
+    cp -a ./credentials/staging.notification.cred.json ./credentials/notification.cred.json
 fi
 
 if [ $1 = "production" ]
 then
     cp -a ./credentials/production.cred.json ./credentials/cred.json
+    cp -a ./credentials/production.notification.cred.json ./credentials/notification.cred.json
 fi
 
 buildNumber=$V
