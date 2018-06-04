@@ -210,6 +210,7 @@ func (offer Offer) GetNotificationUpdate() map[string]interface{} {
 	return map[string]interface{}{
 		"id":     offer.Id,
 		"status": strings.ToLower(offer.Status),
+		"type":   "exchange",
 	}
 }
 

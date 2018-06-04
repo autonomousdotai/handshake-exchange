@@ -185,7 +185,7 @@ func GetPendingInstantOfferItemPath(pendingOfferId string) string {
 
 // Firebase
 func GetNotificationInstantOfferItemPath(userId string, offerId string) string {
-	return fmt.Sprintf("users/%s/instant_offers/%s", userId, offerId)
+	return fmt.Sprintf("users/%s/offers/instant_%s", userId, offerId)
 }
 
 func snapshotToCCTransaction(snapshot *firestore.DocumentSnapshot) interface{} {

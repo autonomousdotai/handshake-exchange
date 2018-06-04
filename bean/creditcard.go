@@ -161,6 +161,7 @@ func (offer InstantOffer) GetNotificationUpdate() map[string]interface{} {
 	return map[string]interface{}{
 		"id":     offer.Id,
 		"status": offer.Status,
+		"type": "instant",
 	}
 }
 

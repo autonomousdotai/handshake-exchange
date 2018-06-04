@@ -261,7 +261,7 @@ func GetOfferItemPath(id string) string {
 }
 
 func GetNotificationOfferItemPath(userId string, id string) string {
-	return fmt.Sprintf("users/%s/offers/%s", userId, id)
+	return fmt.Sprintf("users/%s/offers/exchange_%s", userId, id)
 }
 
 //func GetOfferAddressMapPath() string {
