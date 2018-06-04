@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"github.com/getsentry/raven-go"
 	//"github.com/gin-contrib/cors"
+	"github.com/autonomousdotai/handshake-exchange/bean"
 	"github.com/autonomousdotai/handshake-exchange/integration/firebase_service"
+	"github.com/autonomousdotai/handshake-exchange/integration/solr_service"
 	"github.com/autonomousdotai/handshake-exchange/service/cache"
 	"github.com/autonomousdotai/handshake-exchange/url"
 	"github.com/gin-contrib/sentry"
@@ -132,12 +134,7 @@ func RouterMiddleware() gin.HandlerFunc {
 		requestRemoteAddress := context.Request.RemoteAddr
 		userId := context.GetHeader("Uid")
 
-		//TODO Enable log
-		//dbClient := firebase_service.FirestoreClient
-		docId := time.Now().UTC().Format("2006-01-02 15:04:05.000000000")
-		//docRef := dbClient.Collection("logs").Doc(docId)
-		// docId := docRef.ID
-
+		docId := time.Now().UTC().Format("log_exchange.2006-01-02T15:04:05.000000000")
 		if needToLog {
 			log.Println(fmt.Sprintf("%s - %s - %s - %s %s - %s", docId, userId, requestRemoteAddress, requestMethod, requestURL, body))
 		}
@@ -148,16 +145,19 @@ func RouterMiddleware() gin.HandlerFunc {
 		responseData, _ := context.Get("ResponseData")
 		if needToLog {
 			log.Println(fmt.Sprintf("%s - %s - %s - %s", docId, userId, responseStatus, responseData))
-			//docRef.Set(context, map[string]interface{}{
-			//	"uid":                    userId,
-			//	"request_method":         requestMethod,
-			//	"request_url":            requestURL,
-			//	"request_remote_address": requestRemoteAddress,
-			//	"request_data":           body,
-			//	"response_status":        responseStatus,
-			//	"response_data":          responseData,
-			//	"create_at":              firestore.ServerTimestamp,
-			//})
+
+			b, _ := json.Marshal(&body)
+			r, _ := json.Marshal(&responseData)
+			solr_service.UpdateObject(bean.SolrLogObject{
+				Id:             docId,
+				UID:            userId,
+				RequestMethod:  requestMethod,
+				RequestURL:     requestURL,
+				RequestData:    string(b),
+				ResponseStatus: responseStatus,
+				ResponseData:   string(r),
+				UpdateAt:       time.Now().UTC().Unix(),
+			})
 		}
 	}
 }

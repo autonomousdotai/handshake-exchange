@@ -250,6 +250,31 @@ func (offer OfferAddressMap) GetAddOfferAddressMap() map[string]interface{} {
 	}
 }
 
+type OfferConfirmingAddressMap struct {
+	UID        string `json:"uid" firestore:"uid"`
+	Address    string `json:"address" firestore:"address"`
+	Offer      string `json:"offer" firestore:"offer"`
+	OfferRef   string `json:"offer_ref" firestore:"offer_ref"`
+	TxHash     string `json:"tx_hash" firestore:"tx_hash"`
+	Amount     string `json:"amount" firestore:"amount"`
+	Currency   string `json:"currency" firestore:"currency"`
+	ExternalId string `json:"external_id" firestore:"external_id"`
+}
+
+func (offer OfferConfirmingAddressMap) GetAddOfferConfirmingAddressMap() map[string]interface{} {
+	return map[string]interface{}{
+		"address":     offer.Address,
+		"offer":       offer.Offer,
+		"uid":         offer.UID,
+		"offer_ref":   offer.OfferRef,
+		"external_id": offer.ExternalId,
+		"tx_hash":     offer.TxHash,
+		"amount":      offer.Amount,
+		"currency":    offer.Currency,
+		"created_at":  firestore.ServerTimestamp,
+	}
+}
+
 type OfferTransferMap struct {
 	UID        string `json:"uid" firestore:"uid"`
 	Address    string `json:"address" firestore:"address"`

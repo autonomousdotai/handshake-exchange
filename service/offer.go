@@ -634,6 +634,29 @@ func (s OfferService) GetQuote(quoteType string, amountStr string, currency stri
 	return
 }
 
+func (s OfferService) FinishOfferConfirmingAddresses() (finishedInstantOffers []bean.Offer, ce SimpleContextError) {
+	pendingOffers, err := s.dao.ListOfferConfirmingAddressMap()
+	if ce.SetError(api_error.GetDataFailed, err) {
+		return
+	} else {
+		for _, pendingOffer := range pendingOffers {
+			bodyTransaction, err := coinbase_service.GetTransaction(pendingOffer.ExternalId, pendingOffer.Currency)
+			if err == nil && bodyTransaction.Status == "completed" {
+				offer, ce := s.ActiveOffer(pendingOffer.Address, pendingOffer.Amount)
+				if ce.HasError() {
+					if ce.StatusKey == api_error.OfferStatusInvalid {
+						_, ce = s.UpdateShakeOffer(offer)
+					} else {
+						// TODO Need to do some notification if get error
+					}
+				}
+			}
+		}
+	}
+
+	return
+}
+
 func (s OfferService) SyncToSolr(offerId string) (offer bean.Offer, ce SimpleContextError) {
 	offerTO := s.dao.GetOffer(offerId)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, offerTO) {

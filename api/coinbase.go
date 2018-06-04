@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"github.com/autonomousdotai/handshake-exchange/api_error"
 	"github.com/autonomousdotai/handshake-exchange/bean"
+	"github.com/autonomousdotai/handshake-exchange/dao"
 	"github.com/autonomousdotai/handshake-exchange/integration/coinbase_service"
 	"github.com/autonomousdotai/handshake-exchange/integration/firebase_service"
-	"github.com/autonomousdotai/handshake-exchange/service"
 	"github.com/gin-gonic/gin"
 )
 
@@ -47,8 +47,8 @@ func (api CoinbaseApi) ReceiveCallback(context *gin.Context) {
 			_, err = coinbaseRef.Set(context, bodyNotification)
 		} else {
 			// Already receive this transaction
-			bean.SuccessResponse(context, bodyNotification)
-			return
+			// bean.SuccessResponse(context, bodyNotification)
+			// return
 		}
 
 		var address string
@@ -68,27 +68,23 @@ func (api CoinbaseApi) ReceiveCallback(context *gin.Context) {
 				data := bodyNotification.Data
 				if addressObj, ok := data["address"]; !ok || addressObj.(string) != "" {
 					address = addressObj.(string)
-
-					offer, ce := service.OfferServiceInst.ActiveOffer(address, amountObj)
-					if ce.HasError() {
-						if ce.StatusKey == api_error.OfferStatusInvalid {
-							bodyTransaction, err := coinbase_service.GetTransaction(bodyNotification.AdditionalData.Transaction.Id, currencyObj)
-							if err != nil {
-								api_error.AbortWithValidateErrorSimple(context, api_error.GetDataFailed)
-								return
-							}
-							if bodyTransaction.Status == "completed" {
-								_, ce = service.OfferServiceInst.UpdateShakeOffer(offer)
-							} else {
-								// TODO Add tracking
-							}
-
-							if ce.HasError() {
-								// TODO Need to do some notification if get error
-							}
-						} else {
-							// TODO Need to do some notification if get error
-						}
+					offerAddrTO := dao.OfferDaoInst.GetOfferAddress(address)
+					if offerAddrTO.ContextValidate(context) {
+						return
+					}
+					offerAddr := offerAddrTO.Object.(bean.OfferAddressMap)
+					err := dao.OfferDaoInst.AddOfferConfirmingAddressMap(bean.OfferConfirmingAddressMap{
+						UID:        offerAddr.UID,
+						Address:    offerAddr.Address,
+						Offer:      offerAddr.Offer,
+						OfferRef:   offerAddr.OfferRef,
+						TxHash:     bodyNotification.AdditionalData.Hash,
+						ExternalId: bodyNotification.AdditionalData.Transaction.Id,
+						Currency:   currencyObj,
+					})
+					if err != nil {
+						api_error.AbortWithValidateErrorSimple(context, api_error.UpdateDataFailed)
+						return
 					}
 				} else {
 					// Data from Coinbase is not valid

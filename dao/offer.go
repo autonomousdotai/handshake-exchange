@@ -251,6 +251,38 @@ func (dao OfferDao) UpdateTickTransferMap(transferMap bean.OfferTransferMap) {
 	transferDocRef.Set(context.Background(), transferMap.GetUpdateTick(), firestore.MergeAll)
 }
 
+func (dao OfferDao) ListOfferConfirmingAddressMap() ([]bean.OfferConfirmingAddressMap, error) {
+	dbClient := firebase_service.FirestoreClient
+
+	// pending_instant_offers
+	iter := dbClient.Collection(GetOfferConfirmingAddressMapPath()).Documents(context.Background())
+	offers := make([]bean.OfferConfirmingAddressMap, 0)
+
+	for {
+		var offer bean.OfferConfirmingAddressMap
+		doc, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return offers, err
+		}
+		doc.DataTo(&offer)
+		offers = append(offers, offer)
+	}
+
+	return offers, nil
+}
+
+func (dao OfferDao) AddOfferConfirmingAddressMap(offerMap bean.OfferConfirmingAddressMap) error {
+	dbClient := firebase_service.FirestoreClient
+	docRef := dbClient.Doc(GetOfferConfirmingAddressMapItemPath(offerMap.TxHash))
+
+	_, err := docRef.Set(context.Background(), offerMap.GetAddOfferConfirmingAddressMap(), firestore.MergeAll)
+
+	return err
+}
+
 // DB path
 func GetOfferPath() string {
 	return "offers"
@@ -270,6 +302,14 @@ func GetNotificationOfferItemPath(userId string, id string) string {
 
 func GetOfferAddressMapItemPath(id string) string {
 	return fmt.Sprintf("offer_addresses/%s", id)
+}
+
+func GetOfferConfirmingAddressMapPath() string {
+	return "offer_confirming_addresses"
+}
+
+func GetOfferConfirmingAddressMapItemPath(id string) string {
+	return fmt.Sprintf("offer_confirming_addresses/%s", id)
 }
 
 func GetOfferTransferMapPath() string {

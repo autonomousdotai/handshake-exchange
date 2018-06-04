@@ -227,16 +227,19 @@ func (api MiscApi) GetAllCryptoQuotes(context *gin.Context) {
 
 // CRON JOB
 func (api MiscApi) FinishInstantOffers(context *gin.Context) {
-	offers, ce := service.CreditCardServiceInst.FinishInstantOffers()
+	_, ce := service.CreditCardServiceInst.FinishInstantOffers()
 	if ce.ContextValidate(context) {
 		return
 	}
-	for range offers {
-		//profileTO := dao.UserDaoInst.GetProfile(offer.UID)
-		//if !profileTO.HasError() {
-		//	profile := profileTO.Object.(bean.Profile)
-		//	// TODO Do some notification
-		//}
+
+	bean.SuccessResponse(context, true)
+}
+
+// CRON JOB
+func (api MiscApi) FinishOfferConfirmingAddresses(context *gin.Context) {
+	_, ce := service.OfferServiceInst.FinishOfferConfirmingAddresses()
+	if ce.ContextValidate(context) {
+		return
 	}
 
 	bean.SuccessResponse(context, true)

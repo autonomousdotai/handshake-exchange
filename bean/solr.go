@@ -188,3 +188,15 @@ func NewSolrFromInstantOffer(offer InstantOffer) (solr SolrOfferObject) {
 
 	return
 }
+
+type SolrLogObject struct {
+	Id             string `json:"id"`
+	UID            string `json:"uid_s"`
+	RequestMethod  string `json:"request_method_s"`
+	RequestURL     string `json:"request_url_s"`
+	RequestData    string `json:"request_data_s"`
+	ResponseStatus int    `json:"response_status_i"`
+	ResponseData   string `json:"response_data_s"`
+	Date           string `json:"data_s"`
+	UpdateAt       int64  `json:"update_at_i"`
+}

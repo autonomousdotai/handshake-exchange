@@ -29,6 +29,10 @@ func (url CronJobUrl) Create(router *gin.Engine) *gin.RouterGroup {
 		miscApi.FinishInstantOffers(context)
 	})
 	// CRON JOB
+	group.POST("/finish-offer-confirming-addresses", func(context *gin.Context) {
+		miscApi.FinishOfferConfirmingAddresses(context)
+	})
+	// CRON JOB
 	//group.POST("/transfer-tracking", func(context *gin.Context) {
 	//	miscApi.UpdateTransferTracking(context)
 	//})
