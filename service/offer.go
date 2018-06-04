@@ -160,6 +160,10 @@ func (s OfferService) ActiveOffer(address string, amountStr string) (offer bean.
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, addressMapTO) {
 		return
 	}
+	if ce.NotFound {
+		ce.SetStatusKey(api_error.ResourceNotFound)
+		return
+	}
 	addressMap := addressMapTO.Object.(bean.OfferAddressMap)
 
 	offerTO := s.dao.GetOffer(addressMap.Offer)
