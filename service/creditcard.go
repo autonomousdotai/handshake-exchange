@@ -81,13 +81,14 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 	// Minimum amount
 	amount, _ := decimal.NewFromString(offerBody.Amount)
 	if offerBody.Currency == bean.ETH.Code {
-		if amount.LessThan(decimal.NewFromFloat(0.01)) {
+		if amount.LessThan(decimal.NewFromFloat(0.1).Round(1)) {
 			ce.SetStatusKey(api_error.AmountIsTooSmall)
 			return
 		}
 	}
 	if offerBody.Currency == bean.BTC.Code {
-		if amount.LessThan(decimal.NewFromFloat(0.1)) {
+		// TODO change to 0.01 after testing
+		if amount.LessThan(decimal.NewFromFloat(0.001).Round(3)) {
 			ce.SetStatusKey(api_error.AmountIsTooSmall)
 			return
 		}
@@ -238,6 +239,7 @@ func (s CreditCardService) FinishInstantOffers() (finishedInstantOffers []bean.I
 						}
 					}
 				}
+				// fmt.Println(gdaxResponse)
 			} else {
 				// From inventory
 				offer := s.finishInstantOffer(&pendingOffer, ccMode, nil, &ce)

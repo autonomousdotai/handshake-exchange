@@ -58,15 +58,18 @@ func (c *BlockChainIOClient) get(uri string) (*grequests.Response, error) {
 }
 
 func (c *BlockChainIOClient) GetBalance() (decimal.Decimal, error) {
-	c.initialize()
+	//TODO Enable when BlockchainIO
+	//c.initialize()
+	//
+	//var response bean.BlockChainIoBalance
+	//resp, err := c.get(fmt.Sprintf("/merchant/%s/address_balance?password=%s&api_code=%s&address=%s", c.guid, c.apiPassword, c.apiKey, c.address))
+	//if err == nil {
+	//	resp.JSON(&response)
+	//}
+	//
+	//return decimal.NewFromBigInt(big.NewInt(response.Balance), 0).Div(BTC_IN_SATOSHI), err
 
-	var response bean.BlockChainIoBalance
-	resp, err := c.get(fmt.Sprintf("/merchant/%s/address_balance?password=%s&api_code=%s&address=%s", c.guid, c.apiPassword, c.apiKey, c.address))
-	if err == nil {
-		resp.JSON(&response)
-	}
-
-	return decimal.NewFromBigInt(big.NewInt(response.Balance), 0).Div(BTC_IN_SATOSHI), err
+	return decimal.NewFromFloat(0), nil
 }
 
 func (c *BlockChainIOClient) SendTransaction(address string, amount decimal.Decimal) (string, error) {
