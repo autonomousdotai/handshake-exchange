@@ -229,7 +229,7 @@ func (dao OfferDao) UpdateNotificationOffer(offer bean.Offer) error {
 
 	ref := dbClient.NewRef(GetNotificationOfferItemPath(offer.UID, offer.Id))
 	err := ref.Set(context.Background(), offer.GetNotificationUpdate())
-	if offer.UID != "" {
+	if offer.ToUID != "" {
 		ref = dbClient.NewRef(GetNotificationOfferItemPath(offer.ToUID, offer.Id))
 		err = ref.Set(context.Background(), offer.GetNotificationUpdate())
 	}
