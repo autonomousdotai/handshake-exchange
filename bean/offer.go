@@ -15,11 +15,11 @@ const OFFER_PROVIDER_COINBASE = "coinbase"
 // created -> active
 // active -> shaking, shake
 // shaking -> shake
-// shake -> completed
-// shake -> rejected
-// completed -> withdraw
-// rejected -> withdraw
-// closed -> withdraw
+// shake -> completing, completed
+// shake -> rejecting, rejected
+// completed -> withdrawing, withdraw
+// rejected -> withdrawing, withdraw
+// closed -> withdrawing, withdraw
 const OFFER_STATUS_CREATED = "created"
 const OFFER_STATUS_ACTIVE = "active"
 const OFFER_STATUS_SHAKING = "shaking"

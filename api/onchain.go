@@ -187,4 +187,6 @@ func (api OnChainApi) StartOnChainBlock(context *gin.Context) {
 	dao.OnChainDaoInst.UpdateOfferWithdrawEventBlock(bean.OfferEventBlock{
 		LastBlock: block,
 	})
+
+	bean.SuccessResponse(context, true)
 }
