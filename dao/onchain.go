@@ -11,9 +11,11 @@ type OnChainDao struct {
 
 func (dao OnChainDao) GetOfferInitEventBlock() (t TransferObject) {
 	// GetObject(GetOfferInitEventBlockPath(), &t, snapshotToOfferEventBlock)
+	obj := bean.OfferEventBlock{}
 	GetCacheObject(GetOfferInitEventBlockKey(), &t, func(val string) interface{} {
 		block, _ := strconv.Atoi(val)
-		return int64(block)
+		obj.LastBlock = int64(block)
+		return obj
 	})
 
 	return
@@ -33,9 +35,11 @@ func (dao OnChainDao) UpdateOfferInitEventBlock(offer bean.OfferEventBlock) erro
 
 func (dao OnChainDao) GetOfferCloseEventBlock() (t TransferObject) {
 	//GetObject(GetOfferCloseEventBlockPath(), &t, snapshotToOfferEventBlock)
+	obj := bean.OfferEventBlock{}
 	GetCacheObject(GetOfferCloseEventBlockKey(), &t, func(val string) interface{} {
 		block, _ := strconv.Atoi(val)
-		return int64(block)
+		obj.LastBlock = int64(block)
+		return obj
 	})
 	return
 }
@@ -54,9 +58,11 @@ func (dao OnChainDao) UpdateOfferCloseEventBlock(offer bean.OfferEventBlock) err
 
 func (dao OnChainDao) GetOfferShakeEventBlock() (t TransferObject) {
 	//GetObject(GetOfferShakeEventBlockPath(), &t, snapshotToOfferEventBlock)
+	obj := bean.OfferEventBlock{}
 	GetCacheObject(GetOfferShakeEventBlockKey(), &t, func(val string) interface{} {
 		block, _ := strconv.Atoi(val)
-		return int64(block)
+		obj.LastBlock = int64(block)
+		return obj
 	})
 	return
 }
@@ -75,9 +81,11 @@ func (dao OnChainDao) UpdateOfferShakeEventBlock(offer bean.OfferEventBlock) err
 
 func (dao OnChainDao) GetOfferRejectEventBlock() (t TransferObject) {
 	//GetObject(GetOfferRejectEventBlockPath(), &t, snapshotToOfferEventBlock)
+	obj := bean.OfferEventBlock{}
 	GetCacheObject(GetOfferRejectEventBlockKey(), &t, func(val string) interface{} {
 		block, _ := strconv.Atoi(val)
-		return int64(block)
+		obj.LastBlock = int64(block)
+		return obj
 	})
 	return
 }
@@ -96,9 +104,11 @@ func (dao OnChainDao) UpdateOfferRejectEventBlock(offer bean.OfferEventBlock) er
 
 func (dao OnChainDao) GetOfferCompleteEventBlock() (t TransferObject) {
 	//GetObject(GetOfferCompleteEventBlockPath(), &t, snapshotToOfferEventBlock)
+	obj := bean.OfferEventBlock{}
 	GetCacheObject(GetOfferCompleteEventBlockKey(), &t, func(val string) interface{} {
 		block, _ := strconv.Atoi(val)
-		return int64(block)
+		obj.LastBlock = int64(block)
+		return obj
 	})
 	return
 }
@@ -117,9 +127,11 @@ func (dao OnChainDao) UpdateOfferCompleteEventBlock(offer bean.OfferEventBlock) 
 
 func (dao OnChainDao) GetOfferWithdrawEventBlock() (t TransferObject) {
 	//GetObject(GetOfferWithdrawEventBlockPath(), &t, snapshotToOfferEventBlock)
+	obj := bean.OfferEventBlock{}
 	GetCacheObject(GetOfferWithdrawEventBlockKey(), &t, func(val string) interface{} {
 		block, _ := strconv.Atoi(val)
-		return int64(block)
+		obj.LastBlock = int64(block)
+		return obj
 	})
 	return
 }
