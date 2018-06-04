@@ -47,6 +47,9 @@ type Offer struct {
 	Percentage       string           `json:"percentage" firestore:"percentage"`
 	FiatCurrency     string           `json:"fiat_currency" firestore:"fiat_currency" validate:"required"`
 	FiatAmount       string           `json:"fiat_amount" firestore:"fiat_amount"`
+	PhysicalItem     string           `json:"physical_item" firestore:"physical_item"`
+	PhysicalQuantity int64            `json:"physical_quantity" firestore:"physical_quantity"`
+	Tags             []string         `json:"tags" firestore:"tags"`
 	Type             string           `json:"type" firestore:"type" validate:"required"`
 	Status           string           `json:"status" firestore:"status"`
 	UID              string           `json:"uid" firestore:"uid"`
@@ -74,6 +77,7 @@ type Offer struct {
 	Latitude         float64          `json:"latitude" firestore:"latitude" validate:"required"`
 	TransactionCount TransactionCount `json:"transaction_count" firestore:"transaction_count"`
 	ChainId          int64            `json:"chain_id" firestore:"chain_id"`
+	ActionUID        string           `json:"-"`
 	CreatedAt        time.Time        `json:"created_at" firestore:"created_at"`
 	UpdatedAt        time.Time        `json:"updated_at" firestore:"updated_at"`
 }
@@ -105,6 +109,9 @@ func (offer Offer) GetAddOffer() map[string]interface{} {
 		"price":             offer.Price,
 		"price_number":      priceFloat,
 		"fiat_currency":     offer.FiatCurrency,
+		"tags":              offer.Tags,
+		"physical_item":     offer.PhysicalItem,
+		"physical_quantity": offer.PhysicalQuantity,
 		"percentage":        offer.Percentage,
 		"fee_percentage":    offer.FeePercentage,
 		"fee":               offer.Fee,

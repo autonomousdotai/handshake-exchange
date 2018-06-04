@@ -27,22 +27,38 @@ func SendInstantOfferNotification(offer bean.InstantOffer) []error {
 
 func SendOfferToEmail(offer bean.Offer, c chan error) {
 	var err error
+	username := offer.Email
+	if username == "" {
+		username = offer.ContactPhone
+	}
+	toUsername := offer.ToEmail
+
+	coinUsername := username
+	if offer.Type == bean.OFFER_TYPE_BUY {
+		coinUsername = toUsername
+	}
+
 	if offer.Status == bean.OFFER_STATUS_ACTIVE {
 		if offer.Type == bean.OFFER_TYPE_BUY {
-			err = email.SendBuyingOfferSuccessEmail(offer.Language, offer.Email, offer.Email, offer.Currency, offer.Price)
+			err = email.SendOfferBuyingActiveEmail(offer.Language, offer.Email, offer.Currency, offer.Price, offer.FiatCurrency)
 		} else {
-			err = email.SendSellingOfferSuccessEmail(offer.Language, offer.Email, offer.Email, offer.Currency, offer.Price)
+			err = email.SendOfferSellingActiveEmail(offer.Language, offer.Email, offer.Currency, offer.Price, offer.FiatCurrency)
 		}
 	} else if offer.Status == bean.OFFER_STATUS_CLOSED {
-
+		err = email.SendOfferClosedEmail(offer.Language, offer.Email)
 	} else if offer.Status == bean.OFFER_STATUS_SHAKE {
-
+		err = email.SendOfferMakerShakeEmail(offer.Language, offer.Email, toUsername, offer.Amount, offer.Currency, offer.Price, offer.FiatCurrency)
+		err = email.SendOfferTakerShakeEmail(offer.Language, offer.Email, username, offer.Amount, offer.Currency, offer.Price, offer.FiatCurrency)
 	} else if offer.Status == bean.OFFER_STATUS_REJECTED {
-
+		if offer.UID == offer.ActionUID {
+			err = email.SendOfferTakerRejectEmail(offer.Language, offer.Email, username)
+		} else {
+			err = email.SendOfferMakerRejectEmail(offer.Language, offer.Email, toUsername)
+		}
 	} else if offer.Status == bean.OFFER_STATUS_COMPLETED {
-
+		err = email.SendOfferCompleteEmail(offer.Language, offer.Email, coinUsername, offer.Amount, offer.Currency)
 	} else if offer.Status == bean.OFFER_STATUS_WITHDRAW {
-
+		err = email.SendOfferWithdrawEmail(offer.Language, offer.Email, offer.Amount, offer.Currency)
 	}
 	c <- err
 }

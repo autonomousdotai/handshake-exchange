@@ -396,6 +396,7 @@ func (s OfferService) RejectShakeOffer(userId string, offerId string) (offer bea
 	}
 
 	UserServiceInst.UpdateOfferRejectLock(userId)
+	offer.ActionUID = userId
 	notification.SendOfferNotification(offer)
 
 	return

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/shopspring/decimal"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -31,25 +32,27 @@ type SolrOfferObject struct {
 }
 
 type SolrOfferExtraData struct {
-	Id            string `json:"id"`
-	FeedType      string `json:"feed_type"`
-	Type          string `json:"type"`
-	Amount        string `json:"amount"`
-	Currency      string `json:"currency"`
-	FiatCurrency  string `json:"fiat_currency"`
-	FiatAmount    string `json:"fiat_amount"`
-	TotalAmount   string `json:"total_amount"`
-	Fee           string `json:"fee"`
-	Reward        string `json:"reward"`
-	Price         string `json:"price"`
-	Percentage    string `json:"percentage"`
-	ContactPhone  string `json:"contact_phone"`
-	ContactInfo   string `json:"contact_info"`
-	Email         string `json:"email"`
-	SystemAddress string `json:"system_address"`
-	Status        string `json:"status"`
-	Success       int64  `json:"success"`
-	Failed        int64  `json:"failed"`
+	Id               string `json:"id"`
+	FeedType         string `json:"feed_type"`
+	Type             string `json:"type"`
+	Amount           string `json:"amount"`
+	Currency         string `json:"currency"`
+	FiatCurrency     string `json:"fiat_currency"`
+	FiatAmount       string `json:"fiat_amount"`
+	TotalAmount      string `json:"total_amount"`
+	PhysicalItem     string `json:"physical_item"`
+	PhysicalQuantity int64  `json:"physical_quantity"`
+	Fee              string `json:"fee"`
+	Reward           string `json:"reward"`
+	Price            string `json:"price"`
+	Percentage       string `json:"percentage"`
+	ContactPhone     string `json:"contact_phone"`
+	ContactInfo      string `json:"contact_info"`
+	Email            string `json:"email"`
+	SystemAddress    string `json:"system_address"`
+	Status           string `json:"status"`
+	Success          int64  `json:"success"`
+	Failed           int64  `json:"failed"`
 }
 
 var offerStatusMap = map[string]int{
@@ -111,30 +114,39 @@ func NewSolrFromOffer(offer Offer) (solr SolrOfferObject) {
 	solr.InitAt = offer.CreatedAt.Unix()
 	solr.LastUpdateAt = time.Now().UTC().Unix()
 
-	solr.OfferFeedType = "exchange"
+	feedType := "exchange"
+	if len(offer.Tags) > 0 {
+		feedType = fmt.Sprintf("exchange_%s", offer.Tags[0])
+	}
+	solr.OfferFeedType = feedType
+	if offer.PhysicalItem != "" {
+		solr.TextSearch = strings.Split(offer.PhysicalItem, " ")
+	}
 	solr.OfferType = offer.Type
 
 	percentage, _ := decimal.NewFromString(offer.Percentage)
 	extraData := SolrOfferExtraData{
-		Id:            offer.Id,
-		FeedType:      "exchange",
-		Type:          offer.Type,
-		Amount:        offer.Amount,
-		TotalAmount:   offer.TotalAmount,
-		Currency:      offer.Currency,
-		FiatAmount:    offer.FiatAmount,
-		FiatCurrency:  offer.FiatCurrency,
-		Price:         offer.Price,
-		Fee:           offer.Fee,
-		Reward:        offer.Reward,
-		Percentage:    percentage.Mul(decimal.NewFromFloat(100)).String(),
-		ContactInfo:   offer.ContactInfo,
-		ContactPhone:  offer.ContactPhone,
-		Email:         offer.Email,
-		SystemAddress: offer.SystemAddress,
-		Status:        offer.Status,
-		Success:       offer.TransactionCount.Success,
-		Failed:        offer.TransactionCount.Failed,
+		Id:               offer.Id,
+		FeedType:         feedType,
+		Type:             offer.Type,
+		Amount:           offer.Amount,
+		TotalAmount:      offer.TotalAmount,
+		Currency:         offer.Currency,
+		FiatAmount:       offer.FiatAmount,
+		FiatCurrency:     offer.FiatCurrency,
+		Price:            offer.Price,
+		PhysicalItem:     offer.PhysicalItem,
+		PhysicalQuantity: offer.PhysicalQuantity,
+		Fee:              offer.Fee,
+		Reward:           offer.Reward,
+		Percentage:       percentage.Mul(decimal.NewFromFloat(100)).String(),
+		ContactInfo:      offer.ContactInfo,
+		ContactPhone:     offer.ContactPhone,
+		Email:            offer.Email,
+		SystemAddress:    offer.SystemAddress,
+		Status:           offer.Status,
+		Success:          offer.TransactionCount.Success,
+		Failed:           offer.TransactionCount.Failed,
 	}
 	b, _ := json.Marshal(&extraData)
 	solr.ExtraData = string(b)

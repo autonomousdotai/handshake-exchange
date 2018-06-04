@@ -1,14 +1,24 @@
 greeting:
   other: "Hello {{.Name}}"
-email_order_success_subject:
-  other: "Success! you have just ordered {{.Currency}}"
-email_order_cancelled_subject:
-  other: "You have just cancelled your order on Exchange"
-email_order_from_success_subject:
-    other: "Success!"
+email_offer_buying_active_subject:
+  other: "Attention Ninja! Your listing to buy {{.Currency}} is live"
+email_offer_closed_subject:
+  other: "You have just cancelled your order on Cash."
+email_offer_completed_subject:
+  other: "Great! Your {{.Currency}} is being transferred"
+email_offer_maker_rejected_subject:
+    other: "Sorry, but {{.ToUsername}} decided not shake."
+email_offer_maker_shake_subject:
+  other: "Good news! You have a buyer for {{.Currency}}"
+email_offer_selling_active_subject:
+  other: "Attention Ninja! Your listing to sell {{.Currency}} is live"
+email_offer_taker_rejected_subject:
+    other: "Sorry, but {{.Username}} decided not shake."
+email_offer_taker_shake_subject:
+    other: "Success! you have just ordered {{.Currency}}"
+email_offer_withdraw_subject:
+    other: "You have successfully withdrawn {{.Currency}}"
 email_order_instant_cc_success_subject:
   other: "Success! you have just ordered using your credit card"
-email_create_buying_offer_success_subject:
-  other: "You want to buy {{.Currency}} for ${{.Price}}"
-email_create_selling_offer_success_subject:
-  other: "Your listing to sell {{.Currency}} is live"
+
+
