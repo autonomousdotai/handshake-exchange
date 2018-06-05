@@ -9,6 +9,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/service"
 	"os"
 	"strconv"
+	"fmt"
 )
 
 type OnChainApi struct {
@@ -23,6 +24,7 @@ func (api OnChainApi) UpdateOfferInit(context *gin.Context) {
 	block := to.Object.(bean.OfferEventBlock)
 
 	offerOnChains, lastBlock, err := client.GetInitEvent(uint64(block.LastBlock))
+	fmt.Println(offerOnChains[0].Offer)
 	if api_error.PropagateErrorAndAbort(context, api_error.UpdateDataFailed, err) != nil {
 		return
 	}

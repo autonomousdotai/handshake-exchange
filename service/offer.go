@@ -209,6 +209,9 @@ func (s OfferService) ActiveOnChainOffer(offerId string, hid int64) (offer bean.
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, offerTO) {
 		return
 	}
+	if !offerTO.Found {
+		return
+	}
 	offer = offerTO.Object.(bean.Offer)
 	if offer.Status != bean.OFFER_STATUS_CREATED {
 		ce.SetStatusKey(api_error.OfferStatusInvalid)
@@ -534,6 +537,9 @@ func (s OfferService) WithdrawOffer(userId string, offerId string) (offer bean.O
 func (s OfferService) UpdateOnChainOffer(offerId string, oldStatus string, newStatus string) (offer bean.Offer, ce SimpleContextError) {
 	offerTO := s.dao.GetOffer(offerId)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, offerTO) {
+		return
+	}
+	if !offerTO.Found {
 		return
 	}
 	offer = offerTO.Object.(bean.Offer)
