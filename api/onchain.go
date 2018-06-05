@@ -9,7 +9,6 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/service"
 	"os"
 	"strconv"
-	"fmt"
 )
 
 type OnChainApi struct {
