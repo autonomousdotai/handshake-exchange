@@ -118,7 +118,7 @@ func RouterMiddleware() gin.HandlerFunc {
 		needToLog := false
 		var body interface{}
 		if requestMethod == "POST" || requestMethod == "PUT" || requestMethod == "PATCH" || requestMethod == "DELETE" {
-			if !strings.Contains(requestURL, "/cron-job/") {
+			if !strings.Contains(requestURL, "/public/") {
 				if requestMethod == "POST" || requestMethod == "PUT" || requestMethod == "PATCH" {
 					buf, _ := ioutil.ReadAll(context.Request.Body)
 					rdr1 := ioutil.NopCloser(bytes.NewBuffer(buf))
