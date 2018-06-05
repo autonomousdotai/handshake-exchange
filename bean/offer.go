@@ -103,6 +103,7 @@ func (offer Offer) GetAddOffer() map[string]interface{} {
 		"hid":               offer.Hid,
 		"amount":            offer.Amount,
 		"amount_number":     offer.AmountNumber,
+		"total_amount":      offer.TotalAmount,
 		"currency":          strings.ToUpper(offer.Currency),
 		"price_currency":    strings.ToUpper(offer.FiatCurrency),
 		"type":              strings.ToLower(offer.Type),
