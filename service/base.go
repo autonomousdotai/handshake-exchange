@@ -1,8 +1,8 @@
 package service
 
 import (
-	"github.com/autonomousdotai/handshake-exchange/api_error"
-	"github.com/autonomousdotai/handshake-exchange/dao"
+	"github.com/ninjadotorg/handshake-exchange/api_error"
+	"github.com/ninjadotorg/handshake-exchange/dao"
 	"github.com/gin-gonic/gin"
 	"github.com/go-errors/errors"
 )

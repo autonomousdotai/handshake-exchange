@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/autonomousdotai/handshake-exchange/api_error"
+	"github.com/ninjadotorg/handshake-exchange/api_error"
 	"github.com/levigross/grequests"
 	"os"
 )

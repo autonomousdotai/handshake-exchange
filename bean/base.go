@@ -1,7 +1,7 @@
 package bean
 
 import (
-	"github.com/autonomousdotai/handshake-exchange/api_error"
+	"github.com/ninjadotorg/handshake-exchange/api_error"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )

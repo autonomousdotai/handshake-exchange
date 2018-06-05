@@ -1,11 +1,11 @@
 package api
 
 import (
-	"github.com/autonomousdotai/handshake-exchange/api_error"
-	"github.com/autonomousdotai/handshake-exchange/bean"
-	"github.com/autonomousdotai/handshake-exchange/common"
-	"github.com/autonomousdotai/handshake-exchange/dao"
-	"github.com/autonomousdotai/handshake-exchange/service"
+	"github.com/ninjadotorg/handshake-exchange/api_error"
+	"github.com/ninjadotorg/handshake-exchange/bean"
+	"github.com/ninjadotorg/handshake-exchange/common"
+	"github.com/ninjadotorg/handshake-exchange/dao"
+	"github.com/ninjadotorg/handshake-exchange/service"
 	"github.com/gin-gonic/gin"
 	"strconv"
 )

@@ -1,8 +1,8 @@
 package dao
 
 import (
-	"github.com/autonomousdotai/handshake-exchange/bean"
-	"github.com/autonomousdotai/handshake-exchange/service/cache"
+	"github.com/ninjadotorg/handshake-exchange/bean"
+	"github.com/ninjadotorg/handshake-exchange/service/cache"
 	"strconv"
 )
 

@@ -3,7 +3,7 @@ package common
 import (
 	"cloud.google.com/go/firestore"
 	"fmt"
-	"github.com/autonomousdotai/handshake-exchange/api_error"
+	"github.com/ninjadotorg/handshake-exchange/api_error"
 	"github.com/gin-gonic/gin"
 	"github.com/shopspring/decimal"
 	"strings"

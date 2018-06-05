@@ -1,10 +1,10 @@
 package notification
 
 import (
-	"github.com/autonomousdotai/handshake-exchange/bean"
-	"github.com/autonomousdotai/handshake-exchange/dao"
-	"github.com/autonomousdotai/handshake-exchange/integration/solr_service"
-	"github.com/autonomousdotai/handshake-exchange/service/email"
+	"github.com/ninjadotorg/handshake-exchange/bean"
+	"github.com/ninjadotorg/handshake-exchange/dao"
+	"github.com/ninjadotorg/handshake-exchange/integration/solr_service"
+	"github.com/ninjadotorg/handshake-exchange/service/email"
 )
 
 func SendOfferNotification(offer bean.Offer) []error {

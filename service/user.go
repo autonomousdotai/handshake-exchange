@@ -1,10 +1,10 @@
 package service
 
 import (
-	"github.com/autonomousdotai/handshake-exchange/api_error"
-	"github.com/autonomousdotai/handshake-exchange/bean"
-	"github.com/autonomousdotai/handshake-exchange/common"
-	"github.com/autonomousdotai/handshake-exchange/dao"
+	"github.com/ninjadotorg/handshake-exchange/api_error"
+	"github.com/ninjadotorg/handshake-exchange/bean"
+	"github.com/ninjadotorg/handshake-exchange/common"
+	"github.com/ninjadotorg/handshake-exchange/dao"
 	"github.com/go-errors/errors"
 	"github.com/shopspring/decimal"
 	"os"

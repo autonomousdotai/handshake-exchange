@@ -2,8 +2,8 @@ package exchangehandshake_service
 
 import (
 	"bytes"
-	"github.com/autonomousdotai/handshake-exchange/abi"
-	"github.com/autonomousdotai/handshake-exchange/bean"
+	"github.com/ninjadotorg/handshake-exchange/abi"
+	"github.com/ninjadotorg/handshake-exchange/bean"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"

@@ -1,12 +1,12 @@
 package api
 
 import (
-	"github.com/autonomousdotai/handshake-exchange/api_error"
-	"github.com/autonomousdotai/handshake-exchange/bean"
-	"github.com/autonomousdotai/handshake-exchange/dao"
-	"github.com/autonomousdotai/handshake-exchange/integration/coinbase_service"
-	"github.com/autonomousdotai/handshake-exchange/integration/openexchangerates_service"
-	"github.com/autonomousdotai/handshake-exchange/service"
+	"github.com/ninjadotorg/handshake-exchange/api_error"
+	"github.com/ninjadotorg/handshake-exchange/bean"
+	"github.com/ninjadotorg/handshake-exchange/dao"
+	"github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
+	"github.com/ninjadotorg/handshake-exchange/integration/openexchangerates_service"
+	"github.com/ninjadotorg/handshake-exchange/service"
 	"github.com/gin-gonic/gin"
 	"github.com/shopspring/decimal"
 )

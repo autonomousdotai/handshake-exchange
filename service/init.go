@@ -1,6 +1,6 @@
 package service
 
-import "github.com/autonomousdotai/handshake-exchange/dao"
+import "github.com/ninjadotorg/handshake-exchange/dao"
 
 var UserServiceInst = UserService{
 	dao:     &dao.UserDaoInst,

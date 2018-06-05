@@ -1,7 +1,7 @@
 package url
 
 import (
-	"github.com/autonomousdotai/handshake-exchange/api"
+	"github.com/ninjadotorg/handshake-exchange/api"
 	"github.com/gin-gonic/gin"
 )
 

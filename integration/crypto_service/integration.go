@@ -1,10 +1,10 @@
 package crypto_service
 
 import (
-	"github.com/autonomousdotai/handshake-exchange/bean"
-	"github.com/autonomousdotai/handshake-exchange/common"
-	"github.com/autonomousdotai/handshake-exchange/integration/blockchainio_service"
-	"github.com/autonomousdotai/handshake-exchange/integration/ethereum_service"
+	"github.com/ninjadotorg/handshake-exchange/bean"
+	"github.com/ninjadotorg/handshake-exchange/common"
+	"github.com/ninjadotorg/handshake-exchange/integration/blockchainio_service"
+	"github.com/ninjadotorg/handshake-exchange/integration/ethereum_service"
 	"github.com/pkg/errors"
 	"github.com/shopspring/decimal"
 )

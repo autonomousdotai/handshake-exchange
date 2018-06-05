@@ -4,9 +4,9 @@ import (
 	"cloud.google.com/go/firestore"
 	"context"
 	"fmt"
-	"github.com/autonomousdotai/handshake-exchange/bean"
-	"github.com/autonomousdotai/handshake-exchange/common"
-	"github.com/autonomousdotai/handshake-exchange/integration/firebase_service"
+	"github.com/ninjadotorg/handshake-exchange/bean"
+	"github.com/ninjadotorg/handshake-exchange/common"
+	"github.com/ninjadotorg/handshake-exchange/integration/firebase_service"
 	"github.com/shopspring/decimal"
 )
 

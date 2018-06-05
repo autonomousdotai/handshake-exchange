@@ -2,8 +2,8 @@ package coinapi_service
 
 import (
 	"fmt"
-	"github.com/autonomousdotai/handshake-exchange/api_error"
-	"github.com/autonomousdotai/handshake-exchange/bean"
+	"github.com/ninjadotorg/handshake-exchange/api_error"
+	"github.com/ninjadotorg/handshake-exchange/bean"
 	"github.com/levigross/grequests"
 	"os"
 	"strings"

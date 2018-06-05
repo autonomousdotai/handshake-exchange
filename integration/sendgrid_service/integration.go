@@ -1,7 +1,7 @@
 package sendgrid_service
 
 import (
-	"github.com/autonomousdotai/handshake-exchange/api_error"
+	"github.com/ninjadotorg/handshake-exchange/api_error"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	"os"

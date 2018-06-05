@@ -3,7 +3,7 @@ package dao
 import (
 	"cloud.google.com/go/firestore"
 	"fmt"
-	"github.com/autonomousdotai/handshake-exchange/bean"
+	"github.com/ninjadotorg/handshake-exchange/bean"
 )
 
 type TransactionDao struct {

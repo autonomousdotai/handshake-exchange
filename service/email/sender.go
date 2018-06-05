@@ -2,7 +2,7 @@ package email
 
 import (
 	"fmt"
-	"github.com/autonomousdotai/handshake-exchange/common"
+	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/nicksnyder/go-i18n/i18n"
 	"github.com/shopspring/decimal"
 	"os"

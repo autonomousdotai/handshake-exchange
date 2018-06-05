@@ -2,8 +2,8 @@ package email
 
 import (
 	"bytes"
-	"github.com/autonomousdotai/handshake-exchange/api_error"
-	"github.com/autonomousdotai/handshake-exchange/integration/sendgrid_service"
+	"github.com/ninjadotorg/handshake-exchange/api_error"
+	"github.com/ninjadotorg/handshake-exchange/integration/sendgrid_service"
 	"html/template"
 	"os"
 )
