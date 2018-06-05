@@ -99,6 +99,7 @@ type InstantOffer struct {
 	CCMode               string      `json:"-" firestore:"cc_mode"`
 	Address              string      `json:"address" firestore:"address" validate:"required"`
 	Email                string      `json:"email" firestore:"email"`
+	FCM                  string      `json:"fcm" firestore:"fcm"`
 	Language             string      `json:"language" firestore:"language"`
 	ChainId              int64       `json:"chain_id" firestore:"chain_id"`
 	CreatedAt            time.Time   `json:"created_at" firestore:"created_at"`

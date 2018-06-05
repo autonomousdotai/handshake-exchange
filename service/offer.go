@@ -327,6 +327,7 @@ func (s OfferService) ShakeOffer(userId string, offerId string, body bean.OfferS
 
 	offer.ToEmail = body.Email
 	offer.ToLanguage = body.Language
+	offer.ToFCM = body.FCM
 	// err := s.dao.UpdateOffer(offer, offer.GetUpdateOfferShake())
 	err := s.dao.UpdateOfferShaking(offer)
 	if ce.SetError(api_error.UpdateDataFailed, err) {

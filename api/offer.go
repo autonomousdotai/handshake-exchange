@@ -16,6 +16,7 @@ func (api OfferApi) CreateOffer(context *gin.Context) {
 	userId := common.GetUserId(context)
 	chainId := common.GetChainId(context)
 	language := common.GetLanguage(context)
+	fcm := common.GetFCM(context)
 
 	var body bean.Offer
 	if common.ValidateBody(context, &body) != nil {
@@ -26,6 +27,7 @@ func (api OfferApi) CreateOffer(context *gin.Context) {
 	id, _ := strconv.Atoi(chainId)
 	body.ChainId = int64(id)
 	body.Language = language
+	body.FCM = fcm
 	offer, ce := service.OfferServiceInst.CreateOffer(userId, body)
 	if ce.ContextValidate(context) {
 		return
@@ -75,6 +77,7 @@ func (api OfferApi) ShakeOffer(context *gin.Context) {
 	userId := common.GetUserId(context)
 	offerId := context.Param("offerId")
 	language := common.GetLanguage(context)
+	fcm := common.GetFCM(context)
 
 	var body bean.OfferShakeRequest
 	if common.ValidateBody(context, &body) != nil {
@@ -83,6 +86,7 @@ func (api OfferApi) ShakeOffer(context *gin.Context) {
 
 	// status: active->shaking
 	body.Language = language
+	body.FCM = fcm
 	offer, ce := service.OfferServiceInst.ShakeOffer(userId, offerId, body)
 	if ce.ContextValidate(context) {
 		return
