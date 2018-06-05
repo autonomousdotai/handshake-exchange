@@ -1,8 +1,8 @@
 package bean
 
 import (
-	"github.com/ninjadotorg/handshake-exchange/api_error"
 	"github.com/gin-gonic/gin"
+	"github.com/ninjadotorg/handshake-exchange/api_error"
 	"net/http"
 )
 

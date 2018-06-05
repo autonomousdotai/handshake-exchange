@@ -1,8 +1,8 @@
 package url
 
 import (
-	"github.com/ninjadotorg/handshake-exchange/api"
 	"github.com/gin-gonic/gin"
+	"github.com/ninjadotorg/handshake-exchange/api"
 )
 
 type InfoUrl struct {

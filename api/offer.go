@@ -1,11 +1,11 @@
 package api
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/ninjadotorg/handshake-exchange/bean"
 	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/dao"
 	"github.com/ninjadotorg/handshake-exchange/service"
-	"github.com/gin-gonic/gin"
 	"strconv"
 )
 

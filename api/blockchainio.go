@@ -2,12 +2,12 @@ package api
 
 import (
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/ninjadotorg/handshake-exchange/api_error"
 	"github.com/ninjadotorg/handshake-exchange/bean"
 	"github.com/ninjadotorg/handshake-exchange/dao"
 	"github.com/ninjadotorg/handshake-exchange/integration/firebase_service"
 	"github.com/ninjadotorg/handshake-exchange/service"
-	"github.com/gin-gonic/gin"
 	"github.com/shopspring/decimal"
 	"math/big"
 	"strconv"

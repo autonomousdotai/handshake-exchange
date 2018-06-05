@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/ninjadotorg/handshake-exchange/api_error"
 	"github.com/levigross/grequests"
+	"github.com/ninjadotorg/handshake-exchange/api_error"
 	"log"
 	"os"
 )

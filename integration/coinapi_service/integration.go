@@ -2,9 +2,9 @@ package coinapi_service
 
 import (
 	"fmt"
+	"github.com/levigross/grequests"
 	"github.com/ninjadotorg/handshake-exchange/api_error"
 	"github.com/ninjadotorg/handshake-exchange/bean"
-	"github.com/levigross/grequests"
 	"os"
 	"strings"
 )

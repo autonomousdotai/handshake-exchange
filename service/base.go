@@ -1,10 +1,10 @@
 package service
 
 import (
-	"github.com/ninjadotorg/handshake-exchange/api_error"
-	"github.com/ninjadotorg/handshake-exchange/dao"
 	"github.com/gin-gonic/gin"
 	"github.com/go-errors/errors"
+	"github.com/ninjadotorg/handshake-exchange/api_error"
+	"github.com/ninjadotorg/handshake-exchange/dao"
 )
 
 type ContextServiceValidator interface {

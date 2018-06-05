@@ -1,11 +1,11 @@
 package service
 
 import (
+	"github.com/go-errors/errors"
 	"github.com/ninjadotorg/handshake-exchange/api_error"
 	"github.com/ninjadotorg/handshake-exchange/bean"
 	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/dao"
-	"github.com/go-errors/errors"
 	"github.com/shopspring/decimal"
 	"os"
 	"strconv"

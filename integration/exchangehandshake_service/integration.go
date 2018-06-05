@@ -2,11 +2,11 @@ package exchangehandshake_service
 
 import (
 	"bytes"
-	"github.com/ninjadotorg/handshake-exchange/abi"
-	"github.com/ninjadotorg/handshake-exchange/bean"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/ninjadotorg/handshake-exchange/abi"
+	"github.com/ninjadotorg/handshake-exchange/bean"
 	"os"
 )
 
