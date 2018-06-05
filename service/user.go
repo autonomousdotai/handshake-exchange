@@ -136,7 +136,7 @@ func (s UserService) CheckCCLimit(userId string, amountStr string) (ce SimpleCon
 	amount, _ := decimal.NewFromString(amountStr)
 
 	if currentAmount.Add(amount).GreaterThan(limit) {
-		ce.SetError(api_error.Success, errors.New(api_error.CCOverLimit))
+		ce.SetError(api_error.CCOverLimit, errors.New(api_error.CCOverLimit))
 	}
 
 	return
