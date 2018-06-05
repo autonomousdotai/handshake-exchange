@@ -46,6 +46,8 @@ type SolrOfferExtraData struct {
 	Reward           string `json:"reward"`
 	Price            string `json:"price"`
 	Percentage       string `json:"percentage"`
+	FeePercentage    string `json:"fee_percentage"`
+	RewardPercentage string `json:"reward_percentage"`
 	ContactPhone     string `json:"contact_phone"`
 	ContactInfo      string `json:"contact_info"`
 	Email            string `json:"email"`
@@ -71,15 +73,16 @@ var offerStatusMap = map[string]int{
 }
 
 type SolrInstantOfferExtraData struct {
-	Id           string `json:"id"`
-	FeedType     string `json:"feed_type"`
-	Type         string `json:"type"`
-	Amount       string `json:"amount"`
-	Currency     string `json:"currency"`
-	FiatCurrency string `json:"fiat_currency"`
-	FiatAmount   string `json:"fiat_amount"`
-	Status       string `json:"status"`
-	Email        string `json:"email"`
+	Id            string `json:"id"`
+	FeedType      string `json:"feed_type"`
+	Type          string `json:"type"`
+	Amount        string `json:"amount"`
+	Currency      string `json:"currency"`
+	FiatCurrency  string `json:"fiat_currency"`
+	FiatAmount    string `json:"fiat_amount"`
+	FeePercentage string `json:"fee_percentage"`
+	Status        string `json:"status"`
+	Email         string `json:"email"`
 }
 
 var instantOfferStatusMap = map[string]int{
@@ -125,6 +128,13 @@ func NewSolrFromOffer(offer Offer) (solr SolrOfferObject) {
 	solr.OfferType = offer.Type
 
 	percentage, _ := decimal.NewFromString(offer.Percentage)
+	feePercentage, _ := decimal.NewFromString(offer.FeePercentage)
+	rewardPercentage, _ := decimal.NewFromString(offer.RewardPercentage)
+	feePercentage = feePercentage.Add(rewardPercentage)
+	fee, _ := decimal.NewFromString(offer.Fee)
+	reward, _ := decimal.NewFromString(offer.Reward)
+	fee = fee.Add(reward)
+
 	extraData := SolrOfferExtraData{
 		Id:               offer.Id,
 		FeedType:         feedType,
@@ -137,8 +147,10 @@ func NewSolrFromOffer(offer Offer) (solr SolrOfferObject) {
 		Price:            offer.Price,
 		PhysicalItem:     offer.PhysicalItem,
 		PhysicalQuantity: offer.PhysicalQuantity,
-		Fee:              offer.Fee,
+		Fee:              fee.String(),
 		Reward:           offer.Reward,
+		FeePercentage:    feePercentage.Mul(decimal.NewFromFloat(100)).String(),
+		RewardPercentage: rewardPercentage.Mul(decimal.NewFromFloat(100)).String(),
 		Percentage:       percentage.Mul(decimal.NewFromFloat(100)).String(),
 		ContactInfo:      offer.ContactInfo,
 		ContactPhone:     offer.ContactPhone,
@@ -172,16 +184,18 @@ func NewSolrFromInstantOffer(offer InstantOffer) (solr SolrOfferObject) {
 	solr.OfferFeedType = "instant"
 	solr.OfferType = "buy"
 
+	feePercentage, _ := decimal.NewFromString(offer.FeePercentage)
 	extraData := SolrInstantOfferExtraData{
-		Id:           offer.Id,
-		FeedType:     "instant",
-		Type:         "buy",
-		Amount:       offer.Amount,
-		Currency:     offer.Currency,
-		FiatAmount:   offer.FiatAmount,
-		FiatCurrency: offer.FiatCurrency,
-		Status:       offer.Status,
-		Email:        offer.Email,
+		Id:            offer.Id,
+		FeedType:      "instant",
+		Type:          "buy",
+		Amount:        offer.Amount,
+		Currency:      offer.Currency,
+		FiatAmount:    offer.FiatAmount,
+		FiatCurrency:  offer.FiatCurrency,
+		FeePercentage: feePercentage.Mul(decimal.NewFromFloat(100)).String(),
+		Status:        offer.Status,
+		Email:         offer.Email,
 	}
 	b, _ := json.Marshal(&extraData)
 	solr.ExtraData = string(b)
