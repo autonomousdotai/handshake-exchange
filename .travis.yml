@@ -27,6 +27,11 @@ script:
 deploy:
 - provider: script
   skip_cleanup: true
-  script: bash ./deploy.sh staging
+  script: bash ./deploy.sh production
   on:
     branch: master
+- provider: script
+  skip_cleanup: true
+  script: bash ./deploy.sh staging
+  on:
+    branch: staging

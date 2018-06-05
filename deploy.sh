@@ -12,7 +12,7 @@ export UNDERLINE='\033[4m'
 
 V=$(date "+%Y%m%d_%H%M%S")
 PROJECT="handshake-205007"
-NAMESPACE=staging
+NAMESPACE=$1
 BACKEND_IMAGE="$NAMESPACE-exchange-service"
 
 gcloud auth activate-service-account --key-file ./credentials/deploy.cred.json
@@ -28,6 +28,7 @@ if [ $1 = "production" ]
 then
     cp -a ./credentials/production.cred.json ./credentials/cred.json
     cp -a ./credentials/production.notification.cred.json ./credentials/notification.cred.json
+    cp -a ./credentials/.production.env ./credentials/.env
 fi
 
 buildNumber=$V
