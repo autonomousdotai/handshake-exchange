@@ -234,6 +234,7 @@ type OfferShakeRequest struct {
 	FiatAmount string `json:"fiat_amount" validate:"required"`
 	Address    string `json:"address"`
 	Email      string `json:"email"`
+	Username   string `json:"username"`
 	Language   string `json:"language"`
 	FCM        string `json:"fcm"`
 }
