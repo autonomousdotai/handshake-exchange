@@ -164,7 +164,7 @@ func (api OnChainApi) UpdateOfferWithdraw(context *gin.Context) {
 	bean.SuccessResponse(context, true)
 }
 
-func (api OnChainApi) StartOnChainBlock(context *gin.Context) {
+func (api OnChainApi) StartOnChainOfferBlock(context *gin.Context) {
 	blockStr := os.Getenv("ETH_EXCHANGE_HANDSHAKE_BLOCK")
 	blockInt, _ := strconv.Atoi(blockStr)
 	block := int64(blockInt)
@@ -185,6 +185,158 @@ func (api OnChainApi) StartOnChainBlock(context *gin.Context) {
 		LastBlock: block,
 	})
 	dao.OnChainDaoInst.UpdateOfferWithdrawEventBlock(bean.OfferEventBlock{
+		LastBlock: block,
+	})
+
+	bean.SuccessResponse(context, true)
+}
+
+func (api OnChainApi) UpdateOfferStoreInit(context *gin.Context) {
+	client := exchangehandshake_service.ExchangeHandshakeClient{}
+	to := dao.OnChainDaoInst.GetOfferStoreInitEventBlock()
+	if to.ContextValidate(context) {
+		return
+	}
+	block := to.Object.(bean.OfferEventBlock)
+
+	offerOnChains, lastBlock, err := client.GetInitEvent(uint64(block.LastBlock))
+	if api_error.PropagateErrorAndAbort(context, api_error.UpdateDataFailed, err) != nil {
+		return
+	}
+	for _, offerOnChain := range offerOnChains {
+		service.OfferStoreServiceInst.ActiveOnChainOfferStore(offerOnChain.Offer, offerOnChain.Hid)
+	}
+
+	block.LastBlock = int64(lastBlock)
+	err = dao.OnChainDaoInst.UpdateOfferStoreInitEventBlock(block)
+	if api_error.PropagateErrorAndAbort(context, api_error.UpdateDataFailed, err) != nil {
+		return
+	}
+
+	bean.SuccessResponse(context, true)
+}
+
+func (api OnChainApi) UpdateOfferStoreClose(context *gin.Context) {
+	client := exchangehandshake_service.ExchangeHandshakeClient{}
+	to := dao.OnChainDaoInst.GetOfferStoreCloseEventBlock()
+	if to.ContextValidate(context) {
+		return
+	}
+	block := to.Object.(bean.OfferEventBlock)
+
+	offerOnChains, lastBlock, err := client.GetCloseEvent(uint64(block.LastBlock))
+	if api_error.PropagateErrorAndAbort(context, api_error.UpdateDataFailed, err) != nil {
+		return
+	}
+	for _, offerOnChain := range offerOnChains {
+		service.OfferStoreServiceInst.CloseOnChainOfferStore(offerOnChain.Offer)
+	}
+
+	block.LastBlock = int64(lastBlock)
+	err = dao.OnChainDaoInst.UpdateOfferStoreCloseEventBlock(block)
+	if api_error.PropagateErrorAndAbort(context, api_error.UpdateDataFailed, err) != nil {
+		return
+	}
+
+	bean.SuccessResponse(context, true)
+}
+
+func (api OnChainApi) UpdateOfferStoreShake(context *gin.Context) {
+	client := exchangehandshake_service.ExchangeHandshakeClient{}
+	to := dao.OnChainDaoInst.GetOfferStoreShakeEventBlock()
+	if to.ContextValidate(context) {
+		return
+	}
+	block := to.Object.(bean.OfferEventBlock)
+
+	offerOnChains, lastBlock, err := client.GetShakeEvent(uint64(block.LastBlock))
+	if api_error.PropagateErrorAndAbort(context, api_error.UpdateDataFailed, err) != nil {
+		return
+	}
+	for _, offerOnChain := range offerOnChains {
+		offerStoreId := ""
+		service.OfferStoreServiceInst.ShakeOnChainOfferStoreShake(offerStoreId, offerOnChain.Offer)
+	}
+
+	block.LastBlock = int64(lastBlock)
+	err = dao.OnChainDaoInst.UpdateOfferShakeEventBlock(block)
+	if api_error.PropagateErrorAndAbort(context, api_error.UpdateDataFailed, err) != nil {
+		return
+	}
+
+	bean.SuccessResponse(context, true)
+}
+
+func (api OnChainApi) UpdateOfferStoreReject(context *gin.Context) {
+	client := exchangehandshake_service.ExchangeHandshakeClient{}
+	to := dao.OnChainDaoInst.GetOfferStoreRejectEventBlock()
+	if to.ContextValidate(context) {
+		return
+	}
+	block := to.Object.(bean.OfferEventBlock)
+
+	offerOnChains, lastBlock, err := client.GetRejectEvent(uint64(block.LastBlock))
+	if api_error.PropagateErrorAndAbort(context, api_error.UpdateDataFailed, err) != nil {
+		return
+	}
+	for _, offerOnChain := range offerOnChains {
+		offerStoreId := ""
+		service.OfferStoreServiceInst.RejectOnChainOfferStoreShake(offerStoreId, offerOnChain.Offer)
+	}
+
+	block.LastBlock = int64(lastBlock)
+	err = dao.OnChainDaoInst.UpdateOfferRejectEventBlock(block)
+	if api_error.PropagateErrorAndAbort(context, api_error.UpdateDataFailed, err) != nil {
+		return
+	}
+
+	bean.SuccessResponse(context, true)
+}
+
+func (api OnChainApi) UpdateOfferStoreComplete(context *gin.Context) {
+	client := exchangehandshake_service.ExchangeHandshakeClient{}
+	to := dao.OnChainDaoInst.GetOfferStoreCompleteEventBlock()
+	if to.ContextValidate(context) {
+		return
+	}
+	block := to.Object.(bean.OfferEventBlock)
+
+	offerOnChains, lastBlock, err := client.GetCompleteEvent(uint64(block.LastBlock))
+	if api_error.PropagateErrorAndAbort(context, api_error.UpdateDataFailed, err) != nil {
+		return
+	}
+	for _, offerOnChain := range offerOnChains {
+		offerStoreId := ""
+		service.OfferStoreServiceInst.CompleteOnChainOfferStoreShake(offerStoreId, offerOnChain.Offer)
+	}
+
+	block.LastBlock = int64(lastBlock)
+	err = dao.OnChainDaoInst.UpdateOfferStoreCompleteEventBlock(block)
+	if api_error.PropagateErrorAndAbort(context, api_error.UpdateDataFailed, err) != nil {
+		return
+	}
+
+	bean.SuccessResponse(context, true)
+}
+
+func (api OnChainApi) StartOnChainOfferStoreBlock(context *gin.Context) {
+	blockStr := os.Getenv("ETH_EXCHANGE_HANDSHAKE_OFFER_STORE_BLOCK")
+	blockInt, _ := strconv.Atoi(blockStr)
+	block := int64(blockInt)
+
+	dao.OnChainDaoInst.UpdateOfferStoreInitEventBlock(bean.OfferEventBlock{
+		LastBlock: block,
+	})
+	dao.OnChainDaoInst.UpdateOfferStoreCloseEventBlock(bean.OfferEventBlock{
+		LastBlock: block,
+	})
+	dao.OnChainDaoInst.UpdateOfferStoreShakeEventBlock(bean.OfferEventBlock{
+		LastBlock: block,
+	})
+	dao.OnChainDaoInst.UpdateOfferStoreRejectEventBlock(bean.OfferEventBlock{
+		LastBlock: block,
+	})
+	dao.OnChainDaoInst.UpdateOfferStoreCompleteEventBlock(bean.OfferEventBlock{
 		LastBlock: block,
 	})
 

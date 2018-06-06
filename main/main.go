@@ -101,6 +101,8 @@ func main() {
 	infoUrl.Create(router)
 	offerUrl := url.OfferUrl{}
 	offerUrl.Create(router)
+	offerStoreUrl := url.OfferStoreUrl{}
+	offerStoreUrl.Create(router)
 	cronJobUrl := url.CronJobUrl{}
 	cronJobUrl.Create(router)
 	creditCardUrl := url.CreditCardUrl{}
@@ -143,7 +145,7 @@ func RouterMiddleware() gin.HandlerFunc {
 
 		responseStatus := context.Writer.Status()
 		responseData, _ := context.Get("ResponseData")
-		if needToLog {
+		if false {
 			log.Println(fmt.Sprintf("%s - %s - %s - %s", docId, userId, responseStatus, responseData))
 
 			b, _ := json.Marshal(&body)

@@ -53,7 +53,7 @@ type Offer struct {
 	Type             string           `json:"type" firestore:"type" validate:"required"`
 	Status           string           `json:"status" firestore:"status"`
 	UID              string           `json:"uid" firestore:"uid"`
-	Username         string           `json:"-" firestore:"username"`
+	Username         string           `json:"username" firestore:"username"`
 	Email            string           `json:"email" firestore:"email"`
 	Language         string           `json:"language" firestore:"language"`
 	FCM              string           `json:"fcm" firestore:"fcm"`

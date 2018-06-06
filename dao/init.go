@@ -5,4 +5,5 @@ var MiscDaoInst = MiscDao{}
 var CreditCardDaoInst = CreditCardDao{}
 var TransactionDaoInst = TransactionDao{}
 var OfferDaoInst = OfferDao{}
+var OfferStoreDaoInst = OfferStoreDao{}
 var OnChainDaoInst = OnChainDao{}
