@@ -20,6 +20,7 @@ func SendFCM(fcm bean.FCMObject) error {
 		return errBody
 	}
 	bodyStr = string(b)
+	// fmt.Println(bodyStr)
 
 	r := bytes.NewReader([]byte(bodyStr))
 

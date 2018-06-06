@@ -86,11 +86,14 @@ func (url CronJobUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	group.POST("/init-handshake-block", func(context *gin.Context) {
 		onChainApi.StartOnChainBlock(context)
 	})
+	group.POST("/start-app", func(context *gin.Context) {
+		miscApi.StartApp(context)
+	})
 
 	// Internal
-	group.POST("/test-coinbase-receive", func(context *gin.Context) {
-		miscApi.TestCoinbaseReceive(context)
-	})
+	//group.POST("/test-coinbase-receive", func(context *gin.Context) {
+	//	miscApi.TestCoinbaseReceive(context)
+	//})
 
 	return group
 }

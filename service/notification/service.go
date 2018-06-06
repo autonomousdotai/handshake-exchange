@@ -140,10 +140,8 @@ func SendInstantOfferToEmail(offer bean.InstantOffer, c chan error) {
 		if offer.Email != "" {
 			err = email.SendOrderInstantCCSuccessEmail(offer.Language, offer.Email, offer.Amount, offer.Currency)
 		}
-		c <- err
-	} else {
-		c <- nil
 	}
+	c <- err
 }
 
 func SendInstantOfferToFirebase(offer bean.InstantOffer, c chan error) {
@@ -159,8 +157,10 @@ func SendInstantOfferToSolr(offer bean.InstantOffer, c chan error) {
 
 func SendInstantOfferToFCM(offer bean.InstantOffer, c chan error) {
 	var err error
-	if offer.FCM != "" {
-		err = SendOrderInstantCCSuccessFCM(offer.Language, offer.FCM)
+	if offer.Status == bean.INSTANT_OFFER_STATUS_SUCCESS {
+		if offer.FCM != "" {
+			err = SendOrderInstantCCSuccessFCM(offer.Language, offer.FCM)
+		}
 	}
 	c <- err
 }

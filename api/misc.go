@@ -318,3 +318,12 @@ func (api MiscApi) SyncToSolr(context *gin.Context) {
 
 	bean.SuccessResponse(context, offer)
 }
+
+func (api MiscApi) StartApp(context *gin.Context) {
+	api.UpdateCurrencyRates(context)
+	api.UpdateCryptoRates(context)
+	api.UpdateSystemFee(context)
+	api.UpdateSystemConfig(context)
+	api.UpdateCCLimits(context)
+	OnChainApi{}.StartOnChainBlock(context)
+}

@@ -144,6 +144,7 @@ func (offer InstantOffer) GetAddInstantOffer() map[string]interface{} {
 		"address":            offer.Address,
 		"email":              offer.Email,
 		"language":           offer.Language,
+		"fcm":                offer.FCM,
 		"chain_id":           offer.ChainId,
 		"created_at":         firestore.ServerTimestamp,
 	}

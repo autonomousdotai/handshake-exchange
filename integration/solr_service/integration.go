@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/levigross/grequests"
 	"github.com/ninjadotorg/handshake-exchange/api_error"
-	"log"
 	"os"
 )
 
