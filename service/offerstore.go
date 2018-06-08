@@ -40,7 +40,8 @@ func (s OfferStoreService) CreateOfferStore(userId string, offerSetup bean.Offer
 		return
 	}
 	profile := profileTO.Object.(bean.Profile)
-	if profile.ActiveOfferStores[currencyInst.Code] {
+	if check, ok := profile.ActiveOfferStores[currencyInst.Code]; ok && check {
+		// Has Key and already had setup
 		ce.SetStatusKey(api_error.TooManyOffer)
 		return
 	}
