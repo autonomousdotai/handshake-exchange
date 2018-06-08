@@ -33,6 +33,9 @@ const OFFER_STATUS_REJECTED = "rejected"
 const OFFER_STATUS_WITHDRAWING = "withdrawing"
 const OFFER_STATUS_WITHDRAW = "withdraw"
 
+var MIN_ETH = decimal.NewFromFloat(0.1).Round(1)
+var MIN_BTC = decimal.NewFromFloat(0.01).Round(2)
+
 type Offer struct {
 	Id               string           `json:"id"`
 	Hid              int64            `json:"hid" firestore:"hid"`
@@ -239,11 +242,16 @@ type OfferShakeRequest struct {
 	FCM        string `json:"fcm"`
 }
 
+const OFFER_ADDRESS_MAP_OFFER = "offer"
+const OFFER_ADDRESS_MAP_OFFER_STORE = "offer_store"
+const OFFER_ADDRESS_MAP_OFFER_STORE_SHAKE = "offer_store_shake"
+
 type OfferAddressMap struct {
 	UID      string `json:"uid" firestore:"uid"`
 	Address  string `json:"address" firestore:"address"`
 	Offer    string `json:"offer" firestore:"offer"`
 	OfferRef string `json:"offer_ref" firestore:"offer_ref"`
+	Type     string `json:"type" firestore:"type"`
 }
 
 func (offer OfferAddressMap) GetAddOfferAddressMap() map[string]interface{} {
@@ -252,6 +260,7 @@ func (offer OfferAddressMap) GetAddOfferAddressMap() map[string]interface{} {
 		"offer":      offer.Offer,
 		"uid":        offer.UID,
 		"offer_ref":  offer.OfferRef,
+		"type":       offer.Type,
 		"created_at": firestore.ServerTimestamp,
 	}
 }

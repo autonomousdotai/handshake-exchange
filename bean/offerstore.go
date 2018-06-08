@@ -3,6 +3,7 @@ package bean
 import (
 	"cloud.google.com/go/firestore"
 	"strings"
+	"time"
 )
 
 const OFFER_STORE_STATUS_CREATED = "created"
@@ -10,28 +11,34 @@ const OFFER_STORE_STATUS_ACTIVE = "active"
 const OFFER_STORE_STATUS_CLOSING = "closing"
 const OFFER_STORE_STATUS_CLOSED = "closed"
 
+const OFFER_STORE_ITEM_STATUS_CREATED = "created"
+const OFFER_STORE_ITEM_STATUS_ACTIVE = "active"
+
 type OfferStore struct {
-	Id               string           `json:"id" firestore:"id"`
-	Hid              int64            `json:"hid" firestore:"hid"`
-	ItemFlags        map[string]bool  `json:"item_flags" firestore:"item_flags"`
-	Status           string           `json:"status" firestore:"status"`
-	UID              string           `json:"-" firestore:"uid"`
-	Username         string           `json:"username" firestore:"username"`
-	Email            string           `json:"email" firestore:"email"`
-	Language         string           `json:"language" firestore:"language"`
-	ContactPhone     string           `json:"contact_phone" firestore:"contact_phone"`
-	ContactInfo      string           `json:"contact_info" firestore:"contact_info"`
-	FCM              string           `json:"-" firestore:"fcm"`
-	Longitude        float64          `json:"longitude" firestore:"longitude"`
-	Latitude         float64          `json:"latitude" firestore:"latitude"`
-	ChainId          int64            `json:"-" firestore:"chain_id"`
-	FiatCurrency     string           `json:"fiat_currency" firestore:"fiat_currency" validate:"required"`
-	WalletProvider   string           `json:"-" firestore:"wallet_provider"`
-	TransactionCount TransactionCount `json:"transaction_count" firestore:"transaction_count"`
+	Id               string                    `json:"id" firestore:"id"`
+	Hid              int64                     `json:"hid" firestore:"hid"`
+	ItemFlags        map[string]bool           `json:"item_flags" firestore:"item_flags"`
+	Status           string                    `json:"status" firestore:"status"`
+	UID              string                    `json:"-" firestore:"uid"`
+	Username         string                    `json:"username" firestore:"username"`
+	Email            string                    `json:"email" firestore:"email"`
+	Language         string                    `json:"language" firestore:"language"`
+	ContactPhone     string                    `json:"contact_phone" firestore:"contact_phone"`
+	ContactInfo      string                    `json:"contact_info" firestore:"contact_info"`
+	FCM              string                    `json:"-" firestore:"fcm"`
+	Longitude        float64                   `json:"longitude" firestore:"longitude"`
+	Latitude         float64                   `json:"latitude" firestore:"latitude"`
+	ChainId          int64                     `json:"-" firestore:"chain_id"`
+	FiatCurrency     string                    `json:"fiat_currency" firestore:"fiat_currency" validate:"required"`
+	TransactionCount TransactionCount          `json:"transaction_count" firestore:"transaction_count"`
+	ItemSnapshots    map[string]OfferStoreItem `json:"item_snapshots" firestore:"item_snapshots"`
+	CreatedAt        time.Time                 `json:"created_at" firestore:"created_at"`
+	UpdatedAt        time.Time                 `json:"updated_at" firestore:"updated_at"`
 }
 
 type OfferStoreItem struct {
 	Currency       string `json:"currency" firestore:"currency"`
+	Status         string `json:"status" firestore:"status"`
 	SellAmountMin  string `json:"sell_amount_min" firestore:"sell_amount_min"`
 	SellAmount     string `json:"sell_amount" firestore:"sell_amount" validate:"required"`
 	SellBalance    string `json:"sell_balance" firestore:"sell_balance"`
@@ -42,7 +49,36 @@ type OfferStoreItem struct {
 	BuyPercentage  string `json:"buy_percentage" firestore:"buy_percentage"`
 	SystemAddress  string `json:"system_address" firestore:"system_address"`
 	UserAddress    string `json:"user_address" firestore:"user_address"`
+	WalletProvider string `json:"-" firestore:"wallet_provider"`
 	RewardAddress  string `json:"reward_address" firestore:"reward_address"`
+}
+
+func (offer OfferStore) GetAddOfferStore() map[string]interface{} {
+	return map[string]interface{}{
+		"id":                offer.Id,
+		"item_flags":        offer.ItemFlags,
+		"status":            OFFER_STORE_STATUS_CREATED,
+		"uid":               offer.UID,
+		"username":          offer.Username,
+		"email":             offer.Email,
+		"language":          offer.Language,
+		"contact_phone":     offer.ContactPhone,
+		"contact_info":      offer.ContactInfo,
+		"fcm":               offer.FCM,
+		"latitude":          offer.Latitude,
+		"longitude":         offer.Longitude,
+		"chain_id":          offer.ChainId,
+		"fiat_currency":     offer.FiatCurrency,
+		"transaction_count": offer.TransactionCount,
+		"item_snapshots":    offer.ItemSnapshots,
+	}
+}
+
+func (offer OfferStore) GetUpdateOfferStoreChangeItem() map[string]interface{} {
+	return map[string]interface{}{
+		"item_flags": offer.ItemFlags,
+		"updated_at": firestore.ServerTimestamp,
+	}
 }
 
 func (offer OfferStore) GetChangeStatus() map[string]interface{} {
@@ -52,9 +88,49 @@ func (offer OfferStore) GetChangeStatus() map[string]interface{} {
 	}
 }
 
+func (offer OfferStore) GetUpdateOfferStoreActive() map[string]interface{} {
+	return map[string]interface{}{
+		"hid":        offer.Hid,
+		"status":     OFFER_STATUS_ACTIVE,
+		"updated_at": firestore.ServerTimestamp,
+	}
+}
+
+func (item OfferStoreItem) GetAddOfferStoreItem() map[string]interface{} {
+	return map[string]interface{}{
+		"currency":        item.Currency,
+		"status":          item.Status,
+		"sell_amount_min": item.SellAmountMin,
+		"sell_amount":     item.SellAmount,
+		"sell_balance":    "0",
+		"sell_percentage": item.SellPercentage,
+		"buy_amount_min":  item.BuyAmountMin,
+		"buy_amount":      item.BuyAmount,
+		"buy_balance":     item.BuyAmount,
+		"buy_percentage":  item.BuyPercentage,
+		"system_address":  item.SystemAddress,
+		"user_address":    item.UserAddress,
+		"reward_address":  item.RewardAddress,
+	}
+}
+
+func (item OfferStoreItem) GetUpdateOfferStoreItemActive() map[string]interface{} {
+	return map[string]interface{}{
+		"status":     OFFER_STATUS_ACTIVE,
+		"updated_at": firestore.ServerTimestamp,
+	}
+}
+
+func (item OfferStoreItem) GetUpdateOfferStoreItemBalance() map[string]interface{} {
+	return map[string]interface{}{
+		"buy_balance":  item.BuyBalance,
+		"sell_balance": item.SellBalance,
+		"updated_at":   firestore.ServerTimestamp,
+	}
+}
+
 type OfferStoreSetup struct {
-	BTC   OfferStoreItem `json:"btc"`
-	ETH   OfferStoreItem `json:"eth"`
+	Item  OfferStoreItem `json:"item"`
 	Offer OfferStore     `json:"offer"`
 }
 
@@ -69,6 +145,7 @@ type OfferStoreShake struct {
 	Id               string      `json:"id" firestore:"id"`
 	Type             string      `json:"type" firestore:"type" validate:"required"`
 	Status           string      `json:"status" firestore:"status"`
+	UID              string      `json:"-" firestore:"uid"`
 	Username         string      `json:"username" firestore:"username"`
 	Email            string      `json:"email" firestore:"email"`
 	Language         string      `json:"language" firestore:"language"`
@@ -88,6 +165,34 @@ type OfferStoreShake struct {
 	ActionUID        string      `json:"-" firestore:"action_uid"`
 	Provider         string      `json:"-" firestore:"provider"`
 	ProviderData     interface{} `json:"-" firestore:"provider_data"`
+}
+
+func (offer OfferStoreShake) GetAddOfferStoreShake() map[string]interface{} {
+	return map[string]interface{}{
+		"id":                offer.Id,
+		"type":              offer.Type,
+		"status":            offer.Status,
+		"uid":               offer.UID,
+		"username":          offer.Username,
+		"email":             offer.Email,
+		"language":          offer.Language,
+		"contact_phone":     offer.ContactPhone,
+		"currency":          offer.Currency,
+		"amount":            offer.Amount,
+		"total_amount":      offer.TotalAmount,
+		"fiat_currency":     offer.FiatCurrency,
+		"fiat_amount":       offer.FiatAmount,
+		"price":             offer.Price,
+		"system_address":    offer.SystemAddress,
+		"user_address":      offer.UserAddress,
+		"fee":               offer.Fee,
+		"fee_percentage":    offer.FeePercentage,
+		"reward":            offer.Reward,
+		"reward_percentage": offer.RewardPercentage,
+		"action_uid":        offer.ActionUID,
+		"provider":          offer.Provider,
+		"provider_data":     offer.ProviderData,
+	}
 }
 
 func (offer OfferStoreShake) GetChangeStatus() map[string]interface{} {

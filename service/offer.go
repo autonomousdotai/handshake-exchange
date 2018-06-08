@@ -94,8 +94,7 @@ func (s OfferService) CreateOffer(userId string, offerBody bean.Offer) (offer be
 		}
 	}
 	if currencyInst.Code == bean.BTC.Code {
-		// TODO change to 0.01 after testing
-		if amount.LessThan(decimal.NewFromFloat(0.0001).Round(4)) {
+		if amount.LessThan(decimal.NewFromFloat(0.01).Round(2)) {
 			ce.SetStatusKey(api_error.AmountIsTooSmall)
 			return
 		}

@@ -32,6 +32,8 @@ const TooManyOffer = "TooManyOffer"
 const AmountIsTooSmall = "AmountIsTooSmall"
 const InvalidUserToCompleteHandshake = "InvalidUserToCompleteHandshake"
 const OfferActionLocked = "OfferActionLocked"
+const OfferStoreExists = "OfferStoreExists"
+const OfferStoreNotExist = "OfferStoreNotExist"
 
 var CodeMessage = map[string]struct {
 	StatusCode int
@@ -68,4 +70,6 @@ var CodeMessage = map[string]struct {
 	AmountIsTooSmall:               {http.StatusBadRequest, -310, "Amount is too small"},
 	InvalidUserToCompleteHandshake: {http.StatusBadRequest, -311, "Invalid user to complete handshake"},
 	OfferActionLocked:              {http.StatusBadRequest, -312, "Your offer action is locked"},
+	OfferStoreExists:               {http.StatusBadRequest, -313, "Offer store exists"},
+	OfferStoreNotExist:             {http.StatusBadRequest, -314, "Offer store not exist"},
 }

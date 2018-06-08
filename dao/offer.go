@@ -29,6 +29,7 @@ func (dao OfferDao) AddOffer(offer bean.Offer, profile bean.Profile) (bean.Offer
 			Offer:    offer.Id,
 			OfferRef: GetOfferItemPath(offer.Id),
 			UID:      offer.UID,
+			Type:     bean.OFFER_ADDRESS_MAP_OFFER,
 		}
 		mappingDocRef := dbClient.Doc(GetOfferAddressMapItemPath(offer.SystemAddress))
 		batch.Set(mappingDocRef, mapping.GetAddOfferAddressMap())
@@ -127,6 +128,7 @@ func (dao OfferDao) UpdateOfferShaking(offer bean.Offer) error {
 			Offer:    offer.Id,
 			OfferRef: GetOfferItemPath(offer.Id),
 			UID:      offer.UID,
+			Type:     bean.OFFER_ADDRESS_MAP_OFFER,
 		}
 		mappingDocRef := dbClient.Doc(GetOfferAddressMapItemPath(offer.SystemAddress))
 		batch.Set(mappingDocRef, mapping.GetAddOfferAddressMap())

@@ -164,3 +164,21 @@ func SendInstantOfferToFCM(offer bean.InstantOffer, c chan error) {
 	}
 	c <- err
 }
+
+func SendOfferStoreNotification(offer bean.OfferStore) []error {
+	c := make(chan error)
+	// go SendOfferToEmail(offer, c)
+	// go SendOfferToFirebase(offer, c)
+	go SendOfferStoreToSolr(offer, c)
+	// go SendOfferToFCM(offer, c)
+
+	// return []error{<-c, <-c, <-c, <-c}
+	return []error{<-c}
+	// return nil
+}
+
+func SendOfferStoreToSolr(offer bean.OfferStore, c chan error) {
+	// Always update
+	_, err := solr_service.UpdateObject(bean.NewSolrFromOfferStore(offer))
+	c <- err
+}
