@@ -76,6 +76,9 @@ type CryptoTransferLog struct {
 	DataType         string      `json:"data_type" firestore:"data_type"`
 	DataRef          string      `json:"data_ref" firestore:"data_ref"`
 	UID              string      `json:"uid" firestore:"uid"`
+	Description      string      `json:"description" firestore:"description"`
+	Amount           string      `json:"amount" firestore:"amount"`
+	Currency         string      `json:"currency" firestore:"currency"`
 }
 
 func (log CryptoTransferLog) GetAddLog() map[string]interface{} {
@@ -87,6 +90,9 @@ func (log CryptoTransferLog) GetAddLog() map[string]interface{} {
 		"data_type":         log.DataType,
 		"data_ref":          log.DataRef,
 		"uid":               log.UID,
+		"note":              log.Description,
+		"amount":            log.Amount,
+		"currency":          log.Currency,
 		"created_at":        firestore.ServerTimestamp,
 	}
 }

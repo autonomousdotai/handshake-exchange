@@ -116,6 +116,7 @@ func (s OfferStoreService) RemoveOfferStoreItem(userId string, offerStoreId stri
 		hasSell = true
 	}
 	if offerStoreItem.Currency == bean.BTC.Code {
+		// Do Refund
 		if hasSell {
 			description := fmt.Sprintf("Refund to userId %s due to close the offer", userId)
 			response := s.sendTransaction(offerStoreItem.UserAddress,
@@ -126,6 +127,9 @@ func (s OfferStoreService) RemoveOfferStoreItem(userId string, offerStoreId stri
 				DataType:         bean.OFFER_ADDRESS_MAP_OFFER_STORE,
 				DataRef:          dao.GetOfferStoreItemPath(offerStoreId),
 				UID:              userId,
+				Description:      description,
+				Amount:           offerStoreItem.SellBalance,
+				Currency:         offerStoreItem.Currency,
 			})
 		}
 	}
@@ -170,6 +174,8 @@ func (s OfferStoreService) RemoveOfferStoreItem(userId string, offerStoreId stri
 			return
 		}
 	}
+
+	notification.SendOfferStoreNotification(offerStore)
 
 	return
 }
