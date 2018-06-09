@@ -271,11 +271,15 @@ func (s OfferStoreService) prepareOfferStore(offerStore *bean.OfferStore, offerS
 		return
 	}
 
+	if profile.ActiveOfferStores == nil {
+		profile.ActiveOfferStores = make(map[string]bool)
+	}
 	if check, ok := profile.ActiveOfferStores[currencyInst.Code]; ok && check {
 		// Has Key and already had setup
 		ce.SetStatusKey(api_error.TooManyOffer)
 		return
 	}
+
 	profile.ActiveOfferStores[currencyInst.Code] = true
 	offerStore.ItemFlags = profile.ActiveOfferStores
 	offerStore.UID = profile.UserId
