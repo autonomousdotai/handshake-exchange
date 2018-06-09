@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"github.com/ninjadotorg/handshake-exchange/api_error"
 	"github.com/ninjadotorg/handshake-exchange/bean"
 	"github.com/ninjadotorg/handshake-exchange/common"
@@ -22,12 +23,6 @@ func (s OfferStoreService) CreateOfferStore(userId string, offerSetup bean.Offer
 	offerBody := offerSetup.Offer
 	offerItemBody := offerSetup.Item
 
-	currencyInst := bean.CurrencyMapping[offerItemBody.Currency]
-	if currencyInst.Code == "" {
-		ce.SetStatusKey(api_error.UnsupportedCurrency)
-		return
-	}
-
 	// Check offer store exists
 	offerStoreTO := s.dao.GetOfferStore(userId)
 	if offerStoreTO.Found {
@@ -40,38 +35,8 @@ func (s OfferStoreService) CreateOfferStore(userId string, offerSetup bean.Offer
 		return
 	}
 	profile := profileTO.Object.(bean.Profile)
-	if check, ok := profile.ActiveOfferStores[currencyInst.Code]; ok && check {
-		// Has Key and already had setup
-		ce.SetStatusKey(api_error.TooManyOffer)
-		return
-	}
-	profile.ActiveOfferStores[currencyInst.Code] = true
-	offerBody.ItemFlags = profile.ActiveOfferStores
-	offerBody.UID = userId
 
-	s.checkOfferStoreItemAmount(&offerItemBody, &ce)
-	if ce.HasError() {
-		return
-	}
-
-	s.generateSystemAddress(offerBody, &offerItemBody, &ce)
-
-	sellAmount, _ := decimal.NewFromString(offerItemBody.SellAmount)
-	if offerItemBody.Currency == bean.BTC.Code && sellAmount.Equal(common.Zero) {
-		// Only the case that shop doesn't sell BTC, so don't need to wait to active
-		offerItemBody.Status = bean.OFFER_STORE_STATUS_ACTIVE
-	} else {
-		offerItemBody.Status = bean.OFFER_STORE_STATUS_CREATED
-	}
-
-	minAmount := bean.MIN_ETH
-	if offerItemBody.Currency == bean.BTC.Code {
-		minAmount = bean.MIN_BTC
-	}
-	offerItemBody.BuyBalance = offerItemBody.BuyAmount
-	offerItemBody.BuyAmountMin = minAmount.String()
-	offerItemBody.SellBalance = "0"
-	offerItemBody.SellAmountMin = minAmount.String()
+	s.prepareOfferStore(&offerBody, &offerItemBody, &profile, &ce)
 
 	offerNew, err := s.dao.AddOfferStore(offerBody, offerItemBody, profile)
 	if ce.SetError(api_error.AddDataFailed, err) {
@@ -88,11 +53,124 @@ func (s OfferStoreService) CreateOfferStore(userId string, offerSetup bean.Offer
 
 }
 
-func (s OfferStoreService) AddOfferStoreItem(userId string, offerStoreId string, offerItem bean.OfferStoreItem) (offer bean.OfferStoreItem, ce SimpleContextError) {
+func (s OfferStoreService) AddOfferStoreItem(userId string, offerStoreId string, offerItem bean.OfferStoreItem) (offerStoreItem bean.OfferStoreItem, ce SimpleContextError) {
+	// Check offer store exists
+	offerStoreTO := s.dao.GetOfferStore(userId)
+	if !offerStoreTO.Found {
+		ce.SetStatusKey(api_error.OfferStoreNotExist)
+		return
+	}
+	offerStore := offerStoreTO.Object.(bean.OfferStore)
+
+	profileTO := s.userDao.GetProfile(userId)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, profileTO) {
+		return
+	}
+	profile := profileTO.Object.(bean.Profile)
+
+	s.prepareOfferStore(&offerStore, &offerItem, &profile, &ce)
+
+	_, err := s.dao.AddOfferStoreItem(offerStore, offerItem, profile)
+	if ce.SetError(api_error.AddDataFailed, err) {
+		return
+	}
+
+	notification.SendOfferStoreNotification(offerStore)
+
+	offerStoreItem = offerItem
+
 	return
 }
 
 func (s OfferStoreService) RemoveOfferStoreItem(userId string, offerStoreId string, currency string) (ce SimpleContextError) {
+	// Check offer store exists
+	offerStoreTO := s.dao.GetOfferStore(userId)
+	if !offerStoreTO.Found {
+		ce.SetStatusKey(api_error.OfferStoreNotExist)
+		return
+	}
+	offerStore := offerStoreTO.Object.(bean.OfferStore)
+
+	// Check offer item exists
+	offerStoreItemTO := s.dao.GetOfferStoreItem(userId, currency)
+	if !offerStoreItemTO.Found {
+		ce.SetStatusKey(api_error.OfferStoreNotExist)
+		return
+	}
+	offerStoreItem := offerStoreItemTO.Object.(bean.OfferStoreItem)
+
+	profileTO := s.userDao.GetProfile(userId)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, profileTO) {
+		return
+	}
+
+	if offerStoreItem.Status != bean.OFFER_STORE_ITEM_STATUS_ACTIVE && offerStoreItem.Status != bean.OFFER_STORE_ITEM_STATUS_CLOSING {
+		ce.SetStatusKey(api_error.OfferStatusInvalid)
+		return
+	}
+
+	// Only BTC, refund the crypto
+	hasSell := false
+	sellAmount, _ := decimal.NewFromString(offerStoreItem.SellAmount)
+	if sellAmount.GreaterThan(common.Zero) {
+		hasSell = true
+	}
+	if offerStoreItem.Currency == bean.BTC.Code {
+		if hasSell {
+			description := fmt.Sprintf("Refund to userId %s due to close the offer", userId)
+			response := s.sendTransaction(offerStoreItem.UserAddress,
+				offerStoreItem.SellBalance, offerStoreItem.Currency, description, offerStore.UID, offerStoreItem.WalletProvider, &ce)
+			s.miscDao.AddCryptoTransferLog(bean.CryptoTransferLog{
+				Provider:         offerStoreItem.WalletProvider,
+				ProviderResponse: response,
+				DataType:         bean.OFFER_ADDRESS_MAP_OFFER_STORE,
+				DataRef:          dao.GetOfferStoreItemPath(offerStoreId),
+				UID:              userId,
+			})
+		}
+	}
+
+	allFalse := true
+	for _, v := range offerStore.ItemFlags {
+		if v == true {
+			allFalse = false
+			break
+		}
+	}
+	waitOnChain := offerStoreItem.Currency == bean.ETH.Code && hasSell
+	if allFalse {
+		if waitOnChain {
+			// Need to wait for OnChain
+			offerStore.Status = bean.OFFER_STORE_STATUS_CLOSING
+		} else {
+			offerStore.Status = bean.OFFER_STORE_STATUS_CLOSED
+		}
+	}
+
+	if waitOnChain {
+		// Only update
+		offerStoreItem.Status = bean.OFFER_STORE_ITEM_STATUS_CLOSING
+		offerStore.ItemSnapshots[offerStoreItem.Currency] = offerStoreItem
+
+		err := s.dao.UpdateOfferStoreItemClosing(offerStore, offerStoreItem)
+		if ce.SetError(api_error.UpdateDataFailed, err) {
+			return
+		}
+	} else {
+		profile := profileTO.Object.(bean.Profile)
+		profile.ActiveOfferStores[offerStoreItem.Currency] = false
+		offerStore.ItemFlags = profile.ActiveOfferStores
+
+		// Really remove the item
+		offerStoreItem.Status = bean.OFFER_STORE_ITEM_STATUS_CLOSED
+		offerStore.ItemSnapshots[offerStoreItem.Currency] = offerStoreItem
+
+		err := s.dao.RemoveOfferStoreItem(offerStore, offerStoreItem, profile)
+		if ce.SetError(api_error.DeleteDataFailed, err) {
+			return
+		}
+	}
+
 	return
 }
 
@@ -180,6 +258,52 @@ func (s OfferStoreService) CompleteOnChainOfferStoreShake(offerStoreId string, o
 	return s.UpdateOnChainOfferStoreShake(offerStoreId, offerStoreShakeId, bean.OFFER_STATUS_COMPLETING, bean.OFFER_STATUS_COMPLETED)
 }
 
+func (s OfferStoreService) prepareOfferStore(offerStore *bean.OfferStore, offerStoreItem *bean.OfferStoreItem, profile *bean.Profile, ce *SimpleContextError) {
+	currencyInst := bean.CurrencyMapping[offerStoreItem.Currency]
+	if currencyInst.Code == "" {
+		ce.SetStatusKey(api_error.UnsupportedCurrency)
+		return
+	}
+
+	if check, ok := profile.ActiveOfferStores[currencyInst.Code]; ok && check {
+		// Has Key and already had setup
+		ce.SetStatusKey(api_error.TooManyOffer)
+		return
+	}
+	profile.ActiveOfferStores[currencyInst.Code] = true
+	offerStore.ItemFlags = profile.ActiveOfferStores
+	offerStore.UID = profile.UserId
+
+	s.checkOfferStoreItemAmount(offerStoreItem, ce)
+	if ce.HasError() {
+		return
+	}
+
+	s.generateSystemAddress(*offerStore, offerStoreItem, ce)
+
+	sellAmount, _ := decimal.NewFromString(offerStoreItem.SellAmount)
+	if offerStoreItem.Currency == bean.BTC.Code && sellAmount.Equal(common.Zero) {
+		// Only the case that shop doesn't sell BTC, so don't need to wait to active
+		offerStoreItem.Status = bean.OFFER_STORE_STATUS_ACTIVE
+	} else {
+		offerStoreItem.Status = bean.OFFER_STORE_STATUS_CREATED
+	}
+
+	minAmount := bean.MIN_ETH
+	if offerStoreItem.Currency == bean.BTC.Code {
+		minAmount = bean.MIN_BTC
+	}
+	offerStoreItem.BuyBalance = offerStoreItem.BuyAmount
+	offerStoreItem.BuyAmountMin = minAmount.String()
+	offerStoreItem.SellBalance = "0"
+	offerStoreItem.SellAmountMin = minAmount.String()
+
+	if offerStore.ItemSnapshots == nil {
+		offerStore.ItemSnapshots = make(map[string]bean.OfferStoreItem)
+	}
+	offerStore.ItemSnapshots[offerStoreItem.Currency] = *offerStoreItem
+}
+
 func (s OfferStoreService) checkOfferStoreItemAmount(offerStoreItem *bean.OfferStoreItem, ce *SimpleContextError) {
 	// Minimum amount
 	sellAmount, errFmt := decimal.NewFromString(offerStoreItem.SellAmount)
@@ -245,7 +369,7 @@ func (s OfferStoreService) generateSystemAddress(offerStore bean.OfferStore, off
 			return
 		}
 		systemConfig := systemConfigTO.Object.(bean.SystemConfig)
-
+		offer.WalletProvider = systemConfig.Value
 		if systemConfig.Value == bean.BTC_WALLET_COINBASE {
 			addressResponse, err := coinbase_service.GenerateAddress(offer.Currency)
 			if err != nil {
@@ -253,7 +377,7 @@ func (s OfferStoreService) generateSystemAddress(offerStore bean.OfferStore, off
 				return
 			}
 			offer.SystemAddress = addressResponse.Data.Address
-			offer.WalletProvider = systemConfig.Value
+
 		} else if systemConfig.Value == bean.BTC_WALLET_BLOCKCHAINIO {
 			client := blockchainio_service.BlockChainIOClient{}
 			address, err := client.GenerateAddress(offerStore.Id)
@@ -262,9 +386,35 @@ func (s OfferStoreService) generateSystemAddress(offerStore bean.OfferStore, off
 				return
 			}
 			offer.SystemAddress = address
-			offer.WalletProvider = systemConfig.Value
 		} else {
 			ce.SetStatusKey(api_error.InvalidConfig)
 		}
 	}
+}
+
+func (s OfferStoreService) sendTransaction(address string, amountStr string, currency string, description string, withdrawId string,
+	walletProvider string, ce *SimpleContextError) interface{} {
+	// Only BTC
+	if currency == bean.BTC.Code {
+
+		if walletProvider == bean.BTC_WALLET_COINBASE {
+			response, err := coinbase_service.SendTransaction(address, amountStr, currency, description, withdrawId)
+			if ce.SetError(api_error.ExternalApiFailed, err) {
+				return ""
+			}
+			return response
+		} else if walletProvider == bean.BTC_WALLET_BLOCKCHAINIO {
+			client := blockchainio_service.BlockChainIOClient{}
+			amount, _ := decimal.NewFromString(amountStr)
+			hashTx, err := client.SendTransaction(address, amount)
+			if ce.SetError(api_error.ExternalApiFailed, err) {
+				return ""
+			}
+			return hashTx
+		} else {
+			ce.SetStatusKey(api_error.InvalidConfig)
+		}
+	}
+
+	return ""
 }

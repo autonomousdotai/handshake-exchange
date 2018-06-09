@@ -63,7 +63,13 @@ func (dao OfferStoreDao) UpdateOfferStore(offer bean.OfferStore, updateData map[
 	return err
 }
 
-func (dao OfferStoreDao) AddOfferStoreItem(profile bean.Profile, offer bean.OfferStore, item bean.OfferStoreItem) (bean.OfferStoreItem, error) {
+func (dao OfferStoreDao) GetOfferStoreItem(userId string, currency string) (t TransferObject) {
+	GetObject(GetOfferStoreItemItemPath(userId, currency), &t, snapshotToOfferStoreItem)
+
+	return
+}
+
+func (dao OfferStoreDao) AddOfferStoreItem(offer bean.OfferStore, item bean.OfferStoreItem, profile bean.Profile) (bean.OfferStoreItem, error) {
 	dbClient := firebase_service.FirestoreClient
 
 	profileDocRef := dbClient.Doc(GetUserPath(offer.UID))
@@ -92,7 +98,7 @@ func (dao OfferStoreDao) AddOfferStoreItem(profile bean.Profile, offer bean.Offe
 	return item, err
 }
 
-func (dao OfferStoreDao) RemoveOfferStoreItem(profile bean.Profile, offer bean.OfferStore, item bean.OfferStoreItem) error {
+func (dao OfferStoreDao) RemoveOfferStoreItem(offer bean.OfferStore, item bean.OfferStoreItem, profile bean.Profile) error {
 	dbClient := firebase_service.FirestoreClient
 
 	profileDocRef := dbClient.Doc(GetUserPath(offer.UID))
@@ -123,6 +129,19 @@ func (dao OfferDao) UpdateOfferStoreItemActive(offer bean.OfferStore, offerItem 
 		batch.Delete(addressMapDocRef)
 	}
 
+	_, err := batch.Commit(context.Background())
+
+	return err
+}
+
+func (dao OfferStoreDao) UpdateOfferStoreItemClosing(offer bean.OfferStore, offerItem bean.OfferStoreItem) error {
+	dbClient := firebase_service.FirestoreClient
+	batch := dbClient.Batch()
+	docRef := dbClient.Doc(GetOfferStoreItemPath(offer.Id))
+	docItemRef := dbClient.Doc(GetOfferStoreItemItemPath(offer.Id, offerItem.Currency))
+
+	batch.Set(docRef, offer.GetUpdateOfferStoreChangeItem(), firestore.MergeAll)
+	batch.Set(docItemRef, offerItem.GetUpdateOfferStoreItemClosing(), firestore.MergeAll)
 	_, err := batch.Commit(context.Background())
 
 	return err
@@ -253,6 +272,12 @@ func GetOfferStoreShakeItemPath(offerStoreId string, id string) string {
 
 func snapshotToOfferStore(snapshot *firestore.DocumentSnapshot) interface{} {
 	var obj bean.OfferStore
+	snapshot.DataTo(&obj)
+	return obj
+}
+
+func snapshotToOfferStoreItem(snapshot *firestore.DocumentSnapshot) interface{} {
+	var obj bean.OfferStoreItem
 	snapshot.DataTo(&obj)
 	return obj
 }

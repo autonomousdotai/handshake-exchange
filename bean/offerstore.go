@@ -13,6 +13,8 @@ const OFFER_STORE_STATUS_CLOSED = "closed"
 
 const OFFER_STORE_ITEM_STATUS_CREATED = "created"
 const OFFER_STORE_ITEM_STATUS_ACTIVE = "active"
+const OFFER_STORE_ITEM_STATUS_CLOSING = "closing"
+const OFFER_STORE_ITEM_STATUS_CLOSED = "closed"
 
 type OfferStore struct {
 	Id               string                    `json:"id" firestore:"id"`
@@ -76,8 +78,9 @@ func (offer OfferStore) GetAddOfferStore() map[string]interface{} {
 
 func (offer OfferStore) GetUpdateOfferStoreChangeItem() map[string]interface{} {
 	return map[string]interface{}{
-		"item_flags": offer.ItemFlags,
-		"updated_at": firestore.ServerTimestamp,
+		"item_flags":     offer.ItemFlags,
+		"item_snapshots": offer.ItemSnapshots,
+		"updated_at":     firestore.ServerTimestamp,
 	}
 }
 
@@ -111,12 +114,20 @@ func (item OfferStoreItem) GetAddOfferStoreItem() map[string]interface{} {
 		"system_address":  item.SystemAddress,
 		"user_address":    item.UserAddress,
 		"reward_address":  item.RewardAddress,
+		"wallet_provider": item.WalletProvider,
 	}
 }
 
 func (item OfferStoreItem) GetUpdateOfferStoreItemActive() map[string]interface{} {
 	return map[string]interface{}{
-		"status":     OFFER_STATUS_ACTIVE,
+		"status":     OFFER_STORE_ITEM_STATUS_ACTIVE,
+		"updated_at": firestore.ServerTimestamp,
+	}
+}
+
+func (item OfferStoreItem) GetUpdateOfferStoreItemClosing() map[string]interface{} {
+	return map[string]interface{}{
+		"status":     OFFER_STORE_ITEM_STATUS_CLOSING,
 		"updated_at": firestore.ServerTimestamp,
 	}
 }

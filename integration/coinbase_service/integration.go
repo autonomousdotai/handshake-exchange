@@ -14,6 +14,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	//"github.com/duyhtq/payment-gw-service/response"
 )
 
 type CoinbaseClient struct {
@@ -147,20 +148,23 @@ func SendTransaction(address string, amount string, currency string, description
 	client.Initialize()
 
 	var response bean.CoinbaseTransactionResponse
+	//
+	//resp, err := client.Post("/v2/accounts/"+client.GetAccount(currency)+"/transactions", bean.CoinbaseSendMoneyRequest{
+	//	To:          address,
+	//	Amount:      amount,
+	//	Currency:    currency,
+	//	Description: description,
+	//	Idem:        withdrawId,
+	//}.GetRequestBody())
+	//
+	//if err == nil {
+	//	resp.JSON(&response)
+	//}
 
-	resp, err := client.Post("/v2/accounts/"+client.GetAccount(currency)+"/transactions", bean.CoinbaseSendMoneyRequest{
-		To:          address,
-		Amount:      amount,
-		Currency:    currency,
-		Description: description,
-		Idem:        withdrawId,
-	}.GetRequestBody())
+	//return response.Data, err
 
-	if err == nil {
-		resp.JSON(&response)
-	}
-
-	return response.Data, err
+	//TODO Remove to go to production
+	return response.Data, nil
 }
 
 func GetNotification(resource string) (bean.CoinbaseNotification, error) {

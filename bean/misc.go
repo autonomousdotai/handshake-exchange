@@ -1,5 +1,7 @@
 package bean
 
+import "cloud.google.com/go/firestore"
+
 type CurrencyRate struct {
 	From string  `json:"from" firestore:"from"`
 	To   string  `json:"to" firestore:"to"`
@@ -64,4 +66,27 @@ type CCLimit struct {
 type SystemConfig struct {
 	Key   string `json:"key" firestore:"key"`
 	Value string `json:"value" firestore:"value"`
+}
+
+type CryptoTransferLog struct {
+	Id               string      `json:"id" firestore:"id"`
+	Provider         string      `json:"provider" firestore:"provider"`
+	ProviderResponse interface{} `json:"provider_response" firestore:"provider_response"`
+	ExternalId       string      `json:"external_id" firestore:"external_id"`
+	DataType         string      `json:"data_type" firestore:"data_type"`
+	DataRef          string      `json:"data_ref" firestore:"data_ref"`
+	UID              string      `json:"uid" firestore:"uid"`
+}
+
+func (log CryptoTransferLog) GetAddLog() map[string]interface{} {
+	return map[string]interface{}{
+		"id":                log.Id,
+		"provider":          log.Provider,
+		"provider_response": log.ProviderResponse,
+		"external_id":       log.ExternalId,
+		"data_type":         log.DataType,
+		"data_ref":          log.DataRef,
+		"uid":               log.UID,
+		"created_at":        firestore.ServerTimestamp,
+	}
 }

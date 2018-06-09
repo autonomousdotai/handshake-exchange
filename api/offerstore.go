@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/ninjadotorg/handshake-exchange/api_error"
 	"github.com/ninjadotorg/handshake-exchange/bean"
 	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/service"
@@ -54,18 +55,18 @@ func (api OfferStoreApi) AddOfferStoreItem(context *gin.Context) {
 func (api OfferStoreApi) RemoveOfferStoreItem(context *gin.Context) {
 	userId := common.GetUserId(context)
 	offerId := context.Param("offerId")
+	currency := context.DefaultQuery("currency", "")
 
-	var body bean.OfferStoreItem
-	if common.ValidateBody(context, &body) != nil {
-		return
+	if currency == "" {
+		api_error.AbortWithValidateErrorSimple(context, api_error.InvalidQueryParam)
 	}
 
-	offerItem, ce := service.OfferStoreServiceInst.AddOfferStoreItem(userId, offerId, body)
+	ce := service.OfferStoreServiceInst.RemoveOfferStoreItem(userId, offerId, currency)
 	if ce.ContextValidate(context) {
 		return
 	}
 
-	bean.SuccessResponse(context, offerItem)
+	bean.SuccessResponse(context, true)
 }
 
 func (api OfferStoreApi) CreateOfferStoreShake(context *gin.Context) {
