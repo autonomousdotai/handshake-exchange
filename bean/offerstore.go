@@ -145,6 +145,8 @@ type OfferStoreSetup struct {
 	Offer OfferStore     `json:"offer"`
 }
 
+const OFFER_STORE_SHAKE_STATUS_PRE_SHAKING = "pre_shaking"
+const OFFER_STORE_SHAKE_STATUS_PRE_SHAKE = "pre_shake"
 const OFFER_STORE_SHAKE_STATUS_SHAKING = "shaking"
 const OFFER_STORE_SHAKE_STATUS_SHAKE = "shake"
 const OFFER_STORE_SHAKE_STATUS_REJECTING = "rejecting"
@@ -160,6 +162,7 @@ type OfferStoreShake struct {
 	Username         string      `json:"username" firestore:"username"`
 	Email            string      `json:"email" firestore:"email"`
 	Language         string      `json:"language" firestore:"language"`
+	FCM              string      `json:"fcm" firestore:"fcm"`
 	ContactPhone     string      `json:"contact_phone" firestore:"contact_phone"`
 	Currency         string      `json:"currency" firestore:"currency"`
 	Amount           string      `json:"amount" firestore:"amount" validate:"required"`
@@ -174,8 +177,12 @@ type OfferStoreShake struct {
 	Reward           string      `json:"-" firestore:"reward"`
 	RewardPercentage string      `json:"-" firestore:"reward_percentage"`
 	ActionUID        string      `json:"-" firestore:"action_uid"`
+	WalletProvider   string      `json:"-" firestore:"wallet_provider"`
 	Provider         string      `json:"-" firestore:"provider"`
 	ProviderData     interface{} `json:"-" firestore:"provider_data"`
+	ChainId          int64       `json:"-" firestore:"chain_id"`
+	CreatedAt        time.Time   `json:"created_at" firestore:"created_at"`
+	UpdatedAt        time.Time   `json:"updated_at" firestore:"updated_at"`
 }
 
 func (offer OfferStoreShake) GetAddOfferStoreShake() map[string]interface{} {
@@ -194,6 +201,7 @@ func (offer OfferStoreShake) GetAddOfferStoreShake() map[string]interface{} {
 		"fiat_currency":     offer.FiatCurrency,
 		"fiat_amount":       offer.FiatAmount,
 		"price":             offer.Price,
+		"wallet_provider":   offer.WalletProvider,
 		"system_address":    offer.SystemAddress,
 		"user_address":      offer.UserAddress,
 		"fee":               offer.Fee,

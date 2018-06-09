@@ -83,13 +83,20 @@ func (api OfferStoreApi) RemoveOfferStoreItem(context *gin.Context) {
 
 func (api OfferStoreApi) CreateOfferStoreShake(context *gin.Context) {
 	userId := common.GetUserId(context)
+	chainId := common.GetChainId(context)
 	offerId := context.Param("offerId")
+	language := common.GetLanguage(context)
+	fcm := common.GetFCM(context)
 
 	var body bean.OfferStoreShake
 	if common.ValidateBody(context, &body) != nil {
 		return
 	}
 
+	id, _ := strconv.Atoi(chainId)
+	body.ChainId = int64(id)
+	body.Language = language
+	body.FCM = fcm
 	offerShake, ce := service.OfferStoreServiceInst.CreateOfferStoreShake(userId, offerId, body)
 	if ce.ContextValidate(context) {
 		return

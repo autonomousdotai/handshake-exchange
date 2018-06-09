@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"github.com/go-errors/errors"
 	"github.com/ninjadotorg/handshake-exchange/api_error"
 	"github.com/ninjadotorg/handshake-exchange/bean"
 	"github.com/ninjadotorg/handshake-exchange/common"
@@ -205,6 +206,69 @@ func (s OfferStoreService) RemoveOfferStoreItem(userId string, offerStoreId stri
 }
 
 func (s OfferStoreService) CreateOfferStoreShake(userId string, offerStoreId string, offerShakeBody bean.OfferStoreShake) (offerShake bean.OfferStoreShake, ce SimpleContextError) {
+	profileTO := s.userDao.GetProfile(userId)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, profileTO) {
+		return
+	}
+	profile := profileTO.Object.(bean.Profile)
+
+	offerStoreTO := s.dao.GetOfferStore(offerStoreId)
+	if !offerStoreTO.Found {
+		ce.SetStatusKey(api_error.OfferStoreNotExist)
+		return
+	}
+	offerStore := offerStoreTO.Object.(bean.OfferStore)
+	if profile.UserId == offerStore.UID {
+		ce.SetStatusKey(api_error.OfferPayMyself)
+		return
+	}
+
+	// Check offer item exists
+	offerStoreItemTO := s.dao.GetOfferStoreItem(offerStoreId, offerShakeBody.Currency)
+	if !offerStoreItemTO.Found {
+		ce.SetStatusKey(api_error.OfferStoreNotExist)
+		return
+	}
+	// Make sure shake on the valid item
+	offerStoreItem := offerStoreItemTO.Object.(bean.OfferStoreItem)
+	if offerStoreItem.Status != bean.OFFER_STORE_ITEM_STATUS_ACTIVE {
+		ce.SetStatusKey(api_error.OfferStatusInvalid)
+	}
+
+	offerShakeBody.UID = userId
+	offerShakeBody.FiatCurrency = offerStore.FiatCurrency
+	s.setupOfferShakePrice(&offerShakeBody, &ce)
+	s.setupOfferShakeAmount(&offerShakeBody, &ce)
+	if ce.HasError() {
+		return
+	}
+
+	if offerShakeBody.Currency == bean.ETH.Code {
+		// Only ETH
+		offerShakeBody.Status = bean.OFFER_STORE_SHAKE_STATUS_PRE_SHAKING
+	} else {
+		// Only BTC
+		if offerShakeBody.Type == bean.OFFER_TYPE_SELL {
+			offerShakeBody.Status = bean.OFFER_STORE_SHAKE_STATUS_SHAKE
+		} else {
+			offerShakeBody.Status = bean.OFFER_STORE_SHAKE_STATUS_SHAKING
+			s.generateSystemAddressForShake(offerStore, &offerShakeBody, &ce)
+			if ce.HasError() {
+				return
+			}
+		}
+	}
+
+	s.dao.AddOfferStoreShake(offerStore, offerShakeBody)
+	if ce.HasError() {
+		return
+	}
+
+	offerShake = offerShakeBody
+	offerShake.CreatedAt = time.Now().UTC()
+
+	notification.SendOfferStoreShakeNotification(offerShake, offerStore)
+
 	return
 }
 
@@ -286,6 +350,42 @@ func (s OfferStoreService) RejectOnChainOfferStoreShake(offerStoreId string, off
 
 func (s OfferStoreService) CompleteOnChainOfferStoreShake(offerStoreId string, offerStoreShakeId string) (bean.OfferStoreShake, SimpleContextError) {
 	return s.UpdateOnChainOfferStoreShake(offerStoreId, offerStoreShakeId, bean.OFFER_STATUS_COMPLETING, bean.OFFER_STATUS_COMPLETED)
+}
+
+func (s OfferStoreService) GetQuote(quoteType string, amountStr string, currency string, fiatCurrency string) (price decimal.Decimal, fiatPrice decimal.Decimal,
+	fiatAmount decimal.Decimal, err error) {
+	amount, numberErr := decimal.NewFromString(amountStr)
+	to := dao.MiscDaoInst.GetCurrencyRateFromCache(bean.USD.Code, fiatCurrency)
+	if numberErr != nil {
+		err = numberErr
+	}
+	rate := to.Object.(bean.CurrencyRate)
+	rateNumber := decimal.NewFromFloat(rate.Rate)
+	tmpAmount := amount.Mul(rateNumber)
+
+	if quoteType == "buy" {
+		resp, errResp := coinbase_service.GetBuyPrice(currency)
+		err = errResp
+		if err != nil {
+			return
+		}
+		price, _ = decimal.NewFromString(resp.Amount)
+		fiatPrice = price.Mul(rateNumber)
+		fiatAmount = tmpAmount.Mul(price)
+	} else if quoteType == "sell" {
+		resp, errResp := coinbase_service.GetSellPrice(currency)
+		err = errResp
+		if err != nil {
+			return
+		}
+		price, _ := decimal.NewFromString(resp.Amount)
+		fiatPrice = price.Mul(rateNumber)
+		fiatAmount = tmpAmount.Mul(price)
+	} else {
+		err = errors.New(api_error.InvalidQueryParam)
+	}
+
+	return
 }
 
 func (s OfferStoreService) prepareOfferStore(offerStore *bean.OfferStore, offerStoreItem *bean.OfferStoreItem, profile *bean.Profile, ce *SimpleContextError) {
@@ -426,6 +526,38 @@ func (s OfferStoreService) generateSystemAddress(offerStore bean.OfferStore, off
 	}
 }
 
+// TODO remove func duplicate
+func (s OfferStoreService) generateSystemAddressForShake(offerStore bean.OfferStore, offer *bean.OfferStoreShake, ce *SimpleContextError) {
+	// Only BTC need to generate address to transfer in
+	if offer.Currency == bean.BTC.Code {
+		systemConfigTO := s.miscDao.GetSystemConfigFromCache(bean.CONFIG_BTC_WALLET)
+		if ce.FeedDaoTransfer(api_error.GetDataFailed, systemConfigTO) {
+			return
+		}
+		systemConfig := systemConfigTO.Object.(bean.SystemConfig)
+		offer.WalletProvider = systemConfig.Value
+		if systemConfig.Value == bean.BTC_WALLET_COINBASE {
+			addressResponse, err := coinbase_service.GenerateAddress(offer.Currency)
+			if err != nil {
+				ce.SetError(api_error.ExternalApiFailed, err)
+				return
+			}
+			offer.SystemAddress = addressResponse.Data.Address
+
+		} else if systemConfig.Value == bean.BTC_WALLET_BLOCKCHAINIO {
+			client := blockchainio_service.BlockChainIOClient{}
+			address, err := client.GenerateAddress(offerStore.Id)
+			if err != nil {
+				ce.SetError(api_error.ExternalApiFailed, err)
+				return
+			}
+			offer.SystemAddress = address
+		} else {
+			ce.SetStatusKey(api_error.InvalidConfig)
+		}
+	}
+}
+
 func (s OfferStoreService) sendTransaction(address string, amountStr string, currency string, description string, withdrawId string,
 	walletProvider string, ce *SimpleContextError) interface{} {
 	// Only BTC
@@ -451,4 +583,43 @@ func (s OfferStoreService) sendTransaction(address string, amountStr string, cur
 	}
 
 	return ""
+}
+
+func (s OfferStoreService) setupOfferShakePrice(offer *bean.OfferStoreShake, ce *SimpleContextError) {
+	_, fiatPrice, fiatAmount, err := s.GetQuote(offer.Type, offer.Amount, offer.Currency, offer.FiatCurrency)
+	if ce.SetError(api_error.GetDataFailed, err) {
+		return
+	}
+
+	offer.Price = fiatPrice.Round(2).String()
+	offer.FiatAmount = fiatAmount.Round(2).String()
+}
+
+func (s OfferStoreService) setupOfferShakeAmount(offer *bean.OfferStoreShake, ce *SimpleContextError) {
+	exchFeeTO := s.miscDao.GetSystemFeeFromCache(bean.FEE_KEY_EXCHANGE)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, exchFeeTO) {
+		return
+	}
+	exchFeeObj := exchFeeTO.Object.(bean.SystemFee)
+	exchCommTO := s.miscDao.GetSystemFeeFromCache(bean.FEE_KEY_EXCHANGE_COMMISSION)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, exchCommTO) {
+		return
+	}
+	exchCommObj := exchCommTO.Object.(bean.SystemFee)
+
+	exchFee := decimal.NewFromFloat(exchFeeObj.Value).Round(6)
+	exchComm := decimal.NewFromFloat(exchCommObj.Value).Round(6)
+	amount, _ := decimal.NewFromString(offer.Amount)
+	fee := amount.Mul(exchFee)
+	reward := amount.Mul(exchComm)
+
+	offer.FeePercentage = exchFee.String()
+	offer.RewardPercentage = exchComm.String()
+	offer.Fee = fee.String()
+	offer.Reward = reward.String()
+	if offer.Type == bean.OFFER_TYPE_SELL {
+		offer.TotalAmount = amount.Sub(fee.Add(reward)).String()
+	} else if offer.Type == bean.OFFER_TYPE_BUY {
+		offer.TotalAmount = amount.Add(fee.Add(reward)).String()
+	}
 }

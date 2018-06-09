@@ -182,3 +182,21 @@ func SendOfferStoreToSolr(offer bean.OfferStore, c chan error) {
 	_, err := solr_service.UpdateObject(bean.NewSolrFromOfferStore(offer))
 	c <- err
 }
+
+func SendOfferStoreShakeNotification(offer bean.OfferStoreShake, offerStore bean.OfferStore) []error {
+	c := make(chan error)
+	// go SendOfferToEmail(offer, c)
+	// go SendOfferToFirebase(offer, c)
+	go SendOfferStoreShakeToSolr(offer, offerStore, c)
+	// go SendOfferToFCM(offer, c)
+
+	// return []error{<-c, <-c, <-c, <-c}
+	return []error{<-c}
+	// return nil
+}
+
+func SendOfferStoreShakeToSolr(offer bean.OfferStoreShake, offerStore bean.OfferStore, c chan error) {
+	// Always update
+	_, err := solr_service.UpdateObject(bean.NewSolrFromOfferStoreShake(offer, offerStore))
+	c <- err
+}
