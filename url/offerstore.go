@@ -15,6 +15,9 @@ func (url OfferStoreUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	group.POST("", func(context *gin.Context) {
 		offerApi.CreateOfferStore(context)
 	})
+	group.GET("/:offerId", func(context *gin.Context) {
+		offerApi.GetOfferStore(context)
+	})
 	group.POST("/:offerId", func(context *gin.Context) {
 		offerApi.AddOfferStoreItem(context)
 	})

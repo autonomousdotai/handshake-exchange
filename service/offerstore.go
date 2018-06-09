@@ -50,17 +50,43 @@ func (s OfferStoreService) CreateOfferStore(userId string, offerSetup bean.Offer
 	offer.Item = offerItemBody
 
 	return
-
 }
 
-func (s OfferStoreService) AddOfferStoreItem(userId string, offerStoreId string, offerItem bean.OfferStoreItem) (offerStoreItem bean.OfferStoreItem, ce SimpleContextError) {
+func (s OfferStoreService) GetOfferStore(userId string, offerId string) (offer bean.OfferStore, ce SimpleContextError) {
+	profileTO := s.userDao.GetProfile(userId)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, profileTO) {
+		return
+	}
+	offerTO := s.dao.GetOfferStore(offerId)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, profileTO) {
+		return
+	}
+	offer = offerTO.Object.(bean.OfferStore)
+	// price, _ := decimal.NewFromString(offer.Price)
+	// percentage, _ := decimal.NewFromString(offer.Percentage)
+
+	//price, fiatPrice, fiatAmount, err := s.GetQuote(offer.Type, offer.Amount, offer.Currency, offer.FiatCurrency)
+	//if offer.Type == bean.OFFER_TYPE_SELL && price.Equal(common.Zero) {
+	//	if ce.SetError(api_error.GetDataFailed, err) {
+	//		return
+	//	}
+	//	markup := fiatAmount.Mul(percentage)
+	//	fiatAmount = fiatAmount.Add(markup)
+	//}
+	//offer.Price = fiatPrice.Round(2).String()
+	//offer.FiatAmount = fiatAmount.Round(2).String()
+
+	return
+}
+
+func (s OfferStoreService) AddOfferStoreItem(userId string, offerStoreId string, offerItem bean.OfferStoreItem) (offerStore bean.OfferStore, ce SimpleContextError) {
 	// Check offer store exists
 	offerStoreTO := s.dao.GetOfferStore(userId)
 	if !offerStoreTO.Found {
 		ce.SetStatusKey(api_error.OfferStoreNotExist)
 		return
 	}
-	offerStore := offerStoreTO.Object.(bean.OfferStore)
+	offerStore = offerStoreTO.Object.(bean.OfferStore)
 
 	profileTO := s.userDao.GetProfile(userId)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, profileTO) {
@@ -76,8 +102,6 @@ func (s OfferStoreService) AddOfferStoreItem(userId string, offerStoreId string,
 	}
 
 	notification.SendOfferStoreNotification(offerStore)
-
-	offerStoreItem = offerItem
 
 	return
 }
