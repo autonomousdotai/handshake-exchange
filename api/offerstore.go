@@ -32,7 +32,7 @@ func (api OfferStoreApi) CreateOfferStore(context *gin.Context) {
 		return
 	}
 
-	bean.SuccessResponse(context, offer)
+	bean.SuccessResponse(context, offer.Offer)
 }
 
 func (api OfferStoreApi) GetOfferStore(context *gin.Context) {
