@@ -259,12 +259,12 @@ func (s OfferStoreService) CreateOfferStoreShake(userId string, offerStoreId str
 		}
 	}
 
-	s.dao.AddOfferStoreShake(offerStore, offerShakeBody)
-	if ce.HasError() {
+	var err error
+	offerShake, err = s.dao.AddOfferStoreShake(offerStore, offerShakeBody)
+	if ce.SetError(api_error.AddDataFailed, err) {
 		return
 	}
 
-	offerShake = offerShakeBody
 	offerShake.CreatedAt = time.Now().UTC()
 
 	notification.SendOfferStoreShakeNotification(offerShake, offerStore)
