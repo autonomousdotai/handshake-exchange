@@ -345,8 +345,8 @@ func (s OfferStoreService) RejectOfferStoreShake(userId string, offerStoreId str
 		}
 	}
 
-	transCount := s.getFailedTransCount(offerStore, offerShake, userId)
-	err := s.dao.UpdateOfferStoreShakeReject(offerStore, offerShake, profile, transCount)
+	transCount := s.getFailedTransCount(offerStore, offerStoreShake, userId)
+	err := s.dao.UpdateOfferStoreShakeReject(offerStore, offerStoreShake, profile, transCount)
 	if ce.SetError(api_error.UpdateDataFailed, err) {
 		return
 	}
@@ -357,6 +357,7 @@ func (s OfferStoreService) RejectOfferStoreShake(userId string, offerStoreId str
 
 	offerStoreShake.ActionUID = userId
 	notification.SendOfferStoreShakeNotification(offerStoreShake, offerStore)
+	offerShake = offerStoreShake
 
 	return
 }
