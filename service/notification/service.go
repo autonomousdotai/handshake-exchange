@@ -168,13 +168,17 @@ func SendInstantOfferToFCM(offer bean.InstantOffer, c chan error) {
 func SendOfferStoreNotification(offer bean.OfferStore) []error {
 	c := make(chan error)
 	// go SendOfferToEmail(offer, c)
-	// go SendOfferToFirebase(offer, c)
+	go SendOfferStoreToFirebase(offer, c)
 	go SendOfferStoreToSolr(offer, c)
 	// go SendOfferToFCM(offer, c)
 
 	// return []error{<-c, <-c, <-c, <-c}
-	return []error{<-c}
-	// return nil
+	return []error{<-c, <-c}
+}
+
+func SendOfferStoreToFirebase(offer bean.OfferStore, c chan error) {
+	err := dao.OfferStoreDaoInst.UpdateNotificationOfferStore(offer)
+	c <- err
 }
 
 func SendOfferStoreToSolr(offer bean.OfferStore, c chan error) {
@@ -186,13 +190,17 @@ func SendOfferStoreToSolr(offer bean.OfferStore, c chan error) {
 func SendOfferStoreShakeNotification(offer bean.OfferStoreShake, offerStore bean.OfferStore) []error {
 	c := make(chan error)
 	// go SendOfferToEmail(offer, c)
-	// go SendOfferToFirebase(offer, c)
+	go SendOfferStoreShakeToFirebase(offer, c)
 	go SendOfferStoreShakeToSolr(offer, offerStore, c)
 	// go SendOfferToFCM(offer, c)
 
 	// return []error{<-c, <-c, <-c, <-c}
-	return []error{<-c}
-	// return nil
+	return []error{<-c, <-c}
+}
+
+func SendOfferStoreShakeToFirebase(offer bean.OfferStoreShake, c chan error) {
+	err := dao.OfferStoreDaoInst.UpdateNotificationOfferStoreShake(offer)
+	c <- err
 }
 
 func SendOfferStoreShakeToSolr(offer bean.OfferStoreShake, offerStore bean.OfferStore, c chan error) {

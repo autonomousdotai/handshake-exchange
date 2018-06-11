@@ -282,6 +282,24 @@ func (dao OfferStoreDao) UpdateOfferStoreShakeBalance(offerStore bean.OfferStore
 	return err
 }
 
+func (dao OfferStoreDao) UpdateNotificationOfferStore(offer bean.OfferStore) error {
+	dbClient := firebase_service.NotificationFirebaseClient
+
+	ref := dbClient.NewRef(GetNotificationOfferStoreItemPath(offer.UID, offer.Id))
+	err := ref.Set(context.Background(), offer.GetNotificationUpdate())
+
+	return err
+}
+
+func (dao OfferStoreDao) UpdateNotificationOfferStoreShake(offer bean.OfferStoreShake) error {
+	dbClient := firebase_service.NotificationFirebaseClient
+
+	ref := dbClient.NewRef(GetNotificationOfferStoreShakeItemPath(offer.UID, offer.Id))
+	err := ref.Set(context.Background(), offer.GetNotificationUpdate())
+
+	return err
+}
+
 // DB path
 func GetOfferStorePath() string {
 	return "offer_stores"
@@ -301,6 +319,15 @@ func GetOfferStoreShakePath(offerStoreId string) string {
 
 func GetOfferStoreShakeItemPath(offerStoreId string, id string) string {
 	return fmt.Sprintf("offer_stores/%s/shakes/%s", offerStoreId, id)
+}
+
+// Firebase
+func GetNotificationOfferStoreItemPath(userId string, offerId string) string {
+	return fmt.Sprintf("users/%s/offers/offer_store_%s", userId, offerId)
+}
+
+func GetNotificationOfferStoreShakeItemPath(userId string, offerId string) string {
+	return fmt.Sprintf("users/%s/offers/offer_store_shake_%s", userId, offerId)
 }
 
 func snapshotToOfferStore(snapshot *firestore.DocumentSnapshot) interface{} {

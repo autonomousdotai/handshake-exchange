@@ -100,6 +100,14 @@ func (offer OfferStore) GetUpdateOfferStoreActive() map[string]interface{} {
 	}
 }
 
+func (offer OfferStore) GetNotificationUpdate() map[string]interface{} {
+	return map[string]interface{}{
+		"id":     offer.Id,
+		"status": offer.Status,
+		"type":   "offer_store",
+	}
+}
+
 func (item OfferStoreItem) GetAddOfferStoreItem() map[string]interface{} {
 	return map[string]interface{}{
 		"currency":        item.Currency,
@@ -226,5 +234,13 @@ func (offer OfferStoreShake) GetChangeStatus() map[string]interface{} {
 	return map[string]interface{}{
 		"status":     strings.ToLower(offer.Status),
 		"updated_at": firestore.ServerTimestamp,
+	}
+}
+
+func (offer OfferStoreShake) GetNotificationUpdate() map[string]interface{} {
+	return map[string]interface{}{
+		"id":     offer.Id,
+		"status": offer.Status,
+		"type":   "offer_store_shake",
 	}
 }
