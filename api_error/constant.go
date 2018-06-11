@@ -34,6 +34,7 @@ const InvalidUserToCompleteHandshake = "InvalidUserToCompleteHandshake"
 const OfferActionLocked = "OfferActionLocked"
 const OfferStoreExists = "OfferStoreExists"
 const OfferStoreNotExist = "OfferStoreNotExist"
+const OfferStoreShakeNotExist = "OfferStoreShakeNotExist"
 
 var CodeMessage = map[string]struct {
 	StatusCode int
@@ -72,4 +73,5 @@ var CodeMessage = map[string]struct {
 	OfferActionLocked:              {http.StatusBadRequest, -312, "Your offer action is locked"},
 	OfferStoreExists:               {http.StatusBadRequest, -313, "Offer store exists"},
 	OfferStoreNotExist:             {http.StatusBadRequest, -314, "Offer store not exist"},
+	OfferStoreShakeNotExist:        {http.StatusBadRequest, -315, "Offer store shake not exist"},
 }

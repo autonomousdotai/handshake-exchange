@@ -222,8 +222,10 @@ type SolrLogObject struct {
 }
 
 var instantOfferStoreStatusMap = map[string]int{
-	OFFER_STORE_ITEM_STATUS_CREATED: 0,
-	OFFER_STORE_ITEM_STATUS_ACTIVE:  1,
+	OFFER_STORE_STATUS_CREATED: 0,
+	OFFER_STORE_STATUS_ACTIVE:  1,
+	OFFER_STORE_STATUS_CLOSING: 2,
+	OFFER_STORE_STATUS_CLOSED:  3,
 }
 
 type SolrOfferStoreExtraData struct {
@@ -253,13 +255,19 @@ type SolrOfferStoreItemSnapshot struct {
 	BuyBalance     string `json:"buy_balance"`
 	BuyPercentage  string `json:"buy_percentage"`
 	SystemAddress  string `json:"system_address"`
+	UserAddress    string `json:"user_address"`
 }
 
 func NewSolrFromOfferStore(offer OfferStore) (solr SolrOfferObject) {
 	solr.Id = fmt.Sprintf("exchange_%s", offer.Id)
 	solr.Type = 2
-	solr.State = 0
-	solr.IsPrivate = 0
+	if offer.Status == OFFER_STATUS_ACTIVE {
+		solr.State = 1
+		solr.IsPrivate = 0
+	} else {
+		solr.State = 0
+		solr.IsPrivate = 1
+	}
 	solr.Status = instantOfferStoreStatusMap[offer.Status]
 	solr.Hid = 0
 	solr.ChainId = offer.ChainId
@@ -267,6 +275,8 @@ func NewSolrFromOfferStore(offer OfferStore) (solr SolrOfferObject) {
 	solr.InitUserId = userId
 	solr.ShakeUserIds = make([]int, 0)
 	solr.TextSearch = make([]string, 0)
+
+	solr.Location = fmt.Sprintf("%f,%f", offer.Latitude, offer.Longitude)
 	solr.InitAt = offer.CreatedAt.Unix()
 	solr.LastUpdateAt = time.Now().UTC().Unix()
 
@@ -289,6 +299,7 @@ func NewSolrFromOfferStore(offer OfferStore) (solr SolrOfferObject) {
 			BuyBalance:     value.BuyBalance,
 			BuyPercentage:  buyPercentage.Mul(decimal.NewFromFloat(100)).String(),
 			SystemAddress:  value.SystemAddress,
+			UserAddress:    value.UserAddress,
 		}
 	}
 

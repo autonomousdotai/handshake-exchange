@@ -22,7 +22,8 @@ var OfferServiceInst = OfferService{
 }
 
 var OfferStoreServiceInst = OfferStoreService{
-	dao:     &dao.OfferStoreDaoInst,
-	miscDao: &dao.MiscDaoInst,
-	userDao: &dao.UserDaoInst,
+	dao:      &dao.OfferStoreDaoInst,
+	miscDao:  &dao.MiscDaoInst,
+	userDao:  &dao.UserDaoInst,
+	transDao: &dao.TransactionDaoInst,
 }

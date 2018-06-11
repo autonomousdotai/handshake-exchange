@@ -188,6 +188,39 @@ func (dao OfferStoreDao) UpdateOfferStoreShake(offerStoreId string, offer bean.O
 	return err
 }
 
+func (dao OfferStoreDao) UpdateOfferStoreShakeReject(offerStore bean.OfferStore, offer bean.OfferStoreShake, profile bean.Profile, transactionCount bean.TransactionCount) error {
+	dbClient := firebase_service.FirestoreClient
+
+	docRef := dbClient.Doc(GetOfferStoreShakeItemPath(offerStore.Id, offer.Id))
+	transCountDocRef := dbClient.Doc(GetTransactionCountItemPath(profile.UserId, transactionCount.Currency))
+
+	batch := dbClient.Batch()
+	batch.Set(docRef, offer.GetChangeStatus(), firestore.MergeAll)
+	batch.Set(transCountDocRef, transactionCount.GetUpdateFailed(), firestore.MergeAll)
+
+	_, err := batch.Commit(context.Background())
+
+	return err
+}
+
+func (dao OfferStoreDao) UpdateOfferStoreShakeComplete(offerStore bean.OfferStore, offer bean.OfferStoreShake, profile bean.Profile,
+	transactionCount1 bean.TransactionCount, transactionCount2 bean.TransactionCount) error {
+	dbClient := firebase_service.FirestoreClient
+
+	docRef := dbClient.Doc(GetOfferStoreShakeItemPath(offerStore.Id, offer.Id))
+	transCountDocRef1 := dbClient.Doc(GetTransactionCountItemPath(profile.UserId, transactionCount1.Currency))
+	transCountDocRef2 := dbClient.Doc(GetTransactionCountItemPath(profile.UserId, transactionCount2.Currency))
+
+	batch := dbClient.Batch()
+	batch.Set(docRef, offer.GetChangeStatus(), firestore.MergeAll)
+	batch.Set(transCountDocRef1, transactionCount1.GetUpdateFailed(), firestore.MergeAll)
+	batch.Set(transCountDocRef2, transactionCount2.GetUpdateFailed(), firestore.MergeAll)
+
+	_, err := batch.Commit(context.Background())
+
+	return err
+}
+
 func (dao OfferStoreDao) UpdateOfferStoreShakeBalance(offerStore bean.OfferStore, offerStoreItem *bean.OfferStoreItem, offerStoreShake bean.OfferStoreShake, shakeOrReject bool) error {
 	dbClient := firebase_service.FirestoreClient
 
