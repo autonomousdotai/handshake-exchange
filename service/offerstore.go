@@ -707,8 +707,8 @@ func (s OfferStoreService) prepareOfferStore(offerStore *bean.OfferStore, offerS
 	s.generateSystemAddress(*offerStore, offerStoreItem, ce)
 
 	sellAmount, _ := decimal.NewFromString(offerStoreItem.SellAmount)
-	if offerStoreItem.Currency == bean.BTC.Code && sellAmount.Equal(common.Zero) {
-		// Only the case that shop doesn't sell BTC, so don't need to wait to active
+	if sellAmount.Equal(common.Zero) {
+		// Only the case that shop doesn't sell, so don't need to wait to active
 		offerStoreItem.Status = bean.OFFER_STORE_STATUS_ACTIVE
 	} else {
 		offerStoreItem.Status = bean.OFFER_STORE_STATUS_CREATED

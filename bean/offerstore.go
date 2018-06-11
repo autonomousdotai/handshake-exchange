@@ -33,7 +33,7 @@ type OfferStore struct {
 	ChainId          int64                     `json:"-" firestore:"chain_id"`
 	FiatCurrency     string                    `json:"fiat_currency" firestore:"fiat_currency" validate:"required"`
 	TransactionCount TransactionCount          `json:"transaction_count" firestore:"transaction_count"`
-	ItemSnapshots    map[string]OfferStoreItem `json:"item_snapshots" firestore:"item_snapshots"`
+	ItemSnapshots    map[string]OfferStoreItem `json:"items" firestore:"item_snapshots"`
 	CreatedAt        time.Time                 `json:"created_at" firestore:"created_at"`
 	UpdatedAt        time.Time                 `json:"updated_at" firestore:"updated_at"`
 }
