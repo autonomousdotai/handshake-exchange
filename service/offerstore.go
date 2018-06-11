@@ -362,6 +362,83 @@ func (s OfferStoreService) RejectOfferStoreShake(userId string, offerStoreId str
 	return
 }
 
+func (s OfferStoreService) CancelOfferStoreShake(userId string, offerStoreId string, offerStoreShakeId string) (offerShake bean.OfferStoreShake, ce SimpleContextError) {
+	profileTO := s.userDao.GetProfile(userId)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, profileTO) {
+		return
+	}
+	profile := profileTO.Object.(bean.Profile)
+
+	offerStoreTO := s.dao.GetOfferStore(offerStoreId)
+	if !offerStoreTO.Found {
+		ce.SetStatusKey(api_error.OfferStoreNotExist)
+		return
+	}
+	offerStore := offerStoreTO.Object.(bean.OfferStore)
+
+	offerStoreShakeTO := s.dao.GetOfferStoreShake(offerStoreId, offerStoreShakeId)
+	if !offerStoreShakeTO.Found {
+		ce.SetStatusKey(api_error.OfferStoreNotExist)
+		return
+	}
+	offerStoreShake := offerStoreShakeTO.Object.(bean.OfferStoreShake)
+
+	if profile.UserId != offerStore.UID {
+		ce.SetStatusKey(api_error.InvalidRequestBody)
+		return
+	}
+	if offerStoreShake.Status != bean.OFFER_STORE_SHAKE_STATUS_PRE_SHAKE {
+		ce.SetStatusKey(api_error.OfferStatusInvalid)
+	}
+
+	if offerStoreShake.Currency == bean.ETH.Code {
+		// Only ETH
+		offerStoreShake.Status = bean.OFFER_STORE_SHAKE_STATUS_CANCELLING
+	} else {
+		// Only BTC
+		offerStoreItemTO := s.dao.GetOfferStoreItem(userId, offerStoreShake.Currency)
+		if offerStoreItemTO.HasError() {
+			ce.SetStatusKey(api_error.GetDataFailed)
+			return
+		}
+		offerStoreItem := offerStoreItemTO.Object.(bean.OfferStoreItem)
+
+		offerStoreShake.Status = bean.OFFER_STORE_SHAKE_STATUS_CANCELLED
+		description := fmt.Sprintf("Refund to userId %s due to reject the offer", offerStoreShake.UID)
+		userAddress := offerStoreShake.UserAddress
+		if offerStoreShake.Type == bean.OFFER_TYPE_BUY {
+			description = fmt.Sprintf("Refund to userId %s due to reject the offer", offerStore.UID)
+			userAddress = offerStoreItem.UserAddress
+
+		}
+		response := s.sendTransaction(userAddress,
+			offerStoreShake.Amount, offerStoreShake.Currency, description, offerStore.UID, offerStoreItem.WalletProvider, &ce)
+		if !ce.HasError() {
+			s.miscDao.AddCryptoTransferLog(bean.CryptoTransferLog{
+				Provider:         offerStoreItem.WalletProvider,
+				ProviderResponse: response,
+				DataType:         bean.OFFER_ADDRESS_MAP_OFFER_STORE_SHAKE,
+				DataRef:          dao.GetOfferStoreShakeItemPath(offerStoreId, offerStoreShakeId),
+				UID:              userId,
+				Description:      description,
+				Amount:           offerStoreShake.Amount,
+				Currency:         offerStoreShake.Currency,
+			})
+		}
+	}
+
+	err := s.dao.UpdateOfferStoreShake(offerStoreId, offerStoreShake, offerStoreShake.GetChangeStatus())
+	if err != nil {
+		ce.SetError(api_error.UpdateDataFailed, err)
+		return
+	}
+
+	offerShake = offerStoreShake
+	notification.SendOfferStoreShakeNotification(offerStoreShake, offerStore)
+
+	return
+}
+
 func (s OfferStoreService) AcceptOfferStoreShake(userId string, offerStoreId string, offerStoreShakeId string) (offerShake bean.OfferStoreShake, ce SimpleContextError) {
 	profileTO := s.userDao.GetProfile(userId)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, profileTO) {

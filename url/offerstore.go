@@ -36,6 +36,9 @@ func (url OfferStoreUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	group.POST("/:offerId/shakes/:offerShakeId/accept", func(context *gin.Context) {
 		offerApi.AcceptOfferStoreShake(context)
 	})
+	group.POST("/:offerId/shakes/:offerShakeId/cancel", func(context *gin.Context) {
+		offerApi.CancelOfferStoreShake(context)
+	})
 
 	return group
 }

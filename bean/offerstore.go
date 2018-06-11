@@ -148,6 +148,8 @@ type OfferStoreSetup struct {
 
 const OFFER_STORE_SHAKE_STATUS_PRE_SHAKING = "pre_shaking"
 const OFFER_STORE_SHAKE_STATUS_PRE_SHAKE = "pre_shake"
+const OFFER_STORE_SHAKE_STATUS_CANCELLING = "cancelling"
+const OFFER_STORE_SHAKE_STATUS_CANCELLED = "cancelled"
 const OFFER_STORE_SHAKE_STATUS_SHAKING = "shaking"
 const OFFER_STORE_SHAKE_STATUS_SHAKE = "shake"
 const OFFER_STORE_SHAKE_STATUS_REJECTING = "rejecting"

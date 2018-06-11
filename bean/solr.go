@@ -361,6 +361,8 @@ var offerStoreSHakeStatusMap = map[string]int{
 	OFFER_STORE_SHAKE_STATUS_REJECTED:    5,
 	OFFER_STORE_SHAKE_STATUS_COMPLETING:  6,
 	OFFER_STORE_SHAKE_STATUS_COMPLETED:   7,
+	OFFER_STORE_SHAKE_STATUS_CANCELLING:  8,
+	OFFER_STORE_SHAKE_STATUS_CANCELLED:   9,
 }
 
 func NewSolrFromOfferStoreShake(offer OfferStoreShake, offerStore OfferStore) (solr SolrOfferObject) {
