@@ -346,6 +346,7 @@ type SolrOfferStoreShakeExtraData struct {
 	ToEmail          string `json:"to_email"`
 	ToUsername       string `json:"to_username"`
 	SystemAddress    string `json:"system_address"`
+	UserAddress      string `json:"user_address"`
 	Status           string `json:"status"`
 	Success          int64  `json:"success"`
 	Failed           int64  `json:"failed"`
@@ -375,6 +376,7 @@ func NewSolrFromOfferStoreShake(offer OfferStoreShake, offerStore OfferStore) (s
 	userId, _ := strconv.Atoi(offer.UID)
 	solr.ShakeUserIds = []int{userId}
 	solr.TextSearch = make([]string, 0)
+	solr.Location = fmt.Sprintf("%f,%f", offer.Latitude, offer.Longitude)
 	solr.InitAt = offer.CreatedAt.Unix()
 	solr.LastUpdateAt = time.Now().UTC().Unix()
 
@@ -416,6 +418,7 @@ func NewSolrFromOfferStoreShake(offer OfferStoreShake, offerStore OfferStore) (s
 		ToEmail:          offer.Email,
 		ToUsername:       offer.Username,
 		SystemAddress:    offer.SystemAddress,
+		UserAddress:      offer.UserAddress,
 		Status:           offer.Status,
 		Success:          offerStore.TransactionCount.Success,
 		Failed:           offerStore.TransactionCount.Failed,

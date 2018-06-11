@@ -9,6 +9,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/dao"
 	"github.com/ninjadotorg/handshake-exchange/integration/blockchainio_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
+	"github.com/ninjadotorg/handshake-exchange/integration/solr_service"
 	"github.com/ninjadotorg/handshake-exchange/service/notification"
 	"github.com/shopspring/decimal"
 	"time"
@@ -242,6 +243,9 @@ func (s OfferStoreService) CreateOfferStoreShake(userId string, offerStoreId str
 
 	offerShakeBody.UID = userId
 	offerShakeBody.FiatCurrency = offerStore.FiatCurrency
+	offerShakeBody.Latitude = offerStore.Latitude
+	offerShakeBody.Longitude = offerStore.Longitude
+
 	s.setupOfferShakePrice(&offerShakeBody, &ce)
 	s.setupOfferShakeAmount(&offerShakeBody, &ce)
 	if ce.HasError() {
@@ -566,6 +570,33 @@ func (s OfferStoreService) GetQuote(quoteType string, amountStr string, currency
 	} else {
 		err = errors.New(api_error.InvalidQueryParam)
 	}
+
+	return
+}
+
+func (s OfferStoreService) SyncOfferStoreToSolr(offerId string) (offer bean.OfferStore, ce SimpleContextError) {
+	offerTO := s.dao.GetOfferStore(offerId)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, offerTO) {
+		return
+	}
+	offer = offerTO.Object.(bean.OfferStore)
+	solr_service.UpdateObject(bean.NewSolrFromOfferStore(offer))
+
+	return
+}
+
+func (s OfferStoreService) SyncOfferStoreShakeToSolr(offerStoreId, offerId string) (offer bean.OfferStoreShake, ce SimpleContextError) {
+	offerStoreTO := s.dao.GetOfferStore(offerStoreId)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, offerStoreTO) {
+		return
+	}
+	offerStore := offerStoreTO.Object.(bean.OfferStore)
+	offerTO := s.dao.GetOfferStoreShake(offerStoreId, offerId)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, offerTO) {
+		return
+	}
+	offer = offerTO.Object.(bean.OfferStoreShake)
+	solr_service.UpdateObject(bean.NewSolrFromOfferStoreShake(offer, offerStore))
 
 	return
 }

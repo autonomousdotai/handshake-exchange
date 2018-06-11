@@ -80,8 +80,14 @@ func (url CronJobUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	group.POST("/cc-limits", func(context *gin.Context) {
 		miscApi.UpdateCCLimits(context)
 	})
-	group.POST("/sync-to-solr/:offerId", func(context *gin.Context) {
-		miscApi.SyncToSolr(context)
+	group.POST("/sync-to-offer-solr/:offerId", func(context *gin.Context) {
+		miscApi.SyncOfferToSolr(context)
+	})
+	group.POST("/sync-to-offer-store-solr/:offerId", func(context *gin.Context) {
+		miscApi.SyncOfferStoreToSolr(context)
+	})
+	group.POST("/sync-to-offer-store-shake-solr/:offerId/:offerShakeId", func(context *gin.Context) {
+		miscApi.SyncOfferStoreShakeToSolr(context)
 	})
 	group.POST("/init-handshake-block", func(context *gin.Context) {
 		onChainApi.StartOnChainOfferStoreBlock(context)

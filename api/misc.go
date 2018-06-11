@@ -308,10 +308,33 @@ func (api MiscApi) TestCoinbaseReceive(context *gin.Context) {
 	bean.SuccessResponse(context, offer)
 }
 
-func (api MiscApi) SyncToSolr(context *gin.Context) {
+func (api MiscApi) SyncOfferToSolr(context *gin.Context) {
 	offerId := context.Param("offerId")
 
 	offer, ce := service.OfferServiceInst.SyncToSolr(offerId)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, offer)
+}
+
+func (api MiscApi) SyncOfferStoreToSolr(context *gin.Context) {
+	offerId := context.Param("offerId")
+
+	offer, ce := service.OfferStoreServiceInst.SyncOfferStoreToSolr(offerId)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, offer)
+}
+
+func (api MiscApi) SyncOfferStoreShakeToSolr(context *gin.Context) {
+	offerId := context.Param("offerId")
+	offerShakeId := context.Param("offerShakeId")
+
+	offer, ce := service.OfferStoreServiceInst.SyncOfferStoreShakeToSolr(offerId, offerShakeId)
 	if ce.ContextValidate(context) {
 		return
 	}

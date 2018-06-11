@@ -73,6 +73,7 @@ func (offer OfferStore) GetAddOfferStore() map[string]interface{} {
 		"fiat_currency":     offer.FiatCurrency,
 		"transaction_count": offer.TransactionCount,
 		"item_snapshots":    offer.ItemSnapshots,
+		"created_at":        firestore.ServerTimestamp,
 	}
 }
 
@@ -181,6 +182,8 @@ type OfferStoreShake struct {
 	Provider         string      `json:"-" firestore:"provider"`
 	ProviderData     interface{} `json:"-" firestore:"provider_data"`
 	ChainId          int64       `json:"-" firestore:"chain_id"`
+	Longitude        float64     `json:"longitude" firestore:"longitude"`
+	Latitude         float64     `json:"latitude" firestore:"latitude"`
 	CreatedAt        time.Time   `json:"created_at" firestore:"created_at"`
 	UpdatedAt        time.Time   `json:"updated_at" firestore:"updated_at"`
 }
@@ -211,6 +214,9 @@ func (offer OfferStoreShake) GetAddOfferStoreShake() map[string]interface{} {
 		"action_uid":        offer.ActionUID,
 		"provider":          offer.Provider,
 		"provider_data":     offer.ProviderData,
+		"latitude":          offer.Latitude,
+		"longitude":         offer.Longitude,
+		"created_at":        firestore.ServerTimestamp,
 	}
 }
 
