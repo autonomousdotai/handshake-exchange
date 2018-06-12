@@ -35,6 +35,7 @@ const OfferActionLocked = "OfferActionLocked"
 const OfferStoreExists = "OfferStoreExists"
 const OfferStoreNotExist = "OfferStoreNotExist"
 const OfferStoreShakeNotExist = "OfferStoreShakeNotExist"
+const OfferStoreNotEnoughBalance = "OfferStoreNotEnoughBalance"
 
 var CodeMessage = map[string]struct {
 	StatusCode int
@@ -74,4 +75,5 @@ var CodeMessage = map[string]struct {
 	OfferStoreExists:               {http.StatusBadRequest, -313, "Offer store exists"},
 	OfferStoreNotExist:             {http.StatusBadRequest, -314, "Offer store not exist"},
 	OfferStoreShakeNotExist:        {http.StatusBadRequest, -315, "Offer store shake not exist"},
+	OfferStoreNotEnoughBalance:     {http.StatusBadRequest, -316, "Offer not enough balance"},
 }

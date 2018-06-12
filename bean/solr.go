@@ -326,6 +326,7 @@ func NewSolrFromOfferStore(offer OfferStore) (solr SolrOfferObject) {
 
 type SolrOfferStoreShakeExtraData struct {
 	Id               string `json:"id"`
+	OffChainId       string `json:"off_chain_id"`
 	FeedType         string `json:"feed_type"`
 	Type             string `json:"type"`
 	Amount           string `json:"amount"`
@@ -401,6 +402,7 @@ func NewSolrFromOfferStoreShake(offer OfferStoreShake, offerStore OfferStore) (s
 
 	extraData := SolrOfferStoreShakeExtraData{
 		Id:               offer.Id,
+		OffChainId:       offer.OffChainId,
 		FeedType:         solr.OfferFeedType,
 		Type:             offer.Type,
 		Amount:           offer.Amount,

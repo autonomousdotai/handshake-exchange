@@ -227,6 +227,16 @@ func (s OfferStoreService) CreateOfferStoreShake(userId string, offerStoreId str
 	if offerStoreItem.Status != bean.OFFER_STORE_ITEM_STATUS_ACTIVE {
 		ce.SetStatusKey(api_error.OfferStatusInvalid)
 	}
+	var balance decimal.Decimal
+	amount, _ := decimal.NewFromString(offerShakeBody.Amount)
+	if offerShakeBody.Type == bean.OFFER_TYPE_SELL {
+		balance, _ = decimal.NewFromString(offerStoreItem.SellBalance)
+	} else {
+		balance, _ = decimal.NewFromString(offerStoreItem.BuyBalance)
+	}
+	if balance.LessThan(amount) {
+		ce.SetStatusKey(api_error.UpdateDataFailed)
+	}
 
 	offerShakeBody.UID = userId
 	offerShakeBody.FiatCurrency = offerStore.FiatCurrency
