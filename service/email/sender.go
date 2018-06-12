@@ -192,8 +192,8 @@ func SendOfferTakerRejectEmail(language string, emailAddress string, username st
 		data)
 }
 
-func SendOfferCompleteEmail(language string, emailAddress string, username string,
-	amount string, currency string) error {
+func SendOfferCompleteEmail(language string, emailAddress string,
+	amount string, currency string, username string) error {
 	T, _ := i18n.Tfunc(language)
 
 	subject := T("email_offer_completed_subject", map[string]string{

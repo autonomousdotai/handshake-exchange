@@ -211,7 +211,48 @@ func SendOfferStoreShakeNotification(offer bean.OfferStoreShake, offerStore bean
 }
 
 func SendOfferStoreShakeToEmail(offer bean.OfferStoreShake, offerStore bean.OfferStore, c chan error) {
+	var err error
 
+	username := offerStore.Username
+	if username == "" {
+		username = offerStore.Email
+		if username == "" {
+			username = offerStore.ContactPhone
+		}
+	}
+	toUsername := offer.Username
+	if toUsername == "" {
+		toUsername = offer.Email
+		if toUsername == "" {
+			toUsername = offer.ContactPhone
+		}
+	}
+
+	if offer.Status == bean.OFFER_STORE_SHAKE_STATUS_PRE_SHAKE {
+	} else if offer.Status == bean.OFFER_STORE_SHAKE_STATUS_SHAKE {
+		if offer.Type == bean.OFFER_TYPE_BUY {
+			err = email.SendOfferStoreMakerBuyShakeEmail(offerStore.Language, offerStore.Email, offer.Amount, offer.Currency, offer.FiatAmount, offer.FiatCurrency, toUsername)
+			err = email.SendOfferStoreTakerBuyShakeEmail(offer.Language, offer.Email, offer.Amount, offer.Currency, offer.FiatAmount, offer.FiatCurrency, username)
+		} else {
+			err = email.SendOfferStoreMakerSellShakeEmail(offerStore.Language, offerStore.Email, offer.Amount, offer.Currency, offer.FiatAmount, offer.FiatCurrency, toUsername)
+			err = email.SendOfferStoreTakerSellShakeEmail(offer.Language, offer.Email, offer.Amount, offer.Currency, offer.FiatAmount, offer.FiatCurrency, username)
+		}
+	} else if offer.Status == bean.OFFER_STORE_SHAKE_STATUS_CANCELLED {
+
+	} else if offer.Status == bean.OFFER_STORE_SHAKE_STATUS_REJECTED {
+		if offer.ActionUID == offer.UID {
+			err = email.SendOfferStoreMakerRejectEmail(offerStore.Language, offerStore.Email, toUsername)
+		} else {
+			err = email.SendOfferStoreTakerRejectEmail(offer.Language, offer.Email, username)
+		}
+	} else if offer.Status == bean.OFFER_STORE_SHAKE_STATUS_COMPLETED {
+		if offer.Type == bean.OFFER_TYPE_BUY {
+			err = email.SendOfferCompleteEmail(offerStore.Language, offerStore.Email, offer.Amount, offer.Currency, username)
+		} else {
+			err = email.SendOfferCompleteEmail(offer.Language, offer.Email, offer.Amount, offer.Currency, toUsername)
+		}
+	}
+	c <- err
 }
 
 func SendOfferStoreShakeToFirebase(offer bean.OfferStoreShake, offerStore bean.OfferStore, c chan error) {
