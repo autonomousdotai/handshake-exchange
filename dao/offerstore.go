@@ -115,7 +115,7 @@ func (dao OfferStoreDao) RemoveOfferStoreItem(offer bean.OfferStore, item bean.O
 	return err
 }
 
-func (dao OfferDao) UpdateOfferStoreItemActive(offer bean.OfferStore, offerItem bean.OfferStoreItem) error {
+func (dao OfferStoreDao) UpdateOfferStoreItemActive(offer bean.OfferStore, offerItem bean.OfferStoreItem) error {
 	dbClient := firebase_service.FirestoreClient
 
 	docRef := dbClient.Doc(GetOfferStoreItemPath(offer.Id))
@@ -147,6 +147,21 @@ func (dao OfferStoreDao) UpdateOfferStoreItemClosing(offer bean.OfferStore, offe
 	return err
 }
 
+func (dao OfferStoreDao) UpdateOfferStoreItemClosed(offer bean.OfferStore, offerItem bean.OfferStoreItem) error {
+	dbClient := firebase_service.FirestoreClient
+
+	docRef := dbClient.Doc(GetOfferStoreItemPath(offer.Id))
+	docItemRef := dbClient.Doc(GetOfferStoreItemItemPath(offer.Id, offerItem.Currency))
+
+	batch := dbClient.Batch()
+	batch.Set(docRef, offer.GetChangeStatus(), firestore.MergeAll)
+	batch.Set(docItemRef, offerItem.GetUpdateOfferStoreItemClosed(), firestore.MergeAll)
+
+	_, err := batch.Commit(context.Background())
+
+	return err
+}
+
 func (dao OfferStoreDao) GetOfferStoreShake(offerStoreId string, offerStoreShakeId string) (t TransferObject) {
 	GetObject(GetOfferStoreShakeItemPath(offerStoreId, offerStoreShakeId), &t, snapshotToOfferStoreShake)
 
@@ -158,6 +173,7 @@ func (dao OfferStoreDao) AddOfferStoreShake(offerStore bean.OfferStore, shake be
 
 	docRef := dbClient.Collection(GetOfferStoreShakePath(offerStore.Id)).NewDoc()
 	shake.Id = docRef.ID
+	shake.OffChainId = fmt.Sprintf("%s-%s", offerStore.UID, shake.Id)
 
 	batch := dbClient.Batch()
 	if shake.SystemAddress != "" {

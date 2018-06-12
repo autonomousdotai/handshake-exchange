@@ -65,6 +65,39 @@ func (url CronJobUrl) Create(router *gin.Engine) *gin.RouterGroup {
 		onChainApi.UpdateOfferWithdraw(context)
 	})
 
+	// CRON JOB
+	group.POST("/update-offer-store-init-on-chain", func(context *gin.Context) {
+		onChainApi.UpdateOfferStoreInit(context)
+	})
+	// CRON JOB
+	group.POST("/update-offer-store-close-on-chain", func(context *gin.Context) {
+		onChainApi.UpdateOfferStoreClose(context)
+	})
+	// CRON JOB
+	group.POST("/update-offer-store-pre-shake-on-chain", func(context *gin.Context) {
+		onChainApi.UpdateOfferStorePreShake(context)
+	})
+	// CRON JOB
+	group.POST("/update-offer-store-cancel-on-chain", func(context *gin.Context) {
+		onChainApi.UpdateOfferStoreCancel(context)
+	})
+	// CRON JOB
+	group.POST("/update-offer-store-shake-on-chain", func(context *gin.Context) {
+		onChainApi.UpdateOfferStoreShake(context)
+	})
+	// CRON JOB
+	group.POST("/update-offer-store-reject-on-chain", func(context *gin.Context) {
+		onChainApi.UpdateOfferStoreReject(context)
+	})
+	// CRON JOB
+	group.POST("/update-offer-store-complete-on-chain", func(context *gin.Context) {
+		onChainApi.UpdateOfferStoreComplete(context)
+	})
+	// CRON JOB
+	group.POST("/update-offer-store-complete-user-on-chain", func(context *gin.Context) {
+		onChainApi.UpdateOfferStoreComplete(context)
+	})
+
 	group.POST("/coinbase/callback", func(context *gin.Context) {
 		coinbaseApi.ReceiveCallback(context)
 	})
@@ -90,6 +123,9 @@ func (url CronJobUrl) Create(router *gin.Engine) *gin.RouterGroup {
 		miscApi.SyncOfferStoreShakeToSolr(context)
 	})
 	group.POST("/init-handshake-block", func(context *gin.Context) {
+		onChainApi.StartOnChainOfferBlock(context)
+	})
+	group.POST("/init-handshakeshop-block", func(context *gin.Context) {
 		onChainApi.StartOnChainOfferStoreBlock(context)
 	})
 	group.POST("/start-app", func(context *gin.Context) {

@@ -240,6 +240,42 @@ func (dao OnChainDao) UpdateOfferStoreCloseEventBlock(offer bean.OfferEventBlock
 	return nil
 }
 
+func (dao OnChainDao) GetOfferStorePreShakeEventBlock() (t TransferObject) {
+	obj := bean.OfferEventBlock{}
+	GetCacheObject(GetOfferStorePreShakeEventBlockKey(), &t, func(val string) interface{} {
+		block, _ := strconv.Atoi(val)
+		obj.LastBlock = int64(block)
+		return obj
+	})
+
+	return
+}
+
+func (dao OnChainDao) UpdateOfferStorePreShakeEventBlock(offer bean.OfferEventBlock) error {
+	key := GetOfferStoreCancelEventBlockKey()
+	cache.RedisClient.Set(key, offer.LastBlock, 0)
+
+	return nil
+}
+
+func (dao OnChainDao) GetOfferStoreCancelEventBlock() (t TransferObject) {
+	obj := bean.OfferEventBlock{}
+	GetCacheObject(GetOfferStoreCancelEventBlockKey(), &t, func(val string) interface{} {
+		block, _ := strconv.Atoi(val)
+		obj.LastBlock = int64(block)
+		return obj
+	})
+
+	return
+}
+
+func (dao OnChainDao) UpdateOfferStoreCancelEventBlock(offer bean.OfferEventBlock) error {
+	key := GetOfferStoreCancelEventBlockKey()
+	cache.RedisClient.Set(key, offer.LastBlock, 0)
+
+	return nil
+}
+
 func (dao OnChainDao) GetOfferStoreShakeEventBlock() (t TransferObject) {
 	obj := bean.OfferEventBlock{}
 	GetCacheObject(GetOfferStoreShakeEventBlockKey(), &t, func(val string) interface{} {
@@ -294,12 +330,38 @@ func (dao OnChainDao) UpdateOfferStoreCompleteEventBlock(offer bean.OfferEventBl
 	return nil
 }
 
+func (dao OnChainDao) GetOfferStoreCompleteUserEventBlock() (t TransferObject) {
+	obj := bean.OfferEventBlock{}
+	GetCacheObject(GetOfferStoreCompleteUserEventBlockKey(), &t, func(val string) interface{} {
+		block, _ := strconv.Atoi(val)
+		obj.LastBlock = int64(block)
+		return obj
+	})
+
+	return
+}
+
+func (dao OnChainDao) UpdateOfferStoreCompleteUserEventBlock(offer bean.OfferEventBlock) error {
+	key := GetOfferStoreCompleteUserEventBlockKey()
+	cache.RedisClient.Set(key, offer.LastBlock, 0)
+
+	return nil
+}
+
 func GetOfferStoreInitEventBlockKey() string {
 	return "handshake_exchange.onchain_events.offer_store_init"
 }
 
 func GetOfferStoreCloseEventBlockKey() string {
 	return "handshake_exchange.onchain_events.offer_store_close"
+}
+
+func GetOfferStorePreShakeEventBlockKey() string {
+	return "handshake_exchange.onchain_events.offer_store_preshake"
+}
+
+func GetOfferStoreCancelEventBlockKey() string {
+	return "handshake_exchange.onchain_events.offer_store_cancel"
 }
 
 func GetOfferStoreShakeEventBlockKey() string {
@@ -312,4 +374,8 @@ func GetOfferStoreRejectEventBlockKey() string {
 
 func GetOfferStoreCompleteEventBlockKey() string {
 	return "handshake_exchange.onchain_events.offer_store_complete"
+}
+
+func GetOfferStoreCompleteUserEventBlockKey() string {
+	return "handshake_exchange.onchain_events.offer_store_complete_user"
 }

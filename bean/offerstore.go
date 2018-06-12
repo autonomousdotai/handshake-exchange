@@ -80,6 +80,7 @@ func (offer OfferStore) GetAddOfferStore() map[string]interface{} {
 
 func (offer OfferStore) GetUpdateOfferStoreChangeItem() map[string]interface{} {
 	return map[string]interface{}{
+		"status":         offer.Status,
 		"item_flags":     offer.ItemFlags,
 		"item_snapshots": offer.ItemSnapshots,
 		"updated_at":     firestore.ServerTimestamp,
@@ -88,15 +89,16 @@ func (offer OfferStore) GetUpdateOfferStoreChangeItem() map[string]interface{} {
 
 func (offer OfferStore) GetChangeStatus() map[string]interface{} {
 	return map[string]interface{}{
-		"status":     strings.ToLower(offer.Status),
-		"updated_at": firestore.ServerTimestamp,
+		"status":         strings.ToLower(offer.Status),
+		"item_snapshots": offer.ItemSnapshots,
+		"updated_at":     firestore.ServerTimestamp,
 	}
 }
 
 func (offer OfferStore) GetUpdateOfferStoreActive() map[string]interface{} {
 	return map[string]interface{}{
 		"hid":        offer.Hid,
-		"status":     OFFER_STATUS_ACTIVE,
+		"status":     offer.Status,
 		"updated_at": firestore.ServerTimestamp,
 	}
 }
@@ -142,6 +144,13 @@ func (item OfferStoreItem) GetUpdateOfferStoreItemClosing() map[string]interface
 	}
 }
 
+func (item OfferStoreItem) GetUpdateOfferStoreItemClosed() map[string]interface{} {
+	return map[string]interface{}{
+		"status":     OFFER_STORE_ITEM_STATUS_CLOSED,
+		"updated_at": firestore.ServerTimestamp,
+	}
+}
+
 func (item OfferStoreItem) GetUpdateOfferStoreItemBalance() map[string]interface{} {
 	return map[string]interface{}{
 		"buy_balance":  item.BuyBalance,
@@ -176,6 +185,7 @@ const OFFER_STORE_SHAKE_STATUS_COMPLETED = "completed"
 
 type OfferStoreShake struct {
 	Id               string      `json:"id" firestore:"id"`
+	OffChainId       string      `json:"off_chain_id" firestore:"off_chain_id"`
 	Type             string      `json:"type" firestore:"type" validate:"required"`
 	Status           string      `json:"status" firestore:"status"`
 	UID              string      `json:"-" firestore:"uid"`

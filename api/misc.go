@@ -349,4 +349,5 @@ func (api MiscApi) StartApp(context *gin.Context) {
 	api.UpdateSystemConfig(context)
 	api.UpdateCCLimits(context)
 	OnChainApi{}.StartOnChainOfferBlock(context)
+	OnChainApi{}.StartOnChainOfferStoreBlock(context)
 }
