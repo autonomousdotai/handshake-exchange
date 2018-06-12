@@ -402,13 +402,11 @@ func (api OnChainApi) UpdateOfferStoreCompleteUser(context *gin.Context) {
 		return
 	}
 	block := to.Object.(bean.OfferEventBlock)
-
 	offerOnChains, lastBlock, err := client.GetCompleteUserOfferStoreEvent(uint64(block.LastBlock))
 	if api_error.PropagateErrorAndAbort(context, api_error.UpdateDataFailed, err) != nil {
 		return
 	}
 	for _, offerOnChain := range offerOnChains {
-		fmt.Println(offerOnChain)
 		parts := strings.Split(offerOnChain.Offer, "-")
 		service.OfferStoreServiceInst.CompleteOnChainOfferStoreShake(parts[0], parts[1])
 	}

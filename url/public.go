@@ -95,7 +95,7 @@ func (url CronJobUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	})
 	// CRON JOB
 	group.POST("/update-offer-store-complete-user-on-chain", func(context *gin.Context) {
-		onChainApi.UpdateOfferStoreComplete(context)
+		onChainApi.UpdateOfferStoreCompleteUser(context)
 	})
 
 	group.POST("/coinbase/callback", func(context *gin.Context) {
