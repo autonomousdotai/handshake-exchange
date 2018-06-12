@@ -249,13 +249,12 @@ func (s OfferStoreService) CreateOfferStoreShake(userId string, offerStoreId str
 		return
 	}
 
-	if offerShakeBody.Currency == bean.ETH.Code {
-		// Only ETH
-		offerShakeBody.Status = bean.OFFER_STORE_SHAKE_STATUS_PRE_SHAKING
+	// Status of shake
+	if offerShakeBody.Type == bean.OFFER_TYPE_SELL {
+		offerShakeBody.Status = bean.OFFER_STORE_SHAKE_STATUS_SHAKE
 	} else {
-		// Only BTC
-		if offerShakeBody.Type == bean.OFFER_TYPE_SELL {
-			offerShakeBody.Status = bean.OFFER_STORE_SHAKE_STATUS_SHAKE
+		if offerShakeBody.Currency == bean.ETH.Code {
+			offerShakeBody.Status = bean.OFFER_STORE_SHAKE_STATUS_PRE_SHAKING
 		} else {
 			offerShakeBody.Status = bean.OFFER_STORE_SHAKE_STATUS_SHAKING
 			s.generateSystemAddressForShake(offerStore, &offerShakeBody, &ce)
@@ -306,41 +305,42 @@ func (s OfferStoreService) RejectOfferStoreShake(userId string, offerStoreId str
 		ce.SetStatusKey(api_error.OfferStatusInvalid)
 	}
 
-	if offerStoreShake.Currency == bean.ETH.Code {
-		// Only ETH
-		offerStoreShake.Status = bean.OFFER_STORE_SHAKE_STATUS_REJECTING
-	} else {
-		// Only BTC
-		offerStoreItemTO := s.dao.GetOfferStoreItem(userId, offerStoreShake.Currency)
-		if offerStoreItemTO.HasError() {
-			ce.SetStatusKey(api_error.GetDataFailed)
-			return
-		}
-		offerStoreItem := offerStoreItemTO.Object.(bean.OfferStoreItem)
-
+	if offerStoreShake.Type == bean.OFFER_TYPE_SELL {
 		offerStoreShake.Status = bean.OFFER_STORE_SHAKE_STATUS_REJECTED
-		description := fmt.Sprintf("Refund to userId %s due to reject the offer", offerStoreShake.UID)
-		userAddress := offerStoreShake.UserAddress
-		if offerStoreShake.Type == bean.OFFER_TYPE_BUY {
-			description = fmt.Sprintf("Refund to userId %s due to reject the offer", offerStore.UID)
-			userAddress = offerStoreItem.UserAddress
+	} else {
+		if offerStoreShake.Currency == bean.ETH.Code {
+			// Only ETH
+			offerStoreShake.Status = bean.OFFER_STORE_SHAKE_STATUS_REJECTING
+		} else {
+			// Only BTC
+			offerStoreItemTO := s.dao.GetOfferStoreItem(userId, offerStoreShake.Currency)
+			if offerStoreItemTO.HasError() {
+				ce.SetStatusKey(api_error.GetDataFailed)
+				return
+			}
+			offerStoreItem := offerStoreItemTO.Object.(bean.OfferStoreItem)
 
-		}
-		response := s.sendTransaction(userAddress,
-			offerStoreShake.Amount, offerStoreShake.Currency, description, offerStore.UID, offerStoreItem.WalletProvider, &ce)
-		if !ce.HasError() {
-			s.miscDao.AddCryptoTransferLog(bean.CryptoTransferLog{
-				Provider:         offerStoreItem.WalletProvider,
-				ProviderResponse: response,
-				DataType:         bean.OFFER_ADDRESS_MAP_OFFER_STORE_SHAKE,
-				DataRef:          dao.GetOfferStoreShakeItemPath(offerStoreId, offerStoreShakeId),
-				UID:              userId,
-				Description:      description,
-				Amount:           offerStoreShake.Amount,
-				Currency:         offerStoreShake.Currency,
-			})
+			offerStoreShake.Status = bean.OFFER_STORE_SHAKE_STATUS_REJECTED
+			description := fmt.Sprintf("Refund to userId %s due to reject the offer", offerStoreShake.UID)
+			userAddress := offerStoreShake.UserAddress
+
+			response := s.sendTransaction(userAddress,
+				offerStoreShake.Amount, offerStoreShake.Currency, description, offerStore.UID, offerStoreItem.WalletProvider, &ce)
+			if !ce.HasError() {
+				s.miscDao.AddCryptoTransferLog(bean.CryptoTransferLog{
+					Provider:         offerStoreItem.WalletProvider,
+					ProviderResponse: response,
+					DataType:         bean.OFFER_ADDRESS_MAP_OFFER_STORE_SHAKE,
+					DataRef:          dao.GetOfferStoreShakeItemPath(offerStoreId, offerStoreShakeId),
+					UID:              userId,
+					Description:      description,
+					Amount:           offerStoreShake.Amount,
+					Currency:         offerStoreShake.Currency,
+				})
+			}
 		}
 	}
+
 
 	transCount := s.getFailedTransCount(offerStore, offerStoreShake, userId)
 	err := s.dao.UpdateOfferStoreShakeReject(offerStore, offerStoreShake, profile, transCount)
@@ -380,7 +380,7 @@ func (s OfferStoreService) CancelOfferStoreShake(userId string, offerStoreId str
 	}
 	offerStoreShake := offerStoreShakeTO.Object.(bean.OfferStoreShake)
 
-	if profile.UserId != offerStore.UID || profile.UserId != offerStoreShake.UID {
+	if profile.UserId != offerStore.UID && profile.UserId != offerStoreShake.UID {
 		ce.SetStatusKey(api_error.InvalidRequestBody)
 		return
 	}
