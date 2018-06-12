@@ -282,20 +282,22 @@ func (dao OfferStoreDao) UpdateOfferStoreShakeBalance(offerStore bean.OfferStore
 	return err
 }
 
-func (dao OfferStoreDao) UpdateNotificationOfferStore(offer bean.OfferStore) error {
+func (dao OfferStoreDao) UpdateNotificationOfferStore(offer bean.OfferStore, offerItem bean.OfferStoreItem) error {
 	dbClient := firebase_service.NotificationFirebaseClient
 
 	ref := dbClient.NewRef(GetNotificationOfferStoreItemPath(offer.UID, offer.Id))
-	err := ref.Set(context.Background(), offer.GetNotificationUpdate())
+	err := ref.Set(context.Background(), offerItem.GetNotificationUpdate(offer))
 
 	return err
 }
 
-func (dao OfferStoreDao) UpdateNotificationOfferStoreShake(offer bean.OfferStoreShake) error {
+func (dao OfferStoreDao) UpdateNotificationOfferStoreShake(offer bean.OfferStoreShake, offerStore bean.OfferStore) error {
 	dbClient := firebase_service.NotificationFirebaseClient
 
 	ref := dbClient.NewRef(GetNotificationOfferStoreShakeItemPath(offer.UID, offer.Id))
 	err := ref.Set(context.Background(), offer.GetNotificationUpdate())
+	ref = dbClient.NewRef(GetNotificationOfferStoreShakeItemPath(offerStore.UID, offer.Id))
+	err = ref.Set(context.Background(), offer.GetNotificationUpdate())
 
 	return err
 }

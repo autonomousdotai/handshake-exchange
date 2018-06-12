@@ -48,7 +48,7 @@ func (s OfferStoreService) CreateOfferStore(userId string, offerSetup bean.Offer
 
 	offerNew.CreatedAt = time.Now().UTC()
 	offerNew.ItemSnapshots = offerBody.ItemSnapshots
-	notification.SendOfferStoreNotification(offerNew)
+	notification.SendOfferStoreNotification(offerNew, offerItemBody)
 
 	offer.Offer = offerNew
 	offer.Item = offerItemBody
@@ -105,7 +105,7 @@ func (s OfferStoreService) AddOfferStoreItem(userId string, offerStoreId string,
 		return
 	}
 
-	notification.SendOfferStoreNotification(offerStore)
+	notification.SendOfferStoreNotification(offerStore, offerItem)
 
 	return
 }
@@ -206,7 +206,7 @@ func (s OfferStoreService) RemoveOfferStoreItem(userId string, offerStoreId stri
 		}
 	}
 
-	notification.SendOfferStoreNotification(offerStore)
+	notification.SendOfferStoreNotification(offerStore, offerStoreItem)
 
 	return
 }

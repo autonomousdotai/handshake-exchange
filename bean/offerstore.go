@@ -2,6 +2,7 @@ package bean
 
 import (
 	"cloud.google.com/go/firestore"
+	"fmt"
 	"strings"
 	"time"
 )
@@ -146,6 +147,14 @@ func (item OfferStoreItem) GetUpdateOfferStoreItemBalance() map[string]interface
 		"buy_balance":  item.BuyBalance,
 		"sell_balance": item.SellBalance,
 		"updated_at":   firestore.ServerTimestamp,
+	}
+}
+
+func (item OfferStoreItem) GetNotificationUpdate(offer OfferStore) map[string]interface{} {
+	return map[string]interface{}{
+		"id":     offer.Id,
+		"status": fmt.Sprintf("%s_%s", strings.ToLower(item.Currency), item.Status),
+		"type":   "offer_store",
 	}
 }
 
