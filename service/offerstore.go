@@ -554,7 +554,7 @@ func (s OfferStoreService) UpdateOnChainInitOfferStore(offerStoreId string, hid 
 	if !offerItemTO.Found {
 		return
 	}
-	offerItem := offerTO.Object.(bean.OfferStoreItem)
+	offerItem := offerItemTO.Object.(bean.OfferStoreItem)
 	if offerItem.Status != bean.OFFER_STORE_ITEM_STATUS_CREATED {
 		ce.SetStatusKey(api_error.OfferStatusInvalid)
 		return
@@ -569,6 +569,7 @@ func (s OfferStoreService) UpdateOnChainInitOfferStore(offerStoreId string, hid 
 	if offer.Status == bean.OFFER_STORE_STATUS_CREATED {
 		offer.Status = bean.OFFER_STORE_STATUS_ACTIVE
 	}
+	offer.ItemSnapshots[offerItem.Currency] = offerItem
 	err := s.dao.UpdateOfferStoreItemActive(offer, offerItem)
 	if ce.SetError(api_error.UpdateDataFailed, err) {
 		return
@@ -613,7 +614,7 @@ func (s OfferStoreService) UpdateOnChainCloseOfferStore(offerStoreId string) (of
 	return
 }
 
-func (s OfferStoreService) UpdateOnChainOfferStoreShake(offerStoreId string, offerStoreShakeId string, oldStatus string, newStatus string) (offerShake bean.OfferStoreShake, ce SimpleContextError) {
+func (s OfferStoreService) UpdateOnChainOfferStoreShake(offerStoreId string, offerStoreShakeId string, hid int64, oldStatus string, newStatus string) (offerShake bean.OfferStoreShake, ce SimpleContextError) {
 	offerTO := s.dao.GetOfferStore(offerStoreId)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, offerTO) {
 		return
@@ -650,10 +651,15 @@ func (s OfferStoreService) UpdateOnChainOfferStoreShake(offerStoreId string, off
 		} else if offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_REJECTED {
 			err = s.dao.UpdateOfferStoreShakeBalance(offer, &offerItem, offerShake, false)
 		}
+		offer.ItemSnapshots[offerItem.Currency] = offerItem
 		if err != nil {
 			ce.SetError(api_error.UpdateDataFailed, err)
 		}
 	}
+	if offerShake.Hid == 0 {
+		offerShake.Hid = hid
+	}
+
 	err := s.dao.UpdateOfferStoreShake(offerStoreId, offerShake, offerShake.GetChangeStatus())
 	if ce.SetError(api_error.UpdateDataFailed, err) {
 		return
@@ -672,16 +678,24 @@ func (s OfferStoreService) CloseOnChainOfferStore(offerStoreId string) (bean.Off
 	return s.UpdateOnChainCloseOfferStore(offerStoreId)
 }
 
+func (s OfferStoreService) PreShakeOnChainOfferStoreShake(offerStoreId string, offerStoreShakeId string, hid int64) (bean.OfferStoreShake, SimpleContextError) {
+	return s.UpdateOnChainOfferStoreShake(offerStoreId, offerStoreShakeId, hid, bean.OFFER_STORE_SHAKE_STATUS_PRE_SHAKING, bean.OFFER_STORE_SHAKE_STATUS_PRE_SHAKE)
+}
+
+func (s OfferStoreService) CancelOnChainOfferStoreShake(offerStoreId string, offerStoreShakeId string) (bean.OfferStoreShake, SimpleContextError) {
+	return s.UpdateOnChainOfferStoreShake(offerStoreId, offerStoreShakeId, 0, bean.OFFER_STORE_SHAKE_STATUS_CANCELLING, bean.OFFER_STORE_SHAKE_STATUS_CANCELLED)
+}
+
 func (s OfferStoreService) ShakeOnChainOfferStoreShake(offerStoreId string, offerStoreShakeId string) (bean.OfferStoreShake, SimpleContextError) {
-	return s.UpdateOnChainOfferStoreShake(offerStoreId, offerStoreShakeId, bean.OFFER_STATUS_SHAKING, bean.OFFER_STATUS_SHAKE)
+	return s.UpdateOnChainOfferStoreShake(offerStoreId, offerStoreShakeId, 0, bean.OFFER_STORE_SHAKE_STATUS_SHAKING, bean.OFFER_STORE_SHAKE_STATUS_SHAKE)
 }
 
 func (s OfferStoreService) RejectOnChainOfferStoreShake(offerStoreId string, offerStoreShakeId string) (bean.OfferStoreShake, SimpleContextError) {
-	return s.UpdateOnChainOfferStoreShake(offerStoreId, offerStoreShakeId, bean.OFFER_STATUS_REJECTING, bean.OFFER_STATUS_REJECTED)
+	return s.UpdateOnChainOfferStoreShake(offerStoreId, offerStoreShakeId, 0, bean.OFFER_STORE_SHAKE_STATUS_REJECTING, bean.OFFER_STORE_SHAKE_STATUS_REJECTED)
 }
 
 func (s OfferStoreService) CompleteOnChainOfferStoreShake(offerStoreId string, offerStoreShakeId string) (bean.OfferStoreShake, SimpleContextError) {
-	return s.UpdateOnChainOfferStoreShake(offerStoreId, offerStoreShakeId, bean.OFFER_STATUS_COMPLETING, bean.OFFER_STATUS_COMPLETED)
+	return s.UpdateOnChainOfferStoreShake(offerStoreId, offerStoreShakeId, 0, bean.OFFER_STORE_SHAKE_STATUS_COMPLETING, bean.OFFER_STORE_SHAKE_STATUS_COMPLETED)
 }
 
 func (s OfferStoreService) GetQuote(quoteType string, amountStr string, currency string, fiatCurrency string) (price decimal.Decimal, fiatPrice decimal.Decimal,

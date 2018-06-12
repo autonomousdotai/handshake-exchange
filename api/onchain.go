@@ -252,7 +252,7 @@ func (api OnChainApi) UpdateOfferStoreClose(context *gin.Context) {
 
 func (api OnChainApi) UpdateOfferStorePreShake(context *gin.Context) {
 	client := exchangehandshakeshop_service.ExchangeHandshakeShopClient{}
-	to := dao.OnChainDaoInst.GetOfferStoreShakeEventBlock()
+	to := dao.OnChainDaoInst.GetOfferStorePreShakeEventBlock()
 	if to.ContextValidate(context) {
 		return
 	}
@@ -265,11 +265,11 @@ func (api OnChainApi) UpdateOfferStorePreShake(context *gin.Context) {
 	for _, offerOnChain := range offerOnChains {
 		fmt.Println(offerOnChain)
 		parts := strings.Split(offerOnChain.Offer, "-")
-		service.OfferStoreServiceInst.ShakeOnChainOfferStoreShake(parts[0], parts[1])
+		service.OfferStoreServiceInst.PreShakeOnChainOfferStoreShake(parts[0], parts[1], offerOnChain.Hid)
 	}
 
 	block.LastBlock = int64(lastBlock)
-	err = dao.OnChainDaoInst.UpdateOfferShakeEventBlock(block)
+	err = dao.OnChainDaoInst.UpdateOfferStorePreShakeEventBlock(block)
 	if api_error.PropagateErrorAndAbort(context, api_error.UpdateDataFailed, err) != nil {
 		return
 	}
@@ -292,7 +292,7 @@ func (api OnChainApi) UpdateOfferStoreCancel(context *gin.Context) {
 	for _, offerOnChain := range offerOnChains {
 		fmt.Println(offerOnChain)
 		parts := strings.Split(offerOnChain.Offer, "-")
-		service.OfferStoreServiceInst.ShakeOnChainOfferStoreShake(parts[0], parts[1])
+		service.OfferStoreServiceInst.CancelOnChainOfferStoreShake(parts[0], parts[1])
 	}
 
 	block.LastBlock = int64(lastBlock)
@@ -317,9 +317,9 @@ func (api OnChainApi) UpdateOfferStoreShake(context *gin.Context) {
 		return
 	}
 	for _, offerOnChain := range offerOnChains {
-		// offerStoreId := ""
 		fmt.Println(offerOnChain)
-		// service.OfferStoreServiceInst.ShakeOnChainOfferStoreShake(offerStoreId, offerOnChain.Offer)
+		parts := strings.Split(offerOnChain.Offer, "-")
+		service.OfferStoreServiceInst.ShakeOnChainOfferStoreShake(parts[0], parts[1])
 	}
 
 	block.LastBlock = int64(lastBlock)
@@ -344,9 +344,9 @@ func (api OnChainApi) UpdateOfferStoreReject(context *gin.Context) {
 		return
 	}
 	for _, offerOnChain := range offerOnChains {
-		// offerStoreId := ""
 		fmt.Println(offerOnChain)
-		// service.OfferStoreServiceInst.RejectOnChainOfferStoreShake(offerStoreId, offerOnChain.Offer)
+		parts := strings.Split(offerOnChain.Offer, "-")
+		service.OfferStoreServiceInst.RejectOnChainOfferStoreShake(parts[0], parts[1])
 	}
 
 	block.LastBlock = int64(lastBlock)
@@ -371,9 +371,9 @@ func (api OnChainApi) UpdateOfferStoreComplete(context *gin.Context) {
 		return
 	}
 	for _, offerOnChain := range offerOnChains {
-		// offerStoreId := ""
 		fmt.Println(offerOnChain)
-		// service.OfferStoreServiceInst.CompleteOnChainOfferStoreShake(offerStoreId, offerOnChain.Offer)
+		parts := strings.Split(offerOnChain.Offer, "-")
+		service.OfferStoreServiceInst.CompleteOnChainOfferStoreShake(parts[0], parts[1])
 	}
 
 	block.LastBlock = int64(lastBlock)
@@ -398,9 +398,9 @@ func (api OnChainApi) UpdateOfferStoreCompleteUser(context *gin.Context) {
 		return
 	}
 	for _, offerOnChain := range offerOnChains {
-		// offerStoreId := ""
 		fmt.Println(offerOnChain)
-		// service.OfferStoreServiceInst.CompleteOnChainOfferStoreShake(offerStoreId, offerOnChain.Offer)
+		parts := strings.Split(offerOnChain.Offer, "-")
+		service.OfferStoreServiceInst.CompleteOnChainOfferStoreShake(parts[0], parts[1])
 	}
 
 	block.LastBlock = int64(lastBlock)

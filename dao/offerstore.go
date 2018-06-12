@@ -240,6 +240,7 @@ func (dao OfferStoreDao) UpdateOfferStoreShakeComplete(offerStore bean.OfferStor
 func (dao OfferStoreDao) UpdateOfferStoreShakeBalance(offerStore bean.OfferStore, offerStoreItem *bean.OfferStoreItem, offerStoreShake bean.OfferStoreShake, shakeOrReject bool) error {
 	dbClient := firebase_service.FirestoreClient
 
+	offerStoreRef := dbClient.Doc(GetOfferStoreItemPath(offerStore.Id))
 	offerStoreItemRef := dbClient.Doc(GetOfferStoreItemItemPath(offerStore.Id, offerStoreItem.Currency))
 	offerStoreShakeRef := dbClient.Doc(GetOfferStoreShakeItemPath(offerStore.Id, offerStoreShake.Id))
 
@@ -292,6 +293,9 @@ func (dao OfferStoreDao) UpdateOfferStoreShakeBalance(offerStore bean.OfferStore
 
 		err = tx.Set(offerStoreShakeRef, offerStoreShake.GetChangeStatus(), firestore.MergeAll)
 		err = tx.Set(offerStoreItemRef, offerStoreItem.GetUpdateOfferStoreItemBalance(), firestore.MergeAll)
+
+		offerStore.ItemSnapshots[offerStoreItem.Currency] = *offerStoreItem
+		err = tx.Set(offerStoreRef, offerStore.GetUpdateOfferStoreChangeSnapshot(), firestore.MergeAll)
 		return err
 
 	})

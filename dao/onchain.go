@@ -252,7 +252,7 @@ func (dao OnChainDao) GetOfferStorePreShakeEventBlock() (t TransferObject) {
 }
 
 func (dao OnChainDao) UpdateOfferStorePreShakeEventBlock(offer bean.OfferEventBlock) error {
-	key := GetOfferStoreCancelEventBlockKey()
+	key := GetOfferStorePreShakeEventBlockKey()
 	cache.RedisClient.Set(key, offer.LastBlock, 0)
 
 	return nil

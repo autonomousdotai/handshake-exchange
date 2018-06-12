@@ -167,13 +167,17 @@ func SendInstantOfferToFCM(offer bean.InstantOffer, c chan error) {
 
 func SendOfferStoreNotification(offer bean.OfferStore, offerItem bean.OfferStoreItem) []error {
 	c := make(chan error)
-	// go SendOfferToEmail(offer, c)
+	go SendOfferStoreToEmail(offer, offerItem, c)
 	go SendOfferStoreToFirebase(offer, offerItem, c)
 	go SendOfferStoreToSolr(offer, c)
 	// go SendOfferToFCM(offer, c)
 
 	// return []error{<-c, <-c, <-c, <-c}
-	return []error{<-c, <-c}
+	return []error{<-c, <-c, <-c}
+}
+
+func SendOfferStoreToEmail(offer bean.OfferStore, offerItem bean.OfferStoreItem, c chan error) {
+
 }
 
 func SendOfferStoreToFirebase(offer bean.OfferStore, offerItem bean.OfferStoreItem, c chan error) {
