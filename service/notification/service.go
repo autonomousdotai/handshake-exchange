@@ -201,13 +201,17 @@ func SendOfferStoreToSolr(offer bean.OfferStore, c chan error) {
 
 func SendOfferStoreShakeNotification(offer bean.OfferStoreShake, offerStore bean.OfferStore) []error {
 	c := make(chan error)
-	// go SendOfferToEmail(offer, c)
+	go SendOfferStoreShakeToEmail(offer, offerStore, c)
 	go SendOfferStoreShakeToFirebase(offer, offerStore, c)
 	go SendOfferStoreShakeToSolr(offer, offerStore, c)
 	// go SendOfferToFCM(offer, c)
 
 	// return []error{<-c, <-c, <-c, <-c}
-	return []error{<-c, <-c}
+	return []error{<-c, <-c, <-c}
+}
+
+func SendOfferStoreShakeToEmail(offer bean.OfferStoreShake, offerStore bean.OfferStore, c chan error) {
+
 }
 
 func SendOfferStoreShakeToFirebase(offer bean.OfferStoreShake, offerStore bean.OfferStore, c chan error) {

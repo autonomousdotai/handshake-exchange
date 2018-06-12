@@ -312,3 +312,199 @@ func SendOfferStoreItemRemovedEmail(language string, emailAddress string) error 
 		OfferStoreItemRemoved,
 		data)
 }
+
+func SendOfferStoreMakerSellShakeEmail(language string, emailAddress string, amount string, currency string,
+	fiatAmount string, fiatCurrency string, username string) error {
+	T, _ := i18n.Tfunc(language)
+
+	subject := T("email_offer_store_maker_sell_shake", map[string]string{
+		"Currency": currency,
+	})
+
+	data := struct {
+		Amount       string
+		Currency     string
+		FiatAmount   string
+		FiatCurrency string
+		Username     string
+	}{
+		Amount:       amount,
+		Currency:     currency,
+		FiatAmount:   fiatAmount,
+		FiatCurrency: fiatCurrency,
+		Username:     username,
+	}
+
+	return SendSystemEmailWithTemplate(
+		"",
+		emailAddress,
+		language,
+		subject,
+		OfferStoreMakerSellShake,
+		data)
+}
+
+func SendOfferStoreMakerBuyShakeEmail(language string, emailAddress string, amount string, currency string,
+	fiatAmount string, fiatCurrency string, username string) error {
+	T, _ := i18n.Tfunc(language)
+
+	subject := T("email_offer_store_maker_buy_shake", map[string]string{
+		"Currency": currency,
+	})
+
+	data := struct {
+		Amount       string
+		Currency     string
+		FiatAmount   string
+		FiatCurrency string
+		Username     string
+	}{
+		Amount:       amount,
+		Currency:     currency,
+		FiatAmount:   fiatAmount,
+		FiatCurrency: fiatCurrency,
+		Username:     username,
+	}
+
+	return SendSystemEmailWithTemplate(
+		"",
+		emailAddress,
+		language,
+		subject,
+		OfferStoreMakerBuyShake,
+		data)
+}
+
+func SendOfferStoreTakerSellShakeEmail(language string, emailAddress string, amount string, currency string,
+	fiatAmount string, fiatCurrency string, username string) error {
+	T, _ := i18n.Tfunc(language)
+
+	subject := T("email_offer_store_taker_sell_shake")
+
+	data := struct {
+		Amount       string
+		Currency     string
+		FiatAmount   string
+		FiatCurrency string
+		Username     string
+	}{
+		Amount:       amount,
+		Currency:     currency,
+		FiatAmount:   fiatAmount,
+		FiatCurrency: fiatCurrency,
+		Username:     username,
+	}
+
+	return SendSystemEmailWithTemplate(
+		"",
+		emailAddress,
+		language,
+		subject,
+		OfferStoreTakerSellShake,
+		data)
+}
+
+func SendOfferStoreTakerBuyShakeEmail(language string, emailAddress string, amount string, currency string,
+	fiatAmount string, fiatCurrency string, username string) error {
+	T, _ := i18n.Tfunc(language)
+
+	subject := T("email_offer_store_taker_buy_shake")
+
+	data := struct {
+		Amount       string
+		Currency     string
+		FiatAmount   string
+		FiatCurrency string
+		Username     string
+	}{
+		Amount:       amount,
+		Currency:     currency,
+		FiatAmount:   fiatAmount,
+		FiatCurrency: fiatCurrency,
+		Username:     username,
+	}
+
+	return SendSystemEmailWithTemplate(
+		"",
+		emailAddress,
+		language,
+		subject,
+		OfferStoreTakerBuyShake,
+		data)
+}
+
+func SendOfferStoreAcceptEmail(language string, emailAddress string, amount string, currency string, username string) error {
+	T, _ := i18n.Tfunc(language)
+
+	subject := T("email_offer_store_accept", map[string]string{
+		"Currency": currency,
+	})
+
+	data := struct {
+		Amount   string
+		Currency string
+		Username string
+	}{
+		Amount:   amount,
+		Currency: currency,
+		Username: username,
+	}
+
+	return SendSystemEmailWithTemplate(
+		"",
+		emailAddress,
+		language,
+		subject,
+		OfferStoreAccept,
+		data)
+}
+
+func SendOfferStoreMakerRejectEmail(language string, emailAddress string, username string) error {
+	T, _ := i18n.Tfunc(language)
+
+	subject := T("email_offer_store_maker_reject", map[string]string{
+		"Username": username,
+	})
+
+	host := os.Getenv("FRONTEND_HOST")
+	data := struct {
+		Url      string
+		Username string
+	}{
+		Url:      fmt.Sprintf("%s/create", host),
+		Username: username,
+	}
+
+	return SendSystemEmailWithTemplate(
+		"",
+		emailAddress,
+		language,
+		subject,
+		OfferStoreMakerReject,
+		data)
+}
+
+func SendOfferStoreTakerRejectEmail(language string, emailAddress string, username string) error {
+	T, _ := i18n.Tfunc(language)
+
+	subject := T("email_offer_store_taker_reject", map[string]string{
+		"Username": username,
+	})
+
+	host := os.Getenv("FRONTEND_HOST")
+	data := struct {
+		Url      string
+		Username string
+	}{
+		Url:      fmt.Sprintf("%s/discover", host),
+		Username: username,
+	}
+
+	return SendSystemEmailWithTemplate(
+		"",
+		emailAddress,
+		language,
+		subject,
+		OfferStoreTakerReject,
+		data)
+}

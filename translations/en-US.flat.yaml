@@ -50,5 +50,7 @@ email_offer_store_taker_buy_shake:
   other: "Selling Order Succeeded!"
 email_offer_store_accept:
   other: "Your {{.Currency}} is being transferred"
-email_offer_store_reject:
+email_offer_store_maker_reject:
+  other: "Sorry, but {{.Username}} decided not shake"
+email_offer_store_taker_reject:
   other: "Sorry, but {{.Username}} decided not shake"
