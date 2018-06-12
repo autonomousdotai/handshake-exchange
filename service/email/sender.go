@@ -274,12 +274,10 @@ func SendOfferStoreItemAddedEmail(language string, emailAddress string, sellAmou
 	subject := T("email_offer_store_item_added")
 
 	data := struct {
-		Name       string
 		Currency   string
 		SellAmount string
 		BuyAmount  string
 	}{
-		Name:       emailAddress,
 		Currency:   currency,
 		SellAmount: sellAmount,
 		BuyAmount:  buyAmount,
@@ -290,6 +288,27 @@ func SendOfferStoreItemAddedEmail(language string, emailAddress string, sellAmou
 		emailAddress,
 		language,
 		subject,
-		OrderInstantCCSuccess,
+		OfferStoreItemAdded,
+		data)
+}
+
+func SendOfferStoreItemRemovedEmail(language string, emailAddress string) error {
+	T, _ := i18n.Tfunc(language)
+
+	subject := T("email_offer_store_item_removed")
+
+	host := os.Getenv("FRONTEND_HOST")
+	data := struct {
+		Url string
+	}{
+		Url: fmt.Sprintf("%s/create", host),
+	}
+
+	return SendSystemEmailWithTemplate(
+		"",
+		emailAddress,
+		language,
+		subject,
+		OfferStoreItemRemoved,
 		data)
 }

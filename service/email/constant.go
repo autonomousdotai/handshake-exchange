@@ -11,6 +11,7 @@ const OfferMakerRejected = "OfferMakerRejected"
 const OfferWithdraw = "OfferWithdraw"
 const OrderInstantCCSuccess = "OrderInstantCCSuccess"
 const OfferStoreItemAdded = "OfferStoreItemAdded"
+const OfferStoreItemRemoved = "OfferStoreItemRemoved"
 
 var TemplateName = map[string]string{
 	OfferBuyingActive:     "offer-buying-active-",
@@ -24,4 +25,5 @@ var TemplateName = map[string]string{
 	OfferMakerRejected:    "offer-maker-rejected-",
 	OfferWithdraw:         "offer-withdraw-",
 	OfferStoreItemAdded:   "offer-store-item-added-",
+	OfferStoreItemRemoved: "offer-store-item-removed-",
 }

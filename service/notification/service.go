@@ -181,6 +181,8 @@ func SendOfferStoreToEmail(offer bean.OfferStore, offerItem bean.OfferStoreItem,
 	if offer.Email != "" {
 		if offerItem.Status == bean.OFFER_STORE_ITEM_STATUS_ACTIVE {
 			err = email.SendOfferStoreItemAddedEmail(offer.Language, offer.Email, offerItem.SellAmount, offerItem.BuyAmount, offerItem.Currency)
+		} else if offerItem.Status == bean.OFFER_STORE_ITEM_STATUS_CLOSED {
+			err = email.SendOfferStoreItemRemovedEmail(offer.Language, offer.Email)
 		}
 	}
 	c <- err

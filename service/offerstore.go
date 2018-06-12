@@ -506,10 +506,18 @@ func (s OfferStoreService) CompleteOfferStoreShake(userId string, offerStoreId s
 	}
 	offerStoreShake := offerStoreShakeTO.Object.(bean.OfferStoreShake)
 
-	if profile.UserId != offerStore.UID {
-		ce.SetStatusKey(api_error.InvalidRequestBody)
-		return
+	if offerStoreShake.Type == bean.OFFER_TYPE_SELL {
+		if profile.UserId != offerStore.UID {
+			ce.SetStatusKey(api_error.InvalidRequestBody)
+			return
+		}
+	} else {
+		if profile.UserId != offerStoreShake.UID {
+			ce.SetStatusKey(api_error.InvalidRequestBody)
+			return
+		}
 	}
+
 	if offerStoreShake.Status != bean.OFFER_STORE_SHAKE_STATUS_SHAKE {
 		ce.SetStatusKey(api_error.OfferStatusInvalid)
 	}
@@ -644,7 +652,7 @@ func (s OfferStoreService) UpdateOnChainOfferStoreShake(offerStoreId string, off
 		if ce.FeedDaoTransfer(api_error.GetDataFailed, offerItemTO) {
 			return
 		}
-		offerItem := offerTO.Object.(bean.OfferStoreItem)
+		offerItem := offerItemTO.Object.(bean.OfferStoreItem)
 		var err error
 		if offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_SHAKE {
 			err = s.dao.UpdateOfferStoreShakeBalance(offer, &offerItem, offerShake, true)

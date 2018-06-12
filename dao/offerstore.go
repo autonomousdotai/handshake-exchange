@@ -316,10 +316,8 @@ func (dao OfferStoreDao) UpdateNotificationOfferStoreShake(offer bean.OfferStore
 
 	ref := dbClient.NewRef(GetNotificationOfferStoreShakeItemPath(offer.UID, offer.Id))
 	err := ref.Set(context.Background(), offer.GetNotificationUpdate())
-	fmt.Println(err)
 	ref2 := dbClient.NewRef(GetNotificationOfferStoreShakeItemPath(offerStore.UID, offer.Id))
 	err = ref2.Set(context.Background(), offer.GetNotificationUpdate())
-	fmt.Println(err)
 
 	return err
 }
