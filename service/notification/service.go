@@ -177,7 +177,13 @@ func SendOfferStoreNotification(offer bean.OfferStore, offerItem bean.OfferStore
 }
 
 func SendOfferStoreToEmail(offer bean.OfferStore, offerItem bean.OfferStoreItem, c chan error) {
-
+	var err error
+	if offer.Email != "" {
+		if offerItem.Status == bean.OFFER_STORE_ITEM_STATUS_ACTIVE {
+			err = email.SendOfferStoreItemAddedEmail(offer.Language, offer.Email, offerItem.SellAmount, offerItem.BuyAmount, offerItem.Currency)
+		}
+	}
+	c <- err
 }
 
 func SendOfferStoreToFirebase(offer bean.OfferStore, offerItem bean.OfferStoreItem, c chan error) {

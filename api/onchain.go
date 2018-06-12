@@ -267,7 +267,9 @@ func (api OnChainApi) UpdateOfferStorePreShake(context *gin.Context) {
 		parts := strings.Split(offerOnChain.Offer, "-")
 		service.OfferStoreServiceInst.PreShakeOnChainOfferStoreShake(parts[0], parts[1], offerOnChain.Hid)
 	}
-
+	if len(offerOnChains) > 0 {
+		lastBlock += 1
+	}
 	block.LastBlock = int64(lastBlock)
 	err = dao.OnChainDaoInst.UpdateOfferStorePreShakeEventBlock(block)
 	if api_error.PropagateErrorAndAbort(context, api_error.UpdateDataFailed, err) != nil {
@@ -294,7 +296,9 @@ func (api OnChainApi) UpdateOfferStoreCancel(context *gin.Context) {
 		parts := strings.Split(offerOnChain.Offer, "-")
 		service.OfferStoreServiceInst.CancelOnChainOfferStoreShake(parts[0], parts[1])
 	}
-
+	if len(offerOnChains) > 0 {
+		lastBlock += 1
+	}
 	block.LastBlock = int64(lastBlock)
 	err = dao.OnChainDaoInst.UpdateOfferShakeEventBlock(block)
 	if api_error.PropagateErrorAndAbort(context, api_error.UpdateDataFailed, err) != nil {
@@ -321,7 +325,9 @@ func (api OnChainApi) UpdateOfferStoreShake(context *gin.Context) {
 		parts := strings.Split(offerOnChain.Offer, "-")
 		service.OfferStoreServiceInst.ShakeOnChainOfferStoreShake(parts[0], parts[1])
 	}
-
+	if len(offerOnChains) > 0 {
+		lastBlock += 1
+	}
 	block.LastBlock = int64(lastBlock)
 	err = dao.OnChainDaoInst.UpdateOfferShakeEventBlock(block)
 	if api_error.PropagateErrorAndAbort(context, api_error.UpdateDataFailed, err) != nil {
@@ -348,7 +354,9 @@ func (api OnChainApi) UpdateOfferStoreReject(context *gin.Context) {
 		parts := strings.Split(offerOnChain.Offer, "-")
 		service.OfferStoreServiceInst.RejectOnChainOfferStoreShake(parts[0], parts[1])
 	}
-
+	if len(offerOnChains) > 0 {
+		lastBlock += 1
+	}
 	block.LastBlock = int64(lastBlock)
 	err = dao.OnChainDaoInst.UpdateOfferRejectEventBlock(block)
 	if api_error.PropagateErrorAndAbort(context, api_error.UpdateDataFailed, err) != nil {
@@ -375,7 +383,9 @@ func (api OnChainApi) UpdateOfferStoreComplete(context *gin.Context) {
 		parts := strings.Split(offerOnChain.Offer, "-")
 		service.OfferStoreServiceInst.CompleteOnChainOfferStoreShake(parts[0], parts[1])
 	}
-
+	if len(offerOnChains) > 0 {
+		lastBlock += 1
+	}
 	block.LastBlock = int64(lastBlock)
 	err = dao.OnChainDaoInst.UpdateOfferStoreCompleteEventBlock(block)
 	if api_error.PropagateErrorAndAbort(context, api_error.UpdateDataFailed, err) != nil {
@@ -402,7 +412,9 @@ func (api OnChainApi) UpdateOfferStoreCompleteUser(context *gin.Context) {
 		parts := strings.Split(offerOnChain.Offer, "-")
 		service.OfferStoreServiceInst.CompleteOnChainOfferStoreShake(parts[0], parts[1])
 	}
-
+	if len(offerOnChains) > 0 {
+		lastBlock += 1
+	}
 	block.LastBlock = int64(lastBlock)
 	err = dao.OnChainDaoInst.UpdateOfferStoreCompleteUserEventBlock(block)
 	if api_error.PropagateErrorAndAbort(context, api_error.UpdateDataFailed, err) != nil {

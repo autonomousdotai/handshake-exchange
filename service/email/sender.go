@@ -267,3 +267,29 @@ func SendOrderInstantCCSuccessEmail(language string, emailAddress string, amount
 		OrderInstantCCSuccess,
 		data)
 }
+
+func SendOfferStoreItemAddedEmail(language string, emailAddress string, sellAmount string, buyAmount string, currency string) error {
+	T, _ := i18n.Tfunc(language)
+
+	subject := T("email_offer_store_item_added")
+
+	data := struct {
+		Name       string
+		Currency   string
+		SellAmount string
+		BuyAmount  string
+	}{
+		Name:       emailAddress,
+		Currency:   currency,
+		SellAmount: sellAmount,
+		BuyAmount:  buyAmount,
+	}
+
+	return SendSystemEmailWithTemplate(
+		"",
+		emailAddress,
+		language,
+		subject,
+		OrderInstantCCSuccess,
+		data)
+}

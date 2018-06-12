@@ -36,3 +36,5 @@ notification_offer_maker_rejected:
   other: "The {{.Role}} cancelled this shake. Boo. Please create a new offer."
 notification_offer_completed:
   other: "The buyer has accepted your offer! You can now withdraw coins to your wallet."
+email_offer_store_item_added:
+  other: "Attention Ninja! Your offer is live"

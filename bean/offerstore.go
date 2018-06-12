@@ -229,6 +229,7 @@ type OfferStoreShake struct {
 func (offer OfferStoreShake) GetAddOfferStoreShake() map[string]interface{} {
 	return map[string]interface{}{
 		"id":                offer.Id,
+		"off_chain_id":      offer.OffChainId,
 		"type":              offer.Type,
 		"status":            offer.Status,
 		"uid":               offer.UID,
@@ -250,6 +251,7 @@ func (offer OfferStoreShake) GetAddOfferStoreShake() map[string]interface{} {
 		"reward":            offer.Reward,
 		"reward_percentage": offer.RewardPercentage,
 		"action_uid":        offer.ActionUID,
+		"chain_id":          offer.ChainId,
 		"provider":          offer.Provider,
 		"provider_data":     offer.ProviderData,
 		"latitude":          offer.Latitude,
