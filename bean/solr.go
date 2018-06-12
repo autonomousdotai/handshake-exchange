@@ -373,7 +373,7 @@ func NewSolrFromOfferStoreShake(offer OfferStoreShake, offerStore OfferStore) (s
 	solr.State = 0
 	solr.IsPrivate = 1
 	solr.Status = offerStoreSHakeStatusMap[offer.Status]
-	solr.Hid = 0
+	solr.Hid = offerStore.Hid
 	solr.ChainId = offer.ChainId
 	storeUID, _ := strconv.Atoi(offerStore.UID)
 	solr.InitUserId = storeUID
@@ -400,6 +400,10 @@ func NewSolrFromOfferStoreShake(offer OfferStoreShake, offerStore OfferStore) (s
 	reward, _ := decimal.NewFromString(offer.Reward)
 	fee = fee.Add(reward)
 
+	userAddress := offer.UserAddress
+	if userAddress == "" {
+		userAddress = offerStore.ItemSnapshots[offer.Currency].UserAddress
+	}
 	extraData := SolrOfferStoreShakeExtraData{
 		Id:               offer.Id,
 		OffChainId:       offer.OffChainId,
