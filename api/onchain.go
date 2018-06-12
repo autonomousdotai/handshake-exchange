@@ -407,6 +407,7 @@ func (api OnChainApi) UpdateOfferStoreCompleteUser(context *gin.Context) {
 		return
 	}
 	for _, offerOnChain := range offerOnChains {
+		fmt.Println(offerOnChain)
 		parts := strings.Split(offerOnChain.Offer, "-")
 		service.OfferStoreServiceInst.CompleteOnChainOfferStoreShake(parts[0], parts[1])
 	}

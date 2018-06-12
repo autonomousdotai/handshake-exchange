@@ -271,7 +271,7 @@ func (c *ExchangeHandshakeShopClient) GetCompleteUserOfferStoreEvent(startBlock 
 	opt := &bind.FilterOpts{
 		Start: startBlock,
 	}
-	past, errInit := c.handshake.FilterAccept(opt)
+	past, errInit := c.handshake.FilterFinish(opt)
 	if errInit != nil {
 		err = errInit
 		return
