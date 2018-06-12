@@ -555,6 +555,7 @@ func (s OfferStoreService) UpdateOnChainInitOfferStore(offerStoreId string, hid 
 		offer.Hid = hid
 	}
 	offerItem.Status = bean.OFFER_STORE_ITEM_STATUS_ACTIVE
+	offerItem.SellBalance = offerItem.SellAmount
 	if offer.Status == bean.OFFER_STORE_STATUS_CREATED {
 		offer.Status = bean.OFFER_STORE_STATUS_ACTIVE
 	}
@@ -627,6 +628,22 @@ func (s OfferStoreService) UpdateOnChainOfferStoreShake(offerStoreId string, off
 
 	// Good
 	offerShake.Status = newStatus
+	if offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_SHAKE || offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_REJECTED {
+		offerItemTO := s.dao.GetOfferStoreItem(offerStoreId, offerShake.Currency)
+		if ce.FeedDaoTransfer(api_error.GetDataFailed, offerItemTO) {
+			return
+		}
+		offerItem := offerTO.Object.(bean.OfferStoreItem)
+		var err error
+		if offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_SHAKE {
+			err = s.dao.UpdateOfferStoreShakeBalance(offer, &offerItem, offerShake, true)
+		} else if offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_REJECTED {
+			err = s.dao.UpdateOfferStoreShakeBalance(offer, &offerItem, offerShake, false)
+		}
+		if err != nil {
+			ce.SetError(api_error.UpdateDataFailed, err)
+		}
+	}
 	err := s.dao.UpdateOfferStoreShake(offerStoreId, offerShake, offerShake.GetChangeStatus())
 	if ce.SetError(api_error.UpdateDataFailed, err) {
 		return

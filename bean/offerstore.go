@@ -132,8 +132,9 @@ func (item OfferStoreItem) GetAddOfferStoreItem() map[string]interface{} {
 
 func (item OfferStoreItem) GetUpdateOfferStoreItemActive() map[string]interface{} {
 	return map[string]interface{}{
-		"status":     OFFER_STORE_ITEM_STATUS_ACTIVE,
-		"updated_at": firestore.ServerTimestamp,
+		"sell_balance": item.SellBalance,
+		"status":       OFFER_STORE_ITEM_STATUS_ACTIVE,
+		"updated_at":   firestore.ServerTimestamp,
 	}
 }
 
