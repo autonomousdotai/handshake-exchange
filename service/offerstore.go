@@ -380,7 +380,7 @@ func (s OfferStoreService) CancelOfferStoreShake(userId string, offerStoreId str
 	}
 	offerStoreShake := offerStoreShakeTO.Object.(bean.OfferStoreShake)
 
-	if profile.UserId != offerStore.UID {
+	if profile.UserId != offerStore.UID || profile.UserId != offerStoreShake.UID {
 		ce.SetStatusKey(api_error.InvalidRequestBody)
 		return
 	}
