@@ -279,6 +279,16 @@ func (dao MiscDao) GetSystemConfigFromCache(key string) (t TransferObject) {
 	return
 }
 
+func (dao MiscDao) AddCryptoTransferLog(log bean.CryptoTransferLog) (bean.CryptoTransferLog, error) {
+	dbClient := firebase_service.FirestoreClient
+	docRef := dbClient.Collection(GetCryptoTransferPath(log.UID)).NewDoc()
+	log.Id = docRef.ID
+
+	_, err := docRef.Set(context.Background(), log.GetAddLog())
+
+	return log, err
+}
+
 func GetCurrencyRateItemPath(currency string) string {
 	return fmt.Sprintf("currency_rates/%s", currency)
 }
@@ -321,4 +331,8 @@ func GetSystemConfigPath() string {
 
 func GetSystemConfigCacheKey(fee string) string {
 	return fmt.Sprintf("handshake_exchange.system_configs.%s", fee)
+}
+
+func GetCryptoTransferPath(userId string) string {
+	return fmt.Sprintf("crypto_transfer_logs/%s/logs", userId)
 }

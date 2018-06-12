@@ -65,6 +65,39 @@ func (url CronJobUrl) Create(router *gin.Engine) *gin.RouterGroup {
 		onChainApi.UpdateOfferWithdraw(context)
 	})
 
+	// CRON JOB
+	group.POST("/update-offer-store-init-on-chain", func(context *gin.Context) {
+		onChainApi.UpdateOfferStoreInit(context)
+	})
+	// CRON JOB
+	group.POST("/update-offer-store-close-on-chain", func(context *gin.Context) {
+		onChainApi.UpdateOfferStoreClose(context)
+	})
+	// CRON JOB
+	group.POST("/update-offer-store-pre-shake-on-chain", func(context *gin.Context) {
+		onChainApi.UpdateOfferStorePreShake(context)
+	})
+	// CRON JOB
+	group.POST("/update-offer-store-cancel-on-chain", func(context *gin.Context) {
+		onChainApi.UpdateOfferStoreCancel(context)
+	})
+	// CRON JOB
+	group.POST("/update-offer-store-shake-on-chain", func(context *gin.Context) {
+		onChainApi.UpdateOfferStoreShake(context)
+	})
+	// CRON JOB
+	group.POST("/update-offer-store-reject-on-chain", func(context *gin.Context) {
+		onChainApi.UpdateOfferStoreReject(context)
+	})
+	// CRON JOB
+	group.POST("/update-offer-store-complete-on-chain", func(context *gin.Context) {
+		onChainApi.UpdateOfferStoreComplete(context)
+	})
+	// CRON JOB
+	group.POST("/update-offer-store-complete-user-on-chain", func(context *gin.Context) {
+		onChainApi.UpdateOfferStoreCompleteUser(context)
+	})
+
 	group.POST("/coinbase/callback", func(context *gin.Context) {
 		coinbaseApi.ReceiveCallback(context)
 	})
@@ -80,17 +113,29 @@ func (url CronJobUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	group.POST("/cc-limits", func(context *gin.Context) {
 		miscApi.UpdateCCLimits(context)
 	})
-	group.POST("/sync-to-solr/:offerId", func(context *gin.Context) {
-		miscApi.SyncToSolr(context)
+	group.POST("/sync-to-offer-solr/:offerId", func(context *gin.Context) {
+		miscApi.SyncOfferToSolr(context)
+	})
+	group.POST("/sync-to-offer-store-solr/:offerId", func(context *gin.Context) {
+		miscApi.SyncOfferStoreToSolr(context)
+	})
+	group.POST("/sync-to-offer-store-shake-solr/:offerId/:offerShakeId", func(context *gin.Context) {
+		miscApi.SyncOfferStoreShakeToSolr(context)
 	})
 	group.POST("/init-handshake-block", func(context *gin.Context) {
-		onChainApi.StartOnChainBlock(context)
+		onChainApi.StartOnChainOfferBlock(context)
+	})
+	group.POST("/init-handshakeshop-block", func(context *gin.Context) {
+		onChainApi.StartOnChainOfferStoreBlock(context)
+	})
+	group.POST("/start-app", func(context *gin.Context) {
+		miscApi.StartApp(context)
 	})
 
 	// Internal
-	group.POST("/test-coinbase-receive", func(context *gin.Context) {
-		miscApi.TestCoinbaseReceive(context)
-	})
+	//group.POST("/test-coinbase-receive", func(context *gin.Context) {
+	//	miscApi.TestCoinbaseReceive(context)
+	//})
 
 	return group
 }

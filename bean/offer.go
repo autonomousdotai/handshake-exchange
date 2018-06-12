@@ -33,6 +33,9 @@ const OFFER_STATUS_REJECTED = "rejected"
 const OFFER_STATUS_WITHDRAWING = "withdrawing"
 const OFFER_STATUS_WITHDRAW = "withdraw"
 
+var MIN_ETH = decimal.NewFromFloat(0.1).Round(1)
+var MIN_BTC = decimal.NewFromFloat(0.01).Round(2)
+
 type Offer struct {
 	Id               string           `json:"id"`
 	Hid              int64            `json:"hid" firestore:"hid"`
@@ -53,13 +56,15 @@ type Offer struct {
 	Type             string           `json:"type" firestore:"type" validate:"required"`
 	Status           string           `json:"status" firestore:"status"`
 	UID              string           `json:"uid" firestore:"uid"`
-	Username         string           `json:"-" firestore:"username"`
+	Username         string           `json:"username" firestore:"username"`
 	Email            string           `json:"email" firestore:"email"`
 	Language         string           `json:"language" firestore:"language"`
+	FCM              string           `json:"fcm" firestore:"fcm"`
 	ToUID            string           `json:"to_uid" firestore:"to_uid"`
 	ToUsername       string           `json:"to_username" firestore:"to_username"`
 	ToEmail          string           `json:"to_email" firestore:"to_email"`
 	ToLanguage       string           `json:"to_language" firestore:"to_language"`
+	ToFCM            string           `json:"to_fcm" firestore:"to_fcm"`
 	ContactPhone     string           `json:"contact_phone" firestore:"contact_phone"`
 	ContactInfo      string           `json:"contact_info" firestore:"contact_info" validate:"required"`
 	SystemAddress    string           `json:"system_address" firestore:"system_address"`
@@ -122,6 +127,7 @@ func (offer Offer) GetAddOffer() map[string]interface{} {
 		"contact_phone":     offer.ContactPhone,
 		"email":             offer.Email,
 		"language":          offer.Language,
+		"fcm":               offer.FCM,
 		"system_address":    offer.SystemAddress,
 		"user_address":      offer.UserAddress,
 		"refund_address":    offer.RefundAddress,
@@ -231,14 +237,21 @@ type OfferShakeRequest struct {
 	FiatAmount string `json:"fiat_amount" validate:"required"`
 	Address    string `json:"address"`
 	Email      string `json:"email"`
+	Username   string `json:"username"`
 	Language   string `json:"language"`
+	FCM        string `json:"fcm"`
 }
+
+const OFFER_ADDRESS_MAP_OFFER = "offer"
+const OFFER_ADDRESS_MAP_OFFER_STORE = "offer_store"
+const OFFER_ADDRESS_MAP_OFFER_STORE_SHAKE = "offer_store_shake"
 
 type OfferAddressMap struct {
 	UID      string `json:"uid" firestore:"uid"`
 	Address  string `json:"address" firestore:"address"`
 	Offer    string `json:"offer" firestore:"offer"`
 	OfferRef string `json:"offer_ref" firestore:"offer_ref"`
+	Type     string `json:"type" firestore:"type"`
 }
 
 func (offer OfferAddressMap) GetAddOfferAddressMap() map[string]interface{} {
@@ -247,6 +260,7 @@ func (offer OfferAddressMap) GetAddOfferAddressMap() map[string]interface{} {
 		"offer":      offer.Offer,
 		"uid":        offer.UID,
 		"offer_ref":  offer.OfferRef,
+		"type":       offer.Type,
 		"created_at": firestore.ServerTimestamp,
 	}
 }

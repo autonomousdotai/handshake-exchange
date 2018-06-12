@@ -8,6 +8,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/abi"
 	"github.com/ninjadotorg/handshake-exchange/bean"
 	"os"
+	// "fmt"
 )
 
 type ExchangeHandshakeClient struct {
@@ -55,6 +56,7 @@ func (c *ExchangeHandshakeClient) GetInitEvent(startBlock uint64) (offers []bean
 				Hid:   int64(past.Event.Hid.Uint64()),
 				Offer: string(bytes.Trim(past.Event.Offchain[:], "\x00")),
 			})
+			// fmt.Println(fmt.Sprintf("%d %s", past.Event.Hid.Uint64(), string(bytes.Trim(past.Event.Offchain[:], "\x00"))))
 		}
 	}
 
@@ -73,6 +75,7 @@ func (c *ExchangeHandshakeClient) GetInitEvent(startBlock uint64) (offers []bean
 				Hid:   int64(past2.Event.Hid.Uint64()),
 				Offer: string(bytes.Trim(past2.Event.Offchain[:], "\x00")),
 			})
+			// fmt.Println(fmt.Sprintf("%d %s", past2.Event.Hid.Uint64(), string(bytes.Trim(past2.Event.Offchain[:], "\x00"))))
 		}
 	}
 

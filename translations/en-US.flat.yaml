@@ -1,5 +1,11 @@
 greeting:
   other: "Hello {{.Name}}"
+common_buyer:
+  other: "buyer"
+common_seller:
+  other: "seller"
+common_notification_title:
+  other: "Attention Ninja!"
 email_offer_buying_active_subject:
   other: "Attention Ninja! Your listing to buy {{.Currency}} is live"
 email_offer_closed_subject:
@@ -7,18 +13,44 @@ email_offer_closed_subject:
 email_offer_completed_subject:
   other: "Great! Your {{.Currency}} is being transferred"
 email_offer_maker_rejected_subject:
-    other: "Sorry, but {{.ToUsername}} decided not shake."
+  other: "Sorry, but {{.ToUsername}} decided not shake."
 email_offer_maker_shake_subject:
   other: "Good news! You have a buyer for {{.Currency}}"
 email_offer_selling_active_subject:
   other: "Attention Ninja! Your listing to sell {{.Currency}} is live"
 email_offer_taker_rejected_subject:
-    other: "Sorry, but {{.Username}} decided not shake."
+  other: "Sorry, but {{.Username}} decided not shake."
 email_offer_taker_shake_subject:
-    other: "Success! you have just ordered {{.Currency}}"
+  other: "Success! you have just ordered {{.Currency}}"
 email_offer_withdraw_subject:
-    other: "You have successfully withdrawn {{.Currency}}"
+  other: "You have successfully withdrawn {{.Currency}}"
 email_order_instant_cc_success_subject:
   other: "Success! you have just ordered using your credit card"
-
-
+notification_order_instant_cc_success:
+  other: "You shook on it! Please wait a few minutes for your coin to appear in your wallet."
+notification_offer_maker_shake:
+  other: "A {{.Role}} shook your hand! They will contact you shortly to arrange a meeting."
+notification_offer_taker_shake:
+  other: "You shook on it! Please call or open a chat with the {{.Role}} to arrange a meeting."
+notification_offer_maker_rejected:
+  other: "The {{.Role}} cancelled this shake. Boo. Please create a new offer."
+notification_offer_completed:
+  other: "The buyer has accepted your offer! You can now withdraw coins to your wallet."
+email_offer_store_item_added:
+  other: "Attention Ninja! Your offer is live"
+email_offer_store_item_removed:
+  other: "You have just cancelled your order"
+email_offer_store_taker_sell_shake:
+  other: "Buying Order Succeeded!"
+email_offer_store_maker_sell_shake:
+  other: "You have a buyer for {{.Currency}}"
+email_offer_store_maker_buy_shake:
+  other: "Someone wants to sell you {{.Currency}}"
+email_offer_store_taker_buy_shake:
+  other: "Selling Order Succeeded!"
+email_offer_store_accept:
+  other: "Your {{.Currency}} is being transferred"
+email_offer_store_maker_reject:
+  other: "Sorry, but {{.Username}} decided not shake"
+email_offer_store_taker_reject:
+  other: "Sorry, but {{.Username}} decided not shake"

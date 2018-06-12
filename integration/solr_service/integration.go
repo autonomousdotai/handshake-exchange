@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/levigross/grequests"
 	"github.com/ninjadotorg/handshake-exchange/api_error"
-	"log"
 	"os"
 )
 
@@ -32,7 +31,7 @@ func UpdateObject(body interface{}) (*grequests.Response, error) {
 	bodyStr = string(b)
 
 	r := bytes.NewReader([]byte(bodyStr))
-	log.Println(bodyStr)
+
 	headers := map[string]string{
 		"Content-Type": "application/json",
 	}

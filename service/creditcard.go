@@ -87,8 +87,7 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 		}
 	}
 	if offerBody.Currency == bean.BTC.Code {
-		// TODO change to 0.01 after testing
-		if amount.LessThan(decimal.NewFromFloat(0.001).Round(3)) {
+		if amount.LessThan(decimal.NewFromFloat(0.01).Round(2)) {
 			ce.SetStatusKey(api_error.AmountIsTooSmall)
 			return
 		}

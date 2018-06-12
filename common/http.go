@@ -27,9 +27,13 @@ func GetChainId(context *gin.Context) string {
 	return GetHeaderWithDefault(context, "Chainid", "0")
 }
 
-func GetCurrency(context *gin.Context) string {
-	return GetHeaderWithDefault(context, "Custom-Currency", "USD")
+func GetFCM(context *gin.Context) string {
+	return GetHeaderWithDefault(context, "Fcm-Token", "")
 }
+
+//func GetCurrency(context *gin.Context) string {
+//	return GetHeaderWithDefault(context, "Custom-Currency", "USD")
+//}
 
 func ExtractTimePagingParams(context *gin.Context) (interface{}, int) {
 	startAtStr := context.DefaultQuery("page", "")

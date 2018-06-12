@@ -51,6 +51,9 @@ type SolrOfferExtraData struct {
 	ContactPhone     string `json:"contact_phone"`
 	ContactInfo      string `json:"contact_info"`
 	Email            string `json:"email"`
+	Username         string `json:"username"`
+	ToEmail          string `json:"to_email"`
+	ToUsername       string `json:"to_username"`
 	SystemAddress    string `json:"system_address"`
 	Status           string `json:"status"`
 	Success          int64  `json:"success"`
@@ -155,6 +158,9 @@ func NewSolrFromOffer(offer Offer) (solr SolrOfferObject) {
 		ContactInfo:      offer.ContactInfo,
 		ContactPhone:     offer.ContactPhone,
 		Email:            offer.Email,
+		Username:         offer.Username,
+		ToEmail:          offer.ToEmail,
+		ToUsername:       offer.ToUsername,
 		SystemAddress:    offer.SystemAddress,
 		Status:           offer.Status,
 		Success:          offer.TransactionCount.Success,
@@ -213,4 +219,218 @@ type SolrLogObject struct {
 	ResponseData   string `json:"response_data_s"`
 	Date           string `json:"data_s"`
 	UpdateAt       int64  `json:"update_at_i"`
+}
+
+var instantOfferStoreStatusMap = map[string]int{
+	OFFER_STORE_STATUS_CREATED: 0,
+	OFFER_STORE_STATUS_ACTIVE:  1,
+	OFFER_STORE_STATUS_CLOSING: 2,
+	OFFER_STORE_STATUS_CLOSED:  3,
+}
+
+type SolrOfferStoreExtraData struct {
+	Id            string                                `json:"id"`
+	FeedType      string                                `json:"feed_type"`
+	Type          string                                `json:"type"`
+	ItemFlags     map[string]bool                       `json:"item_flags"`
+	Username      string                                `json:"username"`
+	Email         string                                `json:"email"`
+	ContactPhone  string                                `json:"contact_phone"`
+	ContactInfo   string                                `json:"contact_info"`
+	FiatCurrency  string                                `json:"fiat_currency"`
+	Status        string                                `json:"status"`
+	Success       int64                                 `json:"success"`
+	Failed        int64                                 `json:"failed"`
+	ItemSnapshots map[string]SolrOfferStoreItemSnapshot `json:"items"`
+}
+
+type SolrOfferStoreItemSnapshot struct {
+	Currency       string `json:"currency"`
+	SellAmountMin  string `json:"sell_amount_min"`
+	SellAmount     string `json:"sell_amount"`
+	SellBalance    string `json:"sell_balance"`
+	SellPercentage string `json:"sell_percentage"`
+	BuyAmountMin   string `json:"buy_amount_min"`
+	BuyAmount      string `json:"buy_amount"`
+	BuyBalance     string `json:"buy_balance"`
+	BuyPercentage  string `json:"buy_percentage"`
+	SystemAddress  string `json:"system_address"`
+	UserAddress    string `json:"user_address"`
+}
+
+func NewSolrFromOfferStore(offer OfferStore) (solr SolrOfferObject) {
+	solr.Id = fmt.Sprintf("exchange_%s", offer.Id)
+	solr.Type = 2
+	if offer.Status == OFFER_STATUS_ACTIVE {
+		solr.State = 1
+		solr.IsPrivate = 0
+	} else {
+		solr.State = 0
+		solr.IsPrivate = 1
+	}
+	solr.Status = instantOfferStoreStatusMap[offer.Status]
+	solr.Hid = 0
+	solr.ChainId = offer.ChainId
+	userId, _ := strconv.Atoi(offer.UID)
+	solr.InitUserId = userId
+	solr.ShakeUserIds = make([]int, 0)
+	solr.TextSearch = make([]string, 0)
+
+	solr.Location = fmt.Sprintf("%f,%f", offer.Latitude, offer.Longitude)
+	solr.InitAt = offer.CreatedAt.Unix()
+	solr.LastUpdateAt = time.Now().UTC().Unix()
+
+	solr.OfferFeedType = "offer_store"
+	// Nothing now
+	solr.OfferType = ""
+
+	var items = map[string]SolrOfferStoreItemSnapshot{}
+	for key, value := range offer.ItemSnapshots {
+		sellPercentage, _ := decimal.NewFromString(value.SellPercentage)
+		buyPercentage, _ := decimal.NewFromString(value.BuyPercentage)
+		items[key] = SolrOfferStoreItemSnapshot{
+			Currency:       value.Currency,
+			SellAmountMin:  value.SellAmountMin,
+			SellAmount:     value.SellAmount,
+			SellBalance:    value.SellBalance,
+			SellPercentage: sellPercentage.Mul(decimal.NewFromFloat(100)).String(),
+			BuyAmountMin:   value.BuyAmountMin,
+			BuyAmount:      value.BuyAmount,
+			BuyBalance:     value.BuyBalance,
+			BuyPercentage:  buyPercentage.Mul(decimal.NewFromFloat(100)).String(),
+			SystemAddress:  value.SystemAddress,
+			UserAddress:    value.UserAddress,
+		}
+	}
+
+	extraData := SolrOfferStoreExtraData{
+		Id:            offer.Id,
+		FeedType:      "offer_store",
+		Type:          "",
+		ItemFlags:     offer.ItemFlags,
+		ContactInfo:   offer.ContactInfo,
+		ContactPhone:  offer.ContactPhone,
+		Email:         offer.Email,
+		Username:      offer.Username,
+		Status:        offer.Status,
+		FiatCurrency:  offer.FiatCurrency,
+		Success:       offer.TransactionCount.Success,
+		Failed:        offer.TransactionCount.Failed,
+		ItemSnapshots: items,
+	}
+	b, _ := json.Marshal(&extraData)
+	solr.ExtraData = string(b)
+
+	return
+}
+
+type SolrOfferStoreShakeExtraData struct {
+	Id               string `json:"id"`
+	OffChainId       string `json:"off_chain_id"`
+	FeedType         string `json:"feed_type"`
+	Type             string `json:"type"`
+	Amount           string `json:"amount"`
+	Currency         string `json:"currency"`
+	FiatCurrency     string `json:"fiat_currency"`
+	FiatAmount       string `json:"fiat_amount"`
+	TotalAmount      string `json:"total_amount"`
+	Fee              string `json:"fee"`
+	Reward           string `json:"reward"`
+	Price            string `json:"price"`
+	Percentage       string `json:"percentage"`
+	FeePercentage    string `json:"fee_percentage"`
+	RewardPercentage string `json:"reward_percentage"`
+	ContactPhone     string `json:"contact_phone"`
+	ContactInfo      string `json:"contact_info"`
+	Email            string `json:"email"`
+	Username         string `json:"username"`
+	ToEmail          string `json:"to_email"`
+	ToUsername       string `json:"to_username"`
+	ToContactPhone   string `json:"to_contact_phone"`
+	SystemAddress    string `json:"system_address"`
+	UserAddress      string `json:"user_address"`
+	Status           string `json:"status"`
+	Success          int64  `json:"success"`
+	Failed           int64  `json:"failed"`
+}
+
+var offerStoreSHakeStatusMap = map[string]int{
+	OFFER_STORE_SHAKE_STATUS_PRE_SHAKING: 0,
+	OFFER_STORE_SHAKE_STATUS_PRE_SHAKE:   1,
+	OFFER_STORE_SHAKE_STATUS_SHAKING:     2,
+	OFFER_STORE_SHAKE_STATUS_SHAKE:       3,
+	OFFER_STORE_SHAKE_STATUS_REJECTING:   4,
+	OFFER_STORE_SHAKE_STATUS_REJECTED:    5,
+	OFFER_STORE_SHAKE_STATUS_COMPLETING:  6,
+	OFFER_STORE_SHAKE_STATUS_COMPLETED:   7,
+	OFFER_STORE_SHAKE_STATUS_CANCELLING:  8,
+	OFFER_STORE_SHAKE_STATUS_CANCELLED:   9,
+}
+
+func NewSolrFromOfferStoreShake(offer OfferStoreShake, offerStore OfferStore) (solr SolrOfferObject) {
+	solr.Id = fmt.Sprintf("exchange_%s", offer.Id)
+	solr.Type = 2
+	solr.State = 0
+	solr.IsPrivate = 1
+	solr.Status = offerStoreSHakeStatusMap[offer.Status]
+	solr.Hid = 0
+	solr.ChainId = offer.ChainId
+	storeUID, _ := strconv.Atoi(offerStore.UID)
+	solr.InitUserId = storeUID
+	userId, _ := strconv.Atoi(offer.UID)
+	solr.ShakeUserIds = []int{userId}
+	solr.TextSearch = make([]string, 0)
+	solr.Location = fmt.Sprintf("%f,%f", offer.Latitude, offer.Longitude)
+	solr.InitAt = offer.CreatedAt.Unix()
+	solr.LastUpdateAt = time.Now().UTC().Unix()
+
+	solr.OfferFeedType = "offer_store_shake"
+	// Nothing now
+	solr.OfferType = ""
+
+	percentage, _ := decimal.NewFromString(offerStore.ItemSnapshots[offer.Currency].SellPercentage)
+	if offer.Type == OFFER_TYPE_BUY {
+		percentage, _ = decimal.NewFromString(offerStore.ItemSnapshots[offer.Currency].BuyPercentage)
+	}
+
+	feePercentage, _ := decimal.NewFromString(offer.FeePercentage)
+	rewardPercentage, _ := decimal.NewFromString(offer.RewardPercentage)
+	feePercentage = feePercentage.Add(rewardPercentage)
+	fee, _ := decimal.NewFromString(offer.Fee)
+	reward, _ := decimal.NewFromString(offer.Reward)
+	fee = fee.Add(reward)
+
+	extraData := SolrOfferStoreShakeExtraData{
+		Id:               offer.Id,
+		OffChainId:       offer.OffChainId,
+		FeedType:         solr.OfferFeedType,
+		Type:             offer.Type,
+		Amount:           offer.Amount,
+		TotalAmount:      offer.TotalAmount,
+		Currency:         offer.Currency,
+		FiatAmount:       offer.FiatAmount,
+		FiatCurrency:     offer.FiatCurrency,
+		Price:            offer.Price,
+		Fee:              fee.String(),
+		Reward:           offer.Reward,
+		FeePercentage:    feePercentage.Mul(decimal.NewFromFloat(100)).String(),
+		RewardPercentage: rewardPercentage.Mul(decimal.NewFromFloat(100)).String(),
+		Percentage:       percentage.Mul(decimal.NewFromFloat(100)).String(),
+		ContactInfo:      offerStore.ContactInfo,
+		ContactPhone:     offerStore.ContactPhone,
+		Email:            offerStore.Email,
+		Username:         offerStore.Username,
+		ToEmail:          offer.Email,
+		ToUsername:       offer.Username,
+		ToContactPhone:   offer.ContactPhone,
+		SystemAddress:    offer.SystemAddress,
+		UserAddress:      offer.UserAddress,
+		Status:           offer.Status,
+		Success:          offerStore.TransactionCount.Success,
+		Failed:           offerStore.TransactionCount.Failed,
+	}
+	b, _ := json.Marshal(&extraData)
+	solr.ExtraData = string(b)
+
+	return
 }

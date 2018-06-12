@@ -13,11 +13,12 @@ type ProfileRequest struct {
 }
 
 type Profile struct {
-	UserId           string          `json:"-" firestore:"user_id"`
-	CreditCardStatus string          `json:"-" firestore:"credit_card_status"`
-	CreditCard       UserCreditCard  `json:"credit_card" firestore:"credit_card"`
-	ActiveOffers     map[string]bool `json:"-" firestore:"active_offers"`
-	OfferRejectLock  OfferRejectLock `json:"offer_reject_lock" firestore:"offer_reject_lock"`
+	UserId            string          `json:"-" firestore:"user_id"`
+	CreditCardStatus  string          `json:"-" firestore:"credit_card_status"`
+	CreditCard        UserCreditCard  `json:"credit_card" firestore:"credit_card"`
+	ActiveOffers      map[string]bool `json:"-" firestore:"active_offers"`
+	ActiveOfferStores map[string]bool `json:"-" firestore:"active_offer_stores"`
+	OfferRejectLock   OfferRejectLock `json:"offer_reject_lock" firestore:"offer_reject_lock"`
 }
 
 type OfferRejectLock struct {
@@ -36,11 +37,15 @@ func (profile Profile) GetAddProfile() map[string]interface{} {
 	offerMap := map[string]bool{
 		"ETH": false, "BTC": false,
 	}
+	offerStoreMap := map[string]bool{
+		"ETH": false, "BTC": false,
+	}
 	return map[string]interface{}{
-		"user_id":            profile.UserId,
-		"credit_card_status": CREDIT_CARD_STATUS_OK,
-		"active_offers":      offerMap,
-		"created_at":         firestore.ServerTimestamp,
+		"user_id":             profile.UserId,
+		"credit_card_status":  CREDIT_CARD_STATUS_OK,
+		"active_offers":       offerMap,
+		"active_offer_stores": offerStoreMap,
+		"created_at":          firestore.ServerTimestamp,
 	}
 }
 
@@ -48,6 +53,13 @@ func (profile Profile) GetUpdateOfferProfile() map[string]interface{} {
 	return map[string]interface{}{
 		"active_offers": profile.ActiveOffers,
 		"updated_at":    firestore.ServerTimestamp,
+	}
+}
+
+func (profile Profile) GetUpdateOfferStoreProfile() map[string]interface{} {
+	return map[string]interface{}{
+		"active_offer_stores": profile.ActiveOfferStores,
+		"updated_at":          firestore.ServerTimestamp,
 	}
 }
 

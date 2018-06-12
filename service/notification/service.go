@@ -12,8 +12,9 @@ func SendOfferNotification(offer bean.Offer) []error {
 	go SendOfferToEmail(offer, c)
 	go SendOfferToFirebase(offer, c)
 	go SendOfferToSolr(offer, c)
+	go SendOfferToFCM(offer, c)
 
-	return []error{<-c, <-c, <-c}
+	return []error{<-c, <-c, <-c, <-c}
 }
 
 func SendInstantOfferNotification(offer bean.InstantOffer) []error {
@@ -21,8 +22,9 @@ func SendInstantOfferNotification(offer bean.InstantOffer) []error {
 	go SendInstantOfferToEmail(offer, c)
 	go SendInstantOfferToFirebase(offer, c)
 	go SendInstantOfferToSolr(offer, c)
+	go SendInstantOfferToFCM(offer, c)
 
-	return []error{<-c, <-c, <-c}
+	return []error{<-c, <-c, <-c, <-c}
 }
 
 func SendOfferToEmail(offer bean.Offer, c chan error) {
@@ -33,32 +35,52 @@ func SendOfferToEmail(offer bean.Offer, c chan error) {
 	}
 	toUsername := offer.ToEmail
 
-	coinUsername := username
+	coinUsername := toUsername
+	cashEmail := offer.Email
+	coinEmail := offer.ToEmail
 	if offer.Type == bean.OFFER_TYPE_BUY {
-		coinUsername = toUsername
+		coinUsername = username
+		cashEmail = offer.ToEmail
+		coinEmail = offer.Email
 	}
 
 	if offer.Status == bean.OFFER_STATUS_ACTIVE {
-		if offer.Type == bean.OFFER_TYPE_BUY {
-			err = email.SendOfferBuyingActiveEmail(offer.Language, offer.Email, offer.Currency, offer.Price, offer.FiatCurrency)
-		} else {
-			err = email.SendOfferSellingActiveEmail(offer.Language, offer.Email, offer.Currency, offer.Price, offer.FiatCurrency)
+		if offer.Email != "" {
+			if offer.Type == bean.OFFER_TYPE_BUY {
+				err = email.SendOfferBuyingActiveEmail(offer.Language, offer.Email, offer.Currency, offer.Price, offer.FiatCurrency)
+			} else {
+				err = email.SendOfferSellingActiveEmail(offer.Language, offer.Email, offer.Currency, offer.Price, offer.FiatCurrency)
+			}
 		}
 	} else if offer.Status == bean.OFFER_STATUS_CLOSED {
-		err = email.SendOfferClosedEmail(offer.Language, offer.Email)
+		if offer.Email != "" {
+			err = email.SendOfferClosedEmail(offer.Language, offer.Email)
+		}
 	} else if offer.Status == bean.OFFER_STATUS_SHAKE {
-		err = email.SendOfferMakerShakeEmail(offer.Language, offer.Email, toUsername, offer.Amount, offer.Currency, offer.Price, offer.FiatCurrency)
-		err = email.SendOfferTakerShakeEmail(offer.Language, offer.Email, username, offer.Amount, offer.Currency, offer.Price, offer.FiatCurrency)
+		if offer.Email != "" {
+			err = email.SendOfferMakerShakeEmail(offer.Language, offer.Email, toUsername, offer.Amount, offer.Currency, offer.Price, offer.FiatCurrency)
+		}
+		if offer.ToEmail != "" {
+			err = email.SendOfferTakerShakeEmail(offer.Language, offer.ToEmail, username, offer.Amount, offer.Currency, offer.Price, offer.FiatCurrency)
+		}
 	} else if offer.Status == bean.OFFER_STATUS_REJECTED {
 		if offer.UID == offer.ActionUID {
-			err = email.SendOfferTakerRejectEmail(offer.Language, offer.Email, username)
+			if offer.ToEmail != "" {
+				err = email.SendOfferTakerRejectEmail(offer.Language, offer.ToEmail, username)
+			}
 		} else {
-			err = email.SendOfferMakerRejectEmail(offer.Language, offer.Email, toUsername)
+			if offer.Email != "" {
+				err = email.SendOfferMakerRejectEmail(offer.Language, offer.Email, toUsername)
+			}
 		}
 	} else if offer.Status == bean.OFFER_STATUS_COMPLETED {
-		err = email.SendOfferCompleteEmail(offer.Language, offer.Email, coinUsername, offer.Amount, offer.Currency)
+		if cashEmail != "" {
+			err = email.SendOfferCompleteEmail(offer.Language, cashEmail, coinUsername, offer.Amount, offer.Currency)
+		}
 	} else if offer.Status == bean.OFFER_STATUS_WITHDRAW {
-		err = email.SendOfferWithdrawEmail(offer.Language, offer.Email, offer.Amount, offer.Currency)
+		if coinEmail != "" {
+			err = email.SendOfferWithdrawEmail(offer.Language, coinEmail, offer.Amount, offer.Currency)
+		}
 	}
 	c <- err
 }
@@ -74,13 +96,52 @@ func SendOfferToSolr(offer bean.Offer, c chan error) {
 	c <- err
 }
 
-func SendInstantOfferToEmail(offer bean.InstantOffer, c chan error) {
-	if offer.Status == bean.INSTANT_OFFER_STATUS_SUCCESS {
-		err := email.SendOrderInstantCCSuccessEmail(offer.Language, offer.Email, offer.Amount, offer.Currency)
-		c <- err
-	} else {
-		c <- nil
+func SendOfferToFCM(offer bean.Offer, c chan error) {
+	var err error
+
+	if offer.Status == bean.OFFER_STATUS_ACTIVE {
+		// Not yet
+	} else if offer.Status == bean.OFFER_STATUS_CLOSED {
+		// Not yet
+	} else if offer.Status == bean.OFFER_STATUS_SHAKE {
+		if offer.FCM != "" {
+			err = SendOfferMakerShakeFCM(offer.Language, offer.FCM, offer.Type)
+		}
+		if offer.ToFCM != "" {
+			err = SendOfferTakerShakeFCM(offer.ToLanguage, offer.ToFCM, offer.Type)
+		}
+	} else if offer.Status == bean.OFFER_STATUS_REJECTED {
+		if offer.UID == offer.ActionUID {
+
+		} else {
+			if offer.FCM != "" {
+				err = SendOfferMakerRejectedFCM(offer.Language, offer.FCM, offer.Type)
+			}
+		}
+	} else if offer.Status == bean.OFFER_STATUS_COMPLETED {
+		if offer.Type == bean.OFFER_TYPE_BUY {
+			if offer.FCM != "" {
+				err = SendOfferCompletedFCM(offer.Language, offer.FCM)
+			}
+		} else {
+			if offer.ToFCM != "" {
+				err = SendOfferCompletedFCM(offer.Language, offer.ToFCM)
+			}
+		}
+	} else if offer.Status == bean.OFFER_STATUS_WITHDRAW {
+		// Not yet
 	}
+	c <- err
+}
+
+func SendInstantOfferToEmail(offer bean.InstantOffer, c chan error) {
+	var err error
+	if offer.Status == bean.INSTANT_OFFER_STATUS_SUCCESS {
+		if offer.Email != "" {
+			err = email.SendOrderInstantCCSuccessEmail(offer.Language, offer.Email, offer.Amount, offer.Currency)
+		}
+	}
+	c <- err
 }
 
 func SendInstantOfferToFirebase(offer bean.InstantOffer, c chan error) {
@@ -91,5 +152,116 @@ func SendInstantOfferToFirebase(offer bean.InstantOffer, c chan error) {
 func SendInstantOfferToSolr(offer bean.InstantOffer, c chan error) {
 	// Always update
 	_, err := solr_service.UpdateObject(bean.NewSolrFromInstantOffer(offer))
+	c <- err
+}
+
+func SendInstantOfferToFCM(offer bean.InstantOffer, c chan error) {
+	var err error
+	if offer.Status == bean.INSTANT_OFFER_STATUS_SUCCESS {
+		if offer.FCM != "" {
+			err = SendOrderInstantCCSuccessFCM(offer.Language, offer.FCM)
+		}
+	}
+	c <- err
+}
+
+func SendOfferStoreNotification(offer bean.OfferStore, offerItem bean.OfferStoreItem) []error {
+	c := make(chan error)
+	go SendOfferStoreToEmail(offer, offerItem, c)
+	go SendOfferStoreToFirebase(offer, offerItem, c)
+	go SendOfferStoreToSolr(offer, c)
+	// go SendOfferToFCM(offer, c)
+
+	// return []error{<-c, <-c, <-c, <-c}
+	return []error{<-c, <-c, <-c}
+}
+
+func SendOfferStoreToEmail(offer bean.OfferStore, offerItem bean.OfferStoreItem, c chan error) {
+	var err error
+	if offer.Email != "" {
+		if offerItem.Status == bean.OFFER_STORE_ITEM_STATUS_ACTIVE {
+			err = email.SendOfferStoreItemAddedEmail(offer.Language, offer.Email, offerItem.SellAmount, offerItem.BuyAmount, offerItem.Currency)
+		} else if offerItem.Status == bean.OFFER_STORE_ITEM_STATUS_CLOSED {
+			err = email.SendOfferStoreItemRemovedEmail(offer.Language, offer.Email)
+		}
+	}
+	c <- err
+}
+
+func SendOfferStoreToFirebase(offer bean.OfferStore, offerItem bean.OfferStoreItem, c chan error) {
+	err := dao.OfferStoreDaoInst.UpdateNotificationOfferStore(offer, offerItem)
+	c <- err
+}
+
+func SendOfferStoreToSolr(offer bean.OfferStore, c chan error) {
+	// Always update
+	_, err := solr_service.UpdateObject(bean.NewSolrFromOfferStore(offer))
+	c <- err
+}
+
+func SendOfferStoreShakeNotification(offer bean.OfferStoreShake, offerStore bean.OfferStore) []error {
+	c := make(chan error)
+	go SendOfferStoreShakeToEmail(offer, offerStore, c)
+	go SendOfferStoreShakeToFirebase(offer, offerStore, c)
+	go SendOfferStoreShakeToSolr(offer, offerStore, c)
+	// go SendOfferToFCM(offer, c)
+
+	// return []error{<-c, <-c, <-c, <-c}
+	return []error{<-c, <-c, <-c}
+}
+
+func SendOfferStoreShakeToEmail(offer bean.OfferStoreShake, offerStore bean.OfferStore, c chan error) {
+	var err error
+
+	username := offerStore.Username
+	if username == "" {
+		username = offerStore.Email
+		if username == "" {
+			username = offerStore.ContactPhone
+		}
+	}
+	toUsername := offer.Username
+	if toUsername == "" {
+		toUsername = offer.Email
+		if toUsername == "" {
+			toUsername = offer.ContactPhone
+		}
+	}
+
+	if offer.Status == bean.OFFER_STORE_SHAKE_STATUS_PRE_SHAKE {
+	} else if offer.Status == bean.OFFER_STORE_SHAKE_STATUS_SHAKE {
+		if offer.Type == bean.OFFER_TYPE_BUY {
+			err = email.SendOfferStoreMakerBuyShakeEmail(offerStore.Language, offerStore.Email, offer.Amount, offer.Currency, offer.FiatAmount, offer.FiatCurrency, toUsername)
+			err = email.SendOfferStoreTakerBuyShakeEmail(offer.Language, offer.Email, offer.Amount, offer.Currency, offer.FiatAmount, offer.FiatCurrency, username)
+		} else {
+			err = email.SendOfferStoreMakerSellShakeEmail(offerStore.Language, offerStore.Email, offer.Amount, offer.Currency, offer.FiatAmount, offer.FiatCurrency, toUsername)
+			err = email.SendOfferStoreTakerSellShakeEmail(offer.Language, offer.Email, offer.Amount, offer.Currency, offer.FiatAmount, offer.FiatCurrency, username)
+		}
+	} else if offer.Status == bean.OFFER_STORE_SHAKE_STATUS_CANCELLED {
+
+	} else if offer.Status == bean.OFFER_STORE_SHAKE_STATUS_REJECTED {
+		if offer.ActionUID == offer.UID {
+			err = email.SendOfferStoreMakerRejectEmail(offerStore.Language, offerStore.Email, toUsername)
+		} else {
+			err = email.SendOfferStoreTakerRejectEmail(offer.Language, offer.Email, username)
+		}
+	} else if offer.Status == bean.OFFER_STORE_SHAKE_STATUS_COMPLETED {
+		if offer.Type == bean.OFFER_TYPE_BUY {
+			err = email.SendOfferCompleteEmail(offerStore.Language, offerStore.Email, offer.Amount, offer.Currency, username)
+		} else {
+			err = email.SendOfferCompleteEmail(offer.Language, offer.Email, offer.Amount, offer.Currency, toUsername)
+		}
+	}
+	c <- err
+}
+
+func SendOfferStoreShakeToFirebase(offer bean.OfferStoreShake, offerStore bean.OfferStore, c chan error) {
+	err := dao.OfferStoreDaoInst.UpdateNotificationOfferStoreShake(offer, offerStore)
+	c <- err
+}
+
+func SendOfferStoreShakeToSolr(offer bean.OfferStoreShake, offerStore bean.OfferStore, c chan error) {
+	// Always update
+	_, err := solr_service.UpdateObject(bean.NewSolrFromOfferStoreShake(offer, offerStore))
 	c <- err
 }
