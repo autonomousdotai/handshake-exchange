@@ -1,7 +1,7 @@
 package api
 
 import (
-	"fmt"
+	// "fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/ninjadotorg/handshake-exchange/api_error"
 	"github.com/ninjadotorg/handshake-exchange/bean"
@@ -9,9 +9,9 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/openexchangerates_service"
 	"github.com/ninjadotorg/handshake-exchange/service"
-	"github.com/ninjadotorg/handshake-exchange/service/notification"
-	"github.com/shopspring/decimal"
+	// "github.com/ninjadotorg/handshake-exchange/service/notification"
 	"github.com/ninjadotorg/handshake-exchange/integration/fcm_service"
+	"github.com/shopspring/decimal"
 )
 
 type MiscApi struct {

@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/levigross/grequests"
-	"github.com/ninjadotorg/handshake-exchange/api_error"
+	// "github.com/ninjadotorg/handshake-exchange/api_error"
+	"github.com/go-errors/errors"
 	"github.com/ninjadotorg/handshake-exchange/bean"
 	"os"
-	"github.com/go-errors/errors"
 )
 
 func SendFCM(fcm bean.FCMObject) error {
