@@ -11,6 +11,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/service"
 	"github.com/ninjadotorg/handshake-exchange/service/notification"
 	"github.com/shopspring/decimal"
+	"github.com/ninjadotorg/handshake-exchange/integration/fcm_service"
 )
 
 type MiscApi struct {
@@ -362,11 +363,24 @@ func (api MiscApi) TestEmail(context *gin.Context) {
 	//go notification.SendOfferStoreShakeToEmail(offerStoreShakeTO.Object.(bean.OfferStoreShake), offerStoreTO.Object.(bean.OfferStore), c)
 	//fmt.Println(<-c)
 
-	c := make(chan error)
-	offerTO := dao.CreditCardDaoInst.GetInstantOffer("708", "SsiAUHmUpfopSdc2l5MY")
-	go notification.SendInstantOfferToFCM(offerTO.Object.(bean.InstantOffer), c)
-	err := <-c
-	fmt.Println(err)
+	//c := make(chan error)
+	//offerTO := dao.CreditCardDaoInst.GetInstantOffer("708", "SsiAUHmUpfopSdc2l5MY")
+	//go notification.SendInstantOfferToFCM(offerTO.Object.(bean.InstantOffer), c)
+	//err := <-c
+	//fmt.Println(err)
+	//if api_error.PropagateErrorAndAbort(context, api_error.UpdateDataFailed, err) != nil {
+	//	return
+	//}
+
+	fcmObj := bean.FCMObject{
+		Notification: bean.FCMNotificationObject{
+			Title:       "Hi Exchange",
+			Body:        "Body Exchange",
+			ClickAction: "https://staging.ninja.org/me",
+		},
+		To: "d-RV0aBxmAc:APA91bEUYloX1TkJ-RkaYIuflBFqaM5fZE3j18PufbBV9NiSmJ2qo5PUbOfYA_8nzngGvz77wO_4VyP4TF16whAvDRR55av2RDr0sTSg4hFyAbvlU4bjryMtwAs5GY8MIGiTvJ5cclHW",
+	}
+	err := fcm_service.SendFCM(fcmObj)
 	if api_error.PropagateErrorAndAbort(context, api_error.UpdateDataFailed, err) != nil {
 		return
 	}

@@ -8,6 +8,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/api_error"
 	"github.com/ninjadotorg/handshake-exchange/bean"
 	"os"
+	"github.com/go-errors/errors"
 )
 
 func SendFCM(fcm bean.FCMObject) error {
@@ -34,7 +35,7 @@ func SendFCM(fcm bean.FCMObject) error {
 	fmt.Println(resp)
 
 	if resp.Ok != true {
-		return api_error.NewErrorCustom(api_error.ExternalApiFailed, resp.String(), err)
+		return errors.New(resp.String()) // api_error.NewErrorCustom(api_error.ExternalApiFailed, resp.String(), err)
 	}
 
 	return err
