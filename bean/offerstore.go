@@ -24,6 +24,7 @@ type OfferStore struct {
 	Status           string                    `json:"status" firestore:"status"`
 	UID              string                    `json:"-" firestore:"uid"`
 	Username         string                    `json:"username" firestore:"username"`
+	ChatUsername     string                    `json:"chat_username" firestore:"chat_username"`
 	Email            string                    `json:"email" firestore:"email"`
 	Language         string                    `json:"language" firestore:"language"`
 	ContactPhone     string                    `json:"contact_phone" firestore:"contact_phone"`
@@ -63,6 +64,7 @@ func (offer OfferStore) GetAddOfferStore() map[string]interface{} {
 		"status":            OFFER_STORE_STATUS_CREATED,
 		"uid":               offer.UID,
 		"username":          offer.Username,
+		"chat_username":     offer.ChatUsername,
 		"email":             offer.Email,
 		"language":          offer.Language,
 		"contact_phone":     offer.ContactPhone,
@@ -199,6 +201,7 @@ type OfferStoreShake struct {
 	Status           string      `json:"status" firestore:"status"`
 	UID              string      `json:"-" firestore:"uid"`
 	Username         string      `json:"username" firestore:"username"`
+	ChatUsername     string      `json:"chat_username" firestore:"chat_username"`
 	Email            string      `json:"email" firestore:"email"`
 	Language         string      `json:"language" firestore:"language"`
 	FCM              string      `json:"fcm" firestore:"fcm"`
@@ -234,6 +237,7 @@ func (offer OfferStoreShake) GetAddOfferStoreShake() map[string]interface{} {
 		"status":            offer.Status,
 		"uid":               offer.UID,
 		"username":          offer.Username,
+		"chat_username":     offer.ChatUsername,
 		"email":             offer.Email,
 		"language":          offer.Language,
 		"contact_phone":     offer.ContactPhone,

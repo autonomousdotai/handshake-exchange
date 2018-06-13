@@ -346,8 +346,10 @@ type SolrOfferStoreShakeExtraData struct {
 	ContactInfo      string `json:"contact_info"`
 	Email            string `json:"email"`
 	Username         string `json:"username"`
+	ChatUsername     string `json:"chat_username"`
 	ToEmail          string `json:"to_email"`
 	ToUsername       string `json:"to_username"`
+	ToChatUsername   string `json:"to_chat_username"`
 	ToContactPhone   string `json:"to_contact_phone"`
 	SystemAddress    string `json:"system_address"`
 	UserAddress      string `json:"user_address"`
@@ -426,8 +428,10 @@ func NewSolrFromOfferStoreShake(offer OfferStoreShake, offerStore OfferStore) (s
 		ContactPhone:     offerStore.ContactPhone,
 		Email:            offerStore.Email,
 		Username:         offerStore.Username,
+		ChatUsername:     offerStore.ChatUsername,
 		ToEmail:          offer.Email,
 		ToUsername:       offer.Username,
+		ToChatUsername:   offer.ChatUsername,
 		ToContactPhone:   offer.ContactPhone,
 		SystemAddress:    offer.SystemAddress,
 		UserAddress:      userAddress,
