@@ -6,6 +6,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/bean"
 	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/dao"
+	"github.com/ninjadotorg/handshake-exchange/integration/solr_service"
 	"github.com/ninjadotorg/handshake-exchange/service"
 	"strconv"
 )
@@ -25,6 +26,21 @@ func (api ProfileApi) AddProfile(context *gin.Context) {
 	}
 
 	bean.SuccessResponse(context, body)
+}
+
+func (api ProfileApi) UpdateProfileOffline(context *gin.Context) {
+	userId := common.GetUserId(context)
+	offline := context.Param("offline")
+
+	to := dao.OfferStoreDaoInst.GetOfferStore(userId)
+	if to.ContextValidate(context) {
+		return
+	}
+	offer := to.Object.(bean.OfferStore)
+	offer.Offline = offline
+	solr_service.UpdateObject(bean.NewSolrFromOfferStore(offer))
+
+	bean.SuccessResponse(context, true)
 }
 
 func (api ProfileApi) GetProfile(context *gin.Context) {

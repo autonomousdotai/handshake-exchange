@@ -28,6 +28,7 @@ type SolrOfferObject struct {
 	OfferType     string   `json:"offer_type_s"`
 	FiatCurrency  string   `json:"fiat_currency_s"`
 	Location      string   `json:"location_p"`
+	Offline       int      `json:"offline_i"`
 	InitAt        int64    `json:"init_at_i"`
 	LastUpdateAt  int64    `json:"last_update_at_i"`
 }
@@ -286,6 +287,10 @@ func NewSolrFromOfferStore(offer OfferStore) (solr SolrOfferObject) {
 	// Nothing now
 	solr.OfferType = ""
 	solr.FiatCurrency = offer.FiatCurrency
+	solr.Offline = 0
+	if offer.Offline == "1" {
+		solr.Offline = 1
+	}
 
 	var items = map[string]SolrOfferStoreItemSnapshot{}
 	for key, value := range offer.ItemSnapshots {
