@@ -256,6 +256,7 @@ type SolrOfferStoreItemSnapshot struct {
 	BuyPercentage  string `json:"buy_percentage"`
 	SystemAddress  string `json:"system_address"`
 	UserAddress    string `json:"user_address"`
+	Status         string `json:"status"`
 }
 
 func NewSolrFromOfferStore(offer OfferStore) (solr SolrOfferObject) {
@@ -300,6 +301,7 @@ func NewSolrFromOfferStore(offer OfferStore) (solr SolrOfferObject) {
 			BuyPercentage:  buyPercentage.Mul(decimal.NewFromFloat(100)).String(),
 			SystemAddress:  value.SystemAddress,
 			UserAddress:    value.UserAddress,
+			Status:         value.Status,
 		}
 	}
 
@@ -428,7 +430,7 @@ func NewSolrFromOfferStoreShake(offer OfferStoreShake, offerStore OfferStore) (s
 		ToUsername:       offer.Username,
 		ToContactPhone:   offer.ContactPhone,
 		SystemAddress:    offer.SystemAddress,
-		UserAddress:      offer.UserAddress,
+		UserAddress:      userAddress,
 		Status:           offer.Status,
 		Success:          offerStore.TransactionCount.Success,
 		Failed:           offerStore.TransactionCount.Failed,
