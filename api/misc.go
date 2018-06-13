@@ -1,7 +1,6 @@
 package api
 
 import (
-	// "fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/ninjadotorg/handshake-exchange/api_error"
 	"github.com/ninjadotorg/handshake-exchange/bean"
@@ -9,8 +8,6 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/openexchangerates_service"
 	"github.com/ninjadotorg/handshake-exchange/service"
-	// "github.com/ninjadotorg/handshake-exchange/service/notification"
-	"github.com/ninjadotorg/handshake-exchange/integration/fcm_service"
 	"github.com/shopspring/decimal"
 )
 
@@ -372,18 +369,18 @@ func (api MiscApi) TestEmail(context *gin.Context) {
 	//	return
 	//}
 
-	fcmObj := bean.FCMObject{
-		Notification: bean.FCMNotificationObject{
-			Title:       "Hi Exchange",
-			Body:        "Body Exchange",
-			ClickAction: "https://staging.ninja.org/me",
-		},
-		To: "d-RV0aBxmAc:APA91bEUYloX1TkJ-RkaYIuflBFqaM5fZE3j18PufbBV9NiSmJ2qo5PUbOfYA_8nzngGvz77wO_4VyP4TF16whAvDRR55av2RDr0sTSg4hFyAbvlU4bjryMtwAs5GY8MIGiTvJ5cclHW",
-	}
-	err := fcm_service.SendFCM(fcmObj)
-	if api_error.PropagateErrorAndAbort(context, api_error.UpdateDataFailed, err) != nil {
-		return
-	}
-
-	bean.SuccessResponse(context, true)
+	//fcmObj := bean.FCMObject{
+	//	Notification: bean.FCMNotificationObject{
+	//		Title:       "Hi Exchange",
+	//		Body:        "Body Exchange",
+	//		ClickAction: "https://staging.ninja.org/me",
+	//	},
+	//	To: "d-RV0aBxmAc:APA91bEUYloX1TkJ-RkaYIuflBFqaM5fZE3j18PufbBV9NiSmJ2qo5PUbOfYA_8nzngGvz77wO_4VyP4TF16whAvDRR55av2RDr0sTSg4hFyAbvlU4bjryMtwAs5GY8MIGiTvJ5cclHW",
+	//}
+	//err := fcm_service.SendFCM(fcmObj)
+	//if api_error.PropagateErrorAndAbort(context, api_error.UpdateDataFailed, err) != nil {
+	//	return
+	//}
+	//
+	//bean.SuccessResponse(context, true)
 }

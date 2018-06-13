@@ -15,7 +15,7 @@ func SendFCM(fcm bean.FCMObject) error {
 	url := fmt.Sprintf("%s/send", host)
 
 	bodyStr := ""
-	b, errBody := json.Marshal(&fcm)
+	b, errBody := json.Marshal(&bean.FCMRequest{Data: fcm})
 	if errBody != nil {
 		return errBody
 	}

@@ -7,7 +7,10 @@ type FCMNotificationObject struct {
 }
 
 type FCMObject struct {
-	Data         interface{}           `json:"data"`
 	To           string                `json:"to"`
 	Notification FCMNotificationObject `json:"notification"`
+}
+
+type FCMRequest struct {
+	Data FCMObject `json:"data"`
 }
