@@ -634,7 +634,7 @@ func (s OfferStoreService) UpdateOnChainCloseOfferStore(offerStoreId string) (of
 	if !offerItemTO.Found {
 		return
 	}
-	offerItem := offerTO.Object.(bean.OfferStoreItem)
+	offerItem := offerItemTO.Object.(bean.OfferStoreItem)
 	if offerItem.Status != bean.OFFER_STORE_ITEM_STATUS_CLOSING {
 		ce.SetStatusKey(api_error.OfferStatusInvalid)
 		return
