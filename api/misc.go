@@ -365,7 +365,8 @@ func (api MiscApi) TestEmail(context *gin.Context) {
 	c := make(chan error)
 	offerTO := dao.CreditCardDaoInst.GetInstantOffer("708", "SsiAUHmUpfopSdc2l5MY")
 	go notification.SendInstantOfferToFCM(offerTO.Object.(bean.InstantOffer), c)
-	fmt.Println(<-c)
+	err := <-c
+	fmt.Println(err)
 
-	bean.SuccessResponse(context, true)
+	bean.SuccessResponse(context, err)
 }
