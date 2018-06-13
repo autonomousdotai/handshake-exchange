@@ -231,8 +231,8 @@ func (dao OfferStoreDao) UpdateOfferStoreShakeComplete(offerStore bean.OfferStor
 
 	batch := dbClient.Batch()
 	batch.Set(docRef, offer.GetChangeStatus(), firestore.MergeAll)
-	batch.Set(transCountDocRef1, transactionCount1.GetUpdateFailed(), firestore.MergeAll)
-	batch.Set(transCountDocRef2, transactionCount2.GetUpdateFailed(), firestore.MergeAll)
+	batch.Set(transCountDocRef1, transactionCount1.GetUpdateSuccess(), firestore.MergeAll)
+	batch.Set(transCountDocRef2, transactionCount2.GetUpdateSuccess(), firestore.MergeAll)
 
 	_, err := batch.Commit(context.Background())
 

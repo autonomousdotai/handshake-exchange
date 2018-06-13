@@ -1015,7 +1015,7 @@ func (s OfferStoreService) transferCrypto(offerStore *bean.OfferStore, offerStor
 			description := fmt.Sprintf("Transfer to userId %s offerShakeId %s status %s", actionUID, offerStoreShake.Id, offerStoreShake.Status)
 
 			var response1 interface{}
-			var response2 interface{}
+			// var response2 interface{}
 			var userId string
 			if offerStoreShake.Type == bean.OFFER_TYPE_BUY {
 				// Amount = 1, transfer 1
@@ -1038,22 +1038,22 @@ func (s OfferStoreService) transferCrypto(offerStore *bean.OfferStore, offerStor
 			})
 
 			// Transfer reward
-			if offerStoreItem.RewardAddress != "" {
-				rewardDescription := fmt.Sprintf("Transfer reward to userId %s offerId %s", offerStore.UID, offerStoreShake.Id)
-				response2 = s.sendTransaction(offerStoreItem.RewardAddress, offerStoreShake.Reward, offerStoreItem.Currency, rewardDescription,
-					fmt.Sprintf("%s_reward", offerStoreShake.Id), offerStoreItem.WalletProvider, ce)
-
-				s.miscDao.AddCryptoTransferLog(bean.CryptoTransferLog{
-					Provider:         offerStoreItem.WalletProvider,
-					ProviderResponse: response2,
-					DataType:         bean.OFFER_ADDRESS_MAP_OFFER_STORE_SHAKE,
-					DataRef:          dao.GetOfferStoreShakeItemPath(offerStore.Id, offerStoreShake.Id),
-					UID:              offerStore.UID,
-					Description:      description,
-					Amount:           offerStoreShake.Amount,
-					Currency:         offerStoreShake.Currency,
-				})
-			}
+			//if offerStoreItem.RewardAddress != "" {
+			//	rewardDescription := fmt.Sprintf("Transfer reward to userId %s offerId %s", offerStore.UID, offerStoreShake.Id)
+			//	response2 = s.sendTransaction(offerStoreItem.RewardAddress, offerStoreShake.Reward, offerStoreItem.Currency, rewardDescription,
+			//		fmt.Sprintf("%s_reward", offerStoreShake.Id), offerStoreItem.WalletProvider, ce)
+			//
+			//	s.miscDao.AddCryptoTransferLog(bean.CryptoTransferLog{
+			//		Provider:         offerStoreItem.WalletProvider,
+			//		ProviderResponse: response2,
+			//		DataType:         bean.OFFER_ADDRESS_MAP_OFFER_STORE_SHAKE,
+			//		DataRef:          dao.GetOfferStoreShakeItemPath(offerStore.Id, offerStoreShake.Id),
+			//		UID:              offerStore.UID,
+			//		Description:      description,
+			//		Amount:           offerStoreShake.Amount,
+			//		Currency:         offerStoreShake.Currency,
+			//	})
+			//}
 			// Just logging the error, don't throw it
 			//if ce.HasError() {
 			//	return
@@ -1093,7 +1093,7 @@ func (s OfferStoreService) sendTransaction(address string, amountStr string, cur
 }
 
 func (s OfferStoreService) getSuccessTransCount(offer bean.OfferStore, offerShake bean.OfferStoreShake, actionUID string) (transCount1 bean.TransactionCount, transCount2 bean.TransactionCount) {
-	transCountTO := s.transDao.GetTransactionCount(offer.UID, "all")
+	transCountTO := s.transDao.GetTransactionCount(offer.UID, "ALL")
 	if !transCountTO.HasError() && transCountTO.Found {
 		transCount1 = transCountTO.Object.(bean.TransactionCount)
 	}
@@ -1104,7 +1104,7 @@ func (s OfferStoreService) getSuccessTransCount(offer bean.OfferStore, offerShak
 	if !transCountTO.HasError() && transCountTO.Found {
 		transCount2 = transCountTO.Object.(bean.TransactionCount)
 	}
-	transCount2.Currency = "ALL"
+	transCount2.Currency = offerShake.Currency
 	transCount2.Success += 1
 
 	return
@@ -1156,7 +1156,9 @@ func (s OfferStoreService) setupOfferShakeAmount(offer *bean.OfferStoreShake, ce
 	exchComm := decimal.NewFromFloat(exchCommObj.Value).Round(6)
 	amount, _ := decimal.NewFromString(offer.Amount)
 	fee := amount.Mul(exchFee)
-	reward := amount.Mul(exchComm)
+	// reward := amount.Mul(exchComm)
+	// For now
+	reward := decimal.NewFromFloat(0)
 
 	offer.FeePercentage = exchFee.String()
 	offer.RewardPercentage = exchComm.String()
