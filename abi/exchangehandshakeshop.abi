@@ -61,28 +61,6 @@
       "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [
-        {
-          "name": "shopOwner",
-          "type": "address"
-        },
-        {
-          "name": "value",
-          "type": "uint256"
-        },
-        {
-          "name": "offchain",
-          "type": "bytes32"
-        }
-      ],
-      "name": "initByCustomer",
-      "outputs": [],
-      "payable": true,
-      "stateMutability": "payable",
-      "type": "function"
-    },
-    {
       "constant": true,
       "inputs": [
         {
@@ -99,6 +77,20 @@
       ],
       "payable": false,
       "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "offchain",
+          "type": "bytes32"
+        }
+      ],
+      "name": "initByShopOwner",
+      "outputs": [],
+      "payable": true,
+      "stateMutability": "payable",
       "type": "function"
     },
     {
@@ -192,6 +184,24 @@
       "constant": false,
       "inputs": [
         {
+          "name": "shopOwner",
+          "type": "address"
+        },
+        {
+          "name": "offchain",
+          "type": "bytes32"
+        }
+      ],
+      "name": "initByCustomer",
+      "outputs": [],
+      "payable": true,
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
           "name": "hid",
           "type": "uint256"
         },
@@ -204,24 +214,6 @@
       "outputs": [],
       "payable": false,
       "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [
-        {
-          "name": "value",
-          "type": "uint256"
-        },
-        {
-          "name": "offchain",
-          "type": "bytes32"
-        }
-      ],
-      "name": "initByShopOwner",
-      "outputs": [],
-      "payable": true,
-      "stateMutability": "payable",
       "type": "function"
     },
     {

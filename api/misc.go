@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/ninjadotorg/handshake-exchange/api_error"
 	"github.com/ninjadotorg/handshake-exchange/bean"
@@ -8,6 +9,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/openexchangerates_service"
 	"github.com/ninjadotorg/handshake-exchange/service"
+	"github.com/ninjadotorg/handshake-exchange/service/notification"
 	"github.com/shopspring/decimal"
 )
 
@@ -350,4 +352,15 @@ func (api MiscApi) StartApp(context *gin.Context) {
 	api.UpdateCCLimits(context)
 	OnChainApi{}.StartOnChainOfferBlock(context)
 	OnChainApi{}.StartOnChainOfferStoreBlock(context)
+}
+
+func (api MiscApi) TestEmail(context *gin.Context) {
+	offerStoreTO := dao.OfferStoreDaoInst.GetOfferStore("625")
+	offerStoreItemTO := dao.OfferStoreDaoInst.GetOfferStoreItem("625", "BTC")
+
+	c := make(chan error)
+	go notification.SendOfferStoreToEmail(offerStoreTO.Object.(bean.OfferStore), offerStoreItemTO.Object.(bean.OfferStoreItem), c)
+	fmt.Println(<-c)
+
+	bean.SuccessResponse(context, true)
 }

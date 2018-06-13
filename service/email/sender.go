@@ -194,6 +194,9 @@ func SendOfferTakerRejectEmail(language string, emailAddress string, username st
 
 func SendOfferCompleteEmail(language string, emailAddress string,
 	amount string, currency string, username string) error {
+	if emailAddress == "" {
+		return nil
+	}
 	T, _ := i18n.Tfunc(language)
 
 	subject := T("email_offer_completed_subject", map[string]string{
@@ -221,6 +224,9 @@ func SendOfferCompleteEmail(language string, emailAddress string,
 
 func SendOfferWithdrawEmail(language string, emailAddress string,
 	amount string, currency string) error {
+	if emailAddress == "" {
+		return nil
+	}
 	T, _ := i18n.Tfunc(language)
 
 	subject := T("email_offer_withdraw_subject", map[string]string{
@@ -315,6 +321,9 @@ func SendOfferStoreItemRemovedEmail(language string, emailAddress string) error 
 
 func SendOfferStoreMakerSellShakeEmail(language string, emailAddress string, amount string, currency string,
 	fiatAmount string, fiatCurrency string, username string) error {
+	if emailAddress == "" {
+		return nil
+	}
 	T, _ := i18n.Tfunc(language)
 
 	subject := T("email_offer_store_maker_sell_shake", map[string]string{
@@ -346,6 +355,10 @@ func SendOfferStoreMakerSellShakeEmail(language string, emailAddress string, amo
 
 func SendOfferStoreMakerBuyShakeEmail(language string, emailAddress string, amount string, currency string,
 	fiatAmount string, fiatCurrency string, username string) error {
+	if emailAddress == "" {
+		return nil
+	}
+
 	T, _ := i18n.Tfunc(language)
 
 	subject := T("email_offer_store_maker_buy_shake", map[string]string{
@@ -377,6 +390,9 @@ func SendOfferStoreMakerBuyShakeEmail(language string, emailAddress string, amou
 
 func SendOfferStoreTakerSellShakeEmail(language string, emailAddress string, amount string, currency string,
 	fiatAmount string, fiatCurrency string, username string) error {
+	if emailAddress == "" {
+		return nil
+	}
 	T, _ := i18n.Tfunc(language)
 
 	subject := T("email_offer_store_taker_sell_shake")
@@ -406,6 +422,9 @@ func SendOfferStoreTakerSellShakeEmail(language string, emailAddress string, amo
 
 func SendOfferStoreTakerBuyShakeEmail(language string, emailAddress string, amount string, currency string,
 	fiatAmount string, fiatCurrency string, username string) error {
+	if emailAddress == "" {
+		return nil
+	}
 	T, _ := i18n.Tfunc(language)
 
 	subject := T("email_offer_store_taker_buy_shake")
@@ -460,6 +479,9 @@ func SendOfferStoreAcceptEmail(language string, emailAddress string, amount stri
 }
 
 func SendOfferStoreMakerRejectEmail(language string, emailAddress string, username string) error {
+	if emailAddress == "" {
+		return nil
+	}
 	T, _ := i18n.Tfunc(language)
 
 	subject := T("email_offer_store_maker_reject", map[string]string{
@@ -485,6 +507,9 @@ func SendOfferStoreMakerRejectEmail(language string, emailAddress string, userna
 }
 
 func SendOfferStoreTakerRejectEmail(language string, emailAddress string, username string) error {
+	if emailAddress == "" {
+		return nil
+	}
 	T, _ := i18n.Tfunc(language)
 
 	subject := T("email_offer_store_taker_reject", map[string]string{
