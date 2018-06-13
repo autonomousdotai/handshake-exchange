@@ -581,8 +581,12 @@ func (s OfferStoreService) CompleteOfferStoreShake(userId string, offerStoreId s
 
 	// For onchain processing
 	offerShake = offerStoreShake
-	offerShake.Hid = offerStore.Hid
-	offerShake.UserAddress = offerStore.ItemSnapshots[offerShake.Currency].UserAddress
+	if offerShake.Hid == 0 {
+		offerShake.Hid = offerStore.Hid
+	}
+	if offerShake.UserAddress == "" {
+		offerShake.UserAddress = offerStore.ItemSnapshots[offerShake.Currency].UserAddress
+	}
 	notification.SendOfferStoreShakeNotification(offerStoreShake, offerStore)
 
 	return
