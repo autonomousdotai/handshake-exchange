@@ -147,15 +147,17 @@ func (dao OfferStoreDao) UpdateOfferStoreItemClosing(offer bean.OfferStore, offe
 	return err
 }
 
-func (dao OfferStoreDao) UpdateOfferStoreItemClosed(offer bean.OfferStore, offerItem bean.OfferStoreItem) error {
+func (dao OfferStoreDao) UpdateOfferStoreItemClosed(offer bean.OfferStore, offerItem bean.OfferStoreItem, profile bean.Profile) error {
 	dbClient := firebase_service.FirestoreClient
 
+	profileDocRef := dbClient.Doc(GetUserPath(offer.UID))
 	docRef := dbClient.Doc(GetOfferStoreItemPath(offer.Id))
 	docItemRef := dbClient.Doc(GetOfferStoreItemItemPath(offer.Id, offerItem.Currency))
 
 	batch := dbClient.Batch()
 	batch.Set(docRef, offer.GetChangeStatus(), firestore.MergeAll)
 	batch.Set(docItemRef, offerItem.GetUpdateOfferStoreItemClosed(), firestore.MergeAll)
+	batch.Set(profileDocRef, profile.GetUpdateOfferStoreProfile(), firestore.MergeAll)
 
 	_, err := batch.Commit(context.Background())
 

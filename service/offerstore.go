@@ -51,6 +51,9 @@ func (s OfferStoreService) CreateOfferStore(userId string, offerSetup bean.Offer
 	profile := profileTO.Object.(bean.Profile)
 
 	s.prepareOfferStore(&offerBody, &offerItemBody, &profile, &ce)
+	if ce.HasError() {
+		return
+	}
 
 	offerNew, err := s.dao.AddOfferStore(offerBody, offerItemBody, profile)
 	if ce.SetError(api_error.AddDataFailed, err) {
@@ -73,7 +76,7 @@ func (s OfferStoreService) GetOfferStore(userId string, offerId string) (offer b
 		return
 	}
 	offerTO := s.dao.GetOfferStore(offerId)
-	if ce.FeedDaoTransfer(api_error.GetDataFailed, profileTO) {
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, offerTO) {
 		return
 	}
 	notFound := false
@@ -630,6 +633,13 @@ func (s OfferStoreService) UpdateOnChainCloseOfferStore(offerStoreId string) (of
 		return
 	}
 	offer = offerTO.Object.(bean.OfferStore)
+
+	profileTO := s.userDao.GetProfile(offer.UID)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, profileTO) {
+		return
+	}
+	profile := profileTO.Object.(bean.Profile)
+
 	offerItemTO := s.dao.GetOfferStoreItem(offerStoreId, bean.ETH.Code)
 	if !offerItemTO.Found {
 		return
@@ -644,8 +654,10 @@ func (s OfferStoreService) UpdateOnChainCloseOfferStore(offerStoreId string) (of
 	if offer.Status == bean.OFFER_STORE_STATUS_CLOSING {
 		offer.Status = bean.OFFER_STORE_STATUS_CLOSED
 	}
+
+	profile.ActiveOfferStores[offerItem.Currency] = false
 	offer.ItemSnapshots[offerItem.Currency] = offerItem
-	err := s.dao.UpdateOfferStoreItemClosed(offer, offerItem)
+	err := s.dao.UpdateOfferStoreItemClosed(offer, offerItem, profile)
 	if ce.SetError(api_error.UpdateDataFailed, err) {
 		return
 	}
