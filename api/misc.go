@@ -367,6 +367,9 @@ func (api MiscApi) TestEmail(context *gin.Context) {
 	go notification.SendInstantOfferToFCM(offerTO.Object.(bean.InstantOffer), c)
 	err := <-c
 	fmt.Println(err)
+	if api_error.PropagateErrorAndAbort(context, api_error.UpdateDataFailed, err) != nil {
+		return
+	}
 
-	bean.SuccessResponse(context, err)
+	bean.SuccessResponse(context, true)
 }

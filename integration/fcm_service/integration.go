@@ -34,7 +34,7 @@ func SendFCM(fcm bean.FCMObject) error {
 	fmt.Println(resp)
 
 	if resp.Ok != true {
-		return api_error.NewErrorCustom(api_error.ExternalApiFailed, resp.String(), nil)
+		return api_error.NewErrorCustom(api_error.ExternalApiFailed, resp.String(), err)
 	}
 
 	return err
