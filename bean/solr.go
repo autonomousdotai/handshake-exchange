@@ -26,6 +26,7 @@ type SolrOfferObject struct {
 	ExtraData     string   `json:"extra_data_s"`
 	OfferFeedType string   `json:"offer_feed_type_s"`
 	OfferType     string   `json:"offer_type_s"`
+	FiatCurrency  string   `json:"fiat_currency_s"`
 	Location      string   `json:"location_p"`
 	InitAt        int64    `json:"init_at_i"`
 	LastUpdateAt  int64    `json:"last_update_at_i"`
@@ -270,7 +271,7 @@ func NewSolrFromOfferStore(offer OfferStore) (solr SolrOfferObject) {
 		solr.IsPrivate = 1
 	}
 	solr.Status = instantOfferStoreStatusMap[offer.Status]
-	solr.Hid = 0
+	solr.Hid = offer.Hid
 	solr.ChainId = offer.ChainId
 	userId, _ := strconv.Atoi(offer.UID)
 	solr.InitUserId = userId
@@ -284,6 +285,7 @@ func NewSolrFromOfferStore(offer OfferStore) (solr SolrOfferObject) {
 	solr.OfferFeedType = "offer_store"
 	// Nothing now
 	solr.OfferType = ""
+	solr.FiatCurrency = offer.FiatCurrency
 
 	var items = map[string]SolrOfferStoreItemSnapshot{}
 	for key, value := range offer.ItemSnapshots {
@@ -391,6 +393,7 @@ func NewSolrFromOfferStoreShake(offer OfferStoreShake, offerStore OfferStore) (s
 	solr.OfferFeedType = "offer_store_shake"
 	// Nothing now
 	solr.OfferType = ""
+	solr.FiatCurrency = offer.FiatCurrency
 
 	percentage, _ := decimal.NewFromString(offerStore.ItemSnapshots[offer.Currency].SellPercentage)
 	if offer.Type == OFFER_TYPE_BUY {

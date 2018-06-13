@@ -73,12 +73,12 @@ func (api OfferStoreApi) RemoveOfferStoreItem(context *gin.Context) {
 		api_error.AbortWithValidateErrorSimple(context, api_error.InvalidQueryParam)
 	}
 
-	ce := service.OfferStoreServiceInst.RemoveOfferStoreItem(userId, offerId, currency)
+	offer, ce := service.OfferStoreServiceInst.RemoveOfferStoreItem(userId, offerId, currency)
 	if ce.ContextValidate(context) {
 		return
 	}
 
-	bean.SuccessResponse(context, true)
+	bean.SuccessResponse(context, offer)
 }
 
 func (api OfferStoreApi) CreateOfferStoreShake(context *gin.Context) {

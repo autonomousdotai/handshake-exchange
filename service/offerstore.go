@@ -27,10 +27,21 @@ func (s OfferStoreService) CreateOfferStore(userId string, offerSetup bean.Offer
 	offerItemBody := offerSetup.Item
 
 	// Check offer store exists
+	// Allow to re-create if offer store exist but all item is closed
 	offerStoreTO := s.dao.GetOfferStore(userId)
 	if offerStoreTO.Found {
-		ce.SetStatusKey(api_error.OfferStoreExists)
-		return
+		offerCheck := offerStoreTO.Object.(bean.OfferStore)
+		allFalse := true
+		for _, v := range offerCheck.ItemFlags {
+			if v == true {
+				allFalse = false
+				break
+			}
+		}
+		if !allFalse {
+			ce.SetStatusKey(api_error.OfferStoreExists)
+			return
+		}
 	}
 
 	profileTO := s.userDao.GetProfile(userId)
@@ -65,7 +76,26 @@ func (s OfferStoreService) GetOfferStore(userId string, offerId string) (offer b
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, profileTO) {
 		return
 	}
-	offer = offerTO.Object.(bean.OfferStore)
+	notFound := false
+	if offerTO.Found {
+		offer = offerTO.Object.(bean.OfferStore)
+		allFalse := true
+		for _, v := range offer.ItemFlags {
+			if v == true {
+				allFalse = false
+				break
+			}
+		}
+		if allFalse {
+			notFound = true
+		}
+	} else {
+		notFound = true
+	}
+
+	if notFound {
+		ce.NotFound = true
+	}
 
 	return
 }
@@ -97,14 +127,14 @@ func (s OfferStoreService) AddOfferStoreItem(userId string, offerStoreId string,
 	return
 }
 
-func (s OfferStoreService) RemoveOfferStoreItem(userId string, offerStoreId string, currency string) (ce SimpleContextError) {
+func (s OfferStoreService) RemoveOfferStoreItem(userId string, offerStoreId string, currency string) (offerStore bean.OfferStore, ce SimpleContextError) {
 	// Check offer store exists
 	offerStoreTO := s.dao.GetOfferStore(userId)
 	if !offerStoreTO.Found {
 		ce.SetStatusKey(api_error.OfferStoreNotExist)
 		return
 	}
-	offerStore := offerStoreTO.Object.(bean.OfferStore)
+	offerStore = offerStoreTO.Object.(bean.OfferStore)
 
 	// Check offer item exists
 	offerStoreItemTO := s.dao.GetOfferStoreItem(userId, currency)
@@ -152,6 +182,7 @@ func (s OfferStoreService) RemoveOfferStoreItem(userId string, offerStoreId stri
 	}
 
 	allFalse := true
+	// Just for check
 	offerStore.ItemFlags[offerStoreItem.Currency] = false
 	for _, v := range offerStore.ItemFlags {
 		if v == true {
@@ -192,6 +223,9 @@ func (s OfferStoreService) RemoveOfferStoreItem(userId string, offerStoreId stri
 			return
 		}
 	}
+
+	// Assign to correct flag
+	offerStore.ItemFlags[offerStoreItem.Currency] = offerStoreItem.Status != bean.OFFER_STORE_ITEM_STATUS_CLOSED
 
 	notification.SendOfferStoreNotification(offerStore, offerStoreItem)
 
