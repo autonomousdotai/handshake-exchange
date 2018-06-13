@@ -355,11 +355,16 @@ func (api MiscApi) StartApp(context *gin.Context) {
 }
 
 func (api MiscApi) TestEmail(context *gin.Context) {
-	offerStoreTO := dao.OfferStoreDaoInst.GetOfferStore("625")
-	offerStoreItemTO := dao.OfferStoreDaoInst.GetOfferStoreItem("625", "BTC")
+	//offerStoreTO := dao.OfferStoreDaoInst.GetOfferStore("708")
+	//offerStoreShakeTO := dao.OfferStoreDaoInst.GetOfferStoreShake("708", "wQ4rvvy4hWwDuZ31ThMe")
+	//
+	//c := make(chan error)
+	//go notification.SendOfferStoreShakeToEmail(offerStoreShakeTO.Object.(bean.OfferStoreShake), offerStoreTO.Object.(bean.OfferStore), c)
+	//fmt.Println(<-c)
 
 	c := make(chan error)
-	go notification.SendOfferStoreToEmail(offerStoreTO.Object.(bean.OfferStore), offerStoreItemTO.Object.(bean.OfferStoreItem), c)
+	offerTO := dao.CreditCardDaoInst.GetInstantOffer("708", "SsiAUHmUpfopSdc2l5MY")
+	go notification.SendInstantOfferToFCM(offerTO.Object.(bean.InstantOffer), c)
 	fmt.Println(<-c)
 
 	bean.SuccessResponse(context, true)

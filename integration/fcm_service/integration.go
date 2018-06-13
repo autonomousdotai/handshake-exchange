@@ -20,7 +20,8 @@ func SendFCM(fcm bean.FCMObject) error {
 		return errBody
 	}
 	bodyStr = string(b)
-	// fmt.Println(bodyStr)
+	fmt.Println(url)
+	fmt.Println(bodyStr)
 
 	r := bytes.NewReader([]byte(bodyStr))
 
@@ -29,6 +30,8 @@ func SendFCM(fcm bean.FCMObject) error {
 	}
 	ro := &grequests.RequestOptions{RequestBody: r, Headers: headers}
 	resp, err := grequests.Post(url, ro)
+	fmt.Println(err)
+	fmt.Println(resp)
 
 	if resp.Ok != true {
 		return api_error.NewErrorCustom(api_error.ExternalApiFailed, resp.String(), nil)
