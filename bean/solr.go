@@ -261,7 +261,7 @@ type SolrOfferStoreItemSnapshot struct {
 	Status         string `json:"status"`
 }
 
-func NewSolrFromOfferStore(offer OfferStore) (solr SolrOfferObject) {
+func NewSolrFromOfferStore(offer OfferStore, item OfferStoreItem) (solr SolrOfferObject) {
 	solr.Id = fmt.Sprintf("exchange_%s", offer.Id)
 	solr.Type = 2
 	if offer.Status == OFFER_STATUS_ACTIVE {
@@ -296,11 +296,21 @@ func NewSolrFromOfferStore(offer OfferStore) (solr SolrOfferObject) {
 	for key, value := range offer.ItemSnapshots {
 		sellPercentage, _ := decimal.NewFromString(value.SellPercentage)
 		buyPercentage, _ := decimal.NewFromString(value.BuyPercentage)
+
+		sellBalance := value.SellBalance
+		if key == item.Currency {
+			sellBalance = item.SellBalance
+		}
+		status := value.Status
+		if key == item.Currency {
+			status = item.Status
+		}
+
 		items[key] = SolrOfferStoreItemSnapshot{
 			Currency:       value.Currency,
 			SellAmountMin:  value.SellAmountMin,
 			SellAmount:     value.SellAmount,
-			SellBalance:    value.SellBalance,
+			SellBalance:    sellBalance,
 			SellPercentage: sellPercentage.Mul(decimal.NewFromFloat(100)).String(),
 			BuyAmountMin:   value.BuyAmountMin,
 			BuyAmount:      value.BuyAmount,
@@ -308,7 +318,7 @@ func NewSolrFromOfferStore(offer OfferStore) (solr SolrOfferObject) {
 			BuyPercentage:  buyPercentage.Mul(decimal.NewFromFloat(100)).String(),
 			SystemAddress:  value.SystemAddress,
 			UserAddress:    value.UserAddress,
-			Status:         value.Status,
+			Status:         status,
 		}
 	}
 

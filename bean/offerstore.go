@@ -108,9 +108,10 @@ func (offer OfferStore) GetChangeStatus() map[string]interface{} {
 
 func (offer OfferStore) GetUpdateOfferStoreActive() map[string]interface{} {
 	return map[string]interface{}{
-		"hid":        offer.Hid,
-		"status":     offer.Status,
-		"updated_at": firestore.ServerTimestamp,
+		"hid":            offer.Hid,
+		"item_snapshots": offer.ItemSnapshots,
+		"status":         offer.Status,
+		"updated_at":     firestore.ServerTimestamp,
 	}
 }
 

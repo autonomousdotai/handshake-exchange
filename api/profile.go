@@ -36,7 +36,7 @@ func (api ProfileApi) UpdateProfileOffline(context *gin.Context) {
 	if to.Found {
 		offer := to.Object.(bean.OfferStore)
 		offer.Offline = offline
-		solr_service.UpdateObject(bean.NewSolrFromOfferStore(offer))
+		solr_service.UpdateObject(bean.NewSolrFromOfferStore(offer, bean.OfferStoreItem{}))
 	}
 	if to.Error != nil {
 		if to.ContextValidate(context) {

@@ -908,7 +908,7 @@ func (s OfferStoreService) SyncOfferStoreToSolr(offerId string) (offer bean.Offe
 		return
 	}
 	offer = offerTO.Object.(bean.OfferStore)
-	solr_service.UpdateObject(bean.NewSolrFromOfferStore(offer))
+	solr_service.UpdateObject(bean.NewSolrFromOfferStore(offer, bean.OfferStoreItem{}))
 
 	return
 }

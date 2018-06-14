@@ -169,7 +169,7 @@ func SendOfferStoreNotification(offer bean.OfferStore, offerItem bean.OfferStore
 	c := make(chan error)
 	go SendOfferStoreToEmail(offer, offerItem, c)
 	go SendOfferStoreToFirebase(offer, offerItem, c)
-	go SendOfferStoreToSolr(offer, c)
+	go SendOfferStoreToSolr(offer, offerItem, c)
 	go SendOfferStoreToFCM(offer, offerItem, c)
 
 	return []error{<-c, <-c, <-c, <-c}
@@ -192,9 +192,9 @@ func SendOfferStoreToFirebase(offer bean.OfferStore, offerItem bean.OfferStoreIt
 	c <- err
 }
 
-func SendOfferStoreToSolr(offer bean.OfferStore, c chan error) {
+func SendOfferStoreToSolr(offer bean.OfferStore, offerItem bean.OfferStoreItem, c chan error) {
 	// Always update
-	_, err := solr_service.UpdateObject(bean.NewSolrFromOfferStore(offer))
+	_, err := solr_service.UpdateObject(bean.NewSolrFromOfferStore(offer, offerItem))
 	c <- err
 }
 
