@@ -395,7 +395,9 @@ func SendOfferStoreTakerSellShakeEmail(language string, emailAddress string, amo
 	}
 	T, _ := i18n.Tfunc(language)
 
-	subject := T("email_offer_store_taker_sell_shake")
+	subject := T("email_offer_store_taker_sell_shake", map[string]string{
+		"Currency": currency,
+	})
 
 	data := struct {
 		Amount       string
@@ -427,7 +429,9 @@ func SendOfferStoreTakerBuyShakeEmail(language string, emailAddress string, amou
 	}
 	T, _ := i18n.Tfunc(language)
 
-	subject := T("email_offer_store_taker_buy_shake")
+	subject := T("email_offer_store_taker_buy_shake", map[string]string{
+		"Currency": currency,
+	})
 
 	data := struct {
 		Amount       string

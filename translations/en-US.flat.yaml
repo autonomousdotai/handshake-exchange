@@ -41,16 +41,32 @@ email_offer_store_item_added:
 email_offer_store_item_removed:
   other: "You have just cancelled your order"
 email_offer_store_taker_sell_shake:
-  other: "Buying Order Succeeded!"
+  other: "Success! You have just bought {{.Currency}}"
 email_offer_store_maker_sell_shake:
   other: "You have a buyer for {{.Currency}}"
 email_offer_store_maker_buy_shake:
   other: "Someone wants to sell you {{.Currency}}"
 email_offer_store_taker_buy_shake:
-  other: "Selling Order Succeeded!"
+  other: "Success! You have just sold {{.Currency}}"
 email_offer_store_accept:
   other: "Your {{.Currency}} is being transferred"
 email_offer_store_maker_reject:
   other: "Sorry, but {{.Username}} decided not shake"
 email_offer_store_taker_reject:
   other: "Sorry, but {{.Username}} decided not shake"
+notification_offer_store_added:
+  other: "Success! Your order is live on Ninja. Check your listing here."
+notification_offer_store_maker_sell_shake:
+  other: "You have a buyer on Ninja. Click here to arrange a meeting."
+notification_offer_store_taker_sell_shake:
+  other: "Success! You have just bought {{.Currency}}. Click here to arrange the meeting on Ninja."
+notification_offer_store_maker_buy_shake:
+  other: "You have a seller on Ninja. Click here to arrange a meeting."
+notification_offer_store_taker_buy_shake:
+  other: "Success! You have just sold {{.Currency}}. Click here to arrange the meeting on Ninja."
+notification_offer_store_maker_reject:
+  other: "Sorry, but {{.Username}} decided not shake"
+notification_offer_store_taker_reject:
+  other: "Sorry, but {{.Username}} decided not shake. Find more ninjas here"
+notification_offer_store_accept:
+  other: "Your {{.Currency}} is being transferred. Ready to sell more coins?"

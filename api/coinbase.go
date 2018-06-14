@@ -6,7 +6,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/api_error"
 	"github.com/ninjadotorg/handshake-exchange/bean"
 	"github.com/ninjadotorg/handshake-exchange/dao"
-	"github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
+	// "github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/firebase_service"
 )
 
@@ -21,10 +21,12 @@ func (api CoinbaseApi) ReceiveCallback(context *gin.Context) {
 	}
 
 	if body.Type == "wallet:addresses:new-payment" {
-		bodyNotification, err := coinbase_service.GetNotification(body.ResourcePath)
+		// bodyNotification, err := coinbase_service.GetNotification(body.ResourcePath)
+		bodyNotification := body
 		if api_error.PropagateErrorAndAbort(context, api_error.GetDataFailed, err) != nil {
 			// This might be fake coinbase request
 			return
+
 		}
 
 		// Do some double check
