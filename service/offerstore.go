@@ -242,6 +242,10 @@ func (s OfferStoreService) CreateOfferStoreShake(userId string, offerStoreId str
 		return
 	}
 	profile := profileTO.Object.(bean.Profile)
+	if UserServiceInst.CheckOfferLocked(profile) {
+		ce.SetStatusKey(api_error.OfferActionLocked)
+		return
+	}
 
 	offerStoreTO := s.dao.GetOfferStore(offerStoreId)
 	if !offerStoreTO.Found {
