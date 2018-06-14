@@ -388,5 +388,7 @@ func (api MiscApi) TestEmail(context *gin.Context) {
 
 func (api MiscApi) RemoveSolr(context *gin.Context) {
 	id := context.Param("id")
-	solr_service.DeleteObject(id)
+	resp, _ := solr_service.DeleteObject(id)
+
+	bean.SuccessResponse(context, resp)
 }

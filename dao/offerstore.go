@@ -69,6 +69,12 @@ func (dao OfferStoreDao) GetOfferStoreItem(userId string, currency string) (t Tr
 	return
 }
 
+func (dao OfferStoreDao) GetOfferStoreItemByPath(path string) (t TransferObject) {
+	GetObject(path, &t, snapshotToOfferStoreItem)
+
+	return
+}
+
 func (dao OfferStoreDao) AddOfferStoreItem(offer bean.OfferStore, item bean.OfferStoreItem, profile bean.Profile) (bean.OfferStoreItem, error) {
 	dbClient := firebase_service.FirestoreClient
 
@@ -166,6 +172,12 @@ func (dao OfferStoreDao) UpdateOfferStoreItemClosed(offer bean.OfferStore, offer
 
 func (dao OfferStoreDao) GetOfferStoreShake(offerStoreId string, offerStoreShakeId string) (t TransferObject) {
 	GetObject(GetOfferStoreShakeItemPath(offerStoreId, offerStoreShakeId), &t, snapshotToOfferStoreShake)
+
+	return
+}
+
+func (dao OfferStoreDao) GetOfferStoreShakeByPath(path string) (t TransferObject) {
+	GetObject(path, &t, snapshotToOfferStoreShake)
 
 	return
 }
@@ -325,9 +337,9 @@ func (dao OfferStoreDao) UpdateNotificationOfferStoreShake(offer bean.OfferStore
 }
 
 // DB path
-func GetOfferStorePath() string {
-	return "offer_stores"
-}
+//func GetOfferStorePath() string {
+//	return "offer_stores"
+//}
 
 func GetOfferStoreItemPath(id string) string {
 	return fmt.Sprintf("offer_stores/%s", id)
