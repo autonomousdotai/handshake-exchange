@@ -3,9 +3,9 @@ package service
 import (
 	"github.com/ninjadotorg/handshake-exchange/bean"
 	"github.com/ninjadotorg/handshake-exchange/dao"
+	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
 	"testing"
-	"github.com/shopspring/decimal"
 )
 
 type UserDaoFake struct {
