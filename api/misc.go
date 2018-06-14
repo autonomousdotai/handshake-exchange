@@ -7,6 +7,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/dao"
 	"github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/openexchangerates_service"
+	"github.com/ninjadotorg/handshake-exchange/integration/solr_service"
 	"github.com/ninjadotorg/handshake-exchange/service"
 	"github.com/shopspring/decimal"
 )
@@ -383,4 +384,9 @@ func (api MiscApi) TestEmail(context *gin.Context) {
 	//}
 	//
 	//bean.SuccessResponse(context, true)
+}
+
+func (api MiscApi) RemoveSolr(context *gin.Context) {
+	id := context.Param("id")
+	solr_service.DeleteObject(id)
 }

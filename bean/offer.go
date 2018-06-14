@@ -34,7 +34,7 @@ const OFFER_STATUS_WITHDRAWING = "withdrawing"
 const OFFER_STATUS_WITHDRAW = "withdraw"
 
 var MIN_ETH = decimal.NewFromFloat(0.1).Round(1)
-var MIN_BTC = decimal.NewFromFloat(0.01).Round(2)
+var MIN_BTC = decimal.NewFromFloat(0.0001).Round(4)
 
 type Offer struct {
 	Id               string           `json:"id"`
@@ -270,6 +270,7 @@ type OfferConfirmingAddressMap struct {
 	Address    string `json:"address" firestore:"address"`
 	Offer      string `json:"offer" firestore:"offer"`
 	OfferRef   string `json:"offer_ref" firestore:"offer_ref"`
+	Type       string `json:"type" firestore:"type"`
 	TxHash     string `json:"tx_hash" firestore:"tx_hash"`
 	Amount     string `json:"amount" firestore:"amount"`
 	Currency   string `json:"currency" firestore:"currency"`

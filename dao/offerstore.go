@@ -184,7 +184,7 @@ func (dao OfferStoreDao) AddOfferStoreShake(offerStore bean.OfferStore, shake be
 			Offer:    shake.Id,
 			OfferRef: GetOfferStoreShakeItemPath(offerStore.Id, shake.Id),
 			UID:      shake.UID,
-			Type:     bean.OFFER_ADDRESS_MAP_OFFER_STORE,
+			Type:     bean.OFFER_ADDRESS_MAP_OFFER_STORE_SHAKE,
 		}
 		mappingDocRef := dbClient.Doc(GetOfferAddressMapItemPath(shake.SystemAddress))
 		batch.Set(mappingDocRef, mapping.GetAddOfferAddressMap())
