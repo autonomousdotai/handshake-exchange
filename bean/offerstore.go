@@ -56,8 +56,7 @@ type OfferStoreItem struct {
 	UserAddress    string `json:"user_address" firestore:"user_address"`
 	WalletProvider string `json:"-" firestore:"wallet_provider"`
 	RewardAddress  string `json:"reward_address" firestore:"reward_address"`
-	Hid            string `json:"hid" firestore:"hid"`
-	TxHash         string `json:"tx_hash" firestore:"tx_hash"`
+	ShakeCount     int64  `json:"shake_count" firestore:"shake_count"`
 }
 
 func (offer OfferStore) GetAddOfferStore() map[string]interface{} {
@@ -139,6 +138,7 @@ func (item OfferStoreItem) GetAddOfferStoreItem() map[string]interface{} {
 		"user_address":    item.UserAddress,
 		"reward_address":  item.RewardAddress,
 		"wallet_provider": item.WalletProvider,
+		"shake_count":     item.ShakeCount,
 	}
 }
 

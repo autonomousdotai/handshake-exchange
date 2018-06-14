@@ -33,13 +33,15 @@ func (api ProfileApi) UpdateProfileOffline(context *gin.Context) {
 	offline := context.Param("offline")
 
 	to := dao.OfferStoreDaoInst.GetOfferStore(userId)
-	if to.ContextValidate(context) {
-		return
-	}
 	if to.Found {
 		offer := to.Object.(bean.OfferStore)
 		offer.Offline = offline
 		solr_service.UpdateObject(bean.NewSolrFromOfferStore(offer))
+	}
+	if to.HasError() {
+		if to.ContextValidate(context) {
+			return
+		}
 	}
 
 	bean.SuccessResponse(context, true)

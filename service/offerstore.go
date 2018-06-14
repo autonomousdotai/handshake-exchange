@@ -264,6 +264,7 @@ func (s OfferStoreService) CreateOfferStoreShake(userId string, offerStoreId str
 		ce.SetStatusKey(api_error.OfferStoreNotExist)
 		return
 	}
+
 	// Make sure shake on the valid item
 	offerStoreItem := offerStoreItemTO.Object.(bean.OfferStoreItem)
 	if offerStoreItem.Status != bean.OFFER_STORE_ITEM_STATUS_ACTIVE {
@@ -271,13 +272,26 @@ func (s OfferStoreService) CreateOfferStoreShake(userId string, offerStoreId str
 	}
 	var balance decimal.Decimal
 	amount, _ := decimal.NewFromString(offerShakeBody.Amount)
+	if offerShakeBody.Currency == bean.ETH.Code {
+		if amount.LessThan(bean.MIN_ETH) {
+			ce.SetStatusKey(api_error.AmountIsTooSmall)
+			return
+		}
+	}
+	if offerShakeBody.Currency == bean.BTC.Code {
+		if amount.LessThan(bean.MIN_BTC) {
+			ce.SetStatusKey(api_error.AmountIsTooSmall)
+			return
+		}
+	}
+
 	if offerShakeBody.Type == bean.OFFER_TYPE_SELL {
 		balance, _ = decimal.NewFromString(offerStoreItem.SellBalance)
 	} else {
 		balance, _ = decimal.NewFromString(offerStoreItem.BuyBalance)
 	}
 	if balance.LessThan(amount) {
-		ce.SetStatusKey(api_error.UpdateDataFailed)
+		ce.SetStatusKey(api_error.OfferStoreNotEnoughBalance)
 	}
 
 	offerShakeBody.UID = userId
@@ -975,13 +989,13 @@ func (s OfferStoreService) checkOfferStoreItemAmount(offerStoreItem *bean.OfferS
 		return
 	}
 	if offerStoreItem.Currency == bean.ETH.Code {
-		if sellAmount.LessThan(decimal.NewFromFloat(0.1).Round(1)) {
+		if sellAmount.LessThan(bean.MIN_ETH) {
 			ce.SetStatusKey(api_error.AmountIsTooSmall)
 			return
 		}
 	}
 	if offerStoreItem.Currency == bean.BTC.Code {
-		if sellAmount.LessThan(decimal.NewFromFloat(0.01).Round(4)) {
+		if sellAmount.LessThan(bean.MIN_BTC) {
 			ce.SetStatusKey(api_error.AmountIsTooSmall)
 			return
 		}
@@ -1002,13 +1016,13 @@ func (s OfferStoreService) checkOfferStoreItemAmount(offerStoreItem *bean.OfferS
 		return
 	}
 	if offerStoreItem.Currency == bean.ETH.Code {
-		if buyAmount.LessThan(decimal.NewFromFloat(0.1).Round(1)) {
+		if buyAmount.LessThan(bean.MIN_ETH) {
 			ce.SetStatusKey(api_error.AmountIsTooSmall)
 			return
 		}
 	}
 	if offerStoreItem.Currency == bean.BTC.Code {
-		if buyAmount.LessThan(decimal.NewFromFloat(0.01).Round(4)) {
+		if buyAmount.LessThan(bean.MIN_BTC) {
 			ce.SetStatusKey(api_error.AmountIsTooSmall)
 			return
 		}
