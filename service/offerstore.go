@@ -828,7 +828,7 @@ func (s OfferStoreService) PreShakeOffChainOfferStoreShake(address string, amoun
 	}
 	addressMap := addressMapTO.Object.(bean.OfferAddressMap)
 
-	offerShakeTO := s.dao.GetOfferStoreItemByPath(addressMap.OfferRef)
+	offerShakeTO := s.dao.GetOfferStoreShakeByPath(addressMap.OfferRef)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, offerShakeTO) {
 		return
 	}

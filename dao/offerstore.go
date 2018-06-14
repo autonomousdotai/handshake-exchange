@@ -37,7 +37,7 @@ func (dao OfferStoreDao) AddOfferStore(offer bean.OfferStore, item bean.OfferSto
 		mapping := bean.OfferAddressMap{
 			Address:  item.SystemAddress,
 			Offer:    offer.Id,
-			OfferRef: GetOfferStoreItemPath(offer.Id),
+			OfferRef: GetOfferStoreItemItemPath(offer.Id, item.Currency),
 			UID:      offer.UID,
 			Type:     bean.OFFER_ADDRESS_MAP_OFFER_STORE,
 		}
@@ -87,7 +87,7 @@ func (dao OfferStoreDao) AddOfferStoreItem(offer bean.OfferStore, item bean.Offe
 		mapping := bean.OfferAddressMap{
 			Address:  item.SystemAddress,
 			Offer:    offer.Id,
-			OfferRef: GetOfferStoreItemPath(offer.Id),
+			OfferRef: GetOfferStoreItemItemPath(offer.Id, item.Currency),
 			UID:      offer.UID,
 			Type:     bean.OFFER_ADDRESS_MAP_OFFER_STORE,
 		}
