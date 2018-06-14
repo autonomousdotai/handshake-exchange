@@ -287,6 +287,7 @@ func (offer OfferConfirmingAddressMap) GetAddOfferConfirmingAddressMap() map[str
 		"tx_hash":     offer.TxHash,
 		"amount":      offer.Amount,
 		"currency":    offer.Currency,
+		"type":        offer.Type,
 		"created_at":  firestore.ServerTimestamp,
 	}
 }

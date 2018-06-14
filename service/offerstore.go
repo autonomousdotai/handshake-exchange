@@ -793,7 +793,7 @@ func (s OfferStoreService) ActiveOffChainOfferStore(address string, amountStr st
 		return
 	}
 	offerItem := offerItemTO.Object.(bean.OfferStoreItem)
-	if offer.Status != bean.OFFER_STATUS_CREATED {
+	if offerItem.Status != bean.OFFER_STATUS_CREATED {
 		ce.SetStatusKey(api_error.OfferStatusInvalid)
 		return
 	}
