@@ -277,11 +277,11 @@ func SendOfferStoreTakerRejectFCM(language string, fcm string, username string) 
 	return fcm_service.SendFCM(fcmObj)
 }
 
-func SendOfferStoreAcceptFCM(language string, fcm string, currency string) error {
+func SendOfferStoreCompleteFCM(language string, fcm string, currency string) error {
 	T, _ := i18n.Tfunc(language)
 
 	title := T("common_notification_title")
-	body := T("notification_offer_store_accept", map[string]string{
+	body := T("notification_offer_store_complete", map[string]string{
 		"Currency": currency,
 	})
 	frontEndHost := os.Getenv("FRONTEND_HOST")

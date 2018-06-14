@@ -81,6 +81,7 @@ func (api CoinbaseApi) ReceiveCallback(context *gin.Context) {
 						Offer:      offerAddr.Offer,
 						OfferRef:   offerAddr.OfferRef,
 						Type:       offerAddr.Type,
+						Amount:     amountObj,
 						TxHash:     bodyNotification.AdditionalData.Hash,
 						ExternalId: bodyNotification.AdditionalData.Transaction.Id,
 						Currency:   currencyObj,

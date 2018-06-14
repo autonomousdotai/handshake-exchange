@@ -170,10 +170,9 @@ func SendOfferStoreNotification(offer bean.OfferStore, offerItem bean.OfferStore
 	go SendOfferStoreToEmail(offer, offerItem, c)
 	go SendOfferStoreToFirebase(offer, offerItem, c)
 	go SendOfferStoreToSolr(offer, c)
-	// go SendOfferToFCM(offer, c)
+	go SendOfferStoreToFCM(offer, offerItem, c)
 
-	// return []error{<-c, <-c, <-c, <-c}
-	return []error{<-c, <-c, <-c}
+	return []error{<-c, <-c, <-c, <-c}
 }
 
 func SendOfferStoreToEmail(offer bean.OfferStore, offerItem bean.OfferStoreItem, c chan error) {
@@ -199,15 +198,25 @@ func SendOfferStoreToSolr(offer bean.OfferStore, c chan error) {
 	c <- err
 }
 
+func SendOfferStoreToFCM(offer bean.OfferStore, offerItem bean.OfferStoreItem, c chan error) {
+	var err error
+	if offer.Email != "" {
+		if offerItem.Status == bean.OFFER_STORE_ITEM_STATUS_ACTIVE {
+			SendOfferStoreItemAddedFCM(offer.Language, offer.FCM)
+		} else if offerItem.Status == bean.OFFER_STORE_ITEM_STATUS_CLOSED {
+		}
+	}
+	c <- err
+}
+
 func SendOfferStoreShakeNotification(offer bean.OfferStoreShake, offerStore bean.OfferStore) []error {
 	c := make(chan error)
 	go SendOfferStoreShakeToEmail(offer, offerStore, c)
 	go SendOfferStoreShakeToFirebase(offer, offerStore, c)
 	go SendOfferStoreShakeToSolr(offer, offerStore, c)
-	// go SendOfferToFCM(offer, c)
+	go SendOfferStoreShakeToFCM(offer, offerStore, c)
 
-	// return []error{<-c, <-c, <-c, <-c}
-	return []error{<-c, <-c, <-c}
+	return []error{<-c, <-c, <-c, <-c}
 }
 
 func SendOfferStoreShakeToEmail(offer bean.OfferStoreShake, offerStore bean.OfferStore, c chan error) {
@@ -263,5 +272,50 @@ func SendOfferStoreShakeToFirebase(offer bean.OfferStoreShake, offerStore bean.O
 func SendOfferStoreShakeToSolr(offer bean.OfferStoreShake, offerStore bean.OfferStore, c chan error) {
 	// Always update
 	_, err := solr_service.UpdateObject(bean.NewSolrFromOfferStoreShake(offer, offerStore))
+	c <- err
+}
+
+func SendOfferStoreShakeToFCM(offer bean.OfferStoreShake, offerStore bean.OfferStore, c chan error) {
+	var err error
+
+	username := offerStore.Username
+	if username == "" {
+		username = offerStore.Email
+		if username == "" {
+			username = offerStore.ContactPhone
+		}
+	}
+	toUsername := offer.Username
+	if toUsername == "" {
+		toUsername = offer.Email
+		if toUsername == "" {
+			toUsername = offer.ContactPhone
+		}
+	}
+
+	if offer.Status == bean.OFFER_STORE_SHAKE_STATUS_PRE_SHAKE {
+	} else if offer.Status == bean.OFFER_STORE_SHAKE_STATUS_SHAKE {
+		if offer.Type == bean.OFFER_TYPE_BUY {
+			err = SendOfferStoreMakerBuyShakeFCM(offerStore.Language, offerStore.FCM, offerStore.ChatUsername)
+			err = SendOfferStoreTakerBuyShakeFCM(offer.Language, offer.FCM, offer.Currency, offer.ChatUsername)
+		} else {
+			err = SendOfferStoreMakerSellShakeFCM(offerStore.Language, offerStore.FCM, offerStore.ChatUsername)
+			err = SendOfferStoreTakerSellShakeFCM(offer.Language, offer.FCM, offer.Currency, offer.ChatUsername)
+		}
+	} else if offer.Status == bean.OFFER_STORE_SHAKE_STATUS_CANCELLED {
+
+	} else if offer.Status == bean.OFFER_STORE_SHAKE_STATUS_REJECTED {
+		if offer.ActionUID == offer.UID {
+			err = SendOfferStoreMakerRejectFCM(offerStore.Language, offerStore.FCM, toUsername)
+		} else {
+			err = SendOfferStoreTakerRejectFCM(offer.Language, offer.FCM, username)
+		}
+	} else if offer.Status == bean.OFFER_STORE_SHAKE_STATUS_COMPLETED {
+		if offer.Type == bean.OFFER_TYPE_BUY {
+			err = SendOfferCompletedFCM(offerStore.Language, offerStore.FCM)
+		} else {
+			err = SendOfferCompletedFCM(offer.Language, offer.FCM)
+		}
+	}
 	c <- err
 }
