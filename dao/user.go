@@ -10,6 +10,18 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+type UserDaoInterface interface {
+	GetProfile(userId string) (t TransferObject)
+	AddProfile(profile bean.Profile) error
+	UpdateProfileCreditCard(userId string, creditCard bean.UserCreditCard, userCCLimit bean.UserCreditCardLimit) error
+	UpdateProfileOfferRejectLock(userId string, lock bean.OfferRejectLock) error
+	UpdateUserCCLimitAmount(userId string, token string, amount decimal.Decimal) error
+	UpdateUserCCLimitTracks() (userIds []string, t TransferObject)
+	GetCCLimit(userId string, token string) (t TransferObject)
+	GetUserCCLimitEndTracks() (t TransferObject)
+	UpgradeCCLimitLevel(userId string, token string, limit bean.UserCreditCardLimit) error
+}
+
 type UserDao struct {
 }
 

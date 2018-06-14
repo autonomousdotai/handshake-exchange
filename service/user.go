@@ -13,7 +13,7 @@ import (
 )
 
 type UserService struct {
-	dao     *dao.UserDao
+	dao     dao.UserDaoInterface
 	miscDao *dao.MiscDao
 }
 

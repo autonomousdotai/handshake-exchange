@@ -9,7 +9,7 @@ install: deps
 
 .PHONY: test
 test:
-	sh coverage.sh
+	go test ./...
 
 .PHONY: fmt
 fmt:

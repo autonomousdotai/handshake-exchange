@@ -146,7 +146,7 @@ func RouterMiddleware() gin.HandlerFunc {
 		responseStatus := context.Writer.Status()
 		responseData, _ := context.Get("ResponseData")
 		if false {
-			log.Println(fmt.Sprintf("%s - %s - %s - %s", docId, userId, responseStatus, responseData))
+			log.Println(fmt.Sprintf("%s - %s - %d - %s", docId, userId, responseStatus, responseData))
 
 			b, _ := json.Marshal(&body)
 			r, _ := json.Marshal(&responseData)
