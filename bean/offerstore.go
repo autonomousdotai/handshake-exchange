@@ -37,6 +37,8 @@ type OfferStore struct {
 	TransactionCount TransactionCount          `json:"transaction_count" firestore:"transaction_count"`
 	ItemSnapshots    map[string]OfferStoreItem `json:"items" firestore:"item_snapshots"`
 	Offline          string                    `json:"-"`
+	Review           int64                     `json:"review" firestore:"review"`
+	ReviewCount      int64                     `json:"review_count" firestore:"review_count"`
 	CreatedAt        time.Time                 `json:"created_at" firestore:"created_at"`
 	UpdatedAt        time.Time                 `json:"updated_at" firestore:"updated_at"`
 }
@@ -112,6 +114,14 @@ func (offer OfferStore) GetUpdateOfferStoreActive() map[string]interface{} {
 		"item_snapshots": offer.ItemSnapshots,
 		"status":         offer.Status,
 		"updated_at":     firestore.ServerTimestamp,
+	}
+}
+
+func (offer OfferStore) GetUpdateOfferStoreReview() map[string]interface{} {
+	return map[string]interface{}{
+		"review":       offer.Review,
+		"review_count": offer.ReviewCount,
+		"updated_at":   firestore.ServerTimestamp,
 	}
 }
 
@@ -281,5 +291,21 @@ func (offer OfferStoreShake) GetNotificationUpdate() map[string]interface{} {
 		"id":     offer.Id,
 		"status": offer.Status,
 		"type":   "offer_store_shake",
+	}
+}
+
+type OfferStoreReview struct {
+	Id        string    `json:"id" firestore:"id"`
+	UID       string    `json:"uid" firestore:"uid"`
+	Score     int64     `json:"score" firestore:"score"`
+	CreatedAt time.Time `json:"created_at" firestore:"created_at"`
+}
+
+func (offer OfferStoreReview) GetAddOfferStoreReview() map[string]interface{} {
+	return map[string]interface{}{
+		"id":         offer.Id,
+		"uid":        offer.UID,
+		"score":      offer.Score,
+		"created_at": firestore.ServerTimestamp,
 	}
 }

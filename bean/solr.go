@@ -29,6 +29,8 @@ type SolrOfferObject struct {
 	FiatCurrency  string   `json:"fiat_currency_s"`
 	Location      string   `json:"location_p"`
 	Offline       int      `json:"offline_i"`
+	Review        float64  `json:"review_d"`
+	ReviewCount   int      `json:"review_count_i"`
 	InitAt        int64    `json:"init_at_i"`
 	LastUpdateAt  int64    `json:"last_update_at_i"`
 }
@@ -290,6 +292,11 @@ func NewSolrFromOfferStore(offer OfferStore, item OfferStoreItem) (solr SolrOffe
 	solr.Offline = 0
 	if offer.Offline == "1" {
 		solr.Offline = 1
+	}
+	solr.Review = 0
+	solr.ReviewCount = int(offer.ReviewCount)
+	if offer.ReviewCount > 0 {
+		solr.Review = float64(offer.Review) / float64(offer.ReviewCount)
 	}
 
 	var items = map[string]SolrOfferStoreItemSnapshot{}

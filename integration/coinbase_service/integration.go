@@ -148,23 +148,20 @@ func SendTransaction(address string, amount string, currency string, description
 	client.Initialize()
 
 	var response bean.CoinbaseTransactionResponse
-	//
-	//resp, err := client.Post("/v2/accounts/"+client.GetAccount(currency)+"/transactions", bean.CoinbaseSendMoneyRequest{
-	//	To:          address,
-	//	Amount:      amount,
-	//	Currency:    currency,
-	//	Description: description,
-	//	Idem:        withdrawId,
-	//}.GetRequestBody())
-	//
-	//if err == nil {
-	//	resp.JSON(&response)
-	//}
 
-	//return response.Data, err
+	resp, err := client.Post("/v2/accounts/"+client.GetAccount(currency)+"/transactions", bean.CoinbaseSendMoneyRequest{
+		To:          address,
+		Amount:      amount,
+		Currency:    currency,
+		Description: description,
+		Idem:        withdrawId,
+	}.GetRequestBody())
 
-	//TODO Remove to go to production
-	return response.Data, nil
+	if err == nil {
+		resp.JSON(&response)
+	}
+
+	return response.Data, err
 }
 
 func GetNotification(resource string) (bean.CoinbaseNotification, error) {

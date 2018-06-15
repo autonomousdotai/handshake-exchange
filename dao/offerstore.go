@@ -336,6 +336,27 @@ func (dao OfferStoreDao) UpdateNotificationOfferStoreShake(offer bean.OfferStore
 	return err
 }
 
+func (dao OfferStoreDao) GetOfferStoreReview(offerStoreId string, id string) (t TransferObject) {
+	GetObject(GetOfferStoreReviewItemPath(offerStoreId, id), &t, snapshotToOfferStoreReview)
+
+	return
+}
+
+func (dao OfferStoreDao) AddOfferStoreReview(offerStore bean.OfferStore, offerReview bean.OfferStoreReview) error {
+	dbClient := firebase_service.FirestoreClient
+
+	offerStoreRef := dbClient.Doc(GetOfferStoreItemPath(offerStore.Id))
+	offerStoreReviewRef := dbClient.Doc(GetOfferStoreReviewItemPath(offerStore.Id, offerReview.Id))
+
+	batch := dbClient.Batch()
+	batch.Set(offerStoreRef, offerStore.GetUpdateOfferStoreReview(), firestore.MergeAll)
+	batch.Set(offerStoreReviewRef, offerReview.GetAddOfferStoreReview())
+
+	_, err := batch.Commit(context.Background())
+
+	return err
+}
+
 // DB path
 //func GetOfferStorePath() string {
 //	return "offer_stores"
@@ -355,6 +376,10 @@ func GetOfferStoreShakePath(offerStoreId string) string {
 
 func GetOfferStoreShakeItemPath(offerStoreId string, id string) string {
 	return fmt.Sprintf("offer_stores/%s/shakes/%s", offerStoreId, id)
+}
+
+func GetOfferStoreReviewItemPath(offerStoreId string, id string) string {
+	return fmt.Sprintf("offer_stores/%s/reviews/%s", offerStoreId, id)
 }
 
 // Firebase
@@ -380,6 +405,12 @@ func snapshotToOfferStoreItem(snapshot *firestore.DocumentSnapshot) interface{} 
 
 func snapshotToOfferStoreShake(snapshot *firestore.DocumentSnapshot) interface{} {
 	var obj bean.OfferStoreShake
+	snapshot.DataTo(&obj)
+	return obj
+}
+
+func snapshotToOfferStoreReview(snapshot *firestore.DocumentSnapshot) interface{} {
+	var obj bean.OfferStoreReview
 	snapshot.DataTo(&obj)
 	return obj
 }

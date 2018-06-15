@@ -36,6 +36,7 @@ const OfferStoreExists = "OfferStoreExists"
 const OfferStoreNotExist = "OfferStoreNotExist"
 const OfferStoreShakeNotExist = "OfferStoreShakeNotExist"
 const OfferStoreNotEnoughBalance = "OfferStoreNotEnoughBalance"
+const OfferStoreAlreadyReviewed = "OfferStoreAlreadyReviewed"
 
 var CodeMessage = map[string]struct {
 	StatusCode int
@@ -76,4 +77,5 @@ var CodeMessage = map[string]struct {
 	OfferStoreNotExist:             {http.StatusBadRequest, -314, "Offer store not exist"},
 	OfferStoreShakeNotExist:        {http.StatusBadRequest, -315, "Offer store shake not exist"},
 	OfferStoreNotEnoughBalance:     {http.StatusBadRequest, -316, "Offer not enough balance"},
+	OfferStoreAlreadyReviewed:      {http.StatusBadRequest, -317, "Offer store already reviewed"},
 }

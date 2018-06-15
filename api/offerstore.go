@@ -156,3 +156,18 @@ func (api OfferStoreApi) CancelOfferStoreShake(context *gin.Context) {
 
 	bean.SuccessResponse(context, offerShake)
 }
+
+func (api OfferStoreApi) ReviewOfferStore(context *gin.Context) {
+	userId := common.GetUserId(context)
+	offerId := context.Param("offerId")
+	offerShakeId := context.Param("offerShakeId")
+	scoreStr := context.DefaultQuery("score", "0")
+	score, _ := strconv.Atoi(scoreStr)
+
+	offerStore, ce := service.OfferStoreServiceInst.ReviewOfferStore(userId, offerId, int64(score), offerShakeId)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, offerStore)
+}

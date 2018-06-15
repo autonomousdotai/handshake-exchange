@@ -285,6 +285,15 @@ func (dao OfferDao) AddOfferConfirmingAddressMap(offerMap bean.OfferConfirmingAd
 	return err
 }
 
+func (dao OfferDao) RemoveOfferConfirmingAddressMap(txHash string) error {
+	dbClient := firebase_service.FirestoreClient
+	docRef := dbClient.Doc(GetOfferConfirmingAddressMapItemPath(txHash))
+
+	_, err := docRef.Delete(context.Background())
+
+	return err
+}
+
 // DB path
 func GetOfferPath() string {
 	return "offers"

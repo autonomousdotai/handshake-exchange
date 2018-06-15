@@ -649,19 +649,27 @@ func (s OfferService) FinishOfferConfirmingAddresses() (finishedInstantOffers []
 		for _, pendingOffer := range pendingOffers {
 			bodyTransaction, err := coinbase_service.GetTransaction(pendingOffer.ExternalId, pendingOffer.Currency)
 			if err == nil && bodyTransaction.Status == "completed" {
+				completed := false
 				if pendingOffer.Type == bean.OFFER_ADDRESS_MAP_OFFER {
 					offer, ce := s.ActiveOffer(pendingOffer.Address, pendingOffer.Amount)
 					if ce.HasError() {
 						if ce.StatusKey == api_error.OfferStatusInvalid {
 							_, ce = s.UpdateShakeOffer(offer)
+							completed = !ce.HasError()
 						} else {
 							// TODO Need to do some notification if get error
 						}
 					}
 				} else if pendingOffer.Type == bean.OFFER_ADDRESS_MAP_OFFER_STORE {
 					_, ce = OfferStoreServiceInst.ActiveOffChainOfferStore(pendingOffer.Address, pendingOffer.Amount)
+					completed = !ce.HasError()
 				} else if pendingOffer.Type == bean.OFFER_ADDRESS_MAP_OFFER_STORE_SHAKE {
 					_, ce = OfferStoreServiceInst.PreShakeOffChainOfferStoreShake(pendingOffer.Address, pendingOffer.Amount)
+					completed = !ce.HasError()
+				}
+
+				if completed {
+					dao.OfferDaoInst.RemoveOfferConfirmingAddressMap(pendingOffer.TxHash)
 				}
 			}
 		}

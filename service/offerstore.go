@@ -866,6 +866,67 @@ func (s OfferStoreService) PreShakeOffChainOfferStoreShake(address string, amoun
 	return
 }
 
+func (s OfferStoreService) ReviewOfferStore(userId string, offerId string, score int64, offerShakeId string) (offer bean.OfferStore, ce SimpleContextError) {
+	if score < 0 && score > 5 {
+		ce.SetStatusKey(api_error.InvalidQueryParam)
+	}
+
+	profileTO := s.userDao.GetProfile(userId)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, profileTO) {
+		return
+	}
+	offerStoreTO := s.dao.GetOfferStore(offerId)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, offerStoreTO) {
+		return
+	}
+	if !offerStoreTO.Found {
+		ce.SetStatusKey(api_error.OfferStoreNotExist)
+		return
+	}
+	offerStore := offerStoreTO.Object.(bean.OfferStore)
+	offerStoreShakeTO := s.dao.GetOfferStoreShake(offerId, offerShakeId)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, offerStoreShakeTO) {
+		return
+	}
+	if !offerStoreShakeTO.Found {
+		ce.SetStatusKey(api_error.OfferStoreNotExist)
+		return
+	}
+	offerStoreShake := offerStoreShakeTO.Object.(bean.OfferStoreShake)
+	if offerStoreShake.UID != userId {
+		ce.SetStatusKey(api_error.InvalidUserToCompleteHandshake)
+		return
+	}
+	if offerStoreShake.Status != bean.OFFER_STORE_SHAKE_STATUS_COMPLETING && offerStoreShake.Status != bean.OFFER_STORE_SHAKE_STATUS_COMPLETED {
+		ce.SetStatusKey(api_error.OfferStatusInvalid)
+		return
+	}
+
+	offerStoreReviewTO := s.dao.GetOfferStoreReview(offerStore.Id, offerShakeId)
+	if offerStoreReviewTO.Found {
+		ce.SetStatusKey(api_error.OfferStoreExists)
+		return
+	}
+
+	offerStore.ReviewCount += 1
+	offerStore.Review += score
+
+	err := s.dao.AddOfferStoreReview(offerStore, bean.OfferStoreReview{
+		Id:    offerShakeId,
+		UID:   userId,
+		Score: score,
+	})
+	if err != nil {
+		ce.SetError(api_error.UpdateDataFailed, err)
+		return
+	}
+
+	offer = offerStore
+	notification.SendOfferStoreNotification(offerStore, bean.OfferStoreItem{})
+
+	return
+}
+
 func (s OfferStoreService) GetQuote(quoteType string, amountStr string, currency string, fiatCurrency string) (price decimal.Decimal, fiatPrice decimal.Decimal,
 	fiatAmount decimal.Decimal, err error) {
 	amount, numberErr := decimal.NewFromString(amountStr)
