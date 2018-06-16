@@ -11,6 +11,7 @@ const CC_TRANSACTION_STATUS_REFUNDED = "refunded"
 const CC_TRANSACTION_TYPE = "instant_buy"
 
 const CC_PROVIDER_STRIPE = "stripe"
+const CC_PROVIDER_CHECKOUT = "checkout"
 
 type CCTransaction struct {
 	Id           string      `json:"id" firestore:"id"`

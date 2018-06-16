@@ -7,12 +7,12 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/bean"
 	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/dao"
+	"github.com/ninjadotorg/handshake-exchange/integration/checkout_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/crypto_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/gdax_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/stripe_service"
 	"github.com/ninjadotorg/handshake-exchange/service/notification"
 	"github.com/shopspring/decimal"
-	"github.com/stripe/stripe-go"
 	"os"
 	"strconv"
 	"time"
@@ -106,13 +106,13 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 
 	saveCard := false
 	var token string
-	if paymentMethodData.Token == "" {
-		token, err = stripe_service.CreateToken(paymentMethodData.CCNum, paymentMethodData.ExpirationDate, paymentMethodData.CVV)
-		if ce.SetError(api_error.ExternalApiFailed, err) {
-			return
-		}
-		saveCard = true
-	}
+	//if paymentMethodData.Token == "" {
+	//	token, err = stripe_service.CreateToken(paymentMethodData.CCNum, paymentMethodData.ExpirationDate, paymentMethodData.CVV)
+	//	if ce.SetError(api_error.ExternalApiFailed, err) {
+	//		return
+	//	}
+	//	saveCard = true
+	//}
 	if paymentMethodData.Token == "true" {
 		ccLimitCE := UserServiceInst.CheckCCLimit(offerBody.UID, offerBody.FiatAmount)
 		if ccLimitCE.HasError() {
@@ -125,11 +125,30 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 	fiatAmount, _ := decimal.NewFromString(offerBody.FiatAmount)
 	statement := ""
 	description := fmt.Sprintf("User %s buys %s %s", offer.UID, offerBody.Amount, offerBody.Currency)
-	stripeCharge, err := stripe_service.Charge(token, paymentMethodData.Token, fiatAmount, statement, description)
-	if ce.SetError(api_error.ExternalApiFailed, err) {
-		return
+
+	// chargeResponse, err := stripe_service.Charge(token, paymentMethodData.Token, fiatAmount, statement, description)
+	chargeStatus := "failed"
+	chargeId := ""
+	var chargeResponse interface{}
+	if paymentMethodData.Token == "" {
+		checkOutResponse, err := checkout_service.ChargeCard(userId, paymentMethodData.CCNum, paymentMethodData.ExpirationDate, paymentMethodData.CVV, fiatAmount, statement, description)
+		if err == nil {
+			if checkOutResponse.Status == "Authorised" {
+				chargeStatus = checkOutResponse.Status
+				chargeResponse = checkOutResponse
+				chargeId = checkOutResponse.Id
+				token = checkOutResponse.Card.Id
+			}
+		} else {
+			if ce.SetError(api_error.ExternalApiFailed, err) {
+				return
+			}
+		}
+	} else {
+
 	}
-	if stripeCharge.Status == "failed" {
+
+	if chargeStatus == "failed" {
 		ce.SetStatusKey(api_error.ExternalApiFailed)
 		return
 	}
@@ -140,7 +159,7 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 	var ccTran bean.CCTransaction
 	var gdaxResponse bean.GdaxOrderResponse
 
-	setupCCTransaction(&ccTran, offerBody, stripeCharge)
+	setupCCTransaction(&ccTran, offerBody, chargeResponse, chargeId)
 	ccTran, err = s.dao.AddCCTransaction(ccTran)
 	ccMode := systemConfig.Value
 	if ce.SetError(api_error.AddDataFailed, err) {
@@ -418,15 +437,26 @@ func setupInstantOffer(offer *bean.InstantOffer, offerTest bean.InstantOffer, gd
 	offer.Duration = int64(duration)
 }
 
-func setupCCTransaction(ccTran *bean.CCTransaction, offerBody bean.InstantOffer, stripeCharge *stripe.Charge) {
+//func setupCCTransaction(ccTran *bean.CCTransaction, offerBody bean.InstantOffer, stripeCharge *stripe.Charge) {
+//	ccTran.Status = bean.CC_TRANSACTION_STATUS_PURCHASED
+//	ccTran.Provider = bean.CC_PROVIDER_STRIPE
+//	if stripeCharge.Tx != nil {
+//		ccTran.ProviderData = stripeCharge.Tx.ID
+//	}
+//	ccTran.Currency = bean.USD.Code
+//	ccTran.Amount = offerBody.FiatAmount
+//	ccTran.UID = offerBody.UID
+//	ccTran.Type = bean.CC_TRANSACTION_TYPE
+//	ccTran.ExternalId = stripeCharge.ID
+//}
+
+func setupCCTransaction(ccTran *bean.CCTransaction, offerBody bean.InstantOffer, chargeData interface{}, chargeId string) {
 	ccTran.Status = bean.CC_TRANSACTION_STATUS_PURCHASED
-	ccTran.Provider = bean.CC_PROVIDER_STRIPE
-	if stripeCharge.Tx != nil {
-		ccTran.ProviderData = stripeCharge.Tx.ID
-	}
+	ccTran.Provider = bean.CC_PROVIDER_CHECKOUT
 	ccTran.Currency = bean.USD.Code
 	ccTran.Amount = offerBody.FiatAmount
 	ccTran.UID = offerBody.UID
 	ccTran.Type = bean.CC_TRANSACTION_TYPE
-	ccTran.ExternalId = stripeCharge.ID
+	ccTran.ProviderData = chargeData
+	ccTran.ExternalId = chargeId
 }

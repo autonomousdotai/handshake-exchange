@@ -241,6 +241,7 @@ type SolrOfferStoreExtraData struct {
 	Email         string                                `json:"email"`
 	ContactPhone  string                                `json:"contact_phone"`
 	ContactInfo   string                                `json:"contact_info"`
+	ChatUsername  string                                `json:"chat_username"`
 	FiatCurrency  string                                `json:"fiat_currency"`
 	Status        string                                `json:"status"`
 	Success       int64                                 `json:"success"`
