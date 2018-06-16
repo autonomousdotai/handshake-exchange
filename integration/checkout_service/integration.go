@@ -59,6 +59,27 @@ func (c CheckoutClient) Post(uri string, body interface{}) (*grequests.Response,
 	return resp, err
 }
 
+func ChargeCardId(userId string, token string, amount decimal.Decimal, statement string, description string) (bean.CheckoutCardPaymentResponse, error) {
+	client := CheckoutClient{}
+	cardPaymentRequest := bean.CheckOutCardIdPaymentRequest{
+		CardId:      token,
+		Email:       fmt.Sprintf("user.%s@shake.ninja", userId),
+		Currency:    bean.USD.Code,
+		Value:       amount.Mul(decimal.NewFromFloat(100).Round(0)).IntPart(),
+		AutoCapture: "n",
+		Description: description,
+		// Descriptor: statement,
+	}
+	var response bean.CheckoutCardPaymentResponse
+	resp, err := client.Post("/v2/charges/card", cardPaymentRequest)
+
+	if err == nil {
+		resp.JSON(&response)
+	}
+
+	return response, err
+}
+
 func ChargeCard(userId string, cardNum string, date string, cvv string, amount decimal.Decimal, statement string, description string) (bean.CheckoutCardPaymentResponse, error) {
 	month := date[:2]
 	year := "20" + date[3:]
@@ -81,6 +102,42 @@ func ChargeCard(userId string, cardNum string, date string, cvv string, amount d
 	}
 	var response bean.CheckoutCardPaymentResponse
 	resp, err := client.Post("/v2/charges/card", cardPaymentRequest)
+
+	if err == nil {
+		resp.JSON(&response)
+	}
+
+	return response, err
+}
+
+func Capture(chargeId string) (bean.CheckoutCard2ndStepResponse, error) {
+	client := CheckoutClient{}
+	var response bean.CheckoutCard2ndStepResponse
+	resp, err := client.Post(fmt.Sprintf("/v2/charges/%s/capture", chargeId), nil)
+
+	if err == nil {
+		resp.JSON(&response)
+	}
+
+	return response, err
+}
+
+func Void(chargeId string) (bean.CheckoutCard2ndStepResponse, error) {
+	client := CheckoutClient{}
+	var response bean.CheckoutCard2ndStepResponse
+	resp, err := client.Post(fmt.Sprintf("/v2/charges/%s/void", chargeId), nil)
+
+	if err == nil {
+		resp.JSON(&response)
+	}
+
+	return response, err
+}
+
+func Refund(chargeId string) (bean.CheckoutCard2ndStepResponse, error) {
+	client := CheckoutClient{}
+	var response bean.CheckoutCard2ndStepResponse
+	resp, err := client.Post(fmt.Sprintf("/v2/charges/%s/refund", chargeId), nil)
 
 	if err == nil {
 		resp.JSON(&response)

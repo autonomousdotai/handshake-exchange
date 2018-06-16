@@ -10,7 +10,6 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/integration/checkout_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/crypto_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/gdax_service"
-	"github.com/ninjadotorg/handshake-exchange/integration/stripe_service"
 	"github.com/ninjadotorg/handshake-exchange/service/notification"
 	"github.com/shopspring/decimal"
 	"os"
@@ -138,6 +137,7 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 				chargeResponse = checkOutResponse
 				chargeId = checkOutResponse.Id
 				token = checkOutResponse.Card.Id
+				saveCard = true
 			}
 		} else {
 			if ce.SetError(api_error.ExternalApiFailed, err) {
@@ -145,7 +145,18 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 			}
 		}
 	} else {
-
+		checkOutResponse, err := checkout_service.ChargeCardId(userId, paymentMethodData.Token, fiatAmount, statement, description)
+		if err == nil {
+			if checkOutResponse.Status == "Authorised" {
+				chargeStatus = checkOutResponse.Status
+				chargeResponse = checkOutResponse
+				chargeId = checkOutResponse.Id
+			}
+		} else {
+			if ce.SetError(api_error.ExternalApiFailed, err) {
+				return
+			}
+		}
 	}
 
 	if chargeStatus == "failed" {
@@ -191,14 +202,16 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 
 	if !isSuccess {
 		// If failed, do refund
-		stripeRefund, err := stripe_service.Refund(ccTran.ExternalId)
+		// stripeRefund, err := stripe_service.Refund(ccTran.ExternalId)
+		checkOutVoid, err := checkout_service.Void(ccTran.ExternalId)
 		if ce.SetError(api_error.ExternalApiFailed, err) {
 			return
 		}
-		if stripeRefund.Status == "failed" {
+		if checkOutVoid.Status != "Voided" {
 			ce.SetStatusKey(api_error.ExternalApiFailed)
 			return
 		}
+		ccTran.ProviderData = checkOutVoid
 		ccTran.Status = bean.CC_TRANSACTION_STATUS_REFUNDED
 		s.dao.UpdateCCTransactionStatus(ccTran)
 	} else {
@@ -218,7 +231,7 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 
 	if isSuccess {
 		if saveCard {
-			token, _ = s.saveCreditCard(userId, paymentMethodData)
+			token, _ = s.saveCreditCard(userId, paymentMethodData, token)
 		} else {
 			token = paymentMethodData.Token
 		}
@@ -284,22 +297,36 @@ func (s CreditCardService) FinishInstantOffers() (finishedInstantOffers []bean.I
 	return
 }
 
-func (s CreditCardService) saveCreditCard(userId string, paymentMethodData bean.CreditCardInfo) (string, error) {
+//func (s CreditCardService) saveCreditCard(userId string, paymentMethodData bean.CreditCardInfo) (string, error) {
+//	ccNum := paymentMethodData.CCNum[len(paymentMethodData.CCNum)-4:]
+//	profileTO := s.userDao.GetProfile(userId)
+//	profile := profileTO.Object.(bean.Profile)
+//	// Need to create another token to save customer
+//	token, err := stripe_service.CreateToken(paymentMethodData.CCNum, paymentMethodData.ExpirationDate, paymentMethodData.CVV)
+//	if err == nil {
+//		token, _ = stripe_service.CreateCustomer(profile.UserId, token)
+//		ccUserLimit, err := UserServiceInst.GetUserCCLimitFirstLevel()
+//		if err == nil {
+//			err = s.userDao.UpdateProfileCreditCard(userId, bean.UserCreditCard{
+//				CCNumber:       ccNum,
+//				ExpirationDate: paymentMethodData.ExpirationDate,
+//				Token:          token,
+//			}, ccUserLimit)
+//		}
+//	}
+//
+//	return token, err
+//}
+
+func (s CreditCardService) saveCreditCard(userId string, paymentMethodData bean.CreditCardInfo, token string) (string, error) {
 	ccNum := paymentMethodData.CCNum[len(paymentMethodData.CCNum)-4:]
-	profileTO := s.userDao.GetProfile(userId)
-	profile := profileTO.Object.(bean.Profile)
-	// Need to create another token to save customer
-	token, err := stripe_service.CreateToken(paymentMethodData.CCNum, paymentMethodData.ExpirationDate, paymentMethodData.CVV)
+	ccUserLimit, err := UserServiceInst.GetUserCCLimitFirstLevel()
 	if err == nil {
-		token, _ = stripe_service.CreateCustomer(profile.UserId, token)
-		ccUserLimit, err := UserServiceInst.GetUserCCLimitFirstLevel()
-		if err == nil {
-			err = s.userDao.UpdateProfileCreditCard(userId, bean.UserCreditCard{
-				CCNumber:       ccNum,
-				ExpirationDate: paymentMethodData.ExpirationDate,
-				Token:          token,
-			}, ccUserLimit)
-		}
+		err = s.userDao.UpdateProfileCreditCard(userId, bean.UserCreditCard{
+			CCNumber:       ccNum,
+			ExpirationDate: paymentMethodData.ExpirationDate,
+			Token:          token,
+		}, ccUserLimit)
 	}
 
 	return token, err
@@ -321,11 +348,13 @@ func (s CreditCardService) finishInstantOffer(pendingOffer *bean.PendingInstantO
 		return
 	}
 	ccTran := ccTranTO.Object.(bean.CCTransaction)
-	_, err := stripe_service.Capture(ccTran.ExternalId)
+	// _, err := stripe_service.Capture(ccTran.ExternalId)
+	checkOutResp, err := checkout_service.Capture(ccTran.ExternalId)
 	if ce.SetError(api_error.ExternalApiFailed, err) {
 		return
 	}
 	ccTran.Status = bean.CC_TRANSACTION_STATUS_CAPTURED
+	ccTran.ProviderData = checkOutResp
 
 	s.dao.UpdateCCTransactionStatus(ccTran)
 
@@ -385,11 +414,13 @@ func (s CreditCardService) cancelInstantOffer(pendingOffer *bean.PendingInstantO
 	}
 
 	ccTran := ccTranTO.Object.(bean.CCTransaction)
-	_, err = stripe_service.Refund(ccTran.ExternalId)
+	//_, err = stripe_service.Refund(ccTran.ExternalId)
+	checkOutResp, err := checkout_service.Void(ccTran.ExternalId)
 	if ce.SetError(api_error.ExternalApiFailed, err) {
 		// return
 	} else {
 		ccTran.Status = bean.CC_TRANSACTION_STATUS_REFUNDED
+		ccTran.ProviderData = checkOutResp
 		s.dao.UpdateCCTransactionStatus(ccTran)
 	}
 

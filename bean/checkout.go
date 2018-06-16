@@ -1,9 +1,18 @@
 package bean
 
 type CheckoutCardPaymentRequest struct {
-	Card     CheckoutCard `json:"card"`
-	Currency string       `json:"currency"`
-	// CustomerId  string       `json:"customerId"`
+	Card        CheckoutCard `json:"card"`
+	Currency    string       `json:"currency"`
+	Email       string       `json:"email"`
+	Value       int64        `json:"value"`
+	AutoCapture string       `json:"autoCapture"`
+	Description string       `json:"description"`
+	Descriptor  string       `json:"descriptor"`
+}
+
+type CheckOutCardIdPaymentRequest struct {
+	CardId      string `json:"cardId"`
+	Currency    string `json:"currency"`
 	Email       string `json:"email"`
 	Value       int64  `json:"value"`
 	AutoCapture string `json:"autoCapture"`
@@ -39,4 +48,15 @@ type CheckoutCardResponse struct {
 	Fingerprint string `json:"fingerprint"`
 	CVVCheck    string `json:"cvvCheck"`
 	AVSCheck    string `json:"avsCheck"`
+}
+
+type CheckoutCard2ndStepResponse struct {
+	Id                   string `json:"id"`
+	OriginalId           string `json:"originalId"`
+	Created              string `json:"created"`
+	Value                int64  `json:"value"`
+	ResponseMessage      string `json:"responseMessage"`
+	ResponseAdvancedInfo string `json:"responseAdvancedInfo"`
+	ResponseCode         string `json:"responseCode"`
+	Status               string `json:"status"`
 }
