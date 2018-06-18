@@ -285,12 +285,18 @@ func (s OfferStoreService) CreateOfferStoreShake(userId string, offerStoreId str
 		}
 	}
 
-	if offerShakeBody.Type == bean.OFFER_TYPE_SELL {
-		balance, _ = decimal.NewFromString(offerStoreItem.SellBalance)
-	} else {
-		balance, _ = decimal.NewFromString(offerStoreItem.BuyBalance)
+	// Total usage from current usage shake, so it's more accuracy than need to wait real balance update
+	usageBalance, err := s.getUsageBalance(offerStoreId, offerShakeBody.Type)
+	if err != nil {
+		ce.SetError(api_error.GetDataFailed, err)
+		return
 	}
-	if balance.LessThan(amount) {
+	if offerShakeBody.Type == bean.OFFER_TYPE_SELL {
+		balance, _ = decimal.NewFromString(offerStoreItem.SellAmount)
+	} else {
+		balance, _ = decimal.NewFromString(offerStoreItem.BuyAmount)
+	}
+	if balance.LessThan(usageBalance.Add(amount)) {
 		ce.SetStatusKey(api_error.OfferStoreNotEnoughBalance)
 	}
 
@@ -320,7 +326,6 @@ func (s OfferStoreService) CreateOfferStoreShake(userId string, offerStoreId str
 		}
 	}
 
-	var err error
 	offerShake, err = s.dao.AddOfferStoreShake(offerStore, offerShakeBody)
 	if ce.SetError(api_error.AddDataFailed, err) {
 		return
@@ -1352,4 +1357,21 @@ func (s OfferStoreService) getOfferProfile(offerStore bean.OfferStore, offerStor
 	}
 
 	return
+}
+
+func (s OfferStoreService) getUsageBalance(offerStoreId string, offerType string) (decimal.Decimal, error) {
+	offerShakes, err := s.dao.ListUsageOfferStoreShake(offerStoreId, offerType)
+	usage := common.Zero
+	if err == nil {
+		for _, offerShake := range offerShakes {
+			if offerType == bean.OFFER_TYPE_SELL {
+				amount, _ := decimal.NewFromString(offerShake.TotalAmount)
+				usage = usage.Add(amount)
+			} else {
+				amount, _ := decimal.NewFromString(offerShake.Amount)
+				usage = usage.Add(amount)
+			}
+		}
+	}
+	return usage, err
 }

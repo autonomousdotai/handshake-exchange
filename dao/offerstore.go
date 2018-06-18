@@ -9,6 +9,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/integration/firebase_service"
 	"github.com/shopspring/decimal"
+	"google.golang.org/api/iterator"
 )
 
 type OfferStoreDao struct {
@@ -180,6 +181,29 @@ func (dao OfferStoreDao) GetOfferStoreShakeByPath(path string) (t TransferObject
 	GetObject(path, &t, snapshotToOfferStoreShake)
 
 	return
+}
+
+func (dao OfferStoreDao) ListUsageOfferStoreShake(offerStoreId string, offerType string) ([]bean.OfferStoreShake, error) {
+	dbClient := firebase_service.FirestoreClient
+	iter := dbClient.Collection(GetOfferStoreShakePath(offerStoreId)).Documents(context.Background())
+	offers := make([]bean.OfferStoreShake, 0)
+
+	for {
+		var offer bean.OfferStoreShake
+		doc, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return offers, err
+		}
+		doc.DataTo(&offer)
+		if offer.Status != bean.OFFER_STORE_SHAKE_STATUS_REJECTING && offer.Status != bean.OFFER_STORE_SHAKE_STATUS_REJECTED && offer.Type == offerType {
+			offers = append(offers, offer)
+		}
+	}
+
+	return offers, nil
 }
 
 func (dao OfferStoreDao) AddOfferStoreShake(offerStore bean.OfferStore, shake bean.OfferStoreShake) (bean.OfferStoreShake, error) {
