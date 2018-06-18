@@ -56,12 +56,12 @@ func (api OfferStoreApi) AddOfferStoreItem(context *gin.Context) {
 		return
 	}
 
-	offerStore, ce := service.OfferStoreServiceInst.AddOfferStoreItem(userId, offerId, body)
+	offer, ce := service.OfferStoreServiceInst.AddOfferStoreItem(userId, offerId, body)
 	if ce.ContextValidate(context) {
 		return
 	}
 
-	bean.SuccessResponse(context, offerStore)
+	bean.SuccessResponse(context, offer)
 }
 
 func (api OfferStoreApi) RemoveOfferStoreItem(context *gin.Context) {

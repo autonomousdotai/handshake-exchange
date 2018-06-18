@@ -132,13 +132,5 @@ func (url CronJobUrl) Create(router *gin.Engine) *gin.RouterGroup {
 		miscApi.StartApp(context)
 	})
 
-	// Internal
-	//group.POST("/test-coinbase-receive", func(context *gin.Context) {
-	//	miscApi.TestCoinbaseReceive(context)
-	//})
-	group.POST("/remove-solr/:id", func(context *gin.Context) {
-		miscApi.RemoveSolr(context)
-	})
-
 	return group
 }
