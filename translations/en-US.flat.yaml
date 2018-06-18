@@ -4,6 +4,10 @@ common_buyer:
   other: "buyer"
 common_seller:
   other: "seller"
+common_buy:
+  other: "buy"
+common_sell:
+  other: "sell"
 common_notification_title:
   other: "Attention Ninja!"
 email_offer_buying_active_subject:
@@ -49,7 +53,7 @@ email_offer_store_maker_buy_shake:
 email_offer_store_taker_buy_shake:
   other: "Success! You have just sold {{.Currency}}"
 email_offer_store_accept:
-  other: "Your {{.Currency}} is being transferred"
+  other: "Your {{.Currency}} is being transferred. Ready to buy more coins?"
 email_offer_store_maker_reject:
   other: "Sorry, but {{.Username}} decided not shake"
 email_offer_store_taker_reject:
