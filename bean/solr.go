@@ -261,6 +261,7 @@ type SolrOfferStoreItemSnapshot struct {
 	BuyPercentage  string `json:"buy_percentage"`
 	SystemAddress  string `json:"system_address"`
 	UserAddress    string `json:"user_address"`
+	ChatUsername   string `json:"chat_username"`
 	Status         string `json:"status"`
 }
 
@@ -331,18 +332,20 @@ func NewSolrFromOfferStore(offer OfferStore, item OfferStoreItem) (solr SolrOffe
 	}
 
 	extraData := SolrOfferStoreExtraData{
-		Id:            offer.Id,
-		FeedType:      "offer_store",
-		Type:          "",
-		ItemFlags:     offer.ItemFlags,
-		ContactInfo:   offer.ContactInfo,
-		ContactPhone:  offer.ContactPhone,
-		Email:         offer.Email,
-		Username:      offer.Username,
-		Status:        offer.Status,
-		FiatCurrency:  offer.FiatCurrency,
-		Success:       offer.TransactionCount.Success,
-		Failed:        offer.TransactionCount.Failed,
+		Id:           offer.Id,
+		FeedType:     "offer_store",
+		Type:         "",
+		ItemFlags:    offer.ItemFlags,
+		ContactInfo:  offer.ContactInfo,
+		ContactPhone: offer.ContactPhone,
+		Email:        offer.Email,
+		Username:     offer.Username,
+		ChatUsername: offer.ChatUsername,
+		Status:       offer.Status,
+		FiatCurrency: offer.FiatCurrency,
+		Success:      offer.TransactionCount.Success,
+		Failed:       offer.TransactionCount.Failed,
+
 		ItemSnapshots: items,
 	}
 	b, _ := json.Marshal(&extraData)

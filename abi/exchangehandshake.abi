@@ -58,10 +58,6 @@
           "type": "address"
         },
         {
-          "name": "value",
-          "type": "uint256"
-        },
-        {
           "name": "offchain",
           "type": "bytes32"
         }
@@ -166,24 +162,6 @@
         }
       ],
       "name": "reject",
-      "outputs": [],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [
-        {
-          "name": "hid",
-          "type": "uint256"
-        },
-        {
-          "name": "offchain",
-          "type": "bytes32"
-        }
-      ],
-      "name": "closeByCoinOwner",
       "outputs": [],
       "payable": false,
       "stateMutability": "nonpayable",
@@ -338,6 +316,11 @@
         },
         {
           "indexed": false,
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
           "name": "offchain",
           "type": "bytes32"
         }
@@ -351,6 +334,11 @@
         {
           "indexed": false,
           "name": "hid",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "name": "value",
           "type": "uint256"
         },
         {
@@ -411,23 +399,6 @@
         }
       ],
       "name": "__cancel",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": false,
-          "name": "hid",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "name": "offchain",
-          "type": "bytes32"
-        }
-      ],
-      "name": "__closeByCoinOwner",
       "type": "event"
     },
     {

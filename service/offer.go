@@ -544,6 +544,13 @@ func (s OfferService) UpdateOnChainOffer(offerId string, oldStatus string, newSt
 		return
 	}
 	offer = offerTO.Object.(bean.Offer)
+
+	// Special case
+	if offer.Status == bean.OFFER_STATUS_CLOSING {
+		oldStatus = bean.OFFER_STATUS_CLOSING
+		newStatus = bean.OFFER_STATUS_CLOSED
+	}
+
 	if offer.Status != oldStatus {
 		ce.SetStatusKey(api_error.OfferStatusInvalid)
 		return

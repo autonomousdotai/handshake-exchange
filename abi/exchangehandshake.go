@@ -16,7 +16,7 @@ import (
 )
 
 // ExchangeHandshakeABI is the input ABI used to generate the binding from.
-const ExchangeHandshakeABI = "[{\"constant\":true,\"inputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"ex\",\"outputs\":[{\"name\":\"coinOwner\",\"type\":\"address\"},{\"name\":\"cashOwner\",\"type\":\"address\"},{\"name\":\"exchanger\",\"type\":\"address\"},{\"name\":\"adrFeeRefund\",\"type\":\"address\"},{\"name\":\"fee\",\"type\":\"uint256\"},{\"name\":\"feeRefund\",\"type\":\"uint256\"},{\"name\":\"value\",\"type\":\"uint256\"},{\"name\":\"state\",\"type\":\"uint8\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"exchanger\",\"type\":\"address\"},{\"name\":\"adrFeeRefund\",\"type\":\"address\"},{\"name\":\"value\",\"type\":\"uint256\"},{\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"initByCoinOwner\",\"outputs\":[],\"payable\":true,\"stateMutability\":\"payable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"exchanger\",\"type\":\"address\"},{\"name\":\"adrFeeRefund\",\"type\":\"address\"},{\"name\":\"value\",\"type\":\"uint256\"},{\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"initByCashOwner\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"hid\",\"type\":\"uint256\"}],\"name\":\"getState\",\"outputs\":[{\"name\":\"\",\"type\":\"uint8\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"hid\",\"type\":\"uint256\"},{\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"accept\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"f\",\"type\":\"uint256\"},{\"name\":\"fr\",\"type\":\"uint256\"}],\"name\":\"setFee\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"hid\",\"type\":\"uint256\"},{\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"reject\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"hid\",\"type\":\"uint256\"},{\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"closeByCoinOwner\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"hid\",\"type\":\"uint256\"},{\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"withdraw\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"hid\",\"type\":\"uint256\"},{\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"shake\",\"outputs\":[],\"payable\":true,\"stateMutability\":\"payable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"hid\",\"type\":\"uint256\"},{\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"closeByCashOwner\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"hid\",\"type\":\"uint256\"},{\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"cancel\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"fee\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"feeRefund\",\"type\":\"uint256\"}],\"name\":\"__setFee\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hid\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"coinOwner\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"__initByCoinOwner\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hid\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"cashOwner\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"__initByCashOwner\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hid\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"__shake\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hid\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"__withdraw\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hid\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"__reject\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hid\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"__accept\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hid\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"__cancel\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hid\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"__closeByCoinOwner\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hid\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"__closeByCashOwner\",\"type\":\"event\"}]"
+const ExchangeHandshakeABI = "[{\"constant\":true,\"inputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"ex\",\"outputs\":[{\"name\":\"coinOwner\",\"type\":\"address\"},{\"name\":\"cashOwner\",\"type\":\"address\"},{\"name\":\"exchanger\",\"type\":\"address\"},{\"name\":\"adrFeeRefund\",\"type\":\"address\"},{\"name\":\"fee\",\"type\":\"uint256\"},{\"name\":\"feeRefund\",\"type\":\"uint256\"},{\"name\":\"value\",\"type\":\"uint256\"},{\"name\":\"state\",\"type\":\"uint8\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"exchanger\",\"type\":\"address\"},{\"name\":\"adrFeeRefund\",\"type\":\"address\"},{\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"initByCoinOwner\",\"outputs\":[],\"payable\":true,\"stateMutability\":\"payable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"exchanger\",\"type\":\"address\"},{\"name\":\"adrFeeRefund\",\"type\":\"address\"},{\"name\":\"value\",\"type\":\"uint256\"},{\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"initByCashOwner\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"hid\",\"type\":\"uint256\"}],\"name\":\"getState\",\"outputs\":[{\"name\":\"\",\"type\":\"uint8\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"hid\",\"type\":\"uint256\"},{\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"accept\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"f\",\"type\":\"uint256\"},{\"name\":\"fr\",\"type\":\"uint256\"}],\"name\":\"setFee\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"hid\",\"type\":\"uint256\"},{\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"reject\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"hid\",\"type\":\"uint256\"},{\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"withdraw\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"hid\",\"type\":\"uint256\"},{\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"shake\",\"outputs\":[],\"payable\":true,\"stateMutability\":\"payable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"hid\",\"type\":\"uint256\"},{\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"closeByCashOwner\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"hid\",\"type\":\"uint256\"},{\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"cancel\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"fee\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"feeRefund\",\"type\":\"uint256\"}],\"name\":\"__setFee\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hid\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"coinOwner\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"__initByCoinOwner\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hid\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"cashOwner\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"__initByCashOwner\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hid\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"__shake\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hid\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"value\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"__withdraw\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hid\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"__reject\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hid\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"__accept\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hid\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"__cancel\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hid\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"__closeByCashOwner\",\"type\":\"event\"}]"
 
 // ExchangeHandshake is an auto generated Go binding around an Ethereum contract.
 type ExchangeHandshake struct {
@@ -309,27 +309,6 @@ func (_ExchangeHandshake *ExchangeHandshakeTransactorSession) CloseByCashOwner(h
 	return _ExchangeHandshake.Contract.CloseByCashOwner(&_ExchangeHandshake.TransactOpts, hid, offchain)
 }
 
-// CloseByCoinOwner is a paid mutator transaction binding the contract method 0x9a8c21bf.
-//
-// Solidity: function closeByCoinOwner(hid uint256, offchain bytes32) returns()
-func (_ExchangeHandshake *ExchangeHandshakeTransactor) CloseByCoinOwner(opts *bind.TransactOpts, hid *big.Int, offchain [32]byte) (*types.Transaction, error) {
-	return _ExchangeHandshake.contract.Transact(opts, "closeByCoinOwner", hid, offchain)
-}
-
-// CloseByCoinOwner is a paid mutator transaction binding the contract method 0x9a8c21bf.
-//
-// Solidity: function closeByCoinOwner(hid uint256, offchain bytes32) returns()
-func (_ExchangeHandshake *ExchangeHandshakeSession) CloseByCoinOwner(hid *big.Int, offchain [32]byte) (*types.Transaction, error) {
-	return _ExchangeHandshake.Contract.CloseByCoinOwner(&_ExchangeHandshake.TransactOpts, hid, offchain)
-}
-
-// CloseByCoinOwner is a paid mutator transaction binding the contract method 0x9a8c21bf.
-//
-// Solidity: function closeByCoinOwner(hid uint256, offchain bytes32) returns()
-func (_ExchangeHandshake *ExchangeHandshakeTransactorSession) CloseByCoinOwner(hid *big.Int, offchain [32]byte) (*types.Transaction, error) {
-	return _ExchangeHandshake.Contract.CloseByCoinOwner(&_ExchangeHandshake.TransactOpts, hid, offchain)
-}
-
 // InitByCashOwner is a paid mutator transaction binding the contract method 0x3ebad1a2.
 //
 // Solidity: function initByCashOwner(exchanger address, adrFeeRefund address, value uint256, offchain bytes32) returns()
@@ -351,25 +330,25 @@ func (_ExchangeHandshake *ExchangeHandshakeTransactorSession) InitByCashOwner(ex
 	return _ExchangeHandshake.Contract.InitByCashOwner(&_ExchangeHandshake.TransactOpts, exchanger, adrFeeRefund, value, offchain)
 }
 
-// InitByCoinOwner is a paid mutator transaction binding the contract method 0x1178a48a.
+// InitByCoinOwner is a paid mutator transaction binding the contract method 0x201a3fed.
 //
-// Solidity: function initByCoinOwner(exchanger address, adrFeeRefund address, value uint256, offchain bytes32) returns()
-func (_ExchangeHandshake *ExchangeHandshakeTransactor) InitByCoinOwner(opts *bind.TransactOpts, exchanger common.Address, adrFeeRefund common.Address, value *big.Int, offchain [32]byte) (*types.Transaction, error) {
-	return _ExchangeHandshake.contract.Transact(opts, "initByCoinOwner", exchanger, adrFeeRefund, value, offchain)
+// Solidity: function initByCoinOwner(exchanger address, adrFeeRefund address, offchain bytes32) returns()
+func (_ExchangeHandshake *ExchangeHandshakeTransactor) InitByCoinOwner(opts *bind.TransactOpts, exchanger common.Address, adrFeeRefund common.Address, offchain [32]byte) (*types.Transaction, error) {
+	return _ExchangeHandshake.contract.Transact(opts, "initByCoinOwner", exchanger, adrFeeRefund, offchain)
 }
 
-// InitByCoinOwner is a paid mutator transaction binding the contract method 0x1178a48a.
+// InitByCoinOwner is a paid mutator transaction binding the contract method 0x201a3fed.
 //
-// Solidity: function initByCoinOwner(exchanger address, adrFeeRefund address, value uint256, offchain bytes32) returns()
-func (_ExchangeHandshake *ExchangeHandshakeSession) InitByCoinOwner(exchanger common.Address, adrFeeRefund common.Address, value *big.Int, offchain [32]byte) (*types.Transaction, error) {
-	return _ExchangeHandshake.Contract.InitByCoinOwner(&_ExchangeHandshake.TransactOpts, exchanger, adrFeeRefund, value, offchain)
+// Solidity: function initByCoinOwner(exchanger address, adrFeeRefund address, offchain bytes32) returns()
+func (_ExchangeHandshake *ExchangeHandshakeSession) InitByCoinOwner(exchanger common.Address, adrFeeRefund common.Address, offchain [32]byte) (*types.Transaction, error) {
+	return _ExchangeHandshake.Contract.InitByCoinOwner(&_ExchangeHandshake.TransactOpts, exchanger, adrFeeRefund, offchain)
 }
 
-// InitByCoinOwner is a paid mutator transaction binding the contract method 0x1178a48a.
+// InitByCoinOwner is a paid mutator transaction binding the contract method 0x201a3fed.
 //
-// Solidity: function initByCoinOwner(exchanger address, adrFeeRefund address, value uint256, offchain bytes32) returns()
-func (_ExchangeHandshake *ExchangeHandshakeTransactorSession) InitByCoinOwner(exchanger common.Address, adrFeeRefund common.Address, value *big.Int, offchain [32]byte) (*types.Transaction, error) {
-	return _ExchangeHandshake.Contract.InitByCoinOwner(&_ExchangeHandshake.TransactOpts, exchanger, adrFeeRefund, value, offchain)
+// Solidity: function initByCoinOwner(exchanger address, adrFeeRefund address, offchain bytes32) returns()
+func (_ExchangeHandshake *ExchangeHandshakeTransactorSession) InitByCoinOwner(exchanger common.Address, adrFeeRefund common.Address, offchain [32]byte) (*types.Transaction, error) {
+	return _ExchangeHandshake.Contract.InitByCoinOwner(&_ExchangeHandshake.TransactOpts, exchanger, adrFeeRefund, offchain)
 }
 
 // Reject is a paid mutator transaction binding the contract method 0x6be1320b.
@@ -805,129 +784,6 @@ func (_ExchangeHandshake *ExchangeHandshakeFilterer) WatchCloseByCashOwner(opts 
 				// New log arrived, parse the event and forward to the user
 				event := new(ExchangeHandshakeCloseByCashOwner)
 				if err := _ExchangeHandshake.contract.UnpackLog(event, "__closeByCashOwner", log); err != nil {
-					return err
-				}
-				event.Raw = log
-
-				select {
-				case sink <- event:
-				case err := <-sub.Err():
-					return err
-				case <-quit:
-					return nil
-				}
-			case err := <-sub.Err():
-				return err
-			case <-quit:
-				return nil
-			}
-		}
-	}), nil
-}
-
-// ExchangeHandshakeCloseByCoinOwnerIterator is returned from FilterCloseByCoinOwner and is used to iterate over the raw logs and unpacked data for CloseByCoinOwner events raised by the ExchangeHandshake contract.
-type ExchangeHandshakeCloseByCoinOwnerIterator struct {
-	Event *ExchangeHandshakeCloseByCoinOwner // Event containing the contract specifics and raw log
-
-	contract *bind.BoundContract // Generic contract to use for unpacking event data
-	event    string              // Event name to use for unpacking event data
-
-	logs chan types.Log        // Log channel receiving the found contract events
-	sub  ethereum.Subscription // Subscription for errors, completion and termination
-	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred error to stop iteration
-}
-
-// Next advances the iterator to the subsequent event, returning whether there
-// are any more events found. In case of a retrieval or parsing error, false is
-// returned and Error() can be queried for the exact failure.
-func (it *ExchangeHandshakeCloseByCoinOwnerIterator) Next() bool {
-	// If the iterator failed, stop iterating
-	if it.fail != nil {
-		return false
-	}
-	// If the iterator completed, deliver directly whatever's available
-	if it.done {
-		select {
-		case log := <-it.logs:
-			it.Event = new(ExchangeHandshakeCloseByCoinOwner)
-			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
-				it.fail = err
-				return false
-			}
-			it.Event.Raw = log
-			return true
-
-		default:
-			return false
-		}
-	}
-	// Iterator still in progress, wait for either a data or an error event
-	select {
-	case log := <-it.logs:
-		it.Event = new(ExchangeHandshakeCloseByCoinOwner)
-		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
-			it.fail = err
-			return false
-		}
-		it.Event.Raw = log
-		return true
-
-	case err := <-it.sub.Err():
-		it.done = true
-		it.fail = err
-		return it.Next()
-	}
-}
-
-// Error returns any retrieval or parsing error occurred during filtering.
-func (it *ExchangeHandshakeCloseByCoinOwnerIterator) Error() error {
-	return it.fail
-}
-
-// Close terminates the iteration process, releasing any pending underlying
-// resources.
-func (it *ExchangeHandshakeCloseByCoinOwnerIterator) Close() error {
-	it.sub.Unsubscribe()
-	return nil
-}
-
-// ExchangeHandshakeCloseByCoinOwner represents a CloseByCoinOwner event raised by the ExchangeHandshake contract.
-type ExchangeHandshakeCloseByCoinOwner struct {
-	Hid      *big.Int
-	Offchain [32]byte
-	Raw      types.Log // Blockchain specific contextual infos
-}
-
-// FilterCloseByCoinOwner is a free log retrieval operation binding the contract event 0xdeefbe59da61b7848e0f3b1556ba1c6b10a35470f9916e5b59ec8dc7197d500b.
-//
-// Solidity: e __closeByCoinOwner(hid uint256, offchain bytes32)
-func (_ExchangeHandshake *ExchangeHandshakeFilterer) FilterCloseByCoinOwner(opts *bind.FilterOpts) (*ExchangeHandshakeCloseByCoinOwnerIterator, error) {
-
-	logs, sub, err := _ExchangeHandshake.contract.FilterLogs(opts, "__closeByCoinOwner")
-	if err != nil {
-		return nil, err
-	}
-	return &ExchangeHandshakeCloseByCoinOwnerIterator{contract: _ExchangeHandshake.contract, event: "__closeByCoinOwner", logs: logs, sub: sub}, nil
-}
-
-// WatchCloseByCoinOwner is a free log subscription operation binding the contract event 0xdeefbe59da61b7848e0f3b1556ba1c6b10a35470f9916e5b59ec8dc7197d500b.
-//
-// Solidity: e __closeByCoinOwner(hid uint256, offchain bytes32)
-func (_ExchangeHandshake *ExchangeHandshakeFilterer) WatchCloseByCoinOwner(opts *bind.WatchOpts, sink chan<- *ExchangeHandshakeCloseByCoinOwner) (event.Subscription, error) {
-
-	logs, sub, err := _ExchangeHandshake.contract.WatchLogs(opts, "__closeByCoinOwner")
-	if err != nil {
-		return nil, err
-	}
-	return event.NewSubscription(func(quit <-chan struct{}) error {
-		defer sub.Unsubscribe()
-		for {
-			select {
-			case log := <-logs:
-				// New log arrived, parse the event and forward to the user
-				event := new(ExchangeHandshakeCloseByCoinOwner)
-				if err := _ExchangeHandshake.contract.UnpackLog(event, "__closeByCoinOwner", log); err != nil {
 					return err
 				}
 				event.Raw = log
@@ -1512,13 +1368,14 @@ func (it *ExchangeHandshakeShakeIterator) Close() error {
 // ExchangeHandshakeShake represents a Shake event raised by the ExchangeHandshake contract.
 type ExchangeHandshakeShake struct {
 	Hid      *big.Int
+	Amount   *big.Int
 	Offchain [32]byte
 	Raw      types.Log // Blockchain specific contextual infos
 }
 
-// FilterShake is a free log retrieval operation binding the contract event 0x6a5ee55c9df2daa4375d2b5e4ec8b9e5662f1863207bcbe6e38c6f5fe3c24300.
+// FilterShake is a free log retrieval operation binding the contract event 0x70cca63b44e7bf0f315e5cedef0180e185bb1c269ee655a36ef5b48a179ba664.
 //
-// Solidity: e __shake(hid uint256, offchain bytes32)
+// Solidity: e __shake(hid uint256, amount uint256, offchain bytes32)
 func (_ExchangeHandshake *ExchangeHandshakeFilterer) FilterShake(opts *bind.FilterOpts) (*ExchangeHandshakeShakeIterator, error) {
 
 	logs, sub, err := _ExchangeHandshake.contract.FilterLogs(opts, "__shake")
@@ -1528,9 +1385,9 @@ func (_ExchangeHandshake *ExchangeHandshakeFilterer) FilterShake(opts *bind.Filt
 	return &ExchangeHandshakeShakeIterator{contract: _ExchangeHandshake.contract, event: "__shake", logs: logs, sub: sub}, nil
 }
 
-// WatchShake is a free log subscription operation binding the contract event 0x6a5ee55c9df2daa4375d2b5e4ec8b9e5662f1863207bcbe6e38c6f5fe3c24300.
+// WatchShake is a free log subscription operation binding the contract event 0x70cca63b44e7bf0f315e5cedef0180e185bb1c269ee655a36ef5b48a179ba664.
 //
-// Solidity: e __shake(hid uint256, offchain bytes32)
+// Solidity: e __shake(hid uint256, amount uint256, offchain bytes32)
 func (_ExchangeHandshake *ExchangeHandshakeFilterer) WatchShake(opts *bind.WatchOpts, sink chan<- *ExchangeHandshakeShake) (event.Subscription, error) {
 
 	logs, sub, err := _ExchangeHandshake.contract.WatchLogs(opts, "__shake")
@@ -1635,13 +1492,14 @@ func (it *ExchangeHandshakeWithdrawIterator) Close() error {
 // ExchangeHandshakeWithdraw represents a Withdraw event raised by the ExchangeHandshake contract.
 type ExchangeHandshakeWithdraw struct {
 	Hid      *big.Int
+	Value    *big.Int
 	Offchain [32]byte
 	Raw      types.Log // Blockchain specific contextual infos
 }
 
-// FilterWithdraw is a free log retrieval operation binding the contract event 0x86e48a712d324364a79089a18be31e993ed6bda36550b789f988e7aaf9ed7cf8.
+// FilterWithdraw is a free log retrieval operation binding the contract event 0xdadf2568e29c3e88d78dc144bd8a1aa52a110f4619f964f33b1889b3eff4de05.
 //
-// Solidity: e __withdraw(hid uint256, offchain bytes32)
+// Solidity: e __withdraw(hid uint256, value uint256, offchain bytes32)
 func (_ExchangeHandshake *ExchangeHandshakeFilterer) FilterWithdraw(opts *bind.FilterOpts) (*ExchangeHandshakeWithdrawIterator, error) {
 
 	logs, sub, err := _ExchangeHandshake.contract.FilterLogs(opts, "__withdraw")
@@ -1651,9 +1509,9 @@ func (_ExchangeHandshake *ExchangeHandshakeFilterer) FilterWithdraw(opts *bind.F
 	return &ExchangeHandshakeWithdrawIterator{contract: _ExchangeHandshake.contract, event: "__withdraw", logs: logs, sub: sub}, nil
 }
 
-// WatchWithdraw is a free log subscription operation binding the contract event 0x86e48a712d324364a79089a18be31e993ed6bda36550b789f988e7aaf9ed7cf8.
+// WatchWithdraw is a free log subscription operation binding the contract event 0xdadf2568e29c3e88d78dc144bd8a1aa52a110f4619f964f33b1889b3eff4de05.
 //
-// Solidity: e __withdraw(hid uint256, offchain bytes32)
+// Solidity: e __withdraw(hid uint256, value uint256, offchain bytes32)
 func (_ExchangeHandshake *ExchangeHandshakeFilterer) WatchWithdraw(opts *bind.WatchOpts, sink chan<- *ExchangeHandshakeWithdraw) (event.Subscription, error) {
 
 	logs, sub, err := _ExchangeHandshake.contract.WatchLogs(opts, "__withdraw")

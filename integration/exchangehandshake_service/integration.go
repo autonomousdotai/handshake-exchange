@@ -96,48 +96,25 @@ func (c *ExchangeHandshakeClient) GetCloseEvent(startBlock uint64) (offers []bea
 	opt := &bind.FilterOpts{
 		Start: startBlock,
 	}
-	past, errInit := c.handshake.FilterCloseByCoinOwner(opt)
+	past, errInit := c.handshake.FilterCloseByCashOwner(opt)
 	if errInit != nil {
 		err = errInit
 		return
 	}
+
 	notEmpty := true
-	endBlock1 := startBlock
+	endBlock = startBlock
 	for notEmpty {
 		notEmpty = past.Next()
 		if notEmpty {
-			endBlock1 = past.Event.Raw.BlockNumber
+			endBlock = past.Event.Raw.BlockNumber
+
 			offers = append(offers, bean.OfferOnchain{
 				Hid:   int64(past.Event.Hid.Uint64()),
 				Offer: string(bytes.Trim(past.Event.Offchain[:], "\x00")),
 			})
 		}
 	}
-
-	past2, errInit := c.handshake.FilterCloseByCashOwner(opt)
-	if errInit != nil {
-		err = errInit
-		return
-	}
-	notEmpty = true
-	endBlock2 := startBlock
-	for notEmpty {
-		notEmpty = past2.Next()
-		if notEmpty {
-			endBlock2 = past2.Event.Raw.BlockNumber
-			offers = append(offers, bean.OfferOnchain{
-				Hid:   int64(past2.Event.Hid.Uint64()),
-				Offer: string(bytes.Trim(past2.Event.Offchain[:], "\x00")),
-			})
-		}
-	}
-
-	if endBlock1 > endBlock2 {
-		endBlock = endBlock1
-	} else {
-		endBlock = endBlock2
-	}
-
 	c.close()
 
 	return
