@@ -33,6 +33,9 @@ func (api OnChainApi) UpdateOfferInit(context *gin.Context) {
 		service.OfferServiceInst.ActiveOnChainOffer(offerOnChain.Offer, offerOnChain.Hid)
 	}
 
+	if len(offerOnChains) > 0 {
+		lastBlock += 1
+	}
 	block.LastBlock = int64(lastBlock)
 	err = dao.OnChainDaoInst.UpdateOfferInitEventBlock(block)
 	if api_error.PropagateErrorAndAbort(context, api_error.UpdateDataFailed, err) != nil {
@@ -58,6 +61,9 @@ func (api OnChainApi) UpdateOfferClose(context *gin.Context) {
 		service.OfferServiceInst.CloseOnChainOffer(offerOnChain.Offer)
 	}
 
+	if len(offerOnChains) > 0 {
+		lastBlock += 1
+	}
 	block.LastBlock = int64(lastBlock)
 	err = dao.OnChainDaoInst.UpdateOfferCloseEventBlock(block)
 	if api_error.PropagateErrorAndAbort(context, api_error.UpdateDataFailed, err) != nil {
@@ -83,6 +89,9 @@ func (api OnChainApi) UpdateOfferShake(context *gin.Context) {
 		service.OfferServiceInst.ShakeOnChainOffer(offerOnChain.Offer)
 	}
 
+	if len(offerOnChains) > 0 {
+		lastBlock += 1
+	}
 	block.LastBlock = int64(lastBlock)
 	err = dao.OnChainDaoInst.UpdateOfferShakeEventBlock(block)
 	if api_error.PropagateErrorAndAbort(context, api_error.UpdateDataFailed, err) != nil {
@@ -108,6 +117,9 @@ func (api OnChainApi) UpdateOfferReject(context *gin.Context) {
 		service.OfferServiceInst.RejectOnChainOffer(offerOnChain.Offer)
 	}
 
+	if len(offerOnChains) > 0 {
+		lastBlock += 1
+	}
 	block.LastBlock = int64(lastBlock)
 	err = dao.OnChainDaoInst.UpdateOfferRejectEventBlock(block)
 	if api_error.PropagateErrorAndAbort(context, api_error.UpdateDataFailed, err) != nil {
@@ -133,6 +145,9 @@ func (api OnChainApi) UpdateOfferComplete(context *gin.Context) {
 		service.OfferServiceInst.CompleteOnChainOffer(offerOnChain.Offer)
 	}
 
+	if len(offerOnChains) > 0 {
+		lastBlock += 1
+	}
 	block.LastBlock = int64(lastBlock)
 	err = dao.OnChainDaoInst.UpdateOfferCompleteEventBlock(block)
 	if api_error.PropagateErrorAndAbort(context, api_error.UpdateDataFailed, err) != nil {
@@ -158,6 +173,9 @@ func (api OnChainApi) UpdateOfferWithdraw(context *gin.Context) {
 		service.OfferServiceInst.WithdrawOnChainOffer(offerOnChain.Offer)
 	}
 
+	if len(offerOnChains) > 0 {
+		lastBlock += 1
+	}
 	block.LastBlock = int64(lastBlock)
 	err = dao.OnChainDaoInst.UpdateOfferWithdrawEventBlock(block)
 	if api_error.PropagateErrorAndAbort(context, api_error.UpdateDataFailed, err) != nil {

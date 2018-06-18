@@ -100,7 +100,7 @@ var instantOfferStatusMap = map[string]int{
 
 func NewSolrFromOffer(offer Offer) (solr SolrOfferObject) {
 	solr.Id = fmt.Sprintf("exchange_%s", offer.Id)
-	solr.Type = 2
+	solr.Type = 6
 	if offer.Status == OFFER_STATUS_ACTIVE {
 		solr.State = 1
 		solr.IsPrivate = 0
