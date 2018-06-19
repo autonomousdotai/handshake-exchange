@@ -23,7 +23,7 @@ type OfferStoreService struct {
 	offerDao *dao.OfferDao
 }
 
-func (s OfferStoreService) CreateOfferStore(userId string, offerSetup bean.OfferStoreSetup) (offer *bean.OfferStoreSetup, ce *SimpleContextError) {
+func (s OfferStoreService) CreateOfferStore(userId string, offerSetup bean.OfferStoreSetup) (offer bean.OfferStoreSetup, ce SimpleContextError) {
 	offerBody := offerSetup.Offer
 	offerItemBody := offerSetup.Item
 
@@ -45,12 +45,12 @@ func (s OfferStoreService) CreateOfferStore(userId string, offerSetup bean.Offer
 		}
 	}
 
-	profile := GetProfile(s.userDao, userId, ce)
+	profile := GetProfile(s.userDao, userId, &ce)
 	if ce.HasError() {
 		return
 	}
 
-	s.prepareOfferStore(&offerBody, &offerItemBody, profile, ce)
+	s.prepareOfferStore(&offerBody, &offerItemBody, profile, &ce)
 	if ce.HasError() {
 		return
 	}
@@ -70,8 +70,8 @@ func (s OfferStoreService) CreateOfferStore(userId string, offerSetup bean.Offer
 	return
 }
 
-func (s OfferStoreService) GetOfferStore(userId string, offerId string) (offer *bean.OfferStore, ce *SimpleContextError) {
-	GetProfile(s.userDao, userId, ce)
+func (s OfferStoreService) GetOfferStore(userId string, offerId string) (offer bean.OfferStore, ce SimpleContextError) {
+	GetProfile(s.userDao, userId, &ce)
 	if ce.HasError() {
 		return
 	}
@@ -82,8 +82,7 @@ func (s OfferStoreService) GetOfferStore(userId string, offerId string) (offer *
 	}
 	notFound := false
 	if offerTO.Found {
-		obj := offerTO.Object.(bean.OfferStore)
-		offer = &obj
+		offer := offerTO.Object.(bean.OfferStore)
 		allFalse := true
 		for _, v := range offer.ItemFlags {
 			if v == true {
