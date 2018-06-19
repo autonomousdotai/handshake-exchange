@@ -733,10 +733,11 @@ func (s OfferService) setupOfferAmount(offer *bean.Offer, ce *SimpleContextError
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, exchCommTO) {
 		return
 	}
-	exchCommObj := exchCommTO.Object.(bean.SystemFee)
+	// exchCommObj := exchCommTO.Object.(bean.SystemFee)
 
 	exchFee := decimal.NewFromFloat(exchFeeObj.Value).Round(6)
-	exchComm := decimal.NewFromFloat(exchCommObj.Value).Round(6)
+	// exchComm := decimal.NewFromFloat(exchCommObj.Value).Round(6)
+	exchComm := common.Zero
 	amount, _ := decimal.NewFromString(offer.Amount)
 	fee := amount.Mul(exchFee)
 	reward := amount.Mul(exchComm)
