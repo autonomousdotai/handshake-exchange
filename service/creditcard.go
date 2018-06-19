@@ -130,13 +130,18 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 	chargeId := ""
 	var chargeResponse interface{}
 	if paymentMethodData.Token == "" {
-		checkOutResponse, err := checkout_service.ChargeCard(userId, paymentMethodData.CCNum, paymentMethodData.ExpirationDate, paymentMethodData.CVV, fiatAmount, statement, description)
+		checkOutResponse, err := checkout_service.ChargeCardToken(userId, paymentMethodData.CCNum, fiatAmount, statement, description)
 		if err == nil {
 			if checkOutResponse.Status == "Authorised" {
 				chargeStatus = checkOutResponse.Status
 				chargeResponse = checkOutResponse
 				chargeId = checkOutResponse.Id
 				token = checkOutResponse.Card.Id
+
+				paymentMethodData.CCNum = checkOutResponse.Card.Last4
+				paymentMethodData.ExpirationDate = fmt.Sprintf("%s/%s",
+					checkOutResponse.Card.ExpiryMonth, checkOutResponse.Card.ExpiryYear[2:])
+
 				saveCard = true
 			}
 		} else {

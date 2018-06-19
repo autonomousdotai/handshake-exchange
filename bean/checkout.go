@@ -11,6 +11,7 @@ type CheckoutCardPaymentRequest struct {
 }
 
 type CheckOutCardIdPaymentRequest struct {
+	CardToken   string `json:"cardToken"`
 	CardId      string `json:"cardId"`
 	Currency    string `json:"currency"`
 	Email       string `json:"email"`
