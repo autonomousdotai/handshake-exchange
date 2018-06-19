@@ -22,15 +22,7 @@
           "type": "address"
         },
         {
-          "name": "adrFeeRefund",
-          "type": "address"
-        },
-        {
           "name": "fee",
-          "type": "uint256"
-        },
-        {
-          "name": "feeRefund",
           "type": "uint256"
         },
         {
@@ -44,54 +36,6 @@
       ],
       "payable": false,
       "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [
-        {
-          "name": "exchanger",
-          "type": "address"
-        },
-        {
-          "name": "adrFeeRefund",
-          "type": "address"
-        },
-        {
-          "name": "offchain",
-          "type": "bytes32"
-        }
-      ],
-      "name": "initByCoinOwner",
-      "outputs": [],
-      "payable": true,
-      "stateMutability": "payable",
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [
-        {
-          "name": "exchanger",
-          "type": "address"
-        },
-        {
-          "name": "adrFeeRefund",
-          "type": "address"
-        },
-        {
-          "name": "value",
-          "type": "uint256"
-        },
-        {
-          "name": "offchain",
-          "type": "bytes32"
-        }
-      ],
-      "name": "initByCashOwner",
-      "outputs": [],
-      "payable": false,
-      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
@@ -135,11 +79,25 @@
       "constant": false,
       "inputs": [
         {
-          "name": "f",
-          "type": "uint256"
+          "name": "exchanger",
+          "type": "address"
         },
         {
-          "name": "fr",
+          "name": "offchain",
+          "type": "bytes32"
+        }
+      ],
+      "name": "initByCoinOwner",
+      "outputs": [],
+      "payable": true,
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "f",
           "type": "uint256"
         }
       ],
@@ -207,6 +165,28 @@
       "constant": false,
       "inputs": [
         {
+          "name": "exchanger",
+          "type": "address"
+        },
+        {
+          "name": "value",
+          "type": "uint256"
+        },
+        {
+          "name": "offchain",
+          "type": "bytes32"
+        }
+      ],
+      "name": "initByCashOwner",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
           "name": "hid",
           "type": "uint256"
         },
@@ -251,11 +231,6 @@
         {
           "indexed": false,
           "name": "fee",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "name": "feeRefund",
           "type": "uint256"
         }
       ],
