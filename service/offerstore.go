@@ -23,7 +23,7 @@ type OfferStoreService struct {
 	offerDao *dao.OfferDao
 }
 
-func (s OfferStoreService) CreateOfferStore(userId string, offerSetup bean.OfferStoreSetup) (offer bean.OfferStoreSetup, ce SimpleContextError) {
+func (s OfferStoreService) CreateOfferStore(userId string, offerSetup bean.OfferStoreSetup) (offer *bean.OfferStoreSetup, ce *SimpleContextError) {
 	offerBody := offerSetup.Offer
 	offerItemBody := offerSetup.Item
 
@@ -45,18 +45,17 @@ func (s OfferStoreService) CreateOfferStore(userId string, offerSetup bean.Offer
 		}
 	}
 
-	profileTO := s.userDao.GetProfile(userId)
-	if ce.FeedDaoTransfer(api_error.GetDataFailed, profileTO) {
-		return
-	}
-	profile := profileTO.Object.(bean.Profile)
-
-	s.prepareOfferStore(&offerBody, &offerItemBody, &profile, &ce)
+	profile := GetProfile(s.userDao, userId, ce)
 	if ce.HasError() {
 		return
 	}
 
-	offerNew, err := s.dao.AddOfferStore(offerBody, offerItemBody, profile)
+	s.prepareOfferStore(&offerBody, &offerItemBody, profile, ce)
+	if ce.HasError() {
+		return
+	}
+
+	offerNew, err := s.dao.AddOfferStore(offerBody, offerItemBody, *profile)
 	if ce.SetError(api_error.AddDataFailed, err) {
 		return
 	}
@@ -71,18 +70,20 @@ func (s OfferStoreService) CreateOfferStore(userId string, offerSetup bean.Offer
 	return
 }
 
-func (s OfferStoreService) GetOfferStore(userId string, offerId string) (offer bean.OfferStore, ce SimpleContextError) {
-	profileTO := s.userDao.GetProfile(userId)
-	if ce.FeedDaoTransfer(api_error.GetDataFailed, profileTO) {
+func (s OfferStoreService) GetOfferStore(userId string, offerId string) (offer *bean.OfferStore, ce *SimpleContextError) {
+	GetProfile(s.userDao, userId, ce)
+	if ce.HasError() {
 		return
 	}
+
 	offerTO := s.dao.GetOfferStore(offerId)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, offerTO) {
 		return
 	}
 	notFound := false
 	if offerTO.Found {
-		offer = offerTO.Object.(bean.OfferStore)
+		obj := offerTO.Object.(bean.OfferStore)
+		offer = &obj
 		allFalse := true
 		for _, v := range offer.ItemFlags {
 			if v == true {
@@ -105,23 +106,18 @@ func (s OfferStoreService) GetOfferStore(userId string, offerId string) (offer b
 }
 
 func (s OfferStoreService) AddOfferStoreItem(userId string, offerId string, item bean.OfferStoreItem) (offer bean.OfferStore, ce SimpleContextError) {
-	// Check offer store exists
-	offerTO := s.dao.GetOfferStore(userId)
-	if !offerTO.Found {
-		ce.SetStatusKey(api_error.OfferStoreNotExist)
+	profile := GetProfile(s.userDao, userId, &ce)
+	if ce.HasError() {
 		return
 	}
-	offer = offerTO.Object.(bean.OfferStore)
-
-	profileTO := s.userDao.GetProfile(userId)
-	if ce.FeedDaoTransfer(api_error.GetDataFailed, profileTO) {
+	offer = *GetOfferStore(*s.dao, offerId, &ce)
+	if ce.HasError() {
 		return
 	}
-	profile := profileTO.Object.(bean.Profile)
 
-	s.prepareOfferStore(&offer, &item, &profile, &ce)
+	s.prepareOfferStore(&offer, &item, profile, &ce)
 
-	_, err := s.dao.AddOfferStoreItem(offer, item, profile)
+	_, err := s.dao.AddOfferStoreItem(offer, item, *profile)
 	if ce.SetError(api_error.AddDataFailed, err) {
 		return
 	}
@@ -132,6 +128,11 @@ func (s OfferStoreService) AddOfferStoreItem(userId string, offerId string, item
 }
 
 func (s OfferStoreService) RemoveOfferStoreItem(userId string, offerStoreId string, currency string) (offer bean.OfferStore, ce SimpleContextError) {
+	profile := GetProfile(s.userDao, userId, &ce)
+	if ce.HasError() {
+		return
+	}
+
 	// Check offer store exists
 	offerTO := s.dao.GetOfferStore(userId)
 	if !offerTO.Found {
@@ -147,11 +148,6 @@ func (s OfferStoreService) RemoveOfferStoreItem(userId string, offerStoreId stri
 		return
 	}
 	item := itemTO.Object.(bean.OfferStoreItem)
-
-	profileTO := s.userDao.GetProfile(userId)
-	if ce.FeedDaoTransfer(api_error.GetDataFailed, profileTO) {
-		return
-	}
 
 	if item.Status != bean.OFFER_STORE_ITEM_STATUS_ACTIVE && item.Status != bean.OFFER_STORE_ITEM_STATUS_CLOSING {
 		ce.SetStatusKey(api_error.OfferStatusInvalid)
@@ -214,7 +210,6 @@ func (s OfferStoreService) RemoveOfferStoreItem(userId string, offerStoreId stri
 			return
 		}
 	} else {
-		profile := profileTO.Object.(bean.Profile)
 		profile.ActiveOfferStores[item.Currency] = false
 		offer.ItemFlags = profile.ActiveOfferStores
 
@@ -222,7 +217,7 @@ func (s OfferStoreService) RemoveOfferStoreItem(userId string, offerStoreId stri
 		item.Status = bean.OFFER_STORE_ITEM_STATUS_CLOSED
 		offer.ItemSnapshots[item.Currency] = item
 
-		err := s.dao.RemoveOfferStoreItem(offer, item, profile)
+		err := s.dao.RemoveOfferStoreItem(offer, item, *profile)
 		if ce.SetError(api_error.DeleteDataFailed, err) {
 			return
 		}
@@ -237,12 +232,11 @@ func (s OfferStoreService) RemoveOfferStoreItem(userId string, offerStoreId stri
 }
 
 func (s OfferStoreService) CreateOfferStoreShake(userId string, offerId string, offerShakeBody bean.OfferStoreShake) (offerShake bean.OfferStoreShake, ce SimpleContextError) {
-	profileTO := s.userDao.GetProfile(userId)
-	if ce.FeedDaoTransfer(api_error.GetDataFailed, profileTO) {
+	profile := GetProfile(s.userDao, userId, &ce)
+	if ce.HasError() {
 		return
 	}
-	profile := profileTO.Object.(bean.Profile)
-	if UserServiceInst.CheckOfferLocked(profile) {
+	if UserServiceInst.CheckOfferLocked(*profile) {
 		ce.SetStatusKey(api_error.OfferActionLocked)
 		return
 	}
@@ -338,11 +332,10 @@ func (s OfferStoreService) CreateOfferStoreShake(userId string, offerId string, 
 }
 
 func (s OfferStoreService) RejectOfferStoreShake(userId string, offerId string, offerShakeId string) (offerShake bean.OfferStoreShake, ce SimpleContextError) {
-	profileTO := s.userDao.GetProfile(userId)
-	if ce.FeedDaoTransfer(api_error.GetDataFailed, profileTO) {
+	profile := GetProfile(s.userDao, userId, &ce)
+	if ce.HasError() {
 		return
 	}
-	profile := profileTO.Object.(bean.Profile)
 
 	offerTO := s.dao.GetOfferStore(offerId)
 	if !offerTO.Found {
@@ -403,7 +396,7 @@ func (s OfferStoreService) RejectOfferStoreShake(userId string, offerId string, 
 	}
 
 	transCount := s.getFailedTransCount(offer, offerShake, userId)
-	err := s.dao.UpdateOfferStoreShakeReject(offer, offerShake, profile, transCount)
+	err := s.dao.UpdateOfferStoreShakeReject(offer, offerShake, *profile, transCount)
 	if ce.SetError(api_error.UpdateDataFailed, err) {
 		return
 	}
@@ -419,11 +412,10 @@ func (s OfferStoreService) RejectOfferStoreShake(userId string, offerId string, 
 }
 
 func (s OfferStoreService) CancelOfferStoreShake(userId string, offerId string, offerShakeId string) (offerShake bean.OfferStoreShake, ce SimpleContextError) {
-	profileTO := s.userDao.GetProfile(userId)
-	if ce.FeedDaoTransfer(api_error.GetDataFailed, profileTO) {
+	profile := GetProfile(s.userDao, userId, &ce)
+	if ce.HasError() {
 		return
 	}
-	profile := profileTO.Object.(bean.Profile)
 
 	offerTO := s.dao.GetOfferStore(offerId)
 	if !offerTO.Found {
@@ -494,11 +486,10 @@ func (s OfferStoreService) CancelOfferStoreShake(userId string, offerId string, 
 }
 
 func (s OfferStoreService) AcceptOfferStoreShake(userId string, offerId string, offerShakeId string) (offerShake bean.OfferStoreShake, ce SimpleContextError) {
-	profileTO := s.userDao.GetProfile(userId)
-	if ce.FeedDaoTransfer(api_error.GetDataFailed, profileTO) {
+	profile := GetProfile(s.userDao, userId, &ce)
+	if ce.HasError() {
 		return
 	}
-	profile := profileTO.Object.(bean.Profile)
 
 	offerTO := s.dao.GetOfferStore(offerId)
 	if !offerTO.Found {
@@ -541,11 +532,10 @@ func (s OfferStoreService) AcceptOfferStoreShake(userId string, offerId string, 
 }
 
 func (s OfferStoreService) CompleteOfferStoreShake(userId string, offerId string, offerShakeId string) (offerShake bean.OfferStoreShake, ce SimpleContextError) {
-	profileTO := s.userDao.GetProfile(userId)
-	if ce.FeedDaoTransfer(api_error.GetDataFailed, profileTO) {
+	profile := GetProfile(s.userDao, userId, &ce)
+	if ce.HasError() {
 		return
 	}
-	profile := profileTO.Object.(bean.Profile)
 
 	offerTO := s.dao.GetOfferStore(offerId)
 	if !offerTO.Found {
@@ -589,8 +579,7 @@ func (s OfferStoreService) CompleteOfferStoreShake(userId string, offerId string
 
 	transCount1, transCount2 := s.getSuccessTransCount(offer, offerShake, userId)
 
-	notification.SendOfferStoreShakeNotification(offerShake, offer)
-	err := s.dao.UpdateOfferStoreShakeComplete(offer, offerShake, profile, transCount1, transCount2)
+	err := s.dao.UpdateOfferStoreShakeComplete(offer, offerShake, *profile, transCount1, transCount2)
 
 	if err != nil {
 		ce.SetError(api_error.UpdateDataFailed, err)
@@ -869,8 +858,8 @@ func (s OfferStoreService) ReviewOfferStore(userId string, offerId string, score
 		ce.SetStatusKey(api_error.InvalidQueryParam)
 	}
 
-	profileTO := s.userDao.GetProfile(userId)
-	if ce.FeedDaoTransfer(api_error.GetDataFailed, profileTO) {
+	GetProfile(s.userDao, userId, &ce)
+	if ce.HasError() {
 		return
 	}
 	offerTO := s.dao.GetOfferStore(offerId)
@@ -1183,13 +1172,15 @@ func (s OfferStoreService) transferCrypto(offer *bean.OfferStore, offerShake *be
 			var response1 interface{}
 			// var response2 interface{}
 			var userId string
+			transferAmount := offerShake.Amount
 			if offerShake.Type == bean.OFFER_TYPE_BUY {
-				// Amount = 1, transfer 1
-				response1 = s.sendTransaction(offerStoreItem.UserAddress, offerShake.Amount, offerShake.Currency, description, offerShake.Id, offerStoreItem.WalletProvider, ce)
+				// Amount = 1, transfer 0.09 (if fee = 1%)
+				response1 = s.sendTransaction(offerStoreItem.UserAddress, offerShake.TotalAmount, offerShake.Currency, description, offerShake.Id, offerStoreItem.WalletProvider, ce)
+				transferAmount = offerShake.TotalAmount
 				userId = offer.UID
 			} else {
-				// Amount = 1, transfer 0.09 (if fee = 1%)
-				response1 = s.sendTransaction(offerShake.UserAddress, offerShake.TotalAmount, offerShake.Currency, description, offerShake.Id, offerStoreItem.WalletProvider, ce)
+				// Amount = 1, transfer 1
+				response1 = s.sendTransaction(offerShake.UserAddress, offerShake.Amount, offerShake.Currency, description, offerShake.Id, offerStoreItem.WalletProvider, ce)
 				userId = offerShake.UID
 			}
 			s.miscDao.AddCryptoTransferLog(bean.CryptoTransferLog{
@@ -1199,7 +1190,7 @@ func (s OfferStoreService) transferCrypto(offer *bean.OfferStore, offerShake *be
 				DataRef:          dao.GetOfferStoreShakeItemPath(offer.Id, offerShake.Id),
 				UID:              userId,
 				Description:      description,
-				Amount:           offerShake.Amount,
+				Amount:           transferAmount,
 				Currency:         offerShake.Currency,
 			})
 
@@ -1238,6 +1229,8 @@ func (s OfferStoreService) sendTransaction(address string, amountStr string, cur
 
 		if walletProvider == bean.BTC_WALLET_COINBASE {
 			response, err := coinbase_service.SendTransaction(address, amountStr, currency, description, withdrawId)
+			fmt.Println(response)
+			fmt.Println(err)
 			if ce.SetError(api_error.ExternalApiFailed, err) {
 				return ""
 			}

@@ -262,8 +262,8 @@ func (dao OfferStoreDao) UpdateOfferStoreShakeComplete(offer bean.OfferStore, of
 	dbClient := firebase_service.FirestoreClient
 
 	docRef := dbClient.Doc(GetOfferStoreShakeItemPath(offer.Id, offerShake.Id))
-	transCountDocRef1 := dbClient.Doc(GetTransactionCountItemPath(profile.UserId, transactionCount1.Currency))
-	transCountDocRef2 := dbClient.Doc(GetTransactionCountItemPath(profile.UserId, transactionCount2.Currency))
+	transCountDocRef1 := dbClient.Doc(GetTransactionCountItemPath(offer.UID, transactionCount1.Currency))
+	transCountDocRef2 := dbClient.Doc(GetTransactionCountItemPath(offerShake.UID, transactionCount2.Currency))
 
 	batch := dbClient.Batch()
 	batch.Set(docRef, offerShake.GetChangeStatus(), firestore.MergeAll)
