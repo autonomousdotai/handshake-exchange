@@ -71,7 +71,7 @@ func ChargeCardToken(userId string, cardToken string, amount decimal.Decimal, st
 		// Descriptor: statement,
 	}
 	var response bean.CheckoutCardPaymentResponse
-	resp, err := client.Post("/v2/charges/card", cardPaymentRequest)
+	resp, err := client.Post("/v2/charges/token", cardPaymentRequest)
 
 	if err == nil {
 		resp.JSON(&response)
