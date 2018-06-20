@@ -955,9 +955,11 @@ func (s OfferStoreService) prepareOfferStore(offer *bean.OfferStore, item *bean.
 	sellAmount, _ := decimal.NewFromString(item.SellAmount)
 	if sellAmount.Equal(common.Zero) {
 		// Only the case that shop doesn't sell, so don't need to wait to active
-		item.Status = bean.OFFER_STORE_STATUS_ACTIVE
+		item.Status = bean.OFFER_STORE_ITEM_STATUS_ACTIVE
+		// So active the store as well
+		offer.Status = bean.OFFER_STORE_STATUS_ACTIVE
 	} else {
-		item.Status = bean.OFFER_STORE_STATUS_CREATED
+		item.Status = bean.OFFER_STORE_ITEM_STATUS_CREATED
 	}
 	if offer.Status != bean.OFFER_STORE_STATUS_ACTIVE {
 		offer.Status = bean.OFFER_STORE_STATUS_CREATED

@@ -62,12 +62,7 @@ func (s OfferService) CreateOffer(userId string, offerBody bean.Offer) (offer be
 			ce.SetStatusKey(api_error.InvalidRequestBody)
 			return
 		}
-		if offerBody.Currency == bean.BTC.Code {
-			offerBody.Status = bean.OFFER_STATUS_ACTIVE
-		} else {
-			// Only ETH To match with smart contract, it still created
-			offerBody.Status = bean.OFFER_STATUS_CREATED
-		}
+		offerBody.Status = bean.OFFER_STATUS_ACTIVE
 	} else {
 		if offerBody.RefundAddress == "" {
 			ce.SetStatusKey(api_error.InvalidRequestBody)
@@ -212,18 +207,27 @@ func (s OfferService) ActiveOnChainOffer(offerId string, hid int64) (offer bean.
 		return
 	}
 	offer = offerTO.Object.(bean.Offer)
-	if offer.Status != bean.OFFER_STATUS_CREATED {
+	if offer.Status != bean.OFFER_STATUS_CREATED && offer.Status != bean.OFFER_STATUS_SHAKING {
 		ce.SetStatusKey(api_error.OfferStatusInvalid)
 		return
 	}
 
 	// Good
 	offer.Hid = hid
-	offer.Status = bean.OFFER_STATUS_ACTIVE
-	err := s.dao.UpdateOfferActive(offer)
-	if ce.SetError(api_error.UpdateDataFailed, err) {
-		return
+	if offer.Status == bean.OFFER_STATUS_CREATED {
+		offer.Status = bean.OFFER_STATUS_ACTIVE
+		err := s.dao.UpdateOfferActive(offer)
+		if ce.SetError(api_error.UpdateDataFailed, err) {
+			return
+		}
+	} else if offer.Status == bean.OFFER_STATUS_SHAKING {
+		offer.Status = bean.OFFER_STATUS_SHAKE
+		_, ce = s.ShakeOnChainOffer(offerId)
+		if ce.HasError() {
+			return
+		}
 	}
+
 	notification.SendOfferNotification(offer)
 
 	return
@@ -256,7 +260,12 @@ func (s OfferService) CloseOffer(userId string, offerId string) (offer bean.Offe
 		offer.Status = bean.OFFER_STATUS_CLOSED
 	} else {
 		// Only ETH
-		offer.Status = bean.OFFER_STATUS_CLOSING
+		if offer.Type == bean.OFFER_TYPE_SELL {
+			// Waiting for smart contract
+			offer.Status = bean.OFFER_STATUS_CLOSING
+		} else {
+			offer.Status = bean.OFFER_STATUS_CLOSED
+		}
 	}
 
 	err := s.dao.UpdateOfferClose(offer, offerProfile)
@@ -308,12 +317,7 @@ func (s OfferService) ShakeOffer(userId string, offerId string, body bean.OfferS
 			return
 		}
 		offer.UserAddress = body.Address
-		if offer.Currency == bean.BTC.Code {
-			offer.Status = bean.OFFER_STATUS_SHAKE
-		} else {
-			// Only ETH To match with smart contract, it still shaking
-			offer.Status = bean.OFFER_STATUS_SHAKING
-		}
+		offer.Status = bean.OFFER_STATUS_SHAKE
 	} else {
 		// Only BTC needs to check
 		if body.Address == "" && offer.Currency == bean.BTC.Code {
@@ -447,6 +451,11 @@ func (s OfferService) CompleteShakeOffer(userId string, offerId string) (offer b
 	}
 
 	if offer.Currency == bean.BTC.Code {
+		// Do Transfer
+		s.transferCrypto(&offer, userId, &ce)
+		if ce.HasError() {
+			return
+		}
 		offer.Status = bean.OFFER_STATUS_COMPLETED
 	} else {
 		offer.Status = bean.OFFER_STATUS_COMPLETING
@@ -462,6 +471,7 @@ func (s OfferService) CompleteShakeOffer(userId string, offerId string) (offer b
 	return
 }
 
+// Deprecated
 func (s OfferService) WithdrawOffer(userId string, offerId string) (offer bean.Offer, ce SimpleContextError) {
 	profileTO := s.userDao.GetProfile(userId)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, profileTO) {

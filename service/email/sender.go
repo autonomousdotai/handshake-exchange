@@ -74,7 +74,7 @@ func SendOfferClosedEmail(language, emailAddress string) error {
 	data := struct {
 		CreateOfferUrl string
 	}{
-		CreateOfferUrl: fmt.Sprintf("%s/create", host),
+		CreateOfferUrl: fmt.Sprintf("%s/create?id=6", host),
 	}
 
 	return SendSystemEmailWithTemplate(
@@ -307,7 +307,7 @@ func SendOfferStoreItemRemovedEmail(language string, emailAddress string) error 
 	data := struct {
 		Url string
 	}{
-		Url: fmt.Sprintf("%s/create", host),
+		Url: fmt.Sprintf("%s/create?id=2", host),
 	}
 
 	return SendSystemEmailWithTemplate(
@@ -456,10 +456,10 @@ func SendOfferStoreTakerBuyShakeEmail(language string, emailAddress string, amou
 		data)
 }
 
-func SendOfferStoreAcceptEmail(language string, emailAddress string, amount string, currency string, username string) error {
+func SendOfferStoreMakerCompleteEmail(language string, emailAddress string, amount string, currency string, username string) error {
 	T, _ := i18n.Tfunc(language)
 
-	subject := T("email_offer_store_accept", map[string]string{
+	subject := T("email_offer_store_maker_accept", map[string]string{
 		"Currency": currency,
 	})
 
@@ -478,7 +478,39 @@ func SendOfferStoreAcceptEmail(language string, emailAddress string, amount stri
 		emailAddress,
 		language,
 		subject,
-		OfferStoreAccept,
+		OfferStoreMakerAccept,
+		data)
+}
+
+func SendOfferStoreTakerCompleteEmail(language string, emailAddress string, amount string, currency string,
+	username string, usernameStore string, offerId string, offerShakeId string) error {
+	T, _ := i18n.Tfunc(language)
+
+	subject := T("email_offer_store_taker_accept", map[string]string{
+		"Currency": currency,
+	})
+
+	host := os.Getenv("FRONTEND_HOST")
+	data := struct {
+		Amount        string
+		Currency      string
+		Username      string
+		UsernameStore string
+		Url           string
+	}{
+		Amount:        amount,
+		Currency:      currency,
+		Username:      username,
+		UsernameStore: usernameStore,
+		Url:           fmt.Sprintf("%s/me?s=%s&sh=%s", host, offerId, offerShakeId),
+	}
+
+	return SendSystemEmailWithTemplate(
+		"",
+		emailAddress,
+		language,
+		subject,
+		OfferStoreTakerAccept,
 		data)
 }
 
@@ -497,7 +529,7 @@ func SendOfferStoreMakerRejectEmail(language string, emailAddress string, userna
 		Url      string
 		Username string
 	}{
-		Url:      fmt.Sprintf("%s/create", host),
+		Url:      fmt.Sprintf("%s/create?id=2", host),
 		Username: username,
 	}
 
@@ -525,7 +557,7 @@ func SendOfferStoreTakerRejectEmail(language string, emailAddress string, userna
 		Url      string
 		Username string
 	}{
-		Url:      fmt.Sprintf("%s/discover", host),
+		Url:      fmt.Sprintf("%s/discover?id=2", host),
 		Username: username,
 	}
 

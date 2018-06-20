@@ -16,7 +16,8 @@ const OfferStoreMakerSellShake = "OfferStoreMakerSellShake"
 const OfferStoreMakerBuyShake = "OfferStoreMakerBuyShake"
 const OfferStoreTakerSellShake = "OfferStoreTakerSellShake"
 const OfferStoreTakerBuyShake = "OfferStoreTakerBuyShake"
-const OfferStoreAccept = "OfferStoreAccept"
+const OfferStoreMakerAccept = "OfferStoreMakerAccept"
+const OfferStoreTakerAccept = "OfferStoreTakerAccept"
 const OfferStoreMakerReject = "OfferStoreMakerReject"
 const OfferStoreTakerReject = "OfferStoreTakerReject"
 
@@ -37,7 +38,8 @@ var TemplateName = map[string]string{
 	OfferStoreMakerBuyShake:  "offer-store-maker-buy-shake-",
 	OfferStoreTakerSellShake: "offer-store-taker-sell-shake-",
 	OfferStoreTakerBuyShake:  "offer-store-taker-buy-shake-",
-	OfferStoreAccept:         "offer-store-accept-",
+	OfferStoreMakerAccept:    "offer-store-maker-accept-",
+	OfferStoreTakerAccept:    "offer-store-taker-accept-",
 	OfferStoreMakerReject:    "offer-store-maker-reject-",
 	OfferStoreTakerReject:    "offer-store-taker-reject-",
 }

@@ -241,7 +241,7 @@ func SendOfferStoreMakerRejectFCM(language string, fcm string, username string) 
 		"Username": username,
 	})
 	frontEndHost := os.Getenv("FRONTEND_HOST")
-	url := fmt.Sprintf("%s/%s", frontEndHost, "discover")
+	url := fmt.Sprintf("%s/%s?id=2", frontEndHost, "discover")
 
 	fcmObj := bean.FCMObject{
 		Notification: bean.FCMNotificationObject{
@@ -263,7 +263,7 @@ func SendOfferStoreTakerRejectFCM(language string, fcm string, username string) 
 		"Username": username,
 	})
 	frontEndHost := os.Getenv("FRONTEND_HOST")
-	url := fmt.Sprintf("%s/%s", frontEndHost, "discover")
+	url := fmt.Sprintf("%s/%s?id=2", frontEndHost, "discover")
 
 	fcmObj := bean.FCMObject{
 		Notification: bean.FCMNotificationObject{
@@ -277,15 +277,37 @@ func SendOfferStoreTakerRejectFCM(language string, fcm string, username string) 
 	return fcm_service.SendFCM(fcmObj)
 }
 
-func SendOfferStoreCompleteFCM(language string, fcm string, currency string) error {
+func SendOfferStoreMakerCompleteFCM(language string, fcm string, currency string) error {
 	T, _ := i18n.Tfunc(language)
 
 	title := T("common_notification_title")
-	body := T("notification_offer_store_complete", map[string]string{
+	body := T("notification_offer_store_maker_accept", map[string]string{
 		"Currency": currency,
 	})
 	frontEndHost := os.Getenv("FRONTEND_HOST")
-	url := fmt.Sprintf("%s/%s", frontEndHost, "discover")
+	url := fmt.Sprintf("%s/%s?id=2", frontEndHost, "discover")
+
+	fcmObj := bean.FCMObject{
+		Notification: bean.FCMNotificationObject{
+			Title:       title,
+			Body:        body,
+			ClickAction: url,
+		},
+		To: fcm,
+	}
+
+	return fcm_service.SendFCM(fcmObj)
+}
+
+func SendOfferStoreTakerCompleteFCM(language string, fcm string, currency string, offerId string, offerShakeId string) error {
+	T, _ := i18n.Tfunc(language)
+
+	title := T("common_notification_title")
+	body := T("notification_offer_store_taker_accept", map[string]string{
+		"Currency": currency,
+	})
+	frontEndHost := os.Getenv("FRONTEND_HOST")
+	url := fmt.Sprintf("%s/%s?s=%s&sh=%s", frontEndHost, "me", offerId, offerShakeId)
 
 	fcmObj := bean.FCMObject{
 		Notification: bean.FCMNotificationObject{

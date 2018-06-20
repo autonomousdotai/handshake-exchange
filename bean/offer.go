@@ -183,9 +183,10 @@ func (offer Offer) GetUpdateOfferShake() map[string]interface{} {
 
 func (offer Offer) GetUpdateOfferCompleted() map[string]interface{} {
 	return map[string]interface{}{
-		// "provider_data": offer.ProviderData,
-		"status":     offer.Status,
-		"updated_at": firestore.ServerTimestamp,
+		"provider":      offer.Provider,
+		"provider_data": offer.ProviderData,
+		"status":        offer.Status,
+		"updated_at":    firestore.ServerTimestamp,
 	}
 }
 

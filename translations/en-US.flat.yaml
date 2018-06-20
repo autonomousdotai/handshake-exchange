@@ -72,5 +72,7 @@ notification_offer_store_maker_reject:
   other: "Sorry, but {{.Username}} decided not shake"
 notification_offer_store_taker_reject:
   other: "Sorry, but {{.Username}} decided not shake. Find more ninjas here"
-notification_offer_store_accept:
+notification_offer_store_maker_accept:
   other: "Your {{.Currency}} is being transferred. Ready to sell more coins?"
+notification_offer_store_taker_accept:
+  other: "Your {{.Currency}} is being transferred. Rate this station to help other ninjas trade better."

@@ -256,9 +256,9 @@ func SendOfferStoreShakeToEmail(offer bean.OfferStoreShake, offerStore bean.Offe
 		}
 	} else if offer.Status == bean.OFFER_STORE_SHAKE_STATUS_COMPLETED {
 		if offer.Type == bean.OFFER_TYPE_BUY {
-			err = email.SendOfferCompleteEmail(offerStore.Language, offerStore.Email, offer.Amount, offer.Currency, username)
+			err = email.SendOfferStoreMakerCompleteEmail(offerStore.Language, offerStore.Email, offer.Amount, offer.Currency, username)
 		} else {
-			err = email.SendOfferCompleteEmail(offer.Language, offer.Email, offer.Amount, offer.Currency, toUsername)
+			err = email.SendOfferStoreTakerCompleteEmail(offer.Language, offer.Email, offer.Amount, offer.Currency, toUsername, username, offerStore.Id, offer.Id)
 		}
 	}
 	c <- err
@@ -312,9 +312,9 @@ func SendOfferStoreShakeToFCM(offer bean.OfferStoreShake, offerStore bean.OfferS
 		}
 	} else if offer.Status == bean.OFFER_STORE_SHAKE_STATUS_COMPLETED {
 		if offer.Type == bean.OFFER_TYPE_BUY {
-			err = SendOfferCompletedFCM(offerStore.Language, offerStore.FCM)
+			err = SendOfferStoreMakerCompleteFCM(offerStore.Language, offerStore.FCM, offer.Currency)
 		} else {
-			err = SendOfferCompletedFCM(offer.Language, offer.FCM)
+			err = SendOfferStoreTakerCompleteFCM(offer.Language, offer.FCM, offer.Currency, offerStore.Id, offer.Id)
 		}
 	}
 	c <- err
