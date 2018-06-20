@@ -88,13 +88,13 @@ func (s OfferService) CreateOffer(userId string, offerBody bean.Offer) (offer be
 		return
 	}
 	if currencyInst.Code == bean.ETH.Code {
-		if amount.LessThan(decimal.NewFromFloat(0.1).Round(1)) {
+		if amount.LessThan(bean.MIN_ETH) {
 			ce.SetStatusKey(api_error.AmountIsTooSmall)
 			return
 		}
 	}
 	if currencyInst.Code == bean.BTC.Code {
-		if amount.LessThan(decimal.NewFromFloat(0.01).Round(2)) {
+		if amount.LessThan(bean.MIN_BTC) {
 			ce.SetStatusKey(api_error.AmountIsTooSmall)
 			return
 		}

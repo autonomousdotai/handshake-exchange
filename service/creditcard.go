@@ -80,13 +80,13 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 	// Minimum amount
 	amount, _ := decimal.NewFromString(offerBody.Amount)
 	if offerBody.Currency == bean.ETH.Code {
-		if amount.LessThan(decimal.NewFromFloat(0.1).Round(1)) {
+		if amount.LessThan(bean.MIN_ETH) {
 			ce.SetStatusKey(api_error.AmountIsTooSmall)
 			return
 		}
 	}
 	if offerBody.Currency == bean.BTC.Code {
-		if amount.LessThan(decimal.NewFromFloat(0.01).Round(2)) {
+		if amount.LessThan(bean.MIN_BTC) {
 			ce.SetStatusKey(api_error.AmountIsTooSmall)
 			return
 		}
@@ -131,6 +131,8 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 	var chargeResponse interface{}
 	if paymentMethodData.Token == "" {
 		checkOutResponse, err := checkout_service.ChargeCardToken(userId, paymentMethodData.CCNum, fiatAmount, statement, description)
+		fmt.Println(checkOutResponse)
+		fmt.Println(err)
 		if err == nil {
 			if checkOutResponse.Status == "Authorised" {
 				chargeStatus = checkOutResponse.Status

@@ -33,7 +33,9 @@ const OFFER_STATUS_REJECTED = "rejected"
 const OFFER_STATUS_WITHDRAWING = "withdrawing"
 const OFFER_STATUS_WITHDRAW = "withdraw"
 
-var MIN_ETH = decimal.NewFromFloat(0.1).Round(1)
+var MIN_ETH = decimal.NewFromFloat(0.01).Round(2)
+
+// TODO Change to 0.001 when going to production
 var MIN_BTC = decimal.NewFromFloat(0.0001).Round(4)
 
 type Offer struct {
