@@ -36,32 +36,33 @@ type SolrOfferObject struct {
 }
 
 type SolrOfferExtraData struct {
-	Id               string `json:"id"`
-	FeedType         string `json:"feed_type"`
-	Type             string `json:"type"`
-	Amount           string `json:"amount"`
-	Currency         string `json:"currency"`
-	FiatCurrency     string `json:"fiat_currency"`
-	FiatAmount       string `json:"fiat_amount"`
-	TotalAmount      string `json:"total_amount"`
-	PhysicalItem     string `json:"physical_item"`
-	PhysicalQuantity int64  `json:"physical_quantity"`
-	Fee              string `json:"fee"`
-	Reward           string `json:"reward"`
-	Price            string `json:"price"`
-	Percentage       string `json:"percentage"`
-	FeePercentage    string `json:"fee_percentage"`
-	RewardPercentage string `json:"reward_percentage"`
-	ContactPhone     string `json:"contact_phone"`
-	ContactInfo      string `json:"contact_info"`
-	Email            string `json:"email"`
-	Username         string `json:"username"`
-	ToEmail          string `json:"to_email"`
-	ToUsername       string `json:"to_username"`
-	SystemAddress    string `json:"system_address"`
-	Status           string `json:"status"`
-	Success          int64  `json:"success"`
-	Failed           int64  `json:"failed"`
+	Id               string   `json:"id"`
+	FeedType         string   `json:"feed_type"`
+	Type             string   `json:"type"`
+	Amount           string   `json:"amount"`
+	Currency         string   `json:"currency"`
+	FiatCurrency     string   `json:"fiat_currency"`
+	FiatAmount       string   `json:"fiat_amount"`
+	TotalAmount      string   `json:"total_amount"`
+	PhysicalItem     string   `json:"physical_item"`
+	PhysicalQuantity int64    `json:"physical_quantity"`
+	PhysicalItemDocs []string `json:"physical_item_docs"`
+	Fee              string   `json:"fee"`
+	Reward           string   `json:"reward"`
+	Price            string   `json:"price"`
+	Percentage       string   `json:"percentage"`
+	FeePercentage    string   `json:"fee_percentage"`
+	RewardPercentage string   `json:"reward_percentage"`
+	ContactPhone     string   `json:"contact_phone"`
+	ContactInfo      string   `json:"contact_info"`
+	Email            string   `json:"email"`
+	Username         string   `json:"username"`
+	ToEmail          string   `json:"to_email"`
+	ToUsername       string   `json:"to_username"`
+	SystemAddress    string   `json:"system_address"`
+	Status           string   `json:"status"`
+	Success          int64    `json:"success"`
+	Failed           int64    `json:"failed"`
 }
 
 var offerStatusMap = map[string]int{
@@ -156,6 +157,7 @@ func NewSolrFromOffer(offer Offer) (solr SolrOfferObject) {
 		Price:            offer.Price,
 		PhysicalItem:     offer.PhysicalItem,
 		PhysicalQuantity: offer.PhysicalQuantity,
+		PhysicalItemDocs: offer.PhysicalItemDocs,
 		Fee:              fee.String(),
 		Reward:           offer.Reward,
 		FeePercentage:    feePercentage.Mul(decimal.NewFromFloat(100)).String(),
