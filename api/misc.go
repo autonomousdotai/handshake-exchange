@@ -125,20 +125,36 @@ func (api MiscApi) GetSystemConfig(context *gin.Context) {
 
 func (api MiscApi) GetCryptoRate(context *gin.Context) {
 	currency := context.Param("currency")
-	rateType := context.DefaultQuery("type", "buy")
-	if rateType == "buy" {
-		resp, err := coinbase_service.GetBuyPrice(currency)
-		if api_error.PropagateErrorAndAbort(context, api_error.GetDataFailed, err) != nil {
-			return
-		}
-		bean.SuccessResponse(context, resp)
-	} else {
-		resp, err := coinbase_service.GetSellPrice(currency)
-		if api_error.PropagateErrorAndAbort(context, api_error.GetDataFailed, err) != nil {
-			return
-		}
-		bean.SuccessResponse(context, resp)
+
+	resp, err := coinbase_service.GetBuyPrice(currency)
+	if api_error.PropagateErrorAndAbort(context, api_error.GetDataFailed, err) != nil {
+		return
 	}
+
+	bean.SuccessResponse(context, resp)
+}
+
+func (api MiscApi) GetCryptoRateAll(context *gin.Context) {
+	currency := context.Param("currency")
+	rateType := context.DefaultQuery("type", "buy")
+	var resp1, resp2 interface{}
+	var err error
+	if rateType == "buy" {
+		resp1, err = coinbase_service.GetBuyPrice(currency)
+		if api_error.PropagateErrorAndAbort(context, api_error.GetDataFailed, err) != nil {
+			return
+		}
+	} else {
+		resp2, err = coinbase_service.GetSellPrice(currency)
+		if api_error.PropagateErrorAndAbort(context, api_error.GetDataFailed, err) != nil {
+			return
+		}
+	}
+
+	bean.SuccessResponse(context, map[string]interface{}{
+		"buy":  resp1,
+		"sell": resp2,
+	})
 }
 
 func (api MiscApi) GetCryptoQuote(context *gin.Context) {

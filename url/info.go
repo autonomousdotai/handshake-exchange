@@ -20,6 +20,9 @@ func (url InfoUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	group.GET("/crypto-rates/:currency", func(context *gin.Context) {
 		miscApi.GetCryptoRate(context)
 	})
+	group.GET("/crypto-rates-all/:currency", func(context *gin.Context) {
+		miscApi.GetCryptoRateAll(context)
+	})
 	group.GET("/system-fees/:feeKey", func(context *gin.Context) {
 		miscApi.GetSystemFee(context)
 	})
