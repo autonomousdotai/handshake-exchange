@@ -95,6 +95,30 @@ func (api OfferApi) ShakeOffer(context *gin.Context) {
 	bean.SuccessResponse(context, offer)
 }
 
+func (api OfferApi) AcceptShakeOffer(context *gin.Context) {
+	userId := common.GetUserId(context)
+	offerId := context.Param("offerId")
+
+	offer, ce := service.OfferServiceInst.AcceptShakeOffer(userId, offerId)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, offer)
+}
+
+func (api OfferApi) CancelShakeOffer(context *gin.Context) {
+	userId := common.GetUserId(context)
+	offerId := context.Param("offerId")
+
+	offer, ce := service.OfferServiceInst.CancelShakeOffer(userId, offerId)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, offer)
+}
+
 func (api OfferApi) RejectShakeOffer(context *gin.Context) {
 	userId := common.GetUserId(context)
 	offerId := context.Param("offerId")

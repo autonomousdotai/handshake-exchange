@@ -1014,13 +1014,13 @@ func (s OfferStoreService) checkOfferStoreItemAmount(item *bean.OfferStoreItem, 
 		return
 	}
 	if item.Currency == bean.ETH.Code {
-		if buyAmount.LessThan(bean.MIN_ETH) {
+		if buyAmount.GreaterThan(common.Zero) && buyAmount.LessThan(bean.MIN_ETH) {
 			ce.SetStatusKey(api_error.AmountIsTooSmall)
 			return
 		}
 	}
 	if item.Currency == bean.BTC.Code {
-		if buyAmount.LessThan(bean.MIN_BTC) {
+		if buyAmount.GreaterThan(common.Zero) && buyAmount.LessThan(bean.MIN_BTC) {
 			ce.SetStatusKey(api_error.AmountIsTooSmall)
 			return
 		}

@@ -58,13 +58,13 @@ func (s OfferService) CreateOffer(userId string, offerBody bean.Offer) (offer be
 
 	if offerBody.Type == bean.OFFER_TYPE_BUY {
 		// Need to set address to receive crypto
-		if offerBody.UserAddress == "" {
+		if offerBody.UserAddress == "" && offerBody.Type == bean.BTC.Code {
 			ce.SetStatusKey(api_error.InvalidRequestBody)
 			return
 		}
 		offerBody.Status = bean.OFFER_STATUS_ACTIVE
 	} else {
-		if offerBody.RefundAddress == "" {
+		if offerBody.RefundAddress == "" && offerBody.Type == bean.BTC.Code {
 			ce.SetStatusKey(api_error.InvalidRequestBody)
 			return
 		}
@@ -118,11 +118,12 @@ func (s OfferService) CreateOffer(userId string, offerBody bean.Offer) (offer be
 
 	offerBody.UID = userId
 
-	if profile.ActiveOffers[currencyInst.Code] {
-		ce.SetStatusKey(api_error.TooManyOffer)
-		return
-	}
-	profile.ActiveOffers[currencyInst.Code] = true
+	// For swap remove too many offers
+	//if profile.ActiveOffers[currencyInst.Code] {
+	//	ce.SetStatusKey(api_error.TooManyOffer)
+	//	return
+	//}
+	//profile.ActiveOffers[currencyInst.Code] = true
 
 	transCountTO := s.transDao.GetTransactionCount(offerBody.UID, offerBody.Currency)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, transCountTO) {
@@ -238,7 +239,7 @@ func (s OfferService) CloseOffer(userId string, offerId string) (offer bean.Offe
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, profileTO) {
 		return
 	}
-	profile := profileTO.Object.(bean.Profile)
+	// _ := profileTO.Object.(bean.Profile)
 
 	offerTO := s.dao.GetOffer(offerId)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, offerTO) {
@@ -249,8 +250,8 @@ func (s OfferService) CloseOffer(userId string, offerId string) (offer bean.Offe
 		ce.SetStatusKey(api_error.OfferStatusInvalid)
 		return
 	}
-	offerProfile := s.getOfferProfile(offer, profile, &ce)
-	offerProfile.ActiveOffers[offer.Currency] = false
+	// offerProfile := s.getOfferProfile(offer, profile, &ce)
+	// offerProfile.ActiveOffers[offer.Currency] = false
 
 	if ce.HasError() {
 		return
@@ -268,7 +269,7 @@ func (s OfferService) CloseOffer(userId string, offerId string) (offer bean.Offe
 		}
 	}
 
-	err := s.dao.UpdateOfferClose(offer, offerProfile)
+	err := s.dao.UpdateOfferClose(offer, bean.Profile{})
 	if ce.SetError(api_error.UpdateDataFailed, err) {
 		return
 	}
@@ -368,6 +369,46 @@ func (s OfferService) UpdateShakeOffer(offerBody bean.Offer) (offer bean.Offer, 
 	return
 }
 
+func (s OfferService) AcceptShakeOffer(userId string, offerId string) (offer bean.Offer, ce SimpleContextError) {
+	profileTO := s.userDao.GetProfile(userId)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, profileTO) {
+		return
+	}
+	profile := profileTO.Object.(bean.Profile)
+
+	offerTO := s.dao.GetOffer(offerId)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, offerTO) {
+		return
+	}
+	offer = offerTO.Object.(bean.Offer)
+
+	if profile.UserId != offer.UID {
+		ce.SetStatusKey(api_error.InvalidRequestBody)
+		return
+	}
+
+	if offer.Status != bean.OFFER_STATUS_PRE_SHAKE {
+		ce.SetStatusKey(api_error.OfferStatusInvalid)
+	}
+
+	if offer.Currency == bean.BTC.Code {
+		offer.Status = bean.OFFER_STATUS_SHAKE
+	} else {
+		// Only ETH
+		offer.Status = bean.OFFER_STATUS_SHAKING
+	}
+
+	err := s.dao.UpdateOffer(offer, offer.GetChangeStatus())
+	if ce.SetError(api_error.UpdateDataFailed, err) {
+		return
+	}
+
+	offer.ActionUID = userId
+	notification.SendOfferNotification(offer)
+
+	return
+}
+
 func (s OfferService) CancelShakeOffer(userId string, offerId string) (offer bean.Offer, ce SimpleContextError) {
 	profileTO := s.userDao.GetProfile(userId)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, profileTO) {
@@ -380,14 +421,8 @@ func (s OfferService) CancelShakeOffer(userId string, offerId string) (offer bea
 		return
 	}
 	offer = offerTO.Object.(bean.Offer)
-	offerProfile := s.getOfferProfile(offer, profile, &ce)
-	offerProfile.ActiveOffers[offer.Currency] = false
 
-	if ce.HasError() {
-		return
-	}
-
-	if profile.UserId != offer.UID && profile.UserId != offer.ToUID {
+	if profile.UserId != offer.UID {
 		ce.SetStatusKey(api_error.InvalidRequestBody)
 		return
 	}
@@ -398,15 +433,21 @@ func (s OfferService) CancelShakeOffer(userId string, offerId string) (offer bea
 
 	if offer.Currency == bean.BTC.Code {
 		offer.Status = bean.OFFER_STATUS_CANCELLED
+		// Only BTC refund
+		s.transferCrypto(&offer, userId, &ce)
+		if ce.HasError() {
+			return
+		}
+		offer.Status = bean.OFFER_STATUS_ACTIVE
 	} else {
 		// Only ETH
 		offer.Status = bean.OFFER_STATUS_CANCELLING
 	}
 
-	//err := s.dao.UpdateOfferReject(offer, offerProfile, transCount)
-	//if ce.SetError(api_error.UpdateDataFailed, err) {
-	//	return
-	//}
+	err := s.dao.UpdateOffer(offer, offer.GetChangeStatus())
+	if ce.SetError(api_error.UpdateDataFailed, err) {
+		return
+	}
 
 	offer.ActionUID = userId
 	notification.SendOfferNotification(offer)
@@ -491,7 +532,11 @@ func (s OfferService) CompleteShakeOffer(userId string, offerId string) (offer b
 		return
 	}
 
-	if profile.UserId != offer.UID && profile.UserId != offer.ToUID {
+	if profile.UserId != offer.UID && offer.Type == bean.OFFER_TYPE_SELL {
+		ce.SetStatusKey(api_error.InvalidRequestBody)
+		return
+	}
+	if profile.UserId != offer.ToUID && offer.Type == bean.OFFER_TYPE_BUY {
 		ce.SetStatusKey(api_error.InvalidRequestBody)
 		return
 	}
@@ -607,9 +652,14 @@ func (s OfferService) UpdateOnChainOffer(offerId string, oldStatus string, newSt
 	offer = offerTO.Object.(bean.Offer)
 
 	// Special case
-	if offer.Status == bean.OFFER_STATUS_CLOSING {
-		oldStatus = bean.OFFER_STATUS_CLOSING
-		newStatus = bean.OFFER_STATUS_CLOSED
+	if oldStatus == bean.OFFER_STATUS_REJECTING {
+		if offer.Status == bean.OFFER_STATUS_CLOSING {
+			oldStatus = bean.OFFER_STATUS_CLOSING
+			newStatus = bean.OFFER_STATUS_CLOSED
+		} else if offer.Status == bean.OFFER_STATUS_CANCELLING {
+			oldStatus = bean.OFFER_STATUS_CANCELLING
+			newStatus = bean.OFFER_STATUS_ACTIVE
+		}
 	}
 
 	if offer.Status != oldStatus {
@@ -627,10 +677,6 @@ func (s OfferService) UpdateOnChainOffer(offerId string, oldStatus string, newSt
 	notification.SendOfferNotification(offer)
 
 	return
-}
-
-func (s OfferService) CloseOnChainOffer(offerId string) (offer bean.Offer, ce SimpleContextError) {
-	return s.UpdateOnChainOffer(offerId, bean.OFFER_STATUS_CLOSING, bean.OFFER_STATUS_CLOSED)
 }
 
 func (s OfferService) ShakeOnChainOffer(offerId string) (offer bean.Offer, ce SimpleContextError) {
@@ -829,7 +875,7 @@ func (s OfferService) transferCrypto(offer *bean.Offer, userId string, ce *Simpl
 			s.miscDao.AddCryptoTransferLog(bean.CryptoTransferLog{
 				Provider:         offer.WalletProvider,
 				ProviderResponse: response1,
-				DataType:         bean.OFFER_ADDRESS_MAP_OFFER_STORE_SHAKE,
+				DataType:         bean.OFFER_ADDRESS_MAP_OFFER,
 				DataRef:          dao.GetOfferItemPath(offer.Id),
 				UID:              userId,
 				Description:      description,
@@ -870,7 +916,7 @@ func (s OfferService) transferCrypto(offer *bean.Offer, userId string, ce *Simpl
 			s.miscDao.AddCryptoTransferLog(bean.CryptoTransferLog{
 				Provider:         offer.WalletProvider,
 				ProviderResponse: response,
-				DataType:         bean.OFFER_ADDRESS_MAP_OFFER_STORE_SHAKE,
+				DataType:         bean.OFFER_ADDRESS_MAP_OFFER,
 				DataRef:          dao.GetOfferItemPath(offer.Id),
 				UID:              userId,
 				Description:      description,

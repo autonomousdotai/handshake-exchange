@@ -231,7 +231,7 @@ func (offer Offer) GetPageValue() interface{} {
 }
 
 type OfferShakeRequest struct {
-	FiatAmount string `json:"fiat_amount" validate:"required"`
+	FiatAmount string `json:"fiat_amount"`
 	Address    string `json:"address"`
 	Email      string `json:"email"`
 	Username   string `json:"username"`

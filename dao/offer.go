@@ -15,13 +15,13 @@ type OfferDao struct {
 func (dao OfferDao) AddOffer(offer bean.Offer, profile bean.Profile) (bean.Offer, error) {
 	dbClient := firebase_service.FirestoreClient
 
-	profileDocRef := dbClient.Doc(GetUserPath(offer.UID))
+	// profileDocRef := dbClient.Doc(GetUserPath(offer.UID))
 	docRef := dbClient.Collection(GetOfferPath()).NewDoc()
 	offer.Id = docRef.ID
 
 	batch := dbClient.Batch()
 	batch.Set(docRef, offer.GetAddOffer())
-	batch.Set(profileDocRef, profile.GetUpdateOfferProfile(), firestore.MergeAll)
+	// batch.Set(profileDocRef, profile.GetUpdateOfferProfile(), firestore.MergeAll)
 
 	if offer.SystemAddress != "" {
 		mapping := bean.OfferAddressMap{
@@ -158,12 +158,12 @@ func (dao OfferDao) UpdateOfferShake(offer bean.Offer) error {
 func (dao OfferDao) UpdateOfferClose(offer bean.Offer, profile bean.Profile) error {
 	dbClient := firebase_service.FirestoreClient
 
-	profileDocRef := dbClient.Doc(GetUserPath(offer.UID))
+	// profileDocRef := dbClient.Doc(GetUserPath(offer.UID))
 	docRef := dbClient.Doc(GetOfferItemPath(offer.Id))
 
 	batch := dbClient.Batch()
 	batch.Set(docRef, offer.GetUpdateOfferClose(), firestore.MergeAll)
-	batch.Set(profileDocRef, profile.GetUpdateOfferProfile(), firestore.MergeAll)
+	// batch.Set(profileDocRef, profile.GetUpdateOfferProfile(), firestore.MergeAll)
 
 	_, err := batch.Commit(context.Background())
 

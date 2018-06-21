@@ -77,6 +77,8 @@ var offerStatusMap = map[string]int{
 	OFFER_STATUS_PRE_SHAKE:   9,
 	OFFER_STATUS_REJECTING:   10,
 	OFFER_STATUS_REJECTED:    11,
+	OFFER_STATUS_CANCELLING:  12,
+	OFFER_STATUS_CANCELLED:   13,
 }
 
 type SolrInstantOfferExtraData struct {
