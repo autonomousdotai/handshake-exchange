@@ -44,21 +44,22 @@ type OfferStore struct {
 }
 
 type OfferStoreItem struct {
-	Currency       string `json:"currency" firestore:"currency"`
-	Status         string `json:"status" firestore:"status"`
-	SellAmountMin  string `json:"sell_amount_min" firestore:"sell_amount_min"`
-	SellAmount     string `json:"sell_amount" firestore:"sell_amount" validate:"required"`
-	SellBalance    string `json:"sell_balance" firestore:"sell_balance"`
-	SellPercentage string `json:"sell_percentage" firestore:"sell_percentage"`
-	BuyAmountMin   string `json:"buy_amount_min" firestore:"buy_amount_min"`
-	BuyAmount      string `json:"buy_amount" firestore:"buy_amount" validate:"required"`
-	BuyBalance     string `json:"buy_balance" firestore:"buy_balance"`
-	BuyPercentage  string `json:"buy_percentage" firestore:"buy_percentage"`
-	SystemAddress  string `json:"system_address" firestore:"system_address"`
-	UserAddress    string `json:"user_address" firestore:"user_address"`
-	WalletProvider string `json:"-" firestore:"wallet_provider"`
-	RewardAddress  string `json:"reward_address" firestore:"reward_address"`
-	ShakeCount     int64  `json:"shake_count" firestore:"shake_count"`
+	Currency        string `json:"currency" firestore:"currency"`
+	Status          string `json:"status" firestore:"status"`
+	SellAmountMin   string `json:"sell_amount_min" firestore:"sell_amount_min"`
+	SellAmount      string `json:"sell_amount" firestore:"sell_amount" validate:"required"`
+	SellBalance     string `json:"sell_balance" firestore:"sell_balance"`
+	SellPercentage  string `json:"sell_percentage" firestore:"sell_percentage"`
+	SellTotalAmount string `json:"sell_total_amount" firestore:"sell_total_amount"`
+	BuyAmountMin    string `json:"buy_amount_min" firestore:"buy_amount_min"`
+	BuyAmount       string `json:"buy_amount" firestore:"buy_amount" validate:"required"`
+	BuyBalance      string `json:"buy_balance" firestore:"buy_balance"`
+	BuyPercentage   string `json:"buy_percentage" firestore:"buy_percentage"`
+	SystemAddress   string `json:"system_address" firestore:"system_address"`
+	UserAddress     string `json:"user_address" firestore:"user_address"`
+	WalletProvider  string `json:"-" firestore:"wallet_provider"`
+	RewardAddress   string `json:"reward_address" firestore:"reward_address"`
+	ShakeCount      int64  `json:"shake_count" firestore:"shake_count"`
 }
 
 func (offer OfferStore) GetAddOfferStore() map[string]interface{} {
@@ -135,21 +136,22 @@ func (offer OfferStore) GetNotificationUpdate() map[string]interface{} {
 
 func (item OfferStoreItem) GetAddOfferStoreItem() map[string]interface{} {
 	return map[string]interface{}{
-		"currency":        item.Currency,
-		"status":          item.Status,
-		"sell_amount_min": item.SellAmountMin,
-		"sell_amount":     item.SellAmount,
-		"sell_balance":    "0",
-		"sell_percentage": item.SellPercentage,
-		"buy_amount_min":  item.BuyAmountMin,
-		"buy_amount":      item.BuyAmount,
-		"buy_balance":     item.BuyAmount,
-		"buy_percentage":  item.BuyPercentage,
-		"system_address":  item.SystemAddress,
-		"user_address":    item.UserAddress,
-		"reward_address":  item.RewardAddress,
-		"wallet_provider": item.WalletProvider,
-		"shake_count":     item.ShakeCount,
+		"currency":          item.Currency,
+		"status":            item.Status,
+		"sell_amount_min":   item.SellAmountMin,
+		"sell_amount":       item.SellAmount,
+		"sell_total_amount": item.SellTotalAmount,
+		"sell_balance":      "0",
+		"sell_percentage":   item.SellPercentage,
+		"buy_amount_min":    item.BuyAmountMin,
+		"buy_amount":        item.BuyAmount,
+		"buy_balance":       item.BuyAmount,
+		"buy_percentage":    item.BuyPercentage,
+		"system_address":    item.SystemAddress,
+		"user_address":      item.UserAddress,
+		"reward_address":    item.RewardAddress,
+		"wallet_provider":   item.WalletProvider,
+		"shake_count":       item.ShakeCount,
 	}
 }
 

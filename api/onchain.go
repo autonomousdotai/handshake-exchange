@@ -30,6 +30,7 @@ func (api OnChainApi) UpdateOfferInit(context *gin.Context) {
 		return
 	}
 	for _, offerOnChain := range offerOnChains {
+		fmt.Println(offerOnChain)
 		service.OfferServiceInst.ActiveOnChainOffer(offerOnChain.Offer, offerOnChain.Hid)
 	}
 
@@ -58,6 +59,7 @@ func (api OnChainApi) UpdateOfferShake(context *gin.Context) {
 		return
 	}
 	for _, offerOnChain := range offerOnChains {
+		fmt.Println(offerOnChain)
 		service.OfferServiceInst.ShakeOnChainOffer(offerOnChain.Offer)
 	}
 
@@ -86,6 +88,7 @@ func (api OnChainApi) UpdateOfferReject(context *gin.Context) {
 		return
 	}
 	for _, offerOnChain := range offerOnChains {
+		fmt.Println(offerOnChain)
 		service.OfferServiceInst.RejectOnChainOffer(offerOnChain.Offer)
 	}
 
@@ -114,6 +117,7 @@ func (api OnChainApi) UpdateOfferComplete(context *gin.Context) {
 		return
 	}
 	for _, offerOnChain := range offerOnChains {
+		fmt.Println(offerOnChain)
 		service.OfferServiceInst.CompleteOnChainOffer(offerOnChain.Offer)
 	}
 

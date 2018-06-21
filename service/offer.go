@@ -178,9 +178,9 @@ func (s OfferService) ActiveOffer(address string, amountStr string) (offer bean.
 	// Check amount need to deposit
 	sub := decimal.NewFromFloat(1)
 	if offer.Type == bean.OFFER_TYPE_BUY {
-		sub = totalAmount.Sub(inputAmount)
-	} else {
 		sub = offerAmount.Sub(inputAmount)
+	} else {
+		sub = totalAmount.Sub(inputAmount)
 	}
 
 	if sub.Equal(common.Zero) {
@@ -850,9 +850,9 @@ func (s OfferService) setupOfferAmount(offer *bean.Offer, ce *SimpleContextError
 	offer.Fee = fee.String()
 	offer.Reward = reward.String()
 	if offer.Type == bean.OFFER_TYPE_SELL {
-		offer.TotalAmount = amount.Sub(fee.Add(reward)).String()
-	} else if offer.Type == bean.OFFER_TYPE_BUY {
 		offer.TotalAmount = amount.Add(fee.Add(reward)).String()
+	} else if offer.Type == bean.OFFER_TYPE_BUY {
+		offer.TotalAmount = amount.Sub(fee.Add(reward)).String()
 	}
 }
 
@@ -864,8 +864,10 @@ func (s OfferService) transferCrypto(offer *bean.Offer, userId string, ce *Simpl
 
 			var response1 interface{}
 			// var response2 interface{}
+			transferAmount := offer.Amount
 			if offer.Type == bean.OFFER_TYPE_BUY {
-				response1 = s.sendTransaction(offer.UserAddress, offer.Amount, offer.Currency, description, offer.Id, *offer, ce)
+				response1 = s.sendTransaction(offer.UserAddress, offer.TotalAmount, offer.Currency, description, offer.Id, *offer, ce)
+				transferAmount = offer.TotalAmount
 			} else {
 				response1 = s.sendTransaction(offer.UserAddress, offer.Amount, offer.Currency, description, offer.Id, *offer, ce)
 			}
@@ -879,7 +881,7 @@ func (s OfferService) transferCrypto(offer *bean.Offer, userId string, ce *Simpl
 				DataRef:          dao.GetOfferItemPath(offer.Id),
 				UID:              userId,
 				Description:      description,
-				Amount:           offer.Amount,
+				Amount:           transferAmount,
 				Currency:         offer.Currency,
 			})
 
@@ -904,11 +906,13 @@ func (s OfferService) transferCrypto(offer *bean.Offer, userId string, ce *Simpl
 		if offer.RefundAddress != "" {
 			//Refund
 			var response interface{}
+			transferAmount := offer.Amount
 			description := fmt.Sprintf("Refund to userId %s offerId %s status %s", userId, offer.Id, offer.Status)
 			if offer.Type == bean.OFFER_TYPE_BUY {
 				response = s.sendTransaction(offer.RefundAddress, offer.Amount, offer.Currency, description, offer.Id, *offer, ce)
 			} else {
-				response = s.sendTransaction(offer.RefundAddress, offer.Amount, offer.Currency, description, offer.Id, *offer, ce)
+				response = s.sendTransaction(offer.RefundAddress, offer.TotalAmount, offer.Currency, description, offer.Id, *offer, ce)
+				transferAmount = offer.TotalAmount
 			}
 			if ce.HasError() {
 				return
@@ -920,7 +924,7 @@ func (s OfferService) transferCrypto(offer *bean.Offer, userId string, ce *Simpl
 				DataRef:          dao.GetOfferItemPath(offer.Id),
 				UID:              userId,
 				Description:      description,
-				Amount:           offer.Amount,
+				Amount:           transferAmount,
 				Currency:         offer.Currency,
 			})
 			offer.Provider = bean.OFFER_PROVIDER_COINBASE

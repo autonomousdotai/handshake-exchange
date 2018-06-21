@@ -442,13 +442,14 @@ func (s OfferStoreService) CancelOfferStoreShake(userId string, offerId string, 
 		offerShake.Status = bean.OFFER_STORE_SHAKE_STATUS_CANCELLED
 		description := fmt.Sprintf("Refund to userId %s due to reject the offer", offerShake.UID)
 		userAddress := offerShake.UserAddress
+		transferAmount := offerShake.Amount
 		if offerShake.Type == bean.OFFER_TYPE_BUY {
 			description = fmt.Sprintf("Refund to userId %s due to reject the offer", offer.UID)
 			userAddress = offerStoreItem.UserAddress
-
+			transferAmount = offerShake.TotalAmount
 		}
 		response := s.sendTransaction(userAddress,
-			offerShake.Amount, offerShake.Currency, description, offer.UID, offerStoreItem.WalletProvider, &ce)
+			transferAmount, offerShake.Currency, description, offer.UID, offerStoreItem.WalletProvider, &ce)
 		if !ce.HasError() {
 			s.miscDao.AddCryptoTransferLog(bean.CryptoTransferLog{
 				Provider:         offerStoreItem.WalletProvider,
@@ -457,7 +458,7 @@ func (s OfferStoreService) CancelOfferStoreShake(userId string, offerId string, 
 				DataRef:          dao.GetOfferStoreShakeItemPath(offerId, offerShakeId),
 				UID:              userId,
 				Description:      description,
-				Amount:           offerShake.Amount,
+				Amount:           transferAmount,
 				Currency:         offerShake.Currency,
 			})
 		}
@@ -786,16 +787,9 @@ func (s OfferStoreService) PreShakeOffChainOfferStoreShake(address string, amoun
 
 	inputAmount, _ := decimal.NewFromString(amountStr)
 	offerAmount, _ := decimal.NewFromString(offer.Amount)
-	totalAmount, _ := decimal.NewFromString(offer.TotalAmount)
 
 	// Check amount need to deposit
 	sub := decimal.NewFromFloat(1)
-	if offer.Type == bean.OFFER_TYPE_BUY {
-		sub = totalAmount.Sub(inputAmount)
-	} else {
-		sub = offerAmount.Sub(inputAmount)
-	}
-
 	// Check amount need to deposit
 	sub = offerAmount.Sub(inputAmount)
 
@@ -973,6 +967,17 @@ func (s OfferStoreService) prepareOfferStore(offer *bean.OfferStore, item *bean.
 	item.BuyAmountMin = minAmount.String()
 	item.SellBalance = "0"
 	item.SellAmountMin = minAmount.String()
+	amount := common.StringToDecimal(item.SellAmount)
+	if amount.GreaterThan(common.Zero) {
+		exchFeeTO := s.miscDao.GetSystemFeeFromCache(bean.FEE_KEY_EXCHANGE)
+		if ce.FeedDaoTransfer(api_error.GetDataFailed, exchFeeTO) {
+			return
+		}
+		exchFeeObj := exchFeeTO.Object.(bean.SystemFee)
+		exchFee := decimal.NewFromFloat(exchFeeObj.Value).Round(6)
+		fee := amount.Mul(exchFee)
+		item.SellTotalAmount = amount.Add(fee).String()
+	}
 
 	if offer.ItemSnapshots == nil {
 		offer.ItemSnapshots = make(map[string]bean.OfferStoreItem)
@@ -1123,9 +1128,11 @@ func (s OfferStoreService) transferCrypto(offer *bean.OfferStore, offerShake *be
 			var response1 interface{}
 			// var response2 interface{}
 			var userId string
+			transferAmount := offerShake.Amount
 			if offerShake.Type == bean.OFFER_TYPE_BUY {
-				response1 = s.sendTransaction(offerStoreItem.UserAddress, offerShake.Amount, offerShake.Currency, description, offerShake.Id, offerStoreItem.WalletProvider, ce)
+				response1 = s.sendTransaction(offerStoreItem.UserAddress, offerShake.TotalAmount, offerShake.Currency, description, offerShake.Id, offerStoreItem.WalletProvider, ce)
 				userId = offer.UID
+				transferAmount = offerShake.TotalAmount
 			} else {
 				response1 = s.sendTransaction(offerShake.UserAddress, offerShake.Amount, offerShake.Currency, description, offerShake.Id, offerStoreItem.WalletProvider, ce)
 				userId = offerShake.UID
@@ -1137,7 +1144,7 @@ func (s OfferStoreService) transferCrypto(offer *bean.OfferStore, offerShake *be
 				DataRef:          dao.GetOfferStoreShakeItemPath(offer.Id, offerShake.Id),
 				UID:              userId,
 				Description:      description,
-				Amount:           offerShake.Amount,
+				Amount:           transferAmount,
 				Currency:         offerShake.Currency,
 			})
 
@@ -1271,9 +1278,9 @@ func (s OfferStoreService) setupOfferShakeAmount(offerShake *bean.OfferStoreShak
 	offerShake.Fee = fee.String()
 	offerShake.Reward = reward.String()
 	if offerShake.Type == bean.OFFER_TYPE_SELL {
-		offerShake.TotalAmount = amount.Sub(fee.Add(reward)).String()
-	} else if offerShake.Type == bean.OFFER_TYPE_BUY {
 		offerShake.TotalAmount = amount.Add(fee.Add(reward)).String()
+	} else if offerShake.Type == bean.OFFER_TYPE_BUY {
+		offerShake.TotalAmount = amount.Sub(fee.Add(reward)).String()
 	}
 }
 
