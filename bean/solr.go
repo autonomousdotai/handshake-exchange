@@ -103,6 +103,10 @@ var instantOfferStatusMap = map[string]int{
 
 func NewSolrFromOffer(offer Offer) (solr SolrOfferObject) {
 	solr.Id = fmt.Sprintf("exchange_%s", offer.Id)
+	// Need to duplicate to another feed for tracking
+	if offer.Status == OFFER_STATUS_CANCELLED {
+		solr.Id = fmt.Sprintf("exchange_%s_cancelled", offer.Id)
+	}
 	solr.Type = 6
 	if offer.Status == OFFER_STATUS_ACTIVE {
 		solr.State = 1
