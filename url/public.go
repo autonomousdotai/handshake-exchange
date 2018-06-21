@@ -45,10 +45,6 @@ func (url CronJobUrl) Create(router *gin.Engine) *gin.RouterGroup {
 		onChainApi.UpdateOfferInit(context)
 	})
 	// CRON JOB
-	group.POST("/update-offer-close-on-chain", func(context *gin.Context) {
-		onChainApi.UpdateOfferClose(context)
-	})
-	// CRON JOB
 	group.POST("/update-offer-shake-on-chain", func(context *gin.Context) {
 		onChainApi.UpdateOfferShake(context)
 	})
@@ -59,10 +55,6 @@ func (url CronJobUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	// CRON JOB
 	group.POST("/update-offer-complete-on-chain", func(context *gin.Context) {
 		onChainApi.UpdateOfferComplete(context)
-	})
-	// CRON JOB
-	group.POST("/update-offer-withdraw-on-chain", func(context *gin.Context) {
-		onChainApi.UpdateOfferWithdraw(context)
 	})
 
 	// CRON JOB

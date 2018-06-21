@@ -37,11 +37,11 @@ func SendOfferToEmail(offer bean.Offer, c chan error) {
 
 	coinUsername := toUsername
 	cashEmail := offer.Email
-	coinEmail := offer.ToEmail
+	// coinEmail := offer.ToEmail
 	if offer.Type == bean.OFFER_TYPE_BUY {
 		coinUsername = username
 		cashEmail = offer.ToEmail
-		coinEmail = offer.Email
+		// coinEmail = offer.Email
 	}
 
 	if offer.Status == bean.OFFER_STATUS_ACTIVE {
@@ -76,10 +76,6 @@ func SendOfferToEmail(offer bean.Offer, c chan error) {
 	} else if offer.Status == bean.OFFER_STATUS_COMPLETED {
 		if cashEmail != "" {
 			err = email.SendOfferCompleteEmail(offer.Language, cashEmail, coinUsername, offer.Amount, offer.Currency)
-		}
-	} else if offer.Status == bean.OFFER_STATUS_WITHDRAW {
-		if coinEmail != "" {
-			err = email.SendOfferWithdrawEmail(offer.Language, coinEmail, offer.Amount, offer.Currency)
 		}
 	}
 	c <- err
@@ -128,8 +124,6 @@ func SendOfferToFCM(offer bean.Offer, c chan error) {
 				err = SendOfferCompletedFCM(offer.Language, offer.ToFCM)
 			}
 		}
-	} else if offer.Status == bean.OFFER_STATUS_WITHDRAW {
-		// Not yet
 	}
 	c <- err
 }

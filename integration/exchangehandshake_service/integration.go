@@ -46,61 +46,6 @@ func (c *ExchangeHandshakeClient) GetInitEvent(startBlock uint64) (offers []bean
 		err = errInit
 		return
 	}
-	notEmpty := true
-	endBlock1 := startBlock
-	for notEmpty {
-		notEmpty = past.Next()
-		if notEmpty {
-			endBlock1 = past.Event.Raw.BlockNumber
-			offers = append(offers, bean.OfferOnchain{
-				Hid:   int64(past.Event.Hid.Uint64()),
-				Offer: string(bytes.Trim(past.Event.Offchain[:], "\x00")),
-			})
-			// fmt.Println(fmt.Sprintf("%d %s", past.Event.Hid.Uint64(), string(bytes.Trim(past.Event.Offchain[:], "\x00"))))
-		}
-	}
-
-	past2, errInit := c.handshake.FilterInitByCashOwner(opt)
-	if errInit != nil {
-		err = errInit
-		return
-	}
-	notEmpty = true
-	endBlock2 := startBlock
-	for notEmpty {
-		notEmpty = past2.Next()
-		if notEmpty {
-			endBlock2 = past2.Event.Raw.BlockNumber
-			offers = append(offers, bean.OfferOnchain{
-				Hid:   int64(past2.Event.Hid.Uint64()),
-				Offer: string(bytes.Trim(past2.Event.Offchain[:], "\x00")),
-			})
-			// fmt.Println(fmt.Sprintf("%d %s", past2.Event.Hid.Uint64(), string(bytes.Trim(past2.Event.Offchain[:], "\x00"))))
-		}
-	}
-
-	if endBlock1 > endBlock2 {
-		endBlock = endBlock1
-	} else {
-		endBlock = endBlock2
-	}
-
-	c.close()
-
-	return
-}
-
-func (c *ExchangeHandshakeClient) GetCloseEvent(startBlock uint64) (offers []bean.OfferOnchain, endBlock uint64, err error) {
-	c.initialize()
-
-	opt := &bind.FilterOpts{
-		Start: startBlock,
-	}
-	past, errInit := c.handshake.FilterCloseByCashOwner(opt)
-	if errInit != nil {
-		err = errInit
-		return
-	}
 
 	notEmpty := true
 	endBlock = startBlock
@@ -156,60 +101,7 @@ func (c *ExchangeHandshakeClient) GetRejectEvent(startBlock uint64) (offers []be
 	opt := &bind.FilterOpts{
 		Start: startBlock,
 	}
-	past, errInit := c.handshake.FilterReject(opt)
-	if errInit != nil {
-		err = errInit
-		return
-	}
-	notEmpty := true
-	endBlock1 := startBlock
-	for notEmpty {
-		notEmpty = past.Next()
-		if notEmpty {
-			endBlock1 = past.Event.Raw.BlockNumber
-			offers = append(offers, bean.OfferOnchain{
-				Hid:   int64(past.Event.Hid.Uint64()),
-				Offer: string(bytes.Trim(past.Event.Offchain[:], "\x00")),
-			})
-		}
-	}
-
-	past2, errInit := c.handshake.FilterCancel(opt)
-	if errInit != nil {
-		err = errInit
-		return
-	}
-	notEmpty = true
-	endBlock2 := startBlock
-	for notEmpty {
-		notEmpty = past2.Next()
-		if notEmpty {
-			endBlock2 = past2.Event.Raw.BlockNumber
-			offers = append(offers, bean.OfferOnchain{
-				Hid:   int64(past2.Event.Hid.Uint64()),
-				Offer: string(bytes.Trim(past2.Event.Offchain[:], "\x00")),
-			})
-		}
-	}
-
-	if endBlock1 > endBlock2 {
-		endBlock = endBlock1
-	} else {
-		endBlock = endBlock2
-	}
-
-	c.close()
-
-	return
-}
-
-func (c *ExchangeHandshakeClient) GetCompleteEvent(startBlock uint64) (offers []bean.OfferOnchain, endBlock uint64, err error) {
-	c.initialize()
-
-	opt := &bind.FilterOpts{
-		Start: startBlock,
-	}
-	past, errInit := c.handshake.FilterAccept(opt)
+	past, errInit := c.handshake.FilterCancel(opt)
 	if errInit != nil {
 		err = errInit
 		return
@@ -233,13 +125,13 @@ func (c *ExchangeHandshakeClient) GetCompleteEvent(startBlock uint64) (offers []
 	return
 }
 
-func (c *ExchangeHandshakeClient) GetWithdrawEvent(startBlock uint64) (offers []bean.OfferOnchain, endBlock uint64, err error) {
+func (c *ExchangeHandshakeClient) GetCompleteEvent(startBlock uint64) (offers []bean.OfferOnchain, endBlock uint64, err error) {
 	c.initialize()
 
 	opt := &bind.FilterOpts{
 		Start: startBlock,
 	}
-	past, errInit := c.handshake.FilterWithdraw(opt)
+	past, errInit := c.handshake.FilterAccept(opt)
 	if errInit != nil {
 		err = errInit
 		return

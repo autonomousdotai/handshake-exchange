@@ -1123,14 +1123,10 @@ func (s OfferStoreService) transferCrypto(offer *bean.OfferStore, offerShake *be
 			var response1 interface{}
 			// var response2 interface{}
 			var userId string
-			transferAmount := offerShake.Amount
 			if offerShake.Type == bean.OFFER_TYPE_BUY {
-				// Amount = 1, transfer 0.09 (if fee = 1%)
-				response1 = s.sendTransaction(offerStoreItem.UserAddress, offerShake.TotalAmount, offerShake.Currency, description, offerShake.Id, offerStoreItem.WalletProvider, ce)
-				transferAmount = offerShake.TotalAmount
+				response1 = s.sendTransaction(offerStoreItem.UserAddress, offerShake.Amount, offerShake.Currency, description, offerShake.Id, offerStoreItem.WalletProvider, ce)
 				userId = offer.UID
 			} else {
-				// Amount = 1, transfer 1
 				response1 = s.sendTransaction(offerShake.UserAddress, offerShake.Amount, offerShake.Currency, description, offerShake.Id, offerStoreItem.WalletProvider, ce)
 				userId = offerShake.UID
 			}
@@ -1141,7 +1137,7 @@ func (s OfferStoreService) transferCrypto(offer *bean.OfferStore, offerShake *be
 				DataRef:          dao.GetOfferStoreShakeItemPath(offer.Id, offerShake.Id),
 				UID:              userId,
 				Description:      description,
-				Amount:           transferAmount,
+				Amount:           offerShake.Amount,
 				Currency:         offerShake.Currency,
 			})
 

@@ -12,26 +12,20 @@ const OFFER_TYPE_SELL = "sell"
 
 const OFFER_PROVIDER_COINBASE = "coinbase"
 
-// created -> active
-// active -> shaking, shake
-// shaking -> shake
-// shake -> completing, completed
-// shake -> rejecting, rejected
-// completed -> withdrawing, withdraw
-// rejected -> withdrawing, withdraw
-// closed -> withdrawing, withdraw
 const OFFER_STATUS_CREATED = "created"
 const OFFER_STATUS_ACTIVE = "active"
+const OFFER_STATUS_PRE_SHAKING = "pre_shaking"
+const OFFER_STATUS_PRE_SHAKE = "pre_shake"
 const OFFER_STATUS_SHAKING = "shaking"
 const OFFER_STATUS_SHAKE = "shake"
 const OFFER_STATUS_COMPLETING = "completing"
 const OFFER_STATUS_COMPLETED = "completed"
 const OFFER_STATUS_CLOSING = "closing"
 const OFFER_STATUS_CLOSED = "closed"
+const OFFER_STATUS_CANCELLING = "cancelling"
+const OFFER_STATUS_CANCELLED = "cancelled"
 const OFFER_STATUS_REJECTING = "rejecting"
 const OFFER_STATUS_REJECTED = "rejected"
-const OFFER_STATUS_WITHDRAWING = "withdrawing"
-const OFFER_STATUS_WITHDRAW = "withdraw"
 
 var MIN_ETH = decimal.NewFromFloat(0.01).Round(2)
 
