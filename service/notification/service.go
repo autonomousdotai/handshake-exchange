@@ -33,49 +33,75 @@ func SendOfferToEmail(offer bean.Offer, c chan error) {
 	if username == "" {
 		username = offer.ContactPhone
 	}
-	toUsername := offer.ToEmail
+	// toUsername := offer.ToEmail
 
-	coinUsername := toUsername
-	cashEmail := offer.Email
+	// coinUsername := toUsername
+	// cashEmail := offer.Email
 	// coinEmail := offer.ToEmail
 	if offer.Type == bean.OFFER_TYPE_BUY {
-		coinUsername = username
-		cashEmail = offer.ToEmail
+		// coinUsername = username
+		// cashEmail = offer.ToEmail
 		// coinEmail = offer.Email
 	}
 
 	if offer.Status == bean.OFFER_STATUS_ACTIVE {
 		if offer.Email != "" {
 			if offer.Type == bean.OFFER_TYPE_BUY {
-				err = email.SendOfferBuyingActiveEmail(offer.Language, offer.Email, offer.Currency, offer.Price, offer.FiatCurrency)
+				err = email.SendOfferBuyingActiveEmail(offer.Language, offer.Email)
 			} else {
-				err = email.SendOfferSellingActiveEmail(offer.Language, offer.Email, offer.Currency, offer.Price, offer.FiatCurrency)
+				err = email.SendOfferSellingActiveEmail(offer.Language, offer.Email)
 			}
 		}
 	} else if offer.Status == bean.OFFER_STATUS_CLOSED {
-		if offer.Email != "" {
-			err = email.SendOfferClosedEmail(offer.Language, offer.Email)
-		}
+		//if offer.Email != "" {
+		//	err = email.SendOfferClosedEmail(offer.Language, offer.Email)
+		//}
 	} else if offer.Status == bean.OFFER_STATUS_SHAKE {
 		if offer.Email != "" {
-			err = email.SendOfferMakerShakeEmail(offer.Language, offer.Email, toUsername, offer.Amount, offer.Currency, offer.Price, offer.FiatCurrency)
+			if offer.IsTypeSell() {
+				err = email.SendOfferMakerSellShakeEmail(offer.Language, offer.Email)
+			} else {
+				err = email.SendOfferMakerBuyShakeEmail(offer.Language, offer.Email)
+			}
 		}
 		if offer.ToEmail != "" {
-			err = email.SendOfferTakerShakeEmail(offer.Language, offer.ToEmail, username, offer.Amount, offer.Currency, offer.Price, offer.FiatCurrency)
+			if offer.IsTypeSell() {
+				err = email.SendOfferTakerSellShakeEmail(offer.Language, offer.ToEmail)
+			} else {
+				err = email.SendOfferTakerBuyShakeEmail(offer.Language, offer.ToEmail)
+			}
 		}
 	} else if offer.Status == bean.OFFER_STATUS_REJECTED {
 		if offer.UID == offer.ActionUID {
+			if offer.Email != "" {
+				err = email.SendOfferMakerMakerRejectEmail(offer.Language, offer.Email)
+			}
 			if offer.ToEmail != "" {
-				err = email.SendOfferTakerRejectEmail(offer.Language, offer.ToEmail, username)
+				err = email.SendOfferTakerMakerRejectEmail(offer.Language, offer.ToEmail)
 			}
 		} else {
 			if offer.Email != "" {
-				err = email.SendOfferMakerRejectEmail(offer.Language, offer.Email, toUsername)
+				err = email.SendOfferMakerTakerRejectEmail(offer.Language, offer.Email)
+			}
+			if offer.ToEmail != "" {
+				err = email.SendOfferTakerTakerRejectEmail(offer.Language, offer.ToEmail)
 			}
 		}
 	} else if offer.Status == bean.OFFER_STATUS_COMPLETED {
-		if cashEmail != "" {
-			err = email.SendOfferCompleteEmail(offer.Language, cashEmail, coinUsername, offer.Amount, offer.Currency)
+		if offer.IsTypeSell() {
+			if offer.Email != "" {
+				err = email.SendOfferSellCompleteEmail(offer.Language, offer.Email)
+			}
+			if offer.ToEmail != "" {
+				err = email.SendOfferBuyCompleteEmail(offer.Language, offer.ToEmail)
+			}
+		} else {
+			if offer.Email != "" {
+				err = email.SendOfferBuyCompleteEmail(offer.Language, offer.Email)
+			}
+			if offer.ToEmail != "" {
+				err = email.SendOfferSellCompleteEmail(offer.Language, offer.ToEmail)
+			}
 		}
 	}
 	c <- err

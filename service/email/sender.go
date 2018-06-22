@@ -3,29 +3,18 @@ package email
 import (
 	"fmt"
 	"github.com/nicksnyder/go-i18n/i18n"
-	"github.com/ninjadotorg/handshake-exchange/common"
-	"github.com/shopspring/decimal"
 	"os"
 )
 
-func SendOfferBuyingActiveEmail(language string, emailAddress string, currency string, price string, priceCurrency string) error {
+func SendOfferBuyingActiveEmail(language string, emailAddress string) error {
 	T, _ := i18n.Tfunc(language)
 
-	subject := T("email_offer_buying_active_subject", map[string]string{
-		"Currency": currency,
-	})
+	subject := T("email_offer_buying_active_subject")
 
-	priceNum, _ := decimal.NewFromString(price)
-	priceStr := ""
-	if priceNum.GreaterThan(common.Zero) {
-		priceStr = fmt.Sprintf("for %s %s", price, priceCurrency)
-	}
 	data := struct {
-		Currency string
-		PriceStr string
+		Url string
 	}{
-		Currency: currency,
-		PriceStr: priceStr,
+		Url: "",
 	}
 
 	return SendSystemEmailWithTemplate(
@@ -37,24 +26,15 @@ func SendOfferBuyingActiveEmail(language string, emailAddress string, currency s
 		data)
 }
 
-func SendOfferSellingActiveEmail(language, emailAddress string, currency string, price string, priceCurrency string) error {
+func SendOfferSellingActiveEmail(language, emailAddress string) error {
 	T, _ := i18n.Tfunc(language)
 
-	subject := T("email_offer_selling_active_subject", map[string]string{
-		"Currency": currency,
-	})
+	subject := T("email_offer_selling_active_subject")
 
-	priceNum, _ := decimal.NewFromString(price)
-	priceStr := ""
-	if priceNum.GreaterThan(common.Zero) {
-		priceStr = fmt.Sprintf("for %s %s", price, priceCurrency)
-	}
 	data := struct {
-		Currency string
-		PriceStr string
+		Url string
 	}{
-		Currency: currency,
-		PriceStr: priceStr,
+		Url: "",
 	}
 
 	return SendSystemEmailWithTemplate(
@@ -86,26 +66,15 @@ func SendOfferClosedEmail(language, emailAddress string) error {
 		data)
 }
 
-func SendOfferMakerShakeEmail(language string, emailAddress string, username string,
-	amount string, currency string, price string, fiatCurrency string) error {
+func SendOfferMakerBuyShakeEmail(language string, emailAddress string) error {
 	T, _ := i18n.Tfunc(language)
 
-	subject := T("email_offer_maker_shake_subject", map[string]string{
-		"Currency": currency,
-	})
+	subject := T("email_offer_maker_buy_shake_subject")
 
 	data := struct {
-		Amount       string
-		Currency     string
-		Price        string
-		FiatCurrency string
-		ToUsername   string
+		Url string
 	}{
-		Amount:       amount,
-		Currency:     currency,
-		Price:        price,
-		FiatCurrency: fiatCurrency,
-		ToUsername:   username,
+		Url: "",
 	}
 
 	return SendSystemEmailWithTemplate(
@@ -113,30 +82,19 @@ func SendOfferMakerShakeEmail(language string, emailAddress string, username str
 		emailAddress,
 		language,
 		subject,
-		OfferMakerShake,
+		OfferMakerBuyShake,
 		data)
 }
 
-func SendOfferTakerShakeEmail(language string, emailAddress string, username string,
-	amount string, currency string, price string, fiatCurrency string) error {
+func SendOfferTakerBuyShakeEmail(language string, emailAddress string) error {
 	T, _ := i18n.Tfunc(language)
 
-	subject := T("email_offer_taker_shake_subject", map[string]string{
-		"Currency": currency,
-	})
+	subject := T("email_offer_taker_buy_shake_subject")
 
 	data := struct {
-		Amount       string
-		Currency     string
-		Price        string
-		FiatCurrency string
-		Username     string
+		Url string
 	}{
-		Amount:       amount,
-		Currency:     currency,
-		Price:        price,
-		FiatCurrency: fiatCurrency,
-		Username:     username,
+		Url: "",
 	}
 
 	return SendSystemEmailWithTemplate(
@@ -144,21 +102,19 @@ func SendOfferTakerShakeEmail(language string, emailAddress string, username str
 		emailAddress,
 		language,
 		subject,
-		OfferTakerShake,
+		OfferTakerBuyShake,
 		data)
 }
 
-func SendOfferMakerRejectEmail(language string, emailAddress string, username string) error {
+func SendOfferMakerSellShakeEmail(language string, emailAddress string) error {
 	T, _ := i18n.Tfunc(language)
 
-	subject := T("email_offer_maker_rejected_subject", map[string]string{
-		"ToUsername": username,
-	})
+	subject := T("email_offer_maker_sell_shake_subject")
 
 	data := struct {
-		ToUsername string
+		Url string
 	}{
-		ToUsername: username,
+		Url: "",
 	}
 
 	return SendSystemEmailWithTemplate(
@@ -166,21 +122,19 @@ func SendOfferMakerRejectEmail(language string, emailAddress string, username st
 		emailAddress,
 		language,
 		subject,
-		OfferMakerRejected,
+		OfferMakerSellShake,
 		data)
 }
 
-func SendOfferTakerRejectEmail(language string, emailAddress string, username string) error {
+func SendOfferTakerSellShakeEmail(language string, emailAddress string) error {
 	T, _ := i18n.Tfunc(language)
 
-	subject := T("email_offer_taker_rejected_subject", map[string]string{
-		"ToUsername": username,
-	})
+	subject := T("email_offer_taker_sell_shake_subject")
 
 	data := struct {
-		Username string
+		Url string
 	}{
-		Username: username,
+		Url: "",
 	}
 
 	return SendSystemEmailWithTemplate(
@@ -188,29 +142,102 @@ func SendOfferTakerRejectEmail(language string, emailAddress string, username st
 		emailAddress,
 		language,
 		subject,
-		OfferTakerRejected,
+		OfferTakerSellShake,
 		data)
 }
 
-func SendOfferCompleteEmail(language string, emailAddress string,
-	amount string, currency string, username string) error {
+func SendOfferMakerMakerRejectEmail(language string, emailAddress string) error {
+	T, _ := i18n.Tfunc(language)
+
+	subject := T("email_offer_maker_maker_rejected_subject")
+
+	data := struct {
+		Url string
+	}{
+		Url: "",
+	}
+
+	return SendSystemEmailWithTemplate(
+		"",
+		emailAddress,
+		language,
+		subject,
+		OfferMakerMakerRejected,
+		data)
+}
+
+func SendOfferTakerMakerRejectEmail(language string, emailAddress string) error {
+	T, _ := i18n.Tfunc(language)
+
+	subject := T("email_offer_taker_maker_rejected_subject")
+
+	data := struct {
+		Url string
+	}{
+		Url: "",
+	}
+
+	return SendSystemEmailWithTemplate(
+		"",
+		emailAddress,
+		language,
+		subject,
+		OfferTakerMakerRejected,
+		data)
+}
+
+func SendOfferMakerTakerRejectEmail(language string, emailAddress string) error {
+	T, _ := i18n.Tfunc(language)
+
+	subject := T("email_offer_maker_taker_rejected_subject")
+
+	data := struct {
+		Url string
+	}{
+		Url: "",
+	}
+
+	return SendSystemEmailWithTemplate(
+		"",
+		emailAddress,
+		language,
+		subject,
+		OfferMakerTakerRejected,
+		data)
+}
+
+func SendOfferTakerTakerRejectEmail(language string, emailAddress string) error {
+	T, _ := i18n.Tfunc(language)
+
+	subject := T("email_offer_taker_taker_rejected_subject")
+
+	data := struct {
+		Url string
+	}{
+		Url: "",
+	}
+
+	return SendSystemEmailWithTemplate(
+		"",
+		emailAddress,
+		language,
+		subject,
+		OfferTakerTakerRejected,
+		data)
+}
+
+func SendOfferBuyCompleteEmail(language string, emailAddress string) error {
 	if emailAddress == "" {
 		return nil
 	}
 	T, _ := i18n.Tfunc(language)
 
-	subject := T("email_offer_completed_subject", map[string]string{
-		"Currency": currency,
-	})
+	subject := T("email_offer_buy_completed_subject")
 
 	data := struct {
-		Amount   string
-		Currency string
-		Username string
+		Url string
 	}{
-		Amount:   amount,
-		Currency: currency,
-		Username: username,
+		Url: "",
 	}
 
 	return SendSystemEmailWithTemplate(
@@ -218,7 +245,30 @@ func SendOfferCompleteEmail(language string, emailAddress string,
 		emailAddress,
 		language,
 		subject,
-		OfferCompleted,
+		OfferBuyCompleted,
+		data)
+}
+
+func SendOfferSellCompleteEmail(language string, emailAddress string) error {
+	if emailAddress == "" {
+		return nil
+	}
+	T, _ := i18n.Tfunc(language)
+
+	subject := T("email_offer_sell_completed_subject")
+
+	data := struct {
+		Url string
+	}{
+		Url: "",
+	}
+
+	return SendSystemEmailWithTemplate(
+		"",
+		emailAddress,
+		language,
+		subject,
+		OfferSellCompleted,
 		data)
 }
 

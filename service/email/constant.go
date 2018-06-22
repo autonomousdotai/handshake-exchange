@@ -3,11 +3,16 @@ package email
 const OfferBuyingActive = "OfferBuyingActive"
 const OfferSellingActive = "OfferSellingActive"
 const OfferClosed = "OfferClosed"
-const OfferTakerShake = "OfferTakerShake"
-const OfferMakerShake = "OfferMakerShake"
-const OfferCompleted = "OfferCompleted"
-const OfferTakerRejected = "OfferTakerRejected"
-const OfferMakerRejected = "OfferMakerRejected"
+const OfferTakerBuyShake = "OfferTakerBuyShake"
+const OfferMakerBuyShake = "OfferMakerBuyShake"
+const OfferTakerSellShake = "OfferTakerSellShake"
+const OfferMakerSellShake = "OfferMakerSellShake"
+const OfferBuyCompleted = "OfferBuyCompleted"
+const OfferSellCompleted = "OfferSellCompleted"
+const OfferMakerTakerRejected = "OfferMakerTakerRejected"
+const OfferMakerMakerRejected = "OfferMakerMakerRejected"
+const OfferTakerTakerRejected = "OfferTakerTakerRejected"
+const OfferTakerMakerRejected = "OfferTakerMakerRejected"
 const OfferWithdraw = "OfferWithdraw"
 const OrderInstantCCSuccess = "OrderInstantCCSuccess"
 const OfferStoreItemAdded = "OfferStoreItemAdded"
@@ -26,11 +31,16 @@ var TemplateName = map[string]string{
 	OfferSellingActive:       "offer-selling-active-",
 	OfferClosed:              "offer-closed-",
 	OrderInstantCCSuccess:    "order-instant-cc-success-",
-	OfferTakerShake:          "offer-taker-shake-",
-	OfferMakerShake:          "offer-maker-shake-",
-	OfferCompleted:           "offer-completed-",
-	OfferTakerRejected:       "offer-taker-rejected-",
-	OfferMakerRejected:       "offer-maker-rejected-",
+	OfferTakerBuyShake:       "offer-taker-buy-shake-",
+	OfferMakerBuyShake:       "offer-maker-buy-shake-",
+	OfferTakerSellShake:      "offer-taker-sell-shake-",
+	OfferMakerSellShake:      "offer-maker-sell-shake-",
+	OfferBuyCompleted:        "offer-buy-completed-",
+	OfferSellCompleted:       "offer-sell-completed-",
+	OfferMakerTakerRejected:  "offer-maker-taker-rejected-",
+	OfferMakerMakerRejected:  "offer-maker-maker-rejected-",
+	OfferTakerTakerRejected:  "offer-taker-taker-rejected-",
+	OfferTakerMakerRejected:  "offer-taker-maker-rejected-",
 	OfferWithdraw:            "offer-withdraw-",
 	OfferStoreItemAdded:      "offer-store-item-added-",
 	OfferStoreItemRemoved:    "offer-store-item-removed-",
