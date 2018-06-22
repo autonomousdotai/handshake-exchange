@@ -241,7 +241,7 @@ func (api OnChainApi) UpdateOfferStorePreShake(context *gin.Context) {
 
 func (api OnChainApi) UpdateOfferStoreCancel(context *gin.Context) {
 	client := exchangehandshakeshop_service.ExchangeHandshakeShopClient{}
-	to := dao.OnChainDaoInst.GetOfferStoreShakeEventBlock()
+	to := dao.OnChainDaoInst.GetOfferStoreCancelEventBlock()
 	if to.ContextValidate(context) {
 		return
 	}
@@ -260,7 +260,7 @@ func (api OnChainApi) UpdateOfferStoreCancel(context *gin.Context) {
 		lastBlock += 1
 	}
 	block.LastBlock = int64(lastBlock)
-	err = dao.OnChainDaoInst.UpdateOfferShakeEventBlock(block)
+	err = dao.OnChainDaoInst.UpdateOfferStoreCancelEventBlock(block)
 	if api_error.PropagateErrorAndAbort(context, api_error.UpdateDataFailed, err) != nil {
 		return
 	}
@@ -289,7 +289,7 @@ func (api OnChainApi) UpdateOfferStoreShake(context *gin.Context) {
 		lastBlock += 1
 	}
 	block.LastBlock = int64(lastBlock)
-	err = dao.OnChainDaoInst.UpdateOfferShakeEventBlock(block)
+	err = dao.OnChainDaoInst.UpdateOfferStoreShakeEventBlock(block)
 	if api_error.PropagateErrorAndAbort(context, api_error.UpdateDataFailed, err) != nil {
 		return
 	}

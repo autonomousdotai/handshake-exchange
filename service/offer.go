@@ -406,6 +406,7 @@ func (s OfferService) CancelShakeOffer(userId string, offerId string) (offer bea
 	}
 
 	if offer.Currency == bean.BTC.Code {
+		offer.ToUID = ""
 		offer.Status = bean.OFFER_STATUS_CANCELLED
 		// Need it here to duplicate solr record for cancelled
 		notification.SendOfferNotification(offer)
@@ -627,9 +628,11 @@ func (s OfferService) UpdateOnChainOffer(offerId string, hid int64, oldStatus st
 			oldStatus = bean.OFFER_STATUS_CANCELLING
 			newStatus = bean.OFFER_STATUS_ACTIVE
 
+			offer.ToUID = ""
 			offer.Status = bean.OFFER_STATUS_CANCELLED
 			// Need it here to duplicate solr record for cancelled
 			notification.SendOfferNotification(offer)
+			offer.Status = bean.OFFER_STATUS_CANCELLING
 		}
 	}
 
