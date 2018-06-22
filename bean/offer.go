@@ -60,7 +60,7 @@ type Offer struct {
 	FCM              string           `json:"fcm" firestore:"fcm"`
 	ToUID            string           `json:"to_uid" firestore:"to_uid"`
 	ToUsername       string           `json:"to_username" firestore:"to_username"`
-	ToChatUsername   string           `json:"chat_username" firestore:"to_chat_username"`
+	ToChatUsername   string           `json:"to_chat_username" firestore:"to_chat_username"`
 	ToEmail          string           `json:"to_email" firestore:"to_email"`
 	ToLanguage       string           `json:"to_language" firestore:"to_language"`
 	ToFCM            string           `json:"to_fcm" firestore:"to_fcm"`
