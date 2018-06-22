@@ -396,7 +396,7 @@ func (s OfferService) CancelShakeOffer(userId string, offerId string) (offer bea
 		return
 	}
 
-	if profile.UserId != offer.UID {
+	if profile.UserId != offer.UID && profile.UserId != offer.ToUID {
 		ce.SetStatusKey(api_error.InvalidRequestBody)
 		return
 	}
