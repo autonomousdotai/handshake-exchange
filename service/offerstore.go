@@ -271,7 +271,7 @@ func (s OfferStoreService) CreateOfferStoreShake(userId string, offerId string, 
 		ce.SetError(api_error.GetDataFailed, err)
 		return
 	}
-	if offerShakeBody.Type == bean.OFFER_TYPE_SELL {
+	if offerShakeBody.IsTypeSell() {
 		balance, _ = decimal.NewFromString(item.SellAmount)
 	} else {
 		balance, _ = decimal.NewFromString(item.BuyAmount)
@@ -292,10 +292,11 @@ func (s OfferStoreService) CreateOfferStoreShake(userId string, offerId string, 
 	}
 
 	// Status of shake
-	if offerShakeBody.Type == bean.OFFER_TYPE_SELL {
+	if offerShakeBody.IsTypeSell() {
 		// SHAKE
 		offerShakeBody.Status = bean.OFFER_STORE_SHAKE_STATUS_SHAKE
 		err = s.dao.UpdateOfferStoreShakeBalance(offer, &item, offerShakeBody, true)
+		offer.ItemSnapshots[item.Currency] = item
 		if ce.SetError(api_error.UpdateDataFailed, err) {
 			return
 		}
@@ -352,6 +353,7 @@ func (s OfferStoreService) RejectOfferStoreShake(userId string, offerId string, 
 		offerShake.Status = bean.OFFER_STORE_SHAKE_STATUS_REJECTED
 		// REJECTED
 		err := s.dao.UpdateOfferStoreShakeBalance(offer, &item, offerShake, false)
+		offer.ItemSnapshots[item.Currency] = item
 		if ce.SetError(api_error.UpdateDataFailed, err) {
 			return
 		}
@@ -758,7 +760,7 @@ func (s OfferStoreService) ActiveOffChainOfferStore(address string, amountStr st
 			return
 		}
 	} else {
-		// TODO Process to refund?
+		ce.SetStatusKey(api_error.InvalidAmount)
 	}
 
 	return

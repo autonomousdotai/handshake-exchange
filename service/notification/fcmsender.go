@@ -32,9 +32,9 @@ func SendOfferMakerShakeFCM(language string, fcm string, offerType string) error
 	T, _ := i18n.Tfunc(language)
 
 	title := T("common_notification_title")
-	role := T("common_role_buyer")
+	role := T("common_buyer")
 	if offerType == bean.OFFER_TYPE_BUY {
-		role = T("common_role_seller")
+		role = T("common_seller")
 	}
 	body := T("notification_offer_maker_shake", map[string]string{
 		"Role": role,
@@ -59,9 +59,9 @@ func SendOfferTakerShakeFCM(language string, fcm string, offerType string) error
 	T, _ := i18n.Tfunc(language)
 
 	title := T("common_notification_title")
-	role := T("common_role_seller")
+	role := T("common_seller")
 	if offerType == bean.OFFER_TYPE_BUY {
-		role = T("common_role_buyer")
+		role = T("common_buyer")
 	}
 	body := T("notification_offer_taker_shake", map[string]string{
 		"Role": role,
@@ -86,9 +86,9 @@ func SendOfferMakerRejectedFCM(language string, fcm string, offerType string) er
 	T, _ := i18n.Tfunc(language)
 
 	title := T("common_notification_title")
-	role := T("common_role_buyer")
+	role := T("common_buyer")
 	if offerType == bean.OFFER_TYPE_BUY {
-		role = T("common_role_seller")
+		role = T("common_seller")
 	}
 	body := T("notification_offer_maker_rejected", map[string]string{
 		"Role": role,

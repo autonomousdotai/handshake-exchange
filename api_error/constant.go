@@ -30,6 +30,7 @@ const OfferStatusInvalid = "OfferStatusInvalid"
 const OfferPayMyself = "OfferPayMyself"
 const TooManyOffer = "TooManyOffer"
 const AmountIsTooSmall = "AmountIsTooSmall"
+const InvalidAmount = "InvalidAmount"
 const InvalidUserToCompleteHandshake = "InvalidUserToCompleteHandshake"
 const OfferActionLocked = "OfferActionLocked"
 const OfferStoreExists = "OfferStoreExists"
@@ -78,4 +79,5 @@ var CodeMessage = map[string]struct {
 	OfferStoreShakeNotExist:        {http.StatusBadRequest, -315, "Offer store shake not exist"},
 	OfferStoreNotEnoughBalance:     {http.StatusBadRequest, -316, "Offer not enough balance"},
 	OfferStoreAlreadyReviewed:      {http.StatusBadRequest, -317, "Offer store already reviewed"},
+	InvalidAmount:                  {http.StatusBadRequest, -318, "Invalid amount"},
 }

@@ -66,7 +66,7 @@ func (offer OfferStore) GetAddOfferStore() map[string]interface{} {
 	return map[string]interface{}{
 		"id":                offer.Id,
 		"item_flags":        offer.ItemFlags,
-		"status":            OFFER_STORE_STATUS_CREATED,
+		"status":            offer.Status,
 		"uid":               offer.UID,
 		"username":          offer.Username,
 		"chat_username":     offer.ChatUsername,
@@ -213,7 +213,7 @@ type OfferStoreShake struct {
 	Id               string      `json:"id" firestore:"id"`
 	Hid              int64       `json:"hid" firestore:"hid"`
 	OffChainId       string      `json:"off_chain_id" firestore:"off_chain_id"`
-	Type             string      `json:"type" firestore:"type" validate:"required"`
+	Type             string      `json:"type" firestore:"type" validate:"required,oneof=buy sell"`
 	Status           string      `json:"status" firestore:"status"`
 	UID              string      `json:"-" firestore:"uid"`
 	Username         string      `json:"username" firestore:"username"`
@@ -294,6 +294,13 @@ func (offer OfferStoreShake) GetNotificationUpdate() map[string]interface{} {
 		"status": offer.Status,
 		"type":   "offer_store_shake",
 	}
+}
+
+func (offer OfferStoreShake) IsTypeSell() bool {
+	return offer.Type == OFFER_TYPE_SELL
+}
+func (offer OfferStoreShake) IsTypeBuy() bool {
+	return offer.Type == OFFER_TYPE_BUY
 }
 
 type OfferStoreReview struct {

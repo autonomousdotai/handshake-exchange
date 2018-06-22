@@ -50,7 +50,7 @@ type Offer struct {
 	PhysicalQuantity int64            `json:"physical_quantity" firestore:"physical_quantity"`
 	PhysicalItemDocs []string         `json:"physical_item_docs" firestore:"physical_item_docs"`
 	Tags             []string         `json:"tags" firestore:"tags"`
-	Type             string           `json:"type" firestore:"type" validate:"required"`
+	Type             string           `json:"type" firestore:"type" validate:"required,oneof=buy sell"`
 	Status           string           `json:"status" firestore:"status"`
 	UID              string           `json:"uid" firestore:"uid"`
 	Username         string           `json:"username" firestore:"username"`
@@ -215,6 +215,7 @@ func (offer Offer) GetUpdateOfferReject() map[string]interface{} {
 
 func (offer Offer) GetChangeStatus() map[string]interface{} {
 	return map[string]interface{}{
+		"hid":        offer.Hid,
 		"status":     strings.ToLower(offer.Status),
 		"updated_at": firestore.ServerTimestamp,
 	}
@@ -230,6 +231,13 @@ func (offer Offer) GetNotificationUpdate() map[string]interface{} {
 
 func (offer Offer) GetPageValue() interface{} {
 	return offer.CreatedAt
+}
+
+func (offer Offer) IsTypeSell() bool {
+	return offer.Type == OFFER_TYPE_SELL
+}
+func (offer Offer) IsTypeBuy() bool {
+	return offer.Type == OFFER_TYPE_BUY
 }
 
 type OfferShakeRequest struct {
