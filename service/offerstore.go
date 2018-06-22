@@ -746,7 +746,7 @@ func (s OfferStoreService) ActiveOffChainOfferStore(address string, amountStr st
 	}
 
 	inputAmount, _ := decimal.NewFromString(amountStr)
-	offerAmount, _ := decimal.NewFromString(item.SellAmount)
+	offerAmount, _ := decimal.NewFromString(item.SellTotalAmount)
 
 	// Check amount need to deposit
 	sub := offerAmount.Sub(inputAmount)
