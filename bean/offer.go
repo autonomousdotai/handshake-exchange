@@ -54,11 +54,13 @@ type Offer struct {
 	Status           string           `json:"status" firestore:"status"`
 	UID              string           `json:"uid" firestore:"uid"`
 	Username         string           `json:"username" firestore:"username"`
+	ChatUsername     string           `json:"chat_username" firestore:"chat_username"`
 	Email            string           `json:"email" firestore:"email"`
 	Language         string           `json:"language" firestore:"language"`
 	FCM              string           `json:"fcm" firestore:"fcm"`
 	ToUID            string           `json:"to_uid" firestore:"to_uid"`
 	ToUsername       string           `json:"to_username" firestore:"to_username"`
+	ToChatUsername   string           `json:"chat_username" firestore:"to_chat_username"`
 	ToEmail          string           `json:"to_email" firestore:"to_email"`
 	ToLanguage       string           `json:"to_language" firestore:"to_language"`
 	ToFCM            string           `json:"to_fcm" firestore:"to_fcm"`
@@ -160,6 +162,8 @@ func (offer Offer) GetUpdateOfferShake() map[string]interface{} {
 		"fiat_amount":      offer.FiatAmount,
 		"to_email":         offer.ToEmail,
 		"to_language":      offer.ToLanguage,
+		"to_username":      offer.Username,
+		"to_chat_username": offer.ToChatUsername,
 		"user_address":     offer.UserAddress,
 		"refund_address":   offer.RefundAddress,
 		"to_uid":           offer.ToUID,
@@ -241,12 +245,13 @@ func (offer Offer) IsTypeBuy() bool {
 }
 
 type OfferShakeRequest struct {
-	FiatAmount string `json:"fiat_amount"`
-	Address    string `json:"address"`
-	Email      string `json:"email"`
-	Username   string `json:"username"`
-	Language   string `json:"language"`
-	FCM        string `json:"fcm"`
+	FiatAmount   string `json:"fiat_amount"`
+	Address      string `json:"address"`
+	Email        string `json:"email"`
+	Username     string `json:"username"`
+	ChatUsername string `json:"chat_username"`
+	Language     string `json:"language"`
+	FCM          string `json:"fcm"`
 }
 
 const OFFER_ADDRESS_MAP_OFFER = "offer"

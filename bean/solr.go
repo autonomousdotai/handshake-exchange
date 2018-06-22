@@ -57,8 +57,10 @@ type SolrOfferExtraData struct {
 	ContactInfo      string   `json:"contact_info"`
 	Email            string   `json:"email"`
 	Username         string   `json:"username"`
+	ChatUsername     string   `json:"chat_username"`
 	ToEmail          string   `json:"to_email"`
 	ToUsername       string   `json:"to_username"`
+	ToChatUsername   string   `json:"to_chat_username"`
 	SystemAddress    string   `json:"system_address"`
 	Status           string   `json:"status"`
 	Success          int64    `json:"success"`
@@ -171,8 +173,10 @@ func NewSolrFromOffer(offer Offer) (solr SolrOfferObject) {
 		ContactPhone:     offer.ContactPhone,
 		Email:            offer.Email,
 		Username:         offer.Username,
+		ChatUsername:     offer.ChatUsername,
 		ToEmail:          offer.ToEmail,
 		ToUsername:       offer.ToUsername,
+		ToChatUsername:   offer.ToChatUsername,
 		SystemAddress:    offer.SystemAddress,
 		Status:           offer.Status,
 		Success:          offer.TransactionCount.Success,

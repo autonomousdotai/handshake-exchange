@@ -212,7 +212,7 @@ func (s OfferService) ActiveOnChainOffer(offerId string, hid int64) (offer bean.
 		}
 	} else if offer.Status == bean.OFFER_STATUS_PRE_SHAKING {
 		offer.Status = bean.OFFER_STATUS_PRE_SHAKE
-		_, ce = s.PreShakeOnChainOffer(offerId)
+		_, ce = s.PreShakeOnChainOffer(offerId, hid)
 		if ce.HasError() {
 			return
 		}
@@ -315,6 +315,7 @@ func (s OfferService) ShakeOffer(userId string, offerId string, body bean.OfferS
 
 	offer.ToEmail = body.Email
 	offer.ToUsername = body.Username
+	offer.ToChatUsername = body.ChatUsername
 	offer.ToLanguage = body.Language
 	offer.ToFCM = body.FCM
 	// err := s.dao.UpdateOffer(offer, offer.GetUpdateOfferShake())
@@ -611,7 +612,7 @@ func (s OfferService) CompleteShakeOffer(userId string, offerId string) (offer b
 //	return
 //}
 
-func (s OfferService) UpdateOnChainOffer(offerId string, oldStatus string, newStatus string) (offer bean.Offer, ce SimpleContextError) {
+func (s OfferService) UpdateOnChainOffer(offerId string, hid int64, oldStatus string, newStatus string) (offer bean.Offer, ce SimpleContextError) {
 	offer = *GetOffer(*s.dao, offerId, &ce)
 	if ce.HasError() {
 		return
@@ -638,6 +639,9 @@ func (s OfferService) UpdateOnChainOffer(offerId string, oldStatus string, newSt
 	}
 
 	// Good
+	if offer.Hid == 0 {
+		offer.Hid = hid
+	}
 	offer.Status = newStatus
 	err := s.dao.UpdateOffer(offer, offer.GetChangeStatus())
 	if ce.SetError(api_error.UpdateDataFailed, err) {
@@ -649,20 +653,20 @@ func (s OfferService) UpdateOnChainOffer(offerId string, oldStatus string, newSt
 	return
 }
 
-func (s OfferService) PreShakeOnChainOffer(offerId string) (offer bean.Offer, ce SimpleContextError) {
-	return s.UpdateOnChainOffer(offerId, bean.OFFER_STATUS_PRE_SHAKING, bean.OFFER_STATUS_PRE_SHAKE)
+func (s OfferService) PreShakeOnChainOffer(offerId string, hid int64) (offer bean.Offer, ce SimpleContextError) {
+	return s.UpdateOnChainOffer(offerId, hid, bean.OFFER_STATUS_PRE_SHAKING, bean.OFFER_STATUS_PRE_SHAKE)
 }
 
 func (s OfferService) ShakeOnChainOffer(offerId string) (offer bean.Offer, ce SimpleContextError) {
-	return s.UpdateOnChainOffer(offerId, bean.OFFER_STATUS_SHAKING, bean.OFFER_STATUS_SHAKE)
+	return s.UpdateOnChainOffer(offerId, 0, bean.OFFER_STATUS_SHAKING, bean.OFFER_STATUS_SHAKE)
 }
 
 func (s OfferService) RejectOnChainOffer(offerId string) (offer bean.Offer, ce SimpleContextError) {
-	return s.UpdateOnChainOffer(offerId, bean.OFFER_STATUS_REJECTING, bean.OFFER_STATUS_REJECTED)
+	return s.UpdateOnChainOffer(offerId, 0, bean.OFFER_STATUS_REJECTING, bean.OFFER_STATUS_REJECTED)
 }
 
 func (s OfferService) CompleteOnChainOffer(offerId string) (offer bean.Offer, ce SimpleContextError) {
-	return s.UpdateOnChainOffer(offerId, bean.OFFER_STATUS_COMPLETING, bean.OFFER_STATUS_COMPLETED)
+	return s.UpdateOnChainOffer(offerId, 0, bean.OFFER_STATUS_COMPLETING, bean.OFFER_STATUS_COMPLETED)
 }
 
 func (s OfferService) getSuccessTransCount(offer bean.Offer) bean.TransactionCount {
