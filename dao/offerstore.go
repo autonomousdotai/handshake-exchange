@@ -316,10 +316,10 @@ func (dao OfferStoreDao) UpdateOfferStoreShakeBalance(offer bean.OfferStore, ite
 		} else {
 			if shakeOrReject {
 				// Shake, decrease
-				sellBalance = buyBalance.Add(amount.Neg())
+				sellBalance = sellBalance.Add(amount.Neg())
 			} else {
 				// Shake, decrease
-				sellBalance = buyBalance.Add(amount)
+				sellBalance = sellBalance.Add(amount)
 			}
 
 			if sellBalance.LessThan(common.Zero) {
