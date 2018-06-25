@@ -271,6 +271,16 @@ func (api MiscApi) FinishOfferConfirmingAddresses(context *gin.Context) {
 }
 
 // CRON JOB
+func (api MiscApi) FinishCryptoTransfer(context *gin.Context) {
+	_, ce := service.OfferServiceInst.FinishCryptoTransfer()
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, true)
+}
+
+// CRON JOB
 //func (api MiscApi) ExpireOfferHandshakes(context *gin.Context) {
 //	err := dao.OfferDaoInst.UpdateExpiredHandshake()
 //	if api_error.PropagateErrorAndAbort(context, api_error.UpdateDataFailed, err) != nil {

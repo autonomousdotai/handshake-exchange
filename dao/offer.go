@@ -89,6 +89,13 @@ func (dao OfferDao) GetOffer(offerId string) (t TransferObject) {
 	return
 }
 
+func (dao OfferDao) GetOfferByPath(path string) (t TransferObject) {
+	// offers/{id}
+	GetObject(path, &t, snapshotToOffer)
+
+	return
+}
+
 func (dao OfferDao) UpdateOffer(offer bean.Offer, updateData map[string]interface{}) error {
 	dbClient := firebase_service.FirestoreClient
 
@@ -276,6 +283,29 @@ func (dao OfferDao) ListOfferConfirmingAddressMap() ([]bean.OfferConfirmingAddre
 	return offers, nil
 }
 
+func (dao OfferDao) ListCryptoPendingTransfer() ([]bean.CryptoPendingTransfer, error) {
+	dbClient := firebase_service.FirestoreClient
+
+	// pending_instant_offers
+	iter := dbClient.Collection(GetCryptoPendingTransferPath()).Documents(context.Background())
+	transfers := make([]bean.CryptoPendingTransfer, 0)
+
+	for {
+		var offer bean.CryptoPendingTransfer
+		doc, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return transfers, err
+		}
+		doc.DataTo(&offer)
+		transfers = append(transfers, offer)
+	}
+
+	return transfers, nil
+}
+
 func (dao OfferDao) AddOfferConfirmingAddressMap(offerMap bean.OfferConfirmingAddressMap) error {
 	dbClient := firebase_service.FirestoreClient
 	docRef := dbClient.Doc(GetOfferConfirmingAddressMapItemPath(offerMap.TxHash))
@@ -288,6 +318,15 @@ func (dao OfferDao) AddOfferConfirmingAddressMap(offerMap bean.OfferConfirmingAd
 func (dao OfferDao) RemoveOfferConfirmingAddressMap(txHash string) error {
 	dbClient := firebase_service.FirestoreClient
 	docRef := dbClient.Doc(GetOfferConfirmingAddressMapItemPath(txHash))
+
+	_, err := docRef.Delete(context.Background())
+
+	return err
+}
+
+func (dao OfferDao) RemoveCryptoPendingTransfer(id string) error {
+	dbClient := firebase_service.FirestoreClient
+	docRef := dbClient.Doc(GetCryptoPendingTransferItemPath(id))
 
 	_, err := docRef.Delete(context.Background())
 

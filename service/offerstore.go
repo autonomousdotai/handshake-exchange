@@ -808,6 +808,36 @@ func (s OfferStoreService) PreShakeOffChainOfferStoreShake(address string, amoun
 	return
 }
 
+func (s OfferStoreService) FinishOfferStorePendingTransfer(ref string) (offer bean.OfferStore, ce SimpleContextError) {
+	return
+}
+
+func (s OfferStoreService) FinishOfferStoreShakePendingTransfer(ref string) (offerShake bean.OfferStoreShake, ce SimpleContextError) {
+	to := s.dao.GetOfferStoreShakeByPath(ref)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, to) {
+		return
+	}
+	offerShake = to.Object.(bean.OfferStoreShake)
+	offer := *GetOfferStore(*s.dao, offerShake.UID, &ce)
+	if ce.HasError() {
+		return
+	}
+
+	if offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_COMPLETING {
+		offerShake.Status = bean.OFFER_STORE_SHAKE_STATUS_COMPLETED
+	} else if offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_REJECTING {
+		offerShake.Status = bean.OFFER_STORE_SHAKE_STATUS_REJECTED
+	}
+
+	err := s.dao.UpdateOfferStoreShake(offer.Id, offerShake, offerShake.GetChangeStatus())
+	if ce.SetError(api_error.UpdateDataFailed, err) {
+		return
+	}
+	notification.SendOfferStoreShakeNotification(offerShake, offer)
+
+	return
+}
+
 func (s OfferStoreService) ReviewOfferStore(userId string, offerId string, score int64, offerShakeId string) (offer bean.OfferStore, ce SimpleContextError) {
 	if score < 0 && score > 5 {
 		ce.SetStatusKey(api_error.InvalidQueryParam)

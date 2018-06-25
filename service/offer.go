@@ -628,11 +628,12 @@ func (s OfferService) UpdateOnChainOffer(offerId string, hid int64, oldStatus st
 			oldStatus = bean.OFFER_STATUS_CANCELLING
 			newStatus = bean.OFFER_STATUS_ACTIVE
 
-			offer.ToUID = ""
 			offer.Status = bean.OFFER_STATUS_CANCELLED
-			// Need it here to duplicate solr record for cancelled
+			// Need it here to duplicate solr record for cancelled for both maker and taker
 			notification.SendOfferNotification(offer)
 			offer.Status = bean.OFFER_STATUS_CANCELLING
+			// So the last notification only update for maker
+			offer.ToUID = ""
 		}
 	}
 
@@ -646,6 +647,34 @@ func (s OfferService) UpdateOnChainOffer(offerId string, hid int64, oldStatus st
 		offer.Hid = hid
 	}
 	offer.Status = newStatus
+	err := s.dao.UpdateOffer(offer, offer.GetChangeStatus())
+	if ce.SetError(api_error.UpdateDataFailed, err) {
+		return
+	}
+
+	notification.SendOfferNotification(offer)
+
+	return
+}
+
+func (s OfferService) FinishOfferPendingTransfer(ref string) (offer bean.Offer, ce SimpleContextError) {
+	to := s.dao.GetOfferByPath(ref)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, to) {
+		return
+	}
+
+	if offer.Status == bean.OFFER_STATUS_REJECTING {
+		offer.Status = bean.OFFER_STATUS_REJECTED
+	} else if offer.Status == bean.OFFER_STATUS_CLOSING {
+		offer.Status = bean.OFFER_STATUS_CLOSED
+	} else if offer.Status == bean.OFFER_STATUS_CANCELLING {
+		offer.Status = bean.OFFER_STATUS_CANCELLED
+		// Need it here to duplicate solr record for cancelled for both maker and taker
+		notification.SendOfferNotification(offer)
+		// So the last notification only update for maker
+		offer.ToUID = ""
+	}
+
 	err := s.dao.UpdateOffer(offer, offer.GetChangeStatus())
 	if ce.SetError(api_error.UpdateDataFailed, err) {
 		return
@@ -761,6 +790,36 @@ func (s OfferService) FinishOfferConfirmingAddresses() (finishedInstantOffers []
 
 				if completed {
 					dao.OfferDaoInst.RemoveOfferConfirmingAddressMap(pendingOffer.TxHash)
+				}
+			}
+		}
+	}
+
+	return
+}
+
+func (s OfferService) FinishCryptoTransfer() (finishedInstantOffers []bean.Offer, ce SimpleContextError) {
+	pendingOffers, err := s.dao.ListCryptoPendingTransfer()
+	if ce.SetError(api_error.GetDataFailed, err) {
+		return
+	} else {
+		for _, pendingOffer := range pendingOffers {
+			bodyTransaction, err := coinbase_service.GetTransaction(pendingOffer.ExternalId, pendingOffer.Currency)
+			if err == nil && bodyTransaction.Status == "completed" {
+				completed := false
+				if pendingOffer.DataType == bean.OFFER_ADDRESS_MAP_OFFER {
+					_, ce := s.FinishOfferPendingTransfer(pendingOffer.DataRef)
+					completed = !ce.HasError()
+				} else if pendingOffer.DataType == bean.OFFER_ADDRESS_MAP_OFFER_STORE {
+					_, ce = OfferStoreServiceInst.FinishOfferStorePendingTransfer(pendingOffer.DataRef)
+					completed = !ce.HasError()
+				} else if pendingOffer.DataType == bean.OFFER_ADDRESS_MAP_OFFER_STORE_SHAKE {
+					_, ce = OfferStoreServiceInst.FinishOfferStoreShakePendingTransfer(pendingOffer.DataRef)
+					completed = !ce.HasError()
+				}
+
+				if completed {
+					dao.OfferDaoInst.RemoveCryptoPendingTransfer(pendingOffer.TxHash)
 				}
 			}
 		}

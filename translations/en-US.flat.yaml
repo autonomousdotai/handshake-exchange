@@ -19,11 +19,11 @@ email_offer_completed_subject:
 email_offer_maker_buy_rejected_subject:
   other: "You cancelled on Ninja"
 email_offer_maker_sell_shake_subject:
-  other: "Someone wants to buy your stuff!"
+  other: "Someone has what you are looking for..."
 email_offer_taker_sell_shake_subject:
   other: "We have notified your fellow ninja. "
 email_offer_maker_buy_shake_subject:
-  other: "Someone has what you are looking for..."
+  other: "Someone wants to buy your stuff!"
 email_offer_taker_buy_shake_subject:
   other: "We have notified your fellow ninja. "
 email_offer_selling_active_subject:
@@ -33,25 +33,31 @@ email_offer_maker_maker_rejected_subject:
 email_offer_taker_maker_rejected_subject:
   other: "Uh-oh looks like your fellow ninja cancelled"
 email_offer_sell_completed_subject:
-  other: "Thanks for selling on Ninja!"
-email_offer_buy_completed_subject:
   other: "Good news - you should have your goods soon."
+email_offer_buy_completed_subject:
+  other: "Thanks for selling on Ninja!"
 email_offer_withdraw_subject:
   other: "You have successfully withdrawn {{.Currency}}"
-email_offer_maker_buy_shake_subject:
-  other: "Someone has what you are looking for..."
-email_offer_taker_buy_shake_subject:
-  other: "We have notified your fellow ninja. "
 email_order_instant_cc_success_subject:
   other: "Success! you have just ordered using your credit card"
 notification_order_instant_cc_success:
   other: "You shook on it! Please wait a few minutes for your coin to appear in your wallet."
-notification_offer_maker_shake:
-  other: "A {{.Role}} shook your hand! They will contact you shortly to arrange a meeting."
-notification_offer_taker_shake:
-  other: "You shook on it! Please call or open a chat with the {{.Role}} to arrange a meeting."
-notification_offer_maker_rejected:
-  other: "The {{.Role}} cancelled this shake. Boo. Please create a new offer."
+notification_offer_maker_buy_shake:
+  other: "A ninja wants to buy your stuff!"
+notification_offer_maker_sell_shake:
+  other: "Someone has what you want!"
+notification_offer_maker_maker_reject:
+  other: "Sorry ninja, your sale was cancelled"
+notification_offer_taker_maker_reject:
+  other: "Sorry ninja, your sale was cancelled"
+notification_offer_maker_taker_reject:
+  other: "Sorry ninja, your sale was cancelled"
+notification_offer_taker_taker_reject:
+  other: "Sorry ninja, your sale was cancelled"
+notification_offer_buy_completed:
+  other: "Your coin should be landing in your wallet shortly."
+notification_offer_sell_completed:
+  other: "Your stuff arrived safely! Find more things"
 notification_offer_completed:
   other: "The buyer has accepted your offer! You can now withdraw coins to your wallet."
 email_offer_store_item_added:

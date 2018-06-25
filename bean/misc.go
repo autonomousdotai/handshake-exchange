@@ -90,9 +90,36 @@ func (log CryptoTransferLog) GetAddLog() map[string]interface{} {
 		"data_type":         log.DataType,
 		"data_ref":          log.DataRef,
 		"uid":               log.UID,
-		"note":              log.Description,
+		"description":       log.Description,
 		"amount":            log.Amount,
 		"currency":          log.Currency,
 		"created_at":        firestore.ServerTimestamp,
+	}
+}
+
+type CryptoPendingTransfer struct {
+	Id         string `json:"id" firestore:"id"`
+	Provider   string `json:"provider" firestore:"provider"`
+	ExternalId string `json:"external_id" firestore:"external_id"`
+	TxHash     string `json:"tx_hash" firestore:"tx_hash"`
+	DataType   string `json:"data_type" firestore:"data_type"`
+	DataRef    string `json:"data_ref" firestore:"data_ref"`
+	UID        string `json:"uid" firestore:"uid"`
+	Amount     string `json:"amount" firestore:"amount"`
+	Currency   string `json:"currency" firestore:"currency"`
+}
+
+func (transfer CryptoPendingTransfer) GetAddCryptoPendingTransfer() map[string]interface{} {
+	return map[string]interface{}{
+		"id":          transfer.Id,
+		"provider":    transfer.Provider,
+		"external_id": transfer.ExternalId,
+		"tx_hash":     transfer.TxHash,
+		"data_type":   transfer.DataType,
+		"data_ref":    transfer.DataRef,
+		"uid":         transfer.UID,
+		"amount":      transfer.Amount,
+		"currency":    transfer.Currency,
+		"created_at":  firestore.ServerTimestamp,
 	}
 }

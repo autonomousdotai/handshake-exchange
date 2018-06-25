@@ -28,17 +28,11 @@ func SendOrderInstantCCSuccessFCM(language string, fcm string) error {
 	return fcm_service.SendFCM(fcmObj)
 }
 
-func SendOfferMakerShakeFCM(language string, fcm string, offerType string) error {
+func SendOfferMakerBuyShakeFCM(language string, fcm string) error {
 	T, _ := i18n.Tfunc(language)
 
 	title := T("common_notification_title")
-	role := T("common_buyer")
-	if offerType == bean.OFFER_TYPE_BUY {
-		role = T("common_seller")
-	}
-	body := T("notification_offer_maker_shake", map[string]string{
-		"Role": role,
-	})
+	body := T("notification_offer_maker_buy_shake")
 
 	frontEndHost := os.Getenv("FRONTEND_HOST")
 	url := fmt.Sprintf("%s/%s", frontEndHost, "me")
@@ -55,17 +49,11 @@ func SendOfferMakerShakeFCM(language string, fcm string, offerType string) error
 	return fcm_service.SendFCM(fcmObj)
 }
 
-func SendOfferTakerShakeFCM(language string, fcm string, offerType string) error {
+func SendOfferMakerSellShakeFCM(language string, fcm string) error {
 	T, _ := i18n.Tfunc(language)
 
 	title := T("common_notification_title")
-	role := T("common_seller")
-	if offerType == bean.OFFER_TYPE_BUY {
-		role = T("common_buyer")
-	}
-	body := T("notification_offer_taker_shake", map[string]string{
-		"Role": role,
-	})
+	body := T("notification_offer_maker_sell_shake")
 
 	frontEndHost := os.Getenv("FRONTEND_HOST")
 	url := fmt.Sprintf("%s/%s", frontEndHost, "me")
@@ -82,17 +70,11 @@ func SendOfferTakerShakeFCM(language string, fcm string, offerType string) error
 	return fcm_service.SendFCM(fcmObj)
 }
 
-func SendOfferMakerRejectedFCM(language string, fcm string, offerType string) error {
+func SendOfferMakerMakerRejectFCM(language string, fcm string) error {
 	T, _ := i18n.Tfunc(language)
 
 	title := T("common_notification_title")
-	role := T("common_buyer")
-	if offerType == bean.OFFER_TYPE_BUY {
-		role = T("common_seller")
-	}
-	body := T("notification_offer_maker_rejected", map[string]string{
-		"Role": role,
-	})
+	body := T("notification_offer_maker_maker_reject")
 
 	frontEndHost := os.Getenv("FRONTEND_HOST")
 	url := fmt.Sprintf("%s/%s", frontEndHost, "me")
@@ -109,13 +91,96 @@ func SendOfferMakerRejectedFCM(language string, fcm string, offerType string) er
 	return fcm_service.SendFCM(fcmObj)
 }
 
-func SendOfferCompletedFCM(language string, fcm string) error {
+func SendOfferTakerMakerRejectFCM(language string, fcm string) error {
 	T, _ := i18n.Tfunc(language)
 
 	title := T("common_notification_title")
-	body := T("notification_offer_completed")
+	body := T("notification_offer_taker_maker_reject")
+
+	frontEndHost := os.Getenv("FRONTEND_HOST")
+	url := fmt.Sprintf("%s/discover?id=6", frontEndHost)
+
+	fcmObj := bean.FCMObject{
+		Notification: bean.FCMNotificationObject{
+			Title:       title,
+			Body:        body,
+			ClickAction: url,
+		},
+		To: fcm,
+	}
+
+	return fcm_service.SendFCM(fcmObj)
+}
+
+func SendOfferMakerTakerRejectFCM(language string, fcm string) error {
+	T, _ := i18n.Tfunc(language)
+
+	title := T("common_notification_title")
+	body := T("notification_offer_maker_taker_reject")
+
 	frontEndHost := os.Getenv("FRONTEND_HOST")
 	url := fmt.Sprintf("%s/%s", frontEndHost, "me")
+
+	fcmObj := bean.FCMObject{
+		Notification: bean.FCMNotificationObject{
+			Title:       title,
+			Body:        body,
+			ClickAction: url,
+		},
+		To: fcm,
+	}
+
+	return fcm_service.SendFCM(fcmObj)
+}
+
+func SendOfferTakerTakerRejectFCM(language string, fcm string) error {
+	T, _ := i18n.Tfunc(language)
+
+	title := T("common_notification_title")
+	body := T("notification_offer_taker_taker_reject")
+
+	frontEndHost := os.Getenv("FRONTEND_HOST")
+	url := fmt.Sprintf("%s/discover?id=6", frontEndHost)
+
+	fcmObj := bean.FCMObject{
+		Notification: bean.FCMNotificationObject{
+			Title:       title,
+			Body:        body,
+			ClickAction: url,
+		},
+		To: fcm,
+	}
+
+	return fcm_service.SendFCM(fcmObj)
+}
+
+func SendOfferSellCompleteFCM(language string, fcm string) error {
+	T, _ := i18n.Tfunc(language)
+
+	title := T("common_notification_title")
+	body := T("notification_offer_sell_completed")
+	frontEndHost := os.Getenv("FRONTEND_HOST")
+	url := fmt.Sprintf("%s/discover?id=6", frontEndHost)
+
+	fcmObj := bean.FCMObject{
+		Notification: bean.FCMNotificationObject{
+			Title:       title,
+			Body:        body,
+			ClickAction: url,
+		},
+		To: fcm,
+	}
+
+	return fcm_service.SendFCM(fcmObj)
+}
+
+func SendOfferBuyCompleteFCM(language string, fcm string) error {
+	T, _ := i18n.Tfunc(language)
+
+	title := T("common_notification_title")
+	body := T("notification_offer_buy_completed")
+	frontEndHost := os.Getenv("FRONTEND_HOST")
+	url := fmt.Sprintf("%s/discover?id=6", frontEndHost)
 
 	fcmObj := bean.FCMObject{
 		Notification: bean.FCMNotificationObject{

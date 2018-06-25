@@ -283,8 +283,22 @@ func (dao MiscDao) AddCryptoTransferLog(log bean.CryptoTransferLog) (bean.Crypto
 	dbClient := firebase_service.FirestoreClient
 	docRef := dbClient.Collection(GetCryptoTransferPath(log.UID)).NewDoc()
 	log.Id = docRef.ID
+	pendingId := fmt.Sprintf("%s-%s", log.UID, docRef.ID)
+	docPendingRef := dbClient.Doc(GetCryptoPendingTransferItemPath(pendingId))
 
-	_, err := docRef.Set(context.Background(), log.GetAddLog())
+	batch := dbClient.Batch()
+	batch.Set(docRef, log.GetAddLog())
+	batch.Set(docPendingRef, bean.CryptoPendingTransfer{
+		Id:         pendingId,
+		Provider:   log.Provider,
+		ExternalId: log.ExternalId,
+		DataType:   log.DataType,
+		DataRef:    log.DataRef,
+		UID:        log.UID,
+		Amount:     log.Amount,
+		Currency:   log.Currency,
+	}.GetAddCryptoPendingTransfer())
+	_, err := batch.Commit(context.Background())
 
 	return log, err
 }
@@ -335,4 +349,12 @@ func GetSystemConfigCacheKey(fee string) string {
 
 func GetCryptoTransferPath(userId string) string {
 	return fmt.Sprintf("crypto_transfer_logs/%s/logs", userId)
+}
+
+func GetCryptoPendingTransferPath() string {
+	return fmt.Sprintf("crypto_pending_transfers")
+}
+
+func GetCryptoPendingTransferItemPath(id string) string {
+	return fmt.Sprintf("crypto_pending_transfers/%s", id)
 }

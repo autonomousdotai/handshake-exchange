@@ -127,27 +127,42 @@ func SendOfferToFCM(offer bean.Offer, c chan error) {
 		// Not yet
 	} else if offer.Status == bean.OFFER_STATUS_SHAKE {
 		if offer.FCM != "" {
-			err = SendOfferMakerShakeFCM(offer.Language, offer.FCM, offer.Type)
-		}
-		if offer.ToFCM != "" {
-			err = SendOfferTakerShakeFCM(offer.ToLanguage, offer.ToFCM, offer.Type)
+			if offer.IsTypeSell() {
+				err = SendOfferMakerSellShakeFCM(offer.Language, offer.FCM)
+			} else {
+				err = SendOfferMakerBuyShakeFCM(offer.Language, offer.FCM)
+			}
 		}
 	} else if offer.Status == bean.OFFER_STATUS_REJECTED {
 		if offer.UID == offer.ActionUID {
-
+			if offer.FCM != "" {
+				err = SendOfferMakerMakerRejectFCM(offer.Language, offer.FCM)
+			}
+			if offer.ToFCM != "" {
+				err = SendOfferTakerMakerRejectFCM(offer.Language, offer.FCM)
+			}
 		} else {
 			if offer.FCM != "" {
-				err = SendOfferMakerRejectedFCM(offer.Language, offer.FCM, offer.Type)
+				err = SendOfferMakerTakerRejectFCM(offer.Language, offer.FCM)
+			}
+			if offer.ToFCM != "" {
+				err = SendOfferTakerTakerRejectFCM(offer.Language, offer.FCM)
 			}
 		}
 	} else if offer.Status == bean.OFFER_STATUS_COMPLETED {
-		if offer.Type == bean.OFFER_TYPE_BUY {
+		if offer.IsTypeSell() {
 			if offer.FCM != "" {
-				err = SendOfferCompletedFCM(offer.Language, offer.FCM)
+				err = SendOfferSellCompleteFCM(offer.Language, offer.FCM)
+			}
+			if offer.ToFCM != "" {
+				err = SendOfferBuyCompleteFCM(offer.Language, offer.ToFCM)
 			}
 		} else {
+			if offer.FCM != "" {
+				err = SendOfferBuyCompleteFCM(offer.Language, offer.FCM)
+			}
 			if offer.ToFCM != "" {
-				err = SendOfferCompletedFCM(offer.Language, offer.ToFCM)
+				err = SendOfferSellCompleteFCM(offer.Language, offer.ToFCM)
 			}
 		}
 	}
