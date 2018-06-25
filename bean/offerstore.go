@@ -60,6 +60,8 @@ type OfferStoreItem struct {
 	WalletProvider  string `json:"-" firestore:"wallet_provider"`
 	RewardAddress   string `json:"reward_address" firestore:"reward_address"`
 	ShakeCount      int64  `json:"shake_count" firestore:"shake_count"`
+	FreeStart       bool   `json:"free_start" firestore:"free_start"`
+	FreeStartRef    string `json:"-" firestore:"free_start_ref"`
 }
 
 func (offer OfferStore) GetAddOfferStore() map[string]interface{} {
@@ -135,6 +137,9 @@ func (offer OfferStore) GetNotificationUpdate() map[string]interface{} {
 }
 
 func (item OfferStoreItem) GetAddOfferStoreItem() map[string]interface{} {
+	if item.FreeStartRef != "" {
+		item.FreeStart = true
+	}
 	return map[string]interface{}{
 		"currency":          item.Currency,
 		"status":            item.Status,
@@ -152,6 +157,8 @@ func (item OfferStoreItem) GetAddOfferStoreItem() map[string]interface{} {
 		"reward_address":    item.RewardAddress,
 		"wallet_provider":   item.WalletProvider,
 		"shake_count":       item.ShakeCount,
+		"free_start_ref":    item.FreeStartRef,
+		"free_start":        item.FreeStart,
 	}
 }
 
@@ -315,6 +322,36 @@ func (offer OfferStoreReview) GetAddOfferStoreReview() map[string]interface{} {
 		"id":         offer.Id,
 		"uid":        offer.UID,
 		"score":      offer.Score,
+		"created_at": firestore.ServerTimestamp,
+	}
+}
+
+type OfferStoreFreeStart struct {
+	Level    int64  `json:"level" firestore:"level"`
+	Limit    int64  `json:"limit" firestore:"limit"`
+	Count    int64  `json:"count" firestore:"count"`
+	Reward   string `json:"reward" firestore:"reward"`
+	Currency string `json:"currency" firestore:"currency"`
+}
+
+func (offer OfferStoreFreeStart) GetUpdateFreeStartCount() map[string]interface{} {
+	return map[string]interface{}{
+		"count":      offer.Count,
+		"updated_at": firestore.ServerTimestamp,
+	}
+}
+
+type OfferStoreFreeStartUser struct {
+	UID    string `json:"uid" firestore:"uid"`
+	Reward string `json:"reward" firestore:"reward"`
+	Seq    int64  `json:"seq" firestore:"seq"`
+}
+
+func (offer OfferStoreFreeStartUser) GetAddFreeStartUser() map[string]interface{} {
+	return map[string]interface{}{
+		"uid":        offer.UID,
+		"reward":     offer.Reward,
+		"seq":        offer.Seq,
 		"created_at": firestore.ServerTimestamp,
 	}
 }

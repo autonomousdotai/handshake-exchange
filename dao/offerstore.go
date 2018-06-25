@@ -381,6 +381,44 @@ func (dao OfferStoreDao) AddOfferStoreReview(offer bean.OfferStore, review bean.
 	return err
 }
 
+func (dao OfferStoreDao) ListOfferStoreFreeStart(currency string) ([]bean.OfferStoreFreeStart, error) {
+	dbClient := firebase_service.FirestoreClient
+
+	iter := dbClient.Collection(GetOfferStoreFreeStartPath()).Documents(context.Background())
+	objs := make([]bean.OfferStoreFreeStart, 0)
+
+	for {
+		var obj bean.OfferStoreFreeStart
+		doc, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return objs, err
+		}
+		doc.DataTo(&obj)
+		fmt.Println(currency)
+		fmt.Println(obj)
+		if obj.Currency == currency {
+			objs = append(objs, obj)
+		}
+	}
+
+	return objs, nil
+}
+
+func (dao OfferStoreDao) GetOfferStoreFreeStart(level int64) (t TransferObject) {
+	GetObject(GetOfferStoreFreeStartItemPath(level), &t, snapshotToOfferStoreFreeStart)
+
+	return
+}
+
+func (dao OfferStoreDao) GetOfferStoreFreeStartUser(userId string) (t TransferObject) {
+	GetObject(GetOfferStoreFreeStartUserItemPath(userId), &t, snapshotToOfferStoreFreeStartUser)
+
+	return
+}
+
 // DB path
 //func GetOfferStorePath() string {
 //	return "offer_stores"
@@ -404,6 +442,22 @@ func GetOfferStoreShakeItemPath(offerStoreId string, id string) string {
 
 func GetOfferStoreReviewItemPath(offerStoreId string, id string) string {
 	return fmt.Sprintf("offer_stores/%s/reviews/%s", offerStoreId, id)
+}
+
+func GetOfferStoreFreeStartPath() string {
+	return fmt.Sprintf("offer_store_free_starts")
+}
+
+func GetOfferStoreFreeStartItemPath(level int64) string {
+	return fmt.Sprintf("offer_store_free_starts/%d", level)
+}
+
+func GetOfferStoreFreeStartUserPath() string {
+	return fmt.Sprintf("offer_store_free_start_users")
+}
+
+func GetOfferStoreFreeStartUserItemPath(userId string) string {
+	return fmt.Sprintf("offer_store_free_start_users/%s", userId)
 }
 
 // Firebase
@@ -435,6 +489,18 @@ func snapshotToOfferStoreShake(snapshot *firestore.DocumentSnapshot) interface{}
 
 func snapshotToOfferStoreReview(snapshot *firestore.DocumentSnapshot) interface{} {
 	var obj bean.OfferStoreReview
+	snapshot.DataTo(&obj)
+	return obj
+}
+
+func snapshotToOfferStoreFreeStart(snapshot *firestore.DocumentSnapshot) interface{} {
+	var obj bean.OfferStoreFreeStart
+	snapshot.DataTo(&obj)
+	return obj
+}
+
+func snapshotToOfferStoreFreeStartUser(snapshot *firestore.DocumentSnapshot) interface{} {
+	var obj bean.OfferStoreFreeStartUser
 	snapshot.DataTo(&obj)
 	return obj
 }

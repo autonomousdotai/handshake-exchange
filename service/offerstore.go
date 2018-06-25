@@ -924,6 +924,23 @@ func (s OfferStoreService) GetQuote(quoteType string, amountStr string, currency
 	return
 }
 
+func (s OfferStoreService) GetCurrentFreeStart(currency string) (freeStart bean.OfferStoreFreeStart, ce SimpleContextError) {
+	freeStarts, err := s.dao.ListOfferStoreFreeStart(currency)
+	if err != nil {
+		ce.SetError(api_error.GetDataFailed, err)
+	}
+
+	for _, item := range freeStarts {
+		if item.Count < item.Limit {
+			freeStart.Reward = item.Reward
+			freeStart.Currency = item.Currency
+			break
+		}
+	}
+
+	return
+}
+
 func (s OfferStoreService) SyncOfferStoreToSolr(offerId string) (offer bean.OfferStore, ce SimpleContextError) {
 	offerTO := s.dao.GetOfferStore(offerId)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, offerTO) {

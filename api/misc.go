@@ -331,6 +331,16 @@ func (api MiscApi) UpdateUserCCLimitTracks(context *gin.Context) {
 //	bean.SuccessResponse(context, true)
 //}
 
+func (api MiscApi) GetOfferStoreFreeStart(context *gin.Context) {
+	currency := context.Param("currency")
+	freeStart, ce := service.OfferStoreServiceInst.GetCurrentFreeStart(currency)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, freeStart)
+}
+
 func (api MiscApi) TestCoinbaseReceive(context *gin.Context) {
 	address := context.DefaultQuery("address", "")
 	amount := context.DefaultQuery("amount", "")
