@@ -11,10 +11,11 @@ func SendOfferBuyingActiveEmail(language string, emailAddress string) error {
 
 	subject := T("email_offer_buying_active_subject")
 
+	host := os.Getenv("FRONTEND_HOST")
 	data := struct {
 		Url string
 	}{
-		Url: "",
+		Url: fmt.Sprintf("%s/discover?id=6", host),
 	}
 
 	return SendSystemEmailWithTemplate(
@@ -31,10 +32,11 @@ func SendOfferSellingActiveEmail(language, emailAddress string) error {
 
 	subject := T("email_offer_selling_active_subject")
 
+	host := os.Getenv("FRONTEND_HOST")
 	data := struct {
 		Url string
 	}{
-		Url: "",
+		Url: fmt.Sprintf("%s/discover?id=6", host),
 	}
 
 	return SendSystemEmailWithTemplate(
@@ -71,10 +73,11 @@ func SendOfferMakerBuyShakeEmail(language string, emailAddress string) error {
 
 	subject := T("email_offer_maker_buy_shake_subject")
 
+	host := os.Getenv("FRONTEND_HOST")
 	data := struct {
 		Url string
 	}{
-		Url: "",
+		Url: fmt.Sprintf("%s/me", host),
 	}
 
 	return SendSystemEmailWithTemplate(
@@ -91,10 +94,11 @@ func SendOfferTakerBuyShakeEmail(language string, emailAddress string) error {
 
 	subject := T("email_offer_taker_buy_shake_subject")
 
+	host := os.Getenv("FRONTEND_HOST")
 	data := struct {
 		Url string
 	}{
-		Url: "",
+		Url: fmt.Sprintf("%s/discover?id=6", host),
 	}
 
 	return SendSystemEmailWithTemplate(
@@ -111,10 +115,11 @@ func SendOfferMakerSellShakeEmail(language string, emailAddress string) error {
 
 	subject := T("email_offer_maker_sell_shake_subject")
 
+	host := os.Getenv("FRONTEND_HOST")
 	data := struct {
 		Url string
 	}{
-		Url: "",
+		Url: fmt.Sprintf("%s/me", host),
 	}
 
 	return SendSystemEmailWithTemplate(
@@ -131,10 +136,11 @@ func SendOfferTakerSellShakeEmail(language string, emailAddress string) error {
 
 	subject := T("email_offer_taker_sell_shake_subject")
 
+	host := os.Getenv("FRONTEND_HOST")
 	data := struct {
 		Url string
 	}{
-		Url: "",
+		Url: fmt.Sprintf("%s/discover?id=6", host),
 	}
 
 	return SendSystemEmailWithTemplate(
@@ -151,6 +157,7 @@ func SendOfferMakerMakerRejectEmail(language string, emailAddress string) error 
 
 	subject := T("email_offer_maker_maker_rejected_subject")
 
+	//host := os.Getenv("FRONTEND_HOST")
 	data := struct {
 		Url string
 	}{
@@ -171,10 +178,11 @@ func SendOfferTakerMakerRejectEmail(language string, emailAddress string) error 
 
 	subject := T("email_offer_taker_maker_rejected_subject")
 
+	host := os.Getenv("FRONTEND_HOST")
 	data := struct {
 		Url string
 	}{
-		Url: "",
+		Url: fmt.Sprintf("%s/discover?id=6", host),
 	}
 
 	return SendSystemEmailWithTemplate(
@@ -191,10 +199,11 @@ func SendOfferMakerTakerRejectEmail(language string, emailAddress string) error 
 
 	subject := T("email_offer_maker_taker_rejected_subject")
 
+	host := os.Getenv("FRONTEND_HOST")
 	data := struct {
 		Url string
 	}{
-		Url: "",
+		Url: fmt.Sprintf("%s/discover?id=6", host),
 	}
 
 	return SendSystemEmailWithTemplate(
@@ -211,6 +220,7 @@ func SendOfferTakerTakerRejectEmail(language string, emailAddress string) error 
 
 	subject := T("email_offer_taker_taker_rejected_subject")
 
+	//host := os.Getenv("FRONTEND_HOST")
 	data := struct {
 		Url string
 	}{
@@ -234,10 +244,11 @@ func SendOfferBuyCompleteEmail(language string, emailAddress string) error {
 
 	subject := T("email_offer_buy_completed_subject")
 
+	host := os.Getenv("FRONTEND_HOST")
 	data := struct {
 		Url string
 	}{
-		Url: "",
+		Url: fmt.Sprintf("%s/discover?id=6", host),
 	}
 
 	return SendSystemEmailWithTemplate(
@@ -257,10 +268,11 @@ func SendOfferSellCompleteEmail(language string, emailAddress string) error {
 
 	subject := T("email_offer_sell_completed_subject")
 
+	host := os.Getenv("FRONTEND_HOST")
 	data := struct {
 		Url string
 	}{
-		Url: "",
+		Url: fmt.Sprintf("%s/create?id=6", host),
 	}
 
 	return SendSystemEmailWithTemplate(
