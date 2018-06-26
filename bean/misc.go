@@ -25,6 +25,10 @@ const BTC_WALLET_BLOCKCHAINIO = "blockchainio"
 
 const CONFIG_OFFER_REJECT_LOCK = "OFFER_REJECT_LOCK"
 
+const CONFIG_OFFER_STORE_FREE_START = "OFFER_STORE_FREE_START"
+const OFFER_STORE_FREE_START_ON = "1"
+const OFFER_STORE_FREE_START_OFF = "0"
+
 type SystemFee struct {
 	Key   string  `json:"key" firestore:"key"`
 	Value float64 `json:"value" firestore:"value"`

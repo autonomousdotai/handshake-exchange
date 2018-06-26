@@ -397,8 +397,6 @@ func (dao OfferStoreDao) ListOfferStoreFreeStart(currency string) ([]bean.OfferS
 			return objs, err
 		}
 		doc.DataTo(&obj)
-		fmt.Println(currency)
-		fmt.Println(obj)
 		if obj.Currency == currency {
 			objs = append(objs, obj)
 		}
@@ -407,7 +405,44 @@ func (dao OfferStoreDao) ListOfferStoreFreeStart(currency string) ([]bean.OfferS
 	return objs, nil
 }
 
-func (dao OfferStoreDao) GetOfferStoreFreeStart(level int64) (t TransferObject) {
+func (dao OfferStoreDao) AddOfferStoreFreeStartUser(freeStart *bean.OfferStoreFreeStart, freeStartUser *bean.OfferStoreFreeStartUser) error {
+	dbClient := firebase_service.FirestoreClient
+
+	freeStartRef := dbClient.Doc(GetOfferStoreFreeStartItemPath(freeStart.Level))
+	freeStartUserRef := dbClient.Doc(GetOfferStoreFreeStartUserItemPath(freeStartUser.UID))
+
+	err := dbClient.RunTransaction(context.Background(), func(ctx context.Context, tx *firestore.Transaction) error {
+		// Get From Wallet Balance
+		freeStartDoc, err := tx.Get(freeStartRef)
+		if err != nil {
+			return err
+		}
+
+		value, err := freeStartDoc.DataAt("count")
+		if err != nil {
+			return err
+		}
+		count := value.(int64)
+		count += 1
+		if count > freeStart.Limit {
+			return errors.New("Over limit")
+		}
+		freeStart.Count = count
+		freeStartUser.Seq = count
+
+		err = tx.Set(freeStartRef, freeStart.GetUpdateFreeStartCount(), firestore.MergeAll)
+		if err != nil {
+			return err
+		}
+
+		err = tx.Set(freeStartUserRef, freeStartUser.GetAddFreeStartUser(), firestore.MergeAll)
+		return err
+
+	})
+	return err
+}
+
+func (dao OfferStoreDao) GetOfferStoreFreeStart(level string) (t TransferObject) {
 	GetObject(GetOfferStoreFreeStartItemPath(level), &t, snapshotToOfferStoreFreeStart)
 
 	return
@@ -448,8 +483,8 @@ func GetOfferStoreFreeStartPath() string {
 	return fmt.Sprintf("offer_store_free_starts")
 }
 
-func GetOfferStoreFreeStartItemPath(level int64) string {
-	return fmt.Sprintf("offer_store_free_starts/%d", level)
+func GetOfferStoreFreeStartItemPath(level string) string {
+	return fmt.Sprintf("offer_store_free_starts/%s", level)
 }
 
 func GetOfferStoreFreeStartUserPath() string {

@@ -54,6 +54,10 @@ func (s OfferStoreService) CreateOfferStore(userId string, offerSetup bean.Offer
 	if ce.HasError() {
 		return
 	}
+	s.registerFreeStart(userId, &offerItemBody, &ce)
+	if ce.HasError() {
+		return
+	}
 
 	offerNew, err := s.dao.AddOfferStore(offerBody, offerItemBody, *profile)
 	if ce.SetError(api_error.AddDataFailed, err) {
@@ -115,6 +119,13 @@ func (s OfferStoreService) AddOfferStoreItem(userId string, offerId string, item
 	}
 
 	s.prepareOfferStore(&offer, &item, profile, &ce)
+	if ce.HasError() {
+		return
+	}
+	s.registerFreeStart(userId, &item, &ce)
+	if ce.HasError() {
+		return
+	}
 
 	_, err := s.dao.AddOfferStoreItem(offer, item, *profile)
 	if ce.SetError(api_error.AddDataFailed, err) {
@@ -924,7 +935,25 @@ func (s OfferStoreService) GetQuote(quoteType string, amountStr string, currency
 	return
 }
 
-func (s OfferStoreService) GetCurrentFreeStart(currency string) (freeStart bean.OfferStoreFreeStart, ce SimpleContextError) {
+func (s OfferStoreService) GetCurrentFreeStart(userId string, currency string) (freeStart bean.OfferStoreFreeStart, ce SimpleContextError) {
+	systemConfigTO := s.miscDao.GetSystemConfigFromCache(bean.CONFIG_OFFER_STORE_FREE_START)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, systemConfigTO) {
+		return
+	}
+	systemConfig := systemConfigTO.Object.(bean.SystemConfig)
+	// There is no free start on
+	if systemConfig.Value == bean.OFFER_STORE_FREE_START_OFF {
+		return
+	}
+	to := s.dao.GetOfferStoreFreeStartUser(userId)
+	if to.Error != nil {
+		ce.FeedDaoTransfer(api_error.GetDataFailed, to)
+		return
+	}
+	if to.Found {
+		return
+	}
+
 	freeStarts, err := s.dao.ListOfferStoreFreeStart(currency)
 	if err != nil {
 		ce.SetError(api_error.GetDataFailed, err)
@@ -932,8 +961,7 @@ func (s OfferStoreService) GetCurrentFreeStart(currency string) (freeStart bean.
 
 	for _, item := range freeStarts {
 		if item.Count < item.Limit {
-			freeStart.Reward = item.Reward
-			freeStart.Currency = item.Currency
+			freeStart = item
 			break
 		}
 	}
@@ -1362,4 +1390,31 @@ func (s OfferStoreService) getUsageBalance(offerId string, offerType string) (de
 		}
 	}
 	return usage, err
+}
+
+func (s OfferStoreService) registerFreeStart(userId string, offerItem *bean.OfferStoreItem, ce *SimpleContextError) (freeStartUser bean.OfferStoreFreeStartUser) {
+	freeStart, freeStartCE := s.GetCurrentFreeStart(userId, offerItem.Currency)
+	if ce.FeedContextError(api_error.GetDataFailed, freeStartCE) {
+		return
+	}
+	if freeStart.Reward != "" {
+		if freeStart.Reward != offerItem.SellAmount {
+			ce.SetStatusKey(api_error.InvalidFreeStartAmount)
+		}
+
+		offerItem.FreeStart = true
+		offerItem.FreeStartRef = dao.GetOfferStoreFreeStartItemPath(freeStart.Level)
+
+		freeStartUser.UID = userId
+		freeStartUser.Reward = freeStart.Reward
+		freeStartUser.Currency = freeStart.Currency
+		freeStartUser.Level = freeStart.Level
+		err := s.dao.AddOfferStoreFreeStartUser(&freeStart, &freeStartUser)
+
+		if err != nil {
+			ce.SetError(api_error.RegisterFreeStartFailed, err)
+			return
+		}
+	}
+	return
 }

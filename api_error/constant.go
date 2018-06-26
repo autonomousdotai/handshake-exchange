@@ -38,6 +38,8 @@ const OfferStoreNotExist = "OfferStoreNotExist"
 const OfferStoreShakeNotExist = "OfferStoreShakeNotExist"
 const OfferStoreNotEnoughBalance = "OfferStoreNotEnoughBalance"
 const OfferStoreAlreadyReviewed = "OfferStoreAlreadyReviewed"
+const InvalidFreeStartAmount = "InvalidFreeStartAmount"
+const RegisterFreeStartFailed = "RegisterFreeStartFailed"
 
 var CodeMessage = map[string]struct {
 	StatusCode int
@@ -80,4 +82,6 @@ var CodeMessage = map[string]struct {
 	OfferStoreNotEnoughBalance:     {http.StatusBadRequest, -316, "Offer not enough balance"},
 	OfferStoreAlreadyReviewed:      {http.StatusBadRequest, -317, "Offer store already reviewed"},
 	InvalidAmount:                  {http.StatusBadRequest, -318, "Invalid amount"},
+	InvalidFreeStartAmount:         {http.StatusBadRequest, -319, "Invalid free start amount"},
+	RegisterFreeStartFailed:        {http.StatusBadRequest, -320, "Register free start failed"},
 }

@@ -327,7 +327,7 @@ func (offer OfferStoreReview) GetAddOfferStoreReview() map[string]interface{} {
 }
 
 type OfferStoreFreeStart struct {
-	Level    int64  `json:"level" firestore:"level"`
+	Level    string `json:"level" firestore:"level"`
 	Limit    int64  `json:"limit" firestore:"limit"`
 	Count    int64  `json:"count" firestore:"count"`
 	Reward   string `json:"reward" firestore:"reward"`
@@ -342,9 +342,11 @@ func (offer OfferStoreFreeStart) GetUpdateFreeStartCount() map[string]interface{
 }
 
 type OfferStoreFreeStartUser struct {
-	UID    string `json:"uid" firestore:"uid"`
-	Reward string `json:"reward" firestore:"reward"`
-	Seq    int64  `json:"seq" firestore:"seq"`
+	UID      string `json:"uid" firestore:"uid"`
+	Level    string `json:"level" firestore:"level"`
+	Reward   string `json:"reward" firestore:"reward"`
+	Currency string `json:"currency" firestore:"currency"`
+	Seq      int64  `json:"seq" firestore:"seq"`
 }
 
 func (offer OfferStoreFreeStartUser) GetAddFreeStartUser() map[string]interface{} {

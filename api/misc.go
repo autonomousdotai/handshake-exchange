@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/ninjadotorg/handshake-exchange/api_error"
 	"github.com/ninjadotorg/handshake-exchange/bean"
+	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/dao"
 	"github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/openexchangerates_service"
@@ -332,8 +333,12 @@ func (api MiscApi) UpdateUserCCLimitTracks(context *gin.Context) {
 //}
 
 func (api MiscApi) GetOfferStoreFreeStart(context *gin.Context) {
+	userId := common.GetUserId(context)
 	currency := context.Param("currency")
-	freeStart, ce := service.OfferStoreServiceInst.GetCurrentFreeStart(currency)
+	freeStart, ce := service.OfferStoreServiceInst.GetCurrentFreeStart(userId, currency)
+	freeStart.Level = ""
+	freeStart.Count = 0
+	freeStart.Limit = 0
 	if ce.ContextValidate(context) {
 		return
 	}
