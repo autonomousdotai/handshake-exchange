@@ -7,13 +7,19 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ninjadotorg/handshake-exchange/abi"
 	"github.com/ninjadotorg/handshake-exchange/bean"
+	"github.com/ninjadotorg/handshake-exchange/integration/ethereum_service"
+	"github.com/shopspring/decimal"
+	"math/big"
 	"os"
 )
 
+var WeiDecimal = decimal.NewFromBigInt(big.NewInt(1000000000000000000), 0)
+
 type ExchangeHandshakeShopClient struct {
-	client    *ethclient.Client
-	address   common.Address
-	handshake *abi.ExchangeHandshakeShop
+	client      *ethclient.Client
+	address     common.Address
+	handshake   *abi.ExchangeHandshakeShop
+	writeClient ethereum_service.EthereumClient
 }
 
 func (c *ExchangeHandshakeShopClient) initialize() (err error) {
@@ -30,8 +36,17 @@ func (c *ExchangeHandshakeShopClient) initialize() (err error) {
 	return
 }
 
+func (c *ExchangeHandshakeShopClient) initializeWrite() {
+	c.writeClient = ethereum_service.EthereumClient{}
+	c.writeClient.Initialize()
+}
+
 func (c *ExchangeHandshakeShopClient) close() {
 	c.client.Close()
+}
+
+func (c *ExchangeHandshakeShopClient) closeWrite() {
+	c.writeClient.Close()
 }
 
 func (c *ExchangeHandshakeShopClient) GetInitOfferStoreEvent(startBlock uint64) (offers []bean.OfferOnchain, endBlock uint64, err error) {
@@ -293,6 +308,89 @@ func (c *ExchangeHandshakeShopClient) GetCompleteUserOfferStoreEvent(startBlock 
 			}
 		}
 	}
+	c.close()
+
+	return
+}
+
+func (c *ExchangeHandshakeShopClient) InitByShopOwner(offerId string, amount decimal.Decimal) (txHash string, err error) {
+	c.initialize()
+	c.initializeWrite()
+
+	auth, err := c.writeClient.GetAuth(amount)
+	offChain := [32]byte{}
+	copy(offChain[:], []byte(offerId))
+	tx, err := c.handshake.InitByShopOwner(auth, offChain)
+	if err != nil {
+		return
+	}
+	txHash = tx.Hash().Hex()
+
+	c.closeWrite()
+	c.close()
+
+	return
+}
+
+func (c *ExchangeHandshakeShopClient) CloseByShopOwner(offerId string, hid int64) (txHash string, err error) {
+	c.initialize()
+	c.initializeWrite()
+
+	auth, err := c.writeClient.GetAuth(decimal.NewFromFloat(0))
+	offChain := [32]byte{}
+	copy(offChain[:], []byte(offerId))
+	tx, err := c.handshake.CloseByShopOwner(auth, big.NewInt(hid), offChain)
+	if err != nil {
+		return
+	}
+	txHash = tx.Hash().Hex()
+
+	c.closeWrite()
+	c.close()
+
+	return
+}
+
+func (c *ExchangeHandshakeShopClient) Reject(offerId string, hid int64) (txHash string, err error) {
+	c.initialize()
+	c.initializeWrite()
+
+	auth, err := c.writeClient.GetAuth(decimal.NewFromFloat(0))
+	offChain := [32]byte{}
+	copy(offChain[:], []byte(offerId))
+	tx, err := c.handshake.Reject(auth, big.NewInt(hid), offChain)
+	if err != nil {
+		return
+	}
+	txHash = tx.Hash().Hex()
+
+	c.closeWrite()
+	c.close()
+
+	return
+}
+
+func (c *ExchangeHandshakeShopClient) ReleasePartialFund(offerId string, hid int64, userId string, amount decimal.Decimal, address string) (txHash string, err error) {
+	c.initialize()
+	c.initializeWrite()
+
+	auth, err := c.writeClient.GetAuth(decimal.NewFromFloat(0))
+
+	userIdOnChain := [32]byte{}
+	offChain := [32]byte{}
+	copy(userIdOnChain[:], []byte(userId))
+	copy(offChain[:], []byte(offerId))
+
+	toAddress := common.HexToAddress(address)
+	sendAmount := big.NewInt(amount.Mul(WeiDecimal).IntPart())
+
+	tx, err := c.handshake.ReleasePartialFund(auth, big.NewInt(hid), toAddress, sendAmount, userIdOnChain, offChain)
+	if err != nil {
+		return
+	}
+	txHash = tx.Hash().Hex()
+
+	c.closeWrite()
 	c.close()
 
 	return

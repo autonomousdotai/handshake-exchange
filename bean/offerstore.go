@@ -352,7 +352,9 @@ type OfferStoreFreeStartUser struct {
 func (offer OfferStoreFreeStartUser) GetAddFreeStartUser() map[string]interface{} {
 	return map[string]interface{}{
 		"uid":        offer.UID,
+		"level":      offer.Level,
 		"reward":     offer.Reward,
+		"currency":   offer.Currency,
 		"seq":        offer.Seq,
 		"created_at": firestore.ServerTimestamp,
 	}

@@ -3,6 +3,7 @@ package ethereum_service
 import (
 	"context"
 	"crypto/ecdsa"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -21,7 +22,15 @@ type EthereumClient struct {
 	publicKey  *ecdsa.PublicKey
 }
 
-func (c *EthereumClient) initialize() (err error) {
+func GetAddress() string {
+	privateKey, _ := crypto.HexToECDSA(os.Getenv("ETH_KEY"))
+	tmpPublicKey := privateKey.Public()
+	publicKey := tmpPublicKey.(*ecdsa.PublicKey)
+
+	return crypto.PubkeyToAddress(*publicKey).Hex()
+}
+
+func (c *EthereumClient) Initialize() (err error) {
 	c.client, err = ethclient.Dial(os.Getenv("ETH_NETWORK"))
 	if err != nil {
 		return
@@ -40,12 +49,12 @@ func (c *EthereumClient) initialize() (err error) {
 	return
 }
 
-func (c *EthereumClient) close() {
+func (c *EthereumClient) Close() {
 	c.client.Close()
 }
 
 func (c *EthereumClient) SendTransaction(address string, amount decimal.Decimal) (string, error) {
-	c.initialize()
+	c.Initialize()
 
 	nonce, err := c.client.PendingNonceAt(context.Background(), c.address)
 	if err == nil {
@@ -66,13 +75,13 @@ func (c *EthereumClient) SendTransaction(address string, amount decimal.Decimal)
 		}
 	}
 
-	c.close()
+	c.Close()
 
 	return "", err
 }
 
 func (c *EthereumClient) GetBalance() (balance decimal.Decimal, err error) {
-	c.initialize()
+	c.Initialize()
 
 	intBalance, errCli := c.client.BalanceAt(context.Background(), c.address, nil)
 
@@ -81,7 +90,28 @@ func (c *EthereumClient) GetBalance() (balance decimal.Decimal, err error) {
 	}
 
 	err = errCli
-	c.close()
+	c.Close()
+
+	return
+}
+
+func (c *EthereumClient) GetAuth(amount decimal.Decimal) (auth *bind.TransactOpts, err error) {
+	nonce, err := c.client.PendingNonceAt(context.Background(), c.address)
+	if err != nil {
+		return
+	}
+
+	gasPrice, err := c.client.SuggestGasPrice(context.Background())
+	if err != nil {
+		return
+	}
+
+	value := big.NewInt(amount.Mul(WeiDecimal).IntPart()) // in wei
+	auth = bind.NewKeyedTransactor(c.privateKey)
+	auth.Nonce = big.NewInt(int64(nonce))
+	auth.Value = value              // in wei
+	auth.GasLimit = uint64(1000000) // in units
+	auth.GasPrice = gasPrice
 
 	return
 }

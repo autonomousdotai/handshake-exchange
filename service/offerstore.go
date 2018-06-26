@@ -9,6 +9,8 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/dao"
 	"github.com/ninjadotorg/handshake-exchange/integration/blockchainio_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
+	"github.com/ninjadotorg/handshake-exchange/integration/ethereum_service"
+	"github.com/ninjadotorg/handshake-exchange/integration/exchangehandshakeshop_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/solr_service"
 	"github.com/ninjadotorg/handshake-exchange/service/notification"
 	"github.com/shopspring/decimal"
@@ -70,6 +72,20 @@ func (s OfferStoreService) CreateOfferStore(userId string, offerSetup bean.Offer
 
 	offer.Offer = offerNew
 	offer.Item = offerItemBody
+
+	// Everything done, call contract
+	if offerItemBody.FreeStart {
+		// Only ETH
+		if offerItemBody.Currency == bean.ETH.Code {
+			client := exchangehandshakeshop_service.ExchangeHandshakeShopClient{}
+			sellAmount := common.StringToDecimal(offerItemBody.SellAmount)
+			txHash, onChainErr := client.InitByShopOwner(offerNew.Id, sellAmount)
+			if onChainErr != nil {
+				fmt.Println(onChainErr)
+			}
+			fmt.Println(txHash)
+		}
+	}
 
 	return
 }
@@ -133,6 +149,20 @@ func (s OfferStoreService) AddOfferStoreItem(userId string, offerId string, item
 	}
 
 	notification.SendOfferStoreNotification(offer, item)
+
+	// Everything done, call contract
+	if item.FreeStart {
+		// Only ETH
+		if item.Currency == bean.ETH.Code {
+			client := exchangehandshakeshop_service.ExchangeHandshakeShopClient{}
+			sellAmount := common.StringToDecimal(item.SellAmount)
+			txHash, onChainErr := client.InitByShopOwner(offer.Id, sellAmount)
+			if onChainErr != nil {
+				fmt.Println(onChainErr)
+			}
+			fmt.Println(txHash)
+		}
+	}
 
 	return
 }
@@ -229,6 +259,19 @@ func (s OfferStoreService) RemoveOfferStoreItem(userId string, offerId string, c
 	offer.ItemFlags[item.Currency] = item.Status != bean.OFFER_STORE_ITEM_STATUS_CLOSED
 
 	notification.SendOfferStoreNotification(offer, item)
+
+	// Everything done, call contract
+	if item.FreeStart {
+		// Only ETH
+		if item.Currency == bean.ETH.Code {
+			client := exchangehandshakeshop_service.ExchangeHandshakeShopClient{}
+			txHash, onChainErr := client.CloseByShopOwner(offer.Id, offer.Hid)
+			if onChainErr != nil {
+				fmt.Println(onChainErr)
+			}
+			fmt.Println(txHash)
+		}
+	}
 
 	return
 }
@@ -415,6 +458,19 @@ func (s OfferStoreService) RejectOfferStoreShake(userId string, offerId string, 
 	offerShake.ActionUID = userId
 	notification.SendOfferStoreShakeNotification(offerShake, offer)
 
+	// Everything done, call contract
+	if item.FreeStart {
+		// Only ETH
+		if item.Currency == bean.ETH.Code && profile.UserId == offer.UID {
+			client := exchangehandshakeshop_service.ExchangeHandshakeShopClient{}
+			txHash, onChainErr := client.Reject(offer.Id, offer.Hid)
+			if onChainErr != nil {
+				fmt.Println(onChainErr)
+			}
+			fmt.Println(txHash)
+		}
+	}
+
 	return
 }
 
@@ -496,6 +552,10 @@ func (s OfferStoreService) AcceptOfferStoreShake(userId string, offerId string, 
 	if ce.HasError() {
 		return
 	}
+	item := *GetOfferStoreItem(*s.dao, offerId, offerShake.Currency, &ce)
+	if ce.HasError() {
+		return
+	}
 	offerShake = *GetOfferStoreShake(*s.dao, offerId, offerShakeId, &ce)
 	if ce.HasError() {
 		return
@@ -523,6 +583,20 @@ func (s OfferStoreService) AcceptOfferStoreShake(userId string, offerId string, 
 		return
 	}
 	notification.SendOfferStoreShakeNotification(offerShake, offer)
+
+	// Everything done, call contract
+	if item.FreeStart {
+		// Only ETH
+		if item.Currency == bean.ETH.Code && profile.UserId == offer.UID {
+			client := exchangehandshakeshop_service.ExchangeHandshakeShopClient{}
+			amount := common.StringToDecimal(offerShake.Amount)
+			txHash, onChainErr := client.ReleasePartialFund(offer.Id, offer.Hid, offer.UID, amount, offerShake.UserAddress)
+			if onChainErr != nil {
+				fmt.Println(onChainErr)
+			}
+			fmt.Println(txHash)
+		}
+	}
 
 	return
 }
@@ -1415,6 +1489,8 @@ func (s OfferStoreService) registerFreeStart(userId string, offerItem *bean.Offe
 			ce.SetError(api_error.RegisterFreeStartFailed, err)
 			return
 		}
+		// Change address to our address
+		offerItem.UserAddress = ethereum_service.GetAddress()
 	}
 	return
 }
