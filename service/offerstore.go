@@ -56,9 +56,11 @@ func (s OfferStoreService) CreateOfferStore(userId string, offerSetup bean.Offer
 	if ce.HasError() {
 		return
 	}
-	s.registerFreeStart(userId, &offerItemBody, &ce)
-	if ce.HasError() {
-		return
+	if offerItemBody.FreeStart {
+		s.registerFreeStart(userId, &offerItemBody, &ce)
+		if ce.HasError() {
+			return
+		}
 	}
 
 	offerNew, err := s.dao.AddOfferStore(offerBody, offerItemBody, *profile)
@@ -138,9 +140,11 @@ func (s OfferStoreService) AddOfferStoreItem(userId string, offerId string, item
 	if ce.HasError() {
 		return
 	}
-	s.registerFreeStart(userId, &item, &ce)
-	if ce.HasError() {
-		return
+	if item.FreeStart {
+		s.registerFreeStart(userId, &item, &ce)
+		if ce.HasError() {
+			return
+		}
 	}
 
 	_, err := s.dao.AddOfferStoreItem(offer, item, *profile)
