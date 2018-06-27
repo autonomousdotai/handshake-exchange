@@ -267,7 +267,7 @@ func (s OfferStoreService) RemoveOfferStoreItem(userId string, offerId string, c
 	// Everything done, call contract
 	if item.FreeStart {
 		// Only ETH
-		if item.Currency == bean.ETH.Code {
+		if item.Currency == bean.ETH.Code && !hasSell {
 			client := exchangehandshakeshop_service.ExchangeHandshakeShopClient{}
 			txHash, onChainErr := client.CloseByShopOwner(offer.Id, offer.Hid)
 			if onChainErr != nil {
