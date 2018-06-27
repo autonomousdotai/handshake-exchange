@@ -465,19 +465,6 @@ func (s OfferStoreService) RejectOfferStoreShake(userId string, offerId string, 
 	notification.SendOfferStoreShakeNotification(offerShake, offer)
 	notification.SendOfferStoreNotification(offer, item)
 
-	// Everything done, call contract
-	if item.FreeStart {
-		// Only ETH
-		if item.Currency == bean.ETH.Code && profile.UserId == offer.UID {
-			client := exchangehandshakeshop_service.ExchangeHandshakeShopClient{}
-			txHash, onChainErr := client.Reject(offerShake.OffChainId, offer.Hid)
-			if onChainErr != nil {
-				fmt.Println(onChainErr)
-			}
-			fmt.Println(txHash)
-		}
-	}
-
 	return
 }
 
