@@ -643,6 +643,7 @@ func (s OfferStoreService) CompleteOfferStoreShake(userId string, offerId string
 	// Everything done, call contract
 	if item.FreeStart {
 		// Only ETH
+		s.dao.UpdateOfferStoreFreeStartUserStatus(profile.UserId)
 		if item.Currency == bean.ETH.Code && profile.UserId == offer.UID {
 			client := exchangehandshakeshop_service.ExchangeHandshakeShopClient{}
 			amount := common.StringToDecimal(offerShake.Amount)
@@ -1021,7 +1022,10 @@ func (s OfferStoreService) GetCurrentFreeStart(userId string, currency string) (
 		return
 	}
 	if to.Found {
-		return
+		freeStartTest := to.Object.(bean.OfferStoreFreeStartUser)
+		if freeStartTest.Status == bean.OFFER_STORE_FREE_START_STATUS_DONE {
+			return
+		}
 	}
 
 	freeStarts, err := s.dao.ListOfferStoreFreeStart(currency)

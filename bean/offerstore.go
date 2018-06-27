@@ -342,11 +342,15 @@ func (offer OfferStoreFreeStart) GetUpdateFreeStartCount() map[string]interface{
 	}
 }
 
+const OFFER_STORE_FREE_START_STATUS_USING = "using"
+const OFFER_STORE_FREE_START_STATUS_DONE = "done"
+
 type OfferStoreFreeStartUser struct {
 	UID      string `json:"uid" firestore:"uid"`
 	Level    string `json:"level" firestore:"level"`
 	Reward   string `json:"reward" firestore:"reward"`
 	Currency string `json:"currency" firestore:"currency"`
+	Status   string `json:"status" firestore:"status"`
 	Seq      int64  `json:"seq" firestore:"seq"`
 }
 
@@ -357,6 +361,14 @@ func (offer OfferStoreFreeStartUser) GetAddFreeStartUser() map[string]interface{
 		"reward":     offer.Reward,
 		"currency":   offer.Currency,
 		"seq":        offer.Seq,
+		"status":     OFFER_STORE_FREE_START_STATUS_USING,
 		"created_at": firestore.ServerTimestamp,
+	}
+}
+
+func (offer OfferStoreFreeStartUser) GetUpdateFreeStartUserDone() map[string]interface{} {
+	return map[string]interface{}{
+		"status":     OFFER_STORE_FREE_START_STATUS_DONE,
+		"updated_at": firestore.ServerTimestamp,
 	}
 }
