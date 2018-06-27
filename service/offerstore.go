@@ -378,6 +378,7 @@ func (s OfferStoreService) CreateOfferStoreShake(userId string, offerId string, 
 
 	offerShake.CreatedAt = time.Now().UTC()
 	notification.SendOfferStoreShakeNotification(offerShake, offer)
+	notification.SendOfferStoreNotification(offer, item)
 
 	return
 }
@@ -462,6 +463,7 @@ func (s OfferStoreService) RejectOfferStoreShake(userId string, offerId string, 
 
 	offerShake.ActionUID = userId
 	notification.SendOfferStoreShakeNotification(offerShake, offer)
+	notification.SendOfferStoreNotification(offer, item)
 
 	// Everything done, call contract
 	if item.FreeStart {
@@ -756,12 +758,12 @@ func (s OfferStoreService) UpdateOnChainOfferStoreShake(offerId string, offerSha
 
 	// Good
 	offerShake.Status = newStatus
+	itemTO := s.dao.GetOfferStoreItem(offerId, offerShake.Currency)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, itemTO) {
+		return
+	}
+	item := itemTO.Object.(bean.OfferStoreItem)
 	if offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_SHAKE || offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_REJECTED {
-		itemTO := s.dao.GetOfferStoreItem(offerId, offerShake.Currency)
-		if ce.FeedDaoTransfer(api_error.GetDataFailed, itemTO) {
-			return
-		}
-		item := itemTO.Object.(bean.OfferStoreItem)
 		var err error
 		if offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_SHAKE {
 			// SHAKE
@@ -785,6 +787,7 @@ func (s OfferStoreService) UpdateOnChainOfferStoreShake(offerId string, offerSha
 	}
 
 	notification.SendOfferStoreShakeNotification(offerShake, offer)
+	notification.SendOfferStoreNotification(offer, item)
 
 	return
 }
