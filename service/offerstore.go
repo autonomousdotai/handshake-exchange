@@ -556,10 +556,7 @@ func (s OfferStoreService) AcceptOfferStoreShake(userId string, offerId string, 
 	if ce.HasError() {
 		return
 	}
-	item := *GetOfferStoreItem(*s.dao, offerId, offerShake.Currency, &ce)
-	if ce.HasError() {
-		return
-	}
+
 	offerShake = *GetOfferStoreShake(*s.dao, offerId, offerShakeId, &ce)
 	if ce.HasError() {
 		return
@@ -588,20 +585,6 @@ func (s OfferStoreService) AcceptOfferStoreShake(userId string, offerId string, 
 	}
 	notification.SendOfferStoreShakeNotification(offerShake, offer)
 
-	// Everything done, call contract
-	if item.FreeStart {
-		// Only ETH
-		if item.Currency == bean.ETH.Code && profile.UserId == offer.UID {
-			client := exchangehandshakeshop_service.ExchangeHandshakeShopClient{}
-			amount := common.StringToDecimal(offerShake.Amount)
-			txHash, onChainErr := client.ReleasePartialFund(offer.Id, offer.Hid, offer.UID, amount, offerShake.UserAddress)
-			if onChainErr != nil {
-				fmt.Println(onChainErr)
-			}
-			fmt.Println(txHash)
-		}
-	}
-
 	return
 }
 
@@ -611,6 +594,10 @@ func (s OfferStoreService) CompleteOfferStoreShake(userId string, offerId string
 		return
 	}
 	offer := *GetOfferStore(*s.dao, offerId, &ce)
+	if ce.HasError() {
+		return
+	}
+	item := *GetOfferStoreItem(*s.dao, offerId, offerShake.Currency, &ce)
 	if ce.HasError() {
 		return
 	}
@@ -662,6 +649,20 @@ func (s OfferStoreService) CompleteOfferStoreShake(userId string, offerId string
 		offerShake.UserAddress = offer.ItemSnapshots[offerShake.Currency].UserAddress
 	}
 	notification.SendOfferStoreShakeNotification(offerShake, offer)
+
+	// Everything done, call contract
+	if item.FreeStart {
+		// Only ETH
+		if item.Currency == bean.ETH.Code && profile.UserId == offer.UID {
+			client := exchangehandshakeshop_service.ExchangeHandshakeShopClient{}
+			amount := common.StringToDecimal(offerShake.Amount)
+			txHash, onChainErr := client.ReleasePartialFund(offer.Id, offer.Hid, offer.UID, amount, offerShake.UserAddress)
+			if onChainErr != nil {
+				fmt.Println(onChainErr)
+			}
+			fmt.Println(txHash)
+		}
+	}
 
 	return
 }
