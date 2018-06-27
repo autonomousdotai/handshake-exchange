@@ -468,7 +468,7 @@ func (s OfferStoreService) RejectOfferStoreShake(userId string, offerId string, 
 		// Only ETH
 		if item.Currency == bean.ETH.Code && profile.UserId == offer.UID {
 			client := exchangehandshakeshop_service.ExchangeHandshakeShopClient{}
-			txHash, onChainErr := client.Reject(offer.Id, offer.Hid)
+			txHash, onChainErr := client.Reject(offerShake.OffChainId, offer.Hid)
 			if onChainErr != nil {
 				fmt.Println(onChainErr)
 			}
@@ -657,7 +657,7 @@ func (s OfferStoreService) CompleteOfferStoreShake(userId string, offerId string
 		if item.Currency == bean.ETH.Code && profile.UserId == offer.UID {
 			client := exchangehandshakeshop_service.ExchangeHandshakeShopClient{}
 			amount := common.StringToDecimal(offerShake.Amount)
-			txHash, onChainErr := client.ReleasePartialFund(offer.Id, offer.Hid, offer.UID, amount, offerShake.UserAddress)
+			txHash, onChainErr := client.ReleasePartialFund(offerShake.OffChainId, offer.Hid, offer.UID, amount, offerShake.UserAddress)
 			if onChainErr != nil {
 				fmt.Println(onChainErr)
 			}
