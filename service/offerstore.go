@@ -324,7 +324,7 @@ func (s OfferStoreService) CreateOfferStoreShake(userId string, offerId string, 
 	}
 
 	// Total usage from current usage shake, so it's more accuracy than need to wait real balance update
-	usageBalance, err := s.getUsageBalance(offerId, offerShakeBody.Type)
+	usageBalance, err := s.getUsageBalance(offerId, offerShakeBody.Type, offerShakeBody.Currency)
 	if err != nil {
 		ce.SetError(api_error.GetDataFailed, err)
 		return
@@ -1449,8 +1449,8 @@ func (s OfferStoreService) getOfferProfile(offer bean.OfferStore, offerShake bea
 	return
 }
 
-func (s OfferStoreService) getUsageBalance(offerId string, offerType string) (decimal.Decimal, error) {
-	offerShakes, err := s.dao.ListUsageOfferStoreShake(offerId, offerType)
+func (s OfferStoreService) getUsageBalance(offerId string, offerType string, currency string) (decimal.Decimal, error) {
+	offerShakes, err := s.dao.ListUsageOfferStoreShake(offerId, offerType, currency)
 	usage := common.Zero
 	if err == nil {
 		for _, offerShake := range offerShakes {
