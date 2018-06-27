@@ -342,6 +342,7 @@ func (s OfferStoreService) CreateOfferStoreShake(userId string, offerId string, 
 	offerShakeBody.FiatCurrency = offer.FiatCurrency
 	offerShakeBody.Latitude = offer.Latitude
 	offerShakeBody.Longitude = offer.Longitude
+	offerShakeBody.FreeStart = item.FreeStart
 
 	s.setupOfferShakePrice(&offerShakeBody, &ce)
 	s.setupOfferShakeAmount(&offerShakeBody, &ce)

@@ -246,6 +246,7 @@ type OfferStoreShake struct {
 	Provider         string      `json:"-" firestore:"provider"`
 	ProviderData     interface{} `json:"-" firestore:"provider_data"`
 	ChainId          int64       `json:"-" firestore:"chain_id"`
+	FreeStart        bool        `json:"free_start" firestore:"free_start"`
 	Longitude        float64     `json:"longitude" firestore:"longitude"`
 	Latitude         float64     `json:"latitude" firestore:"latitude"`
 	CreatedAt        time.Time   `json:"created_at" firestore:"created_at"`

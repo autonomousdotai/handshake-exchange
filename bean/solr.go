@@ -396,6 +396,7 @@ type SolrOfferStoreShakeExtraData struct {
 	Status           string `json:"status"`
 	Success          int64  `json:"success"`
 	Failed           int64  `json:"failed"`
+	FreeStart        bool   `json:"free_start"`
 }
 
 var offerStoreSHakeStatusMap = map[string]int{
@@ -477,6 +478,7 @@ func NewSolrFromOfferStoreShake(offer OfferStoreShake, offerStore OfferStore) (s
 		SystemAddress:    offer.SystemAddress,
 		UserAddress:      userAddress,
 		Status:           offer.Status,
+		FreeStart:        offer.FreeStart,
 		Success:          offerStore.TransactionCount.Success,
 		Failed:           offerStore.TransactionCount.Failed,
 	}
