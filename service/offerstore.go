@@ -598,11 +598,11 @@ func (s OfferStoreService) CompleteOfferStoreShake(userId string, offerId string
 	if ce.HasError() {
 		return
 	}
-	item := *GetOfferStoreItem(*s.dao, offerId, offerShake.Currency, &ce)
+	offerShake = *GetOfferStoreShake(*s.dao, offerId, offerShakeId, &ce)
 	if ce.HasError() {
 		return
 	}
-	offerShake = *GetOfferStoreShake(*s.dao, offerId, offerShakeId, &ce)
+	item := *GetOfferStoreItem(*s.dao, offerId, offerShake.Currency, &ce)
 	if ce.HasError() {
 		return
 	}
