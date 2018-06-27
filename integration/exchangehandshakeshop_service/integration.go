@@ -384,7 +384,7 @@ func (c *ExchangeHandshakeShopClient) ReleasePartialFund(offerId string, hid int
 	toAddress := common.HexToAddress(address)
 	sendAmount := big.NewInt(amount.Mul(WeiDecimal).IntPart())
 
-	tx, err := c.handshake.ReleasePartialFund(auth, big.NewInt(hid), toAddress, sendAmount, userIdOnChain, offChain)
+	tx, err := c.handshake.ReleasePartialFund(auth, big.NewInt(hid), toAddress, sendAmount, offChain, userIdOnChain)
 	if err != nil {
 		return
 	}
