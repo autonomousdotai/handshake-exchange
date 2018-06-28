@@ -292,7 +292,7 @@ func (s OfferStoreService) RemoveOfferStoreItem(userId string, offerId string, c
 	if item.FreeStart {
 		// Only ETH
 		s.dao.UpdateOfferStoreFreeStartUserUsing(profile.UserId)
-		if item.Currency == bean.ETH.Code && !waitOnChain {
+		if item.Currency == bean.ETH.Code && waitOnChain {
 			client := exchangehandshakeshop_service.ExchangeHandshakeShopClient{}
 			txHash, onChainErr := client.CloseByShopOwner(offer.Id, offer.Hid)
 			if onChainErr != nil {
