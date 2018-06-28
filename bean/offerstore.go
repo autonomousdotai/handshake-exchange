@@ -361,7 +361,7 @@ func (offer OfferStoreFreeStartUser) GetAddFreeStartUser() map[string]interface{
 		"reward":     offer.Reward,
 		"currency":   offer.Currency,
 		"seq":        offer.Seq,
-		"status":     OFFER_STORE_FREE_START_STATUS_USING,
+		"status":     OFFER_STORE_FREE_START_STATUS_DONE,
 		"created_at": firestore.ServerTimestamp,
 	}
 }
