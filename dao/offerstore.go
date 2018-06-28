@@ -440,10 +440,18 @@ func (dao OfferStoreDao) AddOfferStoreFreeStartUser(freeStart *bean.OfferStoreFr
 	return err
 }
 
-func (dao OfferStoreDao) UpdateOfferStoreFreeStartUserStatus(userId string) error {
+func (dao OfferStoreDao) UpdateOfferStoreFreeStartUserDone(userId string) error {
 	dbClient := firebase_service.FirestoreClient
 	freeStartUserRef := dbClient.Doc(GetOfferStoreFreeStartUserItemPath(userId))
 	_, err := freeStartUserRef.Set(context.Background(), bean.OfferStoreFreeStartUser{}.GetUpdateFreeStartUserDone(), firestore.MergeAll)
+
+	return err
+}
+
+func (dao OfferStoreDao) UpdateOfferStoreFreeStartUserUsing(userId string) error {
+	dbClient := firebase_service.FirestoreClient
+	freeStartUserRef := dbClient.Doc(GetOfferStoreFreeStartUserItemPath(userId))
+	_, err := freeStartUserRef.Set(context.Background(), bean.OfferStoreFreeStartUser{}.GetUpdateFreeStartUserUsing(), firestore.MergeAll)
 
 	return err
 }

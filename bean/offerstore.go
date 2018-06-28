@@ -372,3 +372,10 @@ func (offer OfferStoreFreeStartUser) GetUpdateFreeStartUserDone() map[string]int
 		"updated_at": firestore.ServerTimestamp,
 	}
 }
+
+func (offer OfferStoreFreeStartUser) GetUpdateFreeStartUserUsing() map[string]interface{} {
+	return map[string]interface{}{
+		"status":     OFFER_STORE_FREE_START_STATUS_USING,
+		"updated_at": firestore.ServerTimestamp,
+	}
+}

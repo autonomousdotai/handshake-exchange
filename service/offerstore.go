@@ -291,6 +291,7 @@ func (s OfferStoreService) RemoveOfferStoreItem(userId string, offerId string, c
 	// Everything done, call contract
 	if item.FreeStart {
 		// Only ETH
+		s.dao.UpdateOfferStoreFreeStartUserUsing(profile.UserId)
 		if item.Currency == bean.ETH.Code && !waitOnChain {
 			client := exchangehandshakeshop_service.ExchangeHandshakeShopClient{}
 			txHash, onChainErr := client.CloseByShopOwner(offer.Id, offer.Hid)
@@ -440,6 +441,10 @@ func (s OfferStoreService) RejectOfferStoreShake(userId string, offerId string, 
 		offer.ItemSnapshots[item.Currency] = item
 		if ce.SetError(api_error.UpdateDataFailed, err) {
 			return
+		}
+		// Special for free start
+		if item.FreeStart {
+			s.dao.UpdateOfferStoreFreeStartUserUsing(profile.UserId)
 		}
 	} else {
 		if offerShake.Currency == bean.ETH.Code {
@@ -667,7 +672,7 @@ func (s OfferStoreService) CompleteOfferStoreShake(userId string, offerId string
 	// Everything done, call contract
 	if item.FreeStart {
 		// Only ETH
-		s.dao.UpdateOfferStoreFreeStartUserStatus(profile.UserId)
+		s.dao.UpdateOfferStoreFreeStartUserDone(profile.UserId)
 		if item.Currency == bean.ETH.Code && profile.UserId == offer.UID {
 			client := exchangehandshakeshop_service.ExchangeHandshakeShopClient{}
 			amount := common.StringToDecimal(offerShake.Amount)
