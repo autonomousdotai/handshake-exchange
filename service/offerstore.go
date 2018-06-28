@@ -1424,7 +1424,11 @@ func (s OfferStoreService) getFailedTransCount(offer bean.OfferStore, offerShake
 }
 
 func (s OfferStoreService) setupOfferShakePrice(offer *bean.OfferStoreShake, ce *SimpleContextError) {
-	_, fiatPrice, fiatAmount, err := s.GetQuote(offer.Type, offer.Amount, offer.Currency, offer.FiatCurrency)
+	userOfferType := bean.OFFER_TYPE_SELL
+	if offer.IsTypeSell() {
+		userOfferType = bean.OFFER_TYPE_BUY
+	}
+	_, fiatPrice, fiatAmount, err := s.GetQuote(userOfferType, offer.Amount, offer.Currency, offer.FiatCurrency)
 	if ce.SetError(api_error.GetDataFailed, err) {
 		return
 	}
