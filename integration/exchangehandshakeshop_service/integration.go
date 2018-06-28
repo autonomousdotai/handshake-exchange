@@ -395,3 +395,9 @@ func (c *ExchangeHandshakeShopClient) ReleasePartialFund(offerId string, hid int
 
 	return
 }
+
+func (c *ExchangeHandshakeShopClient) GetStatus() {
+	c.initialize()
+
+	c.close()
+}

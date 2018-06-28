@@ -190,12 +190,36 @@ func (s OfferStoreService) RemoveOfferStoreItem(userId string, offerId string, c
 		return
 	}
 
-	// Only BTC, refund the crypto
+	count, err := s.countActiveShake(offer.Id, "", item.Currency)
+	if err != nil {
+		ce.SetError(api_error.GetDataFailed, err)
+		return
+	}
+	// There is still active shake so cannot close
+	if count > 0 {
+		ce.SetStatusKey(api_error.OfferStoreShakeActiveExist)
+		return
+	}
+
 	hasSell := false
 	sellAmount, _ := decimal.NewFromString(item.SellAmount)
+	sellBalance := common.StringToDecimal(item.SellBalance)
 	if sellAmount.GreaterThan(common.Zero) {
 		hasSell = true
+		// Only ETH
+		if item.Currency == bean.ETH.Code {
+			activeCount, _ := s.countActiveShake(offer.Id, item.Currency, item.Currency)
+			if err != nil {
+				ce.SetError(api_error.GetDataFailed, err)
+			}
+			// There is no active sell for ETH anymore so just close it
+			if activeCount == 0 && sellBalance.Equal(common.Zero) {
+				hasSell = false
+			}
+		}
 	}
+
+	// Only BTC, refund the crypto
 	if item.Currency == bean.BTC.Code {
 		// Do Refund
 		if hasSell {
@@ -267,7 +291,7 @@ func (s OfferStoreService) RemoveOfferStoreItem(userId string, offerId string, c
 	// Everything done, call contract
 	if item.FreeStart {
 		// Only ETH
-		if item.Currency == bean.ETH.Code && !hasSell {
+		if item.Currency == bean.ETH.Code && !waitOnChain {
 			client := exchangehandshakeshop_service.ExchangeHandshakeShopClient{}
 			txHash, onChainErr := client.CloseByShopOwner(offer.Id, offer.Hid)
 			if onChainErr != nil {
@@ -1450,20 +1474,44 @@ func (s OfferStoreService) getOfferProfile(offer bean.OfferStore, offerShake bea
 }
 
 func (s OfferStoreService) getUsageBalance(offerId string, offerType string, currency string) (decimal.Decimal, error) {
-	offerShakes, err := s.dao.ListUsageOfferStoreShake(offerId, offerType, currency)
+	offerShakes, err := s.dao.ListOfferStoreShake(offerId)
 	usage := common.Zero
 	if err == nil {
 		for _, offerShake := range offerShakes {
-			if offerType == bean.OFFER_TYPE_SELL {
-				amount, _ := decimal.NewFromString(offerShake.TotalAmount)
-				usage = usage.Add(amount)
-			} else {
-				amount, _ := decimal.NewFromString(offerShake.Amount)
-				usage = usage.Add(amount)
+			if offerShake.Status != bean.OFFER_STORE_SHAKE_STATUS_REJECTING && offerShake.Status != bean.OFFER_STORE_SHAKE_STATUS_REJECTED && offerShake.Type == offerType && offerShake.Currency == currency {
+				if offerType == bean.OFFER_TYPE_SELL {
+					amount, _ := decimal.NewFromString(offerShake.TotalAmount)
+					usage = usage.Add(amount)
+				} else {
+					amount, _ := decimal.NewFromString(offerShake.Amount)
+					usage = usage.Add(amount)
+				}
 			}
 		}
 	}
 	return usage, err
+}
+
+func (s OfferStoreService) countActiveShake(offerId string, offerType string, currency string) (int, error) {
+	offerShakes, err := s.dao.ListOfferStoreShake(offerId)
+	count := 0
+	countInactive := 0
+	if err == nil {
+		for _, offerShake := range offerShakes {
+			if offerType != "" && offerShake.Type == offerType && offerShake.Currency == currency {
+				if offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_COMPLETED || offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_REJECTED || offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_CANCELLED {
+					countInactive += 1
+				}
+				count += 1
+			} else if offerShake.Currency == currency {
+				if offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_COMPLETED || offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_REJECTED || offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_CANCELLED {
+					countInactive += 1
+				}
+				count += 1
+			}
+		}
+	}
+	return count - countInactive, err
 }
 
 func (s OfferStoreService) registerFreeStart(userId string, offerItem *bean.OfferStoreItem, ce *SimpleContextError) (freeStartUser bean.OfferStoreFreeStartUser) {

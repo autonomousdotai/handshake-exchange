@@ -36,6 +36,7 @@ const OfferActionLocked = "OfferActionLocked"
 const OfferStoreExists = "OfferStoreExists"
 const OfferStoreNotExist = "OfferStoreNotExist"
 const OfferStoreShakeNotExist = "OfferStoreShakeNotExist"
+const OfferStoreShakeActiveExist = "OfferStoreShakeActiveExist"
 const OfferStoreNotEnoughBalance = "OfferStoreNotEnoughBalance"
 const OfferStoreAlreadyReviewed = "OfferStoreAlreadyReviewed"
 const InvalidFreeStartAmount = "InvalidFreeStartAmount"
@@ -84,4 +85,5 @@ var CodeMessage = map[string]struct {
 	InvalidAmount:                  {http.StatusBadRequest, -318, "Invalid amount"},
 	InvalidFreeStartAmount:         {http.StatusBadRequest, -319, "Invalid free start amount"},
 	RegisterFreeStartFailed:        {http.StatusBadRequest, -320, "Register free start failed"},
+	OfferStoreShakeActiveExist:     {http.StatusBadRequest, -321, "There is offer store shake active"},
 }

@@ -183,7 +183,7 @@ func (dao OfferStoreDao) GetOfferStoreShakeByPath(path string) (t TransferObject
 	return
 }
 
-func (dao OfferStoreDao) ListUsageOfferStoreShake(offerId string, offerType string, currency string) ([]bean.OfferStoreShake, error) {
+func (dao OfferStoreDao) ListOfferStoreShake(offerId string) ([]bean.OfferStoreShake, error) {
 	dbClient := firebase_service.FirestoreClient
 	iter := dbClient.Collection(GetOfferStoreShakePath(offerId)).Documents(context.Background())
 	offerShakes := make([]bean.OfferStoreShake, 0)
@@ -198,9 +198,7 @@ func (dao OfferStoreDao) ListUsageOfferStoreShake(offerId string, offerType stri
 			return offerShakes, err
 		}
 		doc.DataTo(&offerShake)
-		if offerShake.Status != bean.OFFER_STORE_SHAKE_STATUS_REJECTING && offerShake.Status != bean.OFFER_STORE_SHAKE_STATUS_REJECTED && offerShake.Type == offerType && offerShake.Currency == currency {
-			offerShakes = append(offerShakes, offerShake)
-		}
+		offerShakes = append(offerShakes, offerShake)
 	}
 
 	return offerShakes, nil
