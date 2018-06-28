@@ -159,7 +159,7 @@ func (s OfferStoreService) AddOfferStoreItem(userId string, offerId string, item
 		// Only ETH
 		if item.Currency == bean.ETH.Code {
 			client := exchangehandshakeshop_service.ExchangeHandshakeShopClient{}
-			sellAmount := common.StringToDecimal(item.SellAmount)
+			sellAmount := common.StringToDecimal(item.SellTotalAmount)
 			txHash, onChainErr := client.InitByShopOwner(offer.Id, sellAmount)
 			if onChainErr != nil {
 				fmt.Println(onChainErr)
