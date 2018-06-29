@@ -1488,13 +1488,8 @@ func (s OfferStoreService) getUsageBalance(offerId string, offerType string, cur
 	if err == nil {
 		for _, offerShake := range offerShakes {
 			if offerShake.Status != bean.OFFER_STORE_SHAKE_STATUS_REJECTING && offerShake.Status != bean.OFFER_STORE_SHAKE_STATUS_REJECTED && offerShake.Type == offerType && offerShake.Currency == currency {
-				if offerType == bean.OFFER_TYPE_SELL {
-					amount, _ := decimal.NewFromString(offerShake.TotalAmount)
-					usage = usage.Add(amount)
-				} else {
-					amount, _ := decimal.NewFromString(offerShake.Amount)
-					usage = usage.Add(amount)
-				}
+				amount, _ := decimal.NewFromString(offerShake.Amount)
+				usage = usage.Add(amount)
 			}
 		}
 	}
