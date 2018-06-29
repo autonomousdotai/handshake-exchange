@@ -164,9 +164,9 @@ func (s OfferService) ActiveOffer(address string, amountStr string) (offer bean.
 		return
 	}
 
-	inputAmount, _ := decimal.NewFromString(amountStr)
-	offerAmount, _ := decimal.NewFromString(offer.Amount)
-	totalAmount, _ := decimal.NewFromString(offer.TotalAmount)
+	inputAmount := common.StringToDecimal(amountStr)
+	offerAmount := common.StringToDecimal(offer.Amount)
+	totalAmount := common.StringToDecimal(offer.TotalAmount)
 
 	// Check amount need to deposit
 	sub := decimal.NewFromFloat(1)
@@ -742,7 +742,7 @@ func (s OfferService) GetQuote(quoteType string, amountStr string, currency stri
 		if err != nil {
 			return
 		}
-		price, _ = decimal.NewFromString(resp.Amount)
+		price = common.StringToDecimal(resp.Amount)
 		fiatPrice = price.Mul(rateNumber)
 		fiatAmount = tmpAmount.Mul(price)
 	} else if quoteType == "sell" {
@@ -751,7 +751,7 @@ func (s OfferService) GetQuote(quoteType string, amountStr string, currency stri
 		if err != nil {
 			return
 		}
-		price, _ := decimal.NewFromString(resp.Amount)
+		price = common.StringToDecimal(resp.Amount)
 		fiatPrice = price.Mul(rateNumber)
 		fiatAmount = tmpAmount.Mul(price)
 	} else {
@@ -880,7 +880,7 @@ func (s OfferService) setupOfferAmount(offer *bean.Offer, ce *SimpleContextError
 	exchFee := decimal.NewFromFloat(exchFeeObj.Value).Round(6)
 	// exchComm := decimal.NewFromFloat(exchCommObj.Value).Round(6)
 	exchComm := common.Zero
-	amount, _ := decimal.NewFromString(offer.Amount)
+	amount := common.StringToDecimal(offer.Amount)
 	fee := amount.Mul(exchFee)
 	reward := amount.Mul(exchComm)
 
@@ -1020,7 +1020,7 @@ func (s OfferService) sendTransaction(address string, amountStr string, currency
 			return response
 		} else if offer.WalletProvider == bean.BTC_WALLET_BLOCKCHAINIO {
 			client := blockchainio_service.BlockChainIOClient{}
-			amount, _ := decimal.NewFromString(amountStr)
+			amount := common.StringToDecimal(amountStr)
 			hashTx, err := client.SendTransaction(address, amount)
 			if ce.SetError(api_error.ExternalApiFailed, err) {
 				return ""

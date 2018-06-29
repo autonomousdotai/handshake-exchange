@@ -202,7 +202,7 @@ func (s OfferStoreService) RemoveOfferStoreItem(userId string, offerId string, c
 	}
 
 	hasSell := false
-	sellAmount, _ := decimal.NewFromString(item.SellAmount)
+	sellAmount := common.StringToDecimal(item.SellAmount)
 	sellBalance := common.StringToDecimal(item.SellBalance)
 	if sellAmount.GreaterThan(common.Zero) {
 		hasSell = true
@@ -334,7 +334,7 @@ func (s OfferStoreService) CreateOfferStoreShake(userId string, offerId string, 
 		ce.SetStatusKey(api_error.OfferStatusInvalid)
 	}
 	var balance decimal.Decimal
-	amount, _ := decimal.NewFromString(offerShakeBody.Amount)
+	amount := common.StringToDecimal(offerShakeBody.Amount)
 	if offerShakeBody.Currency == bean.ETH.Code {
 		if amount.LessThan(bean.MIN_ETH) {
 			ce.SetStatusKey(api_error.AmountIsTooSmall)
@@ -355,9 +355,9 @@ func (s OfferStoreService) CreateOfferStoreShake(userId string, offerId string, 
 		return
 	}
 	if offerShakeBody.IsTypeSell() {
-		balance, _ = decimal.NewFromString(item.SellAmount)
+		balance = common.StringToDecimal(item.SellAmount)
 	} else {
-		balance, _ = decimal.NewFromString(item.BuyAmount)
+		balance = common.StringToDecimal(item.BuyAmount)
 	}
 	if balance.LessThan(usageBalance.Add(amount)) {
 		ce.SetStatusKey(api_error.OfferStoreNotEnoughBalance)
@@ -858,8 +858,8 @@ func (s OfferStoreService) ActiveOffChainOfferStore(address string, amountStr st
 		return
 	}
 
-	inputAmount, _ := decimal.NewFromString(amountStr)
-	offerAmount, _ := decimal.NewFromString(item.SellTotalAmount)
+	inputAmount := common.StringToDecimal(amountStr)
+	offerAmount := common.StringToDecimal(item.SellTotalAmount)
 
 	// Check amount need to deposit
 	sub := offerAmount.Sub(inputAmount)
@@ -898,8 +898,8 @@ func (s OfferStoreService) PreShakeOffChainOfferStoreShake(address string, amoun
 		return
 	}
 
-	inputAmount, _ := decimal.NewFromString(amountStr)
-	offerAmount, _ := decimal.NewFromString(offer.Amount)
+	inputAmount := common.StringToDecimal(amountStr)
+	offerAmount := common.StringToDecimal(offer.Amount)
 
 	// Check amount need to deposit
 	sub := decimal.NewFromFloat(1)
@@ -1016,7 +1016,7 @@ func (s OfferStoreService) GetQuote(quoteType string, amountStr string, currency
 		if err != nil {
 			return
 		}
-		price, _ = decimal.NewFromString(resp.Amount)
+		price := common.StringToDecimal(resp.Amount)
 		fiatPrice = price.Mul(rateNumber)
 		fiatAmount = tmpAmount.Mul(price)
 	} else if quoteType == "sell" {
@@ -1025,7 +1025,7 @@ func (s OfferStoreService) GetQuote(quoteType string, amountStr string, currency
 		if err != nil {
 			return
 		}
-		price, _ := decimal.NewFromString(resp.Amount)
+		price := common.StringToDecimal(resp.Amount)
 		fiatPrice = price.Mul(rateNumber)
 		fiatAmount = tmpAmount.Mul(price)
 	} else {
@@ -1126,7 +1126,7 @@ func (s OfferStoreService) prepareOfferStore(offer *bean.OfferStore, item *bean.
 
 	s.generateSystemAddress(*offer, item, ce)
 
-	sellAmount, _ := decimal.NewFromString(item.SellAmount)
+	sellAmount := common.StringToDecimal(item.SellAmount)
 	if sellAmount.Equal(common.Zero) {
 		// Only the case that shop doesn't sell, so don't need to wait to active
 		item.Status = bean.OFFER_STORE_ITEM_STATUS_ACTIVE
@@ -1371,7 +1371,7 @@ func (s OfferStoreService) sendTransaction(address string, amountStr string, cur
 			return response
 		} else if walletProvider == bean.BTC_WALLET_BLOCKCHAINIO {
 			client := blockchainio_service.BlockChainIOClient{}
-			amount, _ := decimal.NewFromString(amountStr)
+			amount := common.StringToDecimal(amountStr)
 			hashTx, err := client.SendTransaction(address, amount)
 			if ce.SetError(api_error.ExternalApiFailed, err) {
 				return ""
@@ -1451,7 +1451,7 @@ func (s OfferStoreService) setupOfferShakeAmount(offerShake *bean.OfferStoreShak
 
 	exchFee := decimal.NewFromFloat(exchFeeObj.Value).Round(6)
 	exchComm := decimal.NewFromFloat(exchCommObj.Value).Round(6)
-	amount, _ := decimal.NewFromString(offerShake.Amount)
+	amount := common.StringToDecimal(offerShake.Amount)
 	fee := amount.Mul(exchFee)
 	// reward := amount.Mul(exchComm)
 	// For now
@@ -1488,7 +1488,7 @@ func (s OfferStoreService) getUsageBalance(offerId string, offerType string, cur
 	if err == nil {
 		for _, offerShake := range offerShakes {
 			if offerShake.Status != bean.OFFER_STORE_SHAKE_STATUS_REJECTING && offerShake.Status != bean.OFFER_STORE_SHAKE_STATUS_REJECTED && offerShake.Type == offerType && offerShake.Currency == currency {
-				amount, _ := decimal.NewFromString(offerShake.Amount)
+				amount := common.StringToDecimal(offerShake.Amount)
 				usage = usage.Add(amount)
 			}
 		}
