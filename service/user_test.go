@@ -21,7 +21,7 @@ func (dao UserDaoFake) AddProfile(profile bean.Profile) error {
 func (dao UserDaoFake) UpdateProfileCreditCard(userId string, creditCard bean.UserCreditCard, userCCLimit bean.UserCreditCardLimit) error {
 	return nil
 }
-func (dao UserDaoFake) UpdateProfileOfferRejectLock(userId string, lock bean.OfferRejectLock) error {
+func (dao UserDaoFake) UpdateProfileOfferRejectLock(profile bean.Profile) error {
 	return nil
 }
 func (dao UserDaoFake) UpdateUserCCLimitAmount(userId string, token string, amount decimal.Decimal) error {

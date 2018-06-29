@@ -409,7 +409,7 @@ func (s OfferStoreService) CreateOfferStoreShake(userId string, offerId string, 
 }
 
 func (s OfferStoreService) RejectOfferStoreShake(userId string, offerId string, offerShakeId string) (offerShake bean.OfferStoreShake, ce SimpleContextError) {
-	profile := GetProfile(s.userDao, userId, &ce)
+	profile := *GetProfile(s.userDao, userId, &ce)
 	if ce.HasError() {
 		return
 	}
@@ -481,13 +481,13 @@ func (s OfferStoreService) RejectOfferStoreShake(userId string, offerId string, 
 	}
 
 	transCount := s.getFailedTransCount(offer, offerShake, userId)
-	err := s.dao.UpdateOfferStoreShakeReject(offer, offerShake, *profile, transCount)
+	err := s.dao.UpdateOfferStoreShakeReject(offer, offerShake, profile, transCount)
 	if ce.SetError(api_error.UpdateDataFailed, err) {
 		return
 	}
 
 	if userId == offerShake.UID {
-		UserServiceInst.UpdateOfferRejectLock(userId)
+		UserServiceInst.UpdateOfferRejectLock(profile)
 	}
 
 	offerShake.ActionUID = userId

@@ -160,7 +160,7 @@ func (s UserService) UpdateUserCCLimitTracks() (ce SimpleContextError) {
 	return
 }
 
-func (s UserService) UpdateOfferRejectLock(userId string) (ce SimpleContextError) {
+func (s UserService) UpdateOfferRejectLock(profile bean.Profile) (ce SimpleContextError) {
 	systemConfigTO := s.miscDao.GetSystemConfigFromCache(bean.CONFIG_OFFER_REJECT_LOCK)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, systemConfigTO) {
 		return
@@ -169,9 +169,10 @@ func (s UserService) UpdateOfferRejectLock(userId string) (ce SimpleContextError
 	d, _ := strconv.Atoi(systemConfig.Value)
 	duration := int64(d)
 
-	err := s.dao.UpdateProfileOfferRejectLock(userId, bean.OfferRejectLock{
+	profile.OfferRejectLock = bean.OfferRejectLock{
 		Duration: duration,
-	})
+	}
+	err := s.dao.UpdateProfileOfferRejectLock(profile)
 	if ce.SetError(api_error.UpdateDataFailed, err) {
 		return
 	}

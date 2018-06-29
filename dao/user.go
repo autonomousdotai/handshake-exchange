@@ -14,7 +14,7 @@ type UserDaoInterface interface {
 	GetProfile(userId string) (t TransferObject)
 	AddProfile(profile bean.Profile) error
 	UpdateProfileCreditCard(userId string, creditCard bean.UserCreditCard, userCCLimit bean.UserCreditCardLimit) error
-	UpdateProfileOfferRejectLock(userId string, lock bean.OfferRejectLock) error
+	UpdateProfileOfferRejectLock(profile bean.Profile) error
 	UpdateUserCCLimitAmount(userId string, token string, amount decimal.Decimal) error
 	UpdateUserCCLimitTracks() (userIds []string, t TransferObject)
 	GetCCLimit(userId string, token string) (t TransferObject)
@@ -94,13 +94,13 @@ func (dao UserDao) UpdateUserCCLimitAmount(userId string, token string, amount d
 	return err
 }
 
-func (dao UserDao) UpdateProfileOfferRejectLock(userId string, lock bean.OfferRejectLock) error {
+func (dao UserDao) UpdateProfileOfferRejectLock(profile bean.Profile) error {
 	dbClient := firebase_service.FirestoreClient
 
 	batch := dbClient.Batch()
 
-	profileRef := dbClient.Collection("users").Doc(userId)
-	profileRef.Set(context.Background(), lock.GetAddOfferRejectLock(), firestore.MergeAll)
+	profileRef := dbClient.Collection("users").Doc(profile.UserId)
+	profileRef.Set(context.Background(), profile.GetUpdateOfferRejectLock(), firestore.MergeAll)
 
 	_, err := batch.Commit(context.Background())
 
