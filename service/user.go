@@ -161,7 +161,7 @@ func (s UserService) UpdateUserCCLimitTracks() (ce SimpleContextError) {
 }
 
 func (s UserService) UpdateOfferRejectLock(userId string) (ce SimpleContextError) {
-	systemConfigTO := s.miscDao.GetSystemConfigFromCache(bean.CONFIG_BTC_WALLET)
+	systemConfigTO := s.miscDao.GetSystemConfigFromCache(bean.CONFIG_OFFER_REJECT_LOCK)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, systemConfigTO) {
 		return
 	}
