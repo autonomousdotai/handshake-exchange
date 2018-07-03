@@ -9,6 +9,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/dao"
 	"github.com/ninjadotorg/handshake-exchange/integration/blockchainio_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
+	"github.com/ninjadotorg/handshake-exchange/integration/crypto_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/solr_service"
 	"github.com/ninjadotorg/handshake-exchange/service/notification"
 	"github.com/shopspring/decimal"
@@ -110,13 +111,6 @@ func (s OfferService) CreateOffer(userId string, offerBody bean.Offer) (offer be
 		return
 	}
 	offerBody.UID = userId
-
-	// For swap remove too many offers
-	//if profile.ActiveOffers[currencyInst.Code] {
-	//	ce.SetStatusKey(api_error.TooManyOffer)
-	//	return
-	//}
-	//profile.ActiveOffers[currencyInst.Code] = true
 
 	transCountTO := s.transDao.GetTransactionCount(offerBody.UID, offerBody.Currency)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, transCountTO) {
@@ -234,11 +228,6 @@ func (s OfferService) CloseOffer(userId string, offerId string) (offer bean.Offe
 		ce.SetStatusKey(api_error.OfferStatusInvalid)
 		return
 	}
-	// offerProfile := s.getOfferProfile(offer, profile, &ce)
-	// offerProfile.ActiveOffers[offer.Currency] = false
-	//if ce.HasError() {
-	//	return
-	//}
 
 	if offer.Status == bean.BTC.Code {
 		offer.Status = bean.OFFER_STATUS_CLOSED
@@ -257,6 +246,25 @@ func (s OfferService) CloseOffer(userId string, offerId string) (offer bean.Offe
 		return
 	}
 
+	notification.SendOfferNotification(offer)
+
+	return
+}
+
+func (s OfferService) CloseFailedOffer(userId, offerId string) (offer bean.Offer, ce SimpleContextError) {
+	if offer = *GetOffer(*s.dao, offerId, &ce); ce.HasError() {
+		return
+	}
+	if offer.Status != bean.OFFER_STATUS_CREATED {
+		ce.SetStatusKey(api_error.OfferStatusInvalid)
+		return
+	}
+
+	offer.Status = bean.OFFER_STATUS_CREATE_FAILED
+	err := s.dao.UpdateOfferClose(offer, bean.Profile{})
+	if ce.SetError(api_error.UpdateDataFailed, err) {
+		return
+	}
 	notification.SendOfferNotification(offer)
 
 	return
@@ -318,7 +326,7 @@ func (s OfferService) ShakeOffer(userId string, offerId string, body bean.OfferS
 	offer.ToChatUsername = body.ChatUsername
 	offer.ToLanguage = body.Language
 	offer.ToFCM = body.FCM
-	// err := s.dao.UpdateOffer(offer, offer.GetUpdateOfferShake())
+
 	err := s.dao.UpdateOfferShaking(offer)
 	if ce.SetError(api_error.UpdateDataFailed, err) {
 		return
@@ -337,7 +345,7 @@ func (s OfferService) UpdateShakeOffer(offerBody bean.Offer) (offer bean.Offer, 
 
 	// Good
 	offerBody.Status = bean.OFFER_STATUS_SHAKE
-	// err := s.dao.UpdateOffer(offerBody, offerBody.GetChangeStatus())
+
 	err := s.dao.UpdateOfferShake(offerBody)
 	if ce.SetError(api_error.UpdateDataFailed, err) {
 		return
@@ -432,6 +440,30 @@ func (s OfferService) CancelShakeOffer(userId string, offerId string) (offer bea
 	return
 }
 
+func (s OfferService) CancelFailedShakeOffer(userId string, offerId string) (offer bean.Offer, ce SimpleContextError) {
+	offer = *GetOffer(*s.dao, offerId, &ce)
+	if ce.HasError() {
+		return
+	}
+	if offer.Status != bean.OFFER_STATUS_PRE_SHAKING {
+		ce.SetStatusKey(api_error.OfferStatusInvalid)
+	}
+
+	offer.ToUID = ""
+	offer.Status = bean.OFFER_STATUS_PRE_SHAKE_FAILED
+	// Need it here to duplicate solr record for cancelled
+	notification.SendOfferNotification(offer)
+	offer.Status = bean.OFFER_STATUS_ACTIVE
+
+	err := s.dao.UpdateOffer(offer, offer.GetChangeStatus())
+	if ce.SetError(api_error.UpdateDataFailed, err) {
+		return
+	}
+	notification.SendOfferNotification(offer)
+
+	return
+}
+
 func (s OfferService) RejectShakeOffer(userId string, offerId string) (offer bean.Offer, ce SimpleContextError) {
 	profile := *GetProfile(s.userDao, userId, &ce)
 	if ce.HasError() {
@@ -460,6 +492,7 @@ func (s OfferService) RejectShakeOffer(userId string, offerId string) (offer bea
 
 	if offer.Currency == bean.BTC.Code {
 		offer.Status = bean.OFFER_STATUS_REJECTED
+		UserServiceInst.UpdateOfferRejectLock(profile)
 	} else {
 		// Only ETH
 		offer.Status = bean.OFFER_STATUS_REJECTING
@@ -470,7 +503,6 @@ func (s OfferService) RejectShakeOffer(userId string, offerId string) (offer bea
 		return
 	}
 
-	UserServiceInst.UpdateOfferRejectLock(profile)
 	offer.ActionUID = userId
 	notification.SendOfferNotification(offer)
 
@@ -497,9 +529,6 @@ func (s OfferService) CompleteShakeOffer(userId string, offerId string) (offer b
 		}
 	}
 
-	offerProfile := s.getOfferProfile(offer, profile, &ce)
-	offerProfile.ActiveOffers[offer.Currency] = false
-
 	if ce.HasError() {
 		return
 	}
@@ -525,13 +554,21 @@ func (s OfferService) CompleteShakeOffer(userId string, offerId string) (offer b
 			return
 		}
 		offer.Status = bean.OFFER_STATUS_COMPLETED
+
+		offerProfile := s.getOfferProfile(offer, profile, &ce)
+		offerProfile.ActiveOffers[offer.Currency] = false
+
+		transCount := s.getSuccessTransCount(offer)
+		err := s.dao.UpdateOfferCompleted(offer, offerProfile, transCount)
+		if ce.SetError(api_error.UpdateDataFailed, err) {
+			return
+		}
 	} else {
 		offer.Status = bean.OFFER_STATUS_COMPLETING
-	}
-	transCount := s.getSuccessTransCount(offer)
-	err := s.dao.UpdateOfferCompleted(offer, offerProfile, transCount)
-	if ce.SetError(api_error.UpdateDataFailed, err) {
-		return
+		err := s.dao.UpdateOffer(offer, offer.GetChangeStatus())
+		if ce.SetError(api_error.UpdateDataFailed, err) {
+			return
+		}
 	}
 
 	notification.SendOfferNotification(offer)
@@ -539,82 +576,123 @@ func (s OfferService) CompleteShakeOffer(userId string, offerId string) (offer b
 	return
 }
 
-// Deprecated
-//func (s OfferService) WithdrawOffer(userId string, offerId string) (offer bean.Offer, ce SimpleContextError) {
-//	profileTO := s.userDao.GetProfile(userId)
-//	if ce.FeedDaoTransfer(api_error.GetDataFailed, profileTO) {
-//		return
-//	}
-//	profile := profileTO.Object.(bean.Profile)
-//
-//	offerTO := s.dao.GetOffer(offerId)
-//	if ce.FeedDaoTransfer(api_error.GetDataFailed, offerTO) {
-//		return
-//	}
-//	offer = offerTO.Object.(bean.Offer)
-//
-//	if profile.UserId != offer.UID && profile.UserId != offer.ToUID {
-//		ce.SetStatusKey(api_error.InvalidRequestBody)
-//		return
-//	}
-//
-//	if offer.Status != bean.OFFER_STATUS_CLOSED && offer.Status != bean.OFFER_STATUS_REJECTED && offer.Status != bean.OFFER_STATUS_COMPLETED {
-//		ce.SetStatusKey(api_error.OfferStatusInvalid)
-//		return
-//	}
-//
-//	if offer.Type == bean.OFFER_TYPE_SELL {
-//		if offer.Status == bean.OFFER_STATUS_REJECTED || offer.Status == bean.OFFER_STATUS_CLOSED {
-//			if offer.UID != userId {
-//				ce.SetStatusKey(api_error.InvalidUserToCompleteHandshake)
-//				return
-//			}
-//		} else if offer.Status == bean.OFFER_STATUS_COMPLETED {
-//			if offer.ToUID != userId {
-//				ce.SetStatusKey(api_error.InvalidUserToCompleteHandshake)
-//				return
-//			}
-//		}
-//	} else {
-//		if offer.Status == bean.OFFER_STATUS_REJECTED {
-//			if offer.ToUID != userId {
-//				ce.SetStatusKey(api_error.InvalidUserToCompleteHandshake)
-//				return
-//			}
-//		} else if offer.Status == bean.OFFER_STATUS_COMPLETED {
-//			if offer.UID != userId {
-//				ce.SetStatusKey(api_error.InvalidUserToCompleteHandshake)
-//				return
-//			}
-//		}
-//	}
-//
-//	// Only BTC can transfer
-//	//var externalId string
-//	var err error
-//	if offer.Currency == bean.BTC.Code {
-//		// Do Transfer
-//		s.transferCrypto(&offer, userId, &ce)
-//	}
-//
-//	if offer.Currency == bean.BTC.Code {
-//		offer.Status = bean.OFFER_STATUS_WITHDRAW
-//	} else {
-//		offer.Status = bean.OFFER_STATUS_WITHDRAWING
-//	}
-//
-//	err = s.dao.UpdateOfferWithdraw(offer)
-//	if ce.SetError(api_error.UpdateDataFailed, err) {
-//		return
-//	}
-//
-//	notification.SendOfferNotification(offer)
-//
-//	return
-//}
+func (s OfferService) UpdateOfferToPreviousStatus(userId string, offerId string) (offer bean.Offer, ce SimpleContextError) {
+	offer = *GetOffer(*s.dao, offerId, &ce)
+	if ce.HasError() {
+		return
+	}
+	if offer.Status == bean.OFFER_STATUS_SHAKING {
+		if offer.Currency == bean.ETH.Code {
+			offer.Status = bean.OFFER_STATUS_PRE_SHAKE
+		} else {
+			offer.Status = bean.OFFER_STATUS_ACTIVE
+		}
+	} else if offer.Status == bean.OFFER_STATUS_CANCELLING {
+		offer.Status = bean.OFFER_STATUS_PRE_SHAKE
+	} else if offer.Status == bean.OFFER_STATUS_REJECTING {
+		offer.Status = bean.OFFER_STATUS_SHAKE
+	} else if offer.Status == bean.OFFER_STATUS_COMPLETING {
+		offer.Status = bean.OFFER_STATUS_SHAKE
+	} else {
+		ce.SetStatusKey(api_error.OfferStatusInvalid)
+	}
+
+	err := s.dao.UpdateOffer(offer, offer.GetChangeStatus())
+	if ce.SetError(api_error.UpdateDataFailed, err) {
+		return
+	}
+	notification.SendOfferNotification(offer)
+
+	return
+}
+
+func (s OfferService) OnChainOfferTracking(userId string, offerId string, body bean.OfferOnChainTransaction) (offer bean.Offer, ce SimpleContextError) {
+	profile := *GetProfile(s.userDao, userId, &ce)
+	if ce.HasError() {
+		return
+	}
+	offer = *GetOffer(*s.dao, offerId, &ce)
+	if ce.HasError() {
+		return
+	}
+
+	onChainTracking := bean.OfferOnChainActionTracking{
+		UID:      profile.UserId,
+		Offer:    offer.Id,
+		OfferRef: dao.GetOfferItemPath(offer.Id),
+		Type:     bean.OFFER_ADDRESS_MAP_OFFER,
+		TxHash:   body.TxHash,
+		Currency: offer.Currency,
+		Action:   body.Action,
+		Reason:   body.Reason,
+	}
+
+	err := s.dao.AddOfferOnChainActionTracking(onChainTracking)
+	if ce.SetError(api_error.AddDataFailed, err) {
+		return
+	}
+
+	return
+}
+
+func (s OfferService) CheckOfferOnChainTransaction() error {
+	originalList, err1 := s.dao.ListOfferOnChainActionTracking(true)
+	onChainList, err2 := s.dao.ListOfferOnChainActionTracking(false)
+	if err1 != nil {
+		return err1
+	}
+	if err2 != nil {
+		return err2
+	}
+
+	onChainMap := map[string]bean.OfferOnChainActionTracking{}
+	for _, item := range onChainList {
+		onChainMap[item.OfferRef] = item
+	}
+	for _, item := range originalList {
+		txOk := true
+		onChainItem, ok := onChainMap[item.OfferRef]
+		if ok {
+			txHash := onChainItem.TxHash
+			fmt.Sprintf(txHash)
+			isSuccess, isPending, err := crypto_service.GetTransactionReceipt(txHash, item.Currency)
+			if err == nil {
+				// Completed and failed
+				if !isPending {
+					if !isSuccess {
+						txOk = false
+					} else {
+						s.dao.RemoveOfferOnChainActionTracking(item.Id)
+					}
+				}
+			}
+		} else {
+			// Reverse the status if there is no tx hash within 5 minutes
+			if int64(time.Now().UTC().Sub(item.CreatedAt).Minutes()) > 5 {
+				txOk = false
+			}
+		}
+
+		if !txOk {
+			if item.Type == bean.OFFER_ADDRESS_MAP_OFFER {
+				s.RevertOfferAction(item.UID, item.OfferRef)
+			} else if item.Type == bean.OFFER_ADDRESS_MAP_OFFER_STORE {
+
+			} else if item.Type == bean.OFFER_ADDRESS_MAP_OFFER_STORE_SHAKE {
+			}
+			s.dao.RemoveOfferOnChainActionTracking(item.Id)
+		}
+	}
+
+	return nil
+}
 
 func (s OfferService) UpdateOnChainOffer(offerId string, hid int64, oldStatus string, newStatus string) (offer bean.Offer, ce SimpleContextError) {
 	offer = *GetOffer(*s.dao, offerId, &ce)
+	if ce.HasError() {
+		return
+	}
+	profile := *GetProfile(s.userDao, offer.UID, &ce)
 	if ce.HasError() {
 		return
 	}
@@ -634,6 +712,8 @@ func (s OfferService) UpdateOnChainOffer(offerId string, hid int64, oldStatus st
 			offer.Status = bean.OFFER_STATUS_CANCELLING
 			// So the last notification only update for maker
 			offer.ToUID = ""
+		} else if offer.Status == bean.OFFER_STATUS_REJECTING {
+			UserServiceInst.UpdateOfferRejectLock(profile)
 		}
 	}
 
@@ -647,9 +727,20 @@ func (s OfferService) UpdateOnChainOffer(offerId string, hid int64, oldStatus st
 		offer.Hid = hid
 	}
 	offer.Status = newStatus
-	err := s.dao.UpdateOffer(offer, offer.GetChangeStatus())
-	if ce.SetError(api_error.UpdateDataFailed, err) {
-		return
+	if offer.Status == bean.OFFER_STATUS_COMPLETED {
+		offerProfile := s.getOfferProfile(offer, profile, &ce)
+		offerProfile.ActiveOffers[offer.Currency] = false
+
+		transCount := s.getSuccessTransCount(offer)
+		err := s.dao.UpdateOfferCompleted(offer, offerProfile, transCount)
+		if ce.SetError(api_error.UpdateDataFailed, err) {
+			return
+		}
+	} else {
+		err := s.dao.UpdateOffer(offer, offer.GetChangeStatus())
+		if ce.SetError(api_error.UpdateDataFailed, err) {
+			return
+		}
 	}
 
 	notification.SendOfferNotification(offer)
@@ -662,6 +753,7 @@ func (s OfferService) FinishOfferPendingTransfer(ref string) (offer bean.Offer, 
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, to) {
 		return
 	}
+	offer = to.Object.(bean.Offer)
 
 	if offer.Status == bean.OFFER_STATUS_REJECTING {
 		offer.Status = bean.OFFER_STATUS_REJECTED
@@ -699,30 +791,6 @@ func (s OfferService) RejectOnChainOffer(offerId string) (offer bean.Offer, ce S
 
 func (s OfferService) CompleteOnChainOffer(offerId string) (offer bean.Offer, ce SimpleContextError) {
 	return s.UpdateOnChainOffer(offerId, 0, bean.OFFER_STATUS_COMPLETING, bean.OFFER_STATUS_COMPLETED)
-}
-
-func (s OfferService) getSuccessTransCount(offer bean.Offer) bean.TransactionCount {
-	transCountTO := s.transDao.GetTransactionCount(offer.UID, offer.Currency)
-	var transCount bean.TransactionCount
-	if !transCountTO.HasError() {
-		transCount = transCountTO.Object.(bean.TransactionCount)
-	}
-	transCount.Currency = offer.Currency
-	transCount.Success += 1
-
-	return transCount
-}
-
-func (s OfferService) getFailedTransCount(offer bean.Offer) bean.TransactionCount {
-	transCountTO := s.transDao.GetTransactionCount(offer.UID, offer.Currency)
-	var transCount bean.TransactionCount
-	if !transCountTO.HasError() {
-		transCount = transCountTO.Object.(bean.TransactionCount)
-	}
-	transCount.Currency = offer.Currency
-	transCount.Failed += 1
-
-	return transCount
 }
 
 func (s OfferService) GetQuote(quoteType string, amountStr string, currency string, fiatCurrency string) (price decimal.Decimal, fiatPrice decimal.Decimal,
@@ -828,6 +896,24 @@ func (s OfferService) FinishCryptoTransfer() (finishedInstantOffers []bean.Offer
 	return
 }
 
+func (s OfferService) RevertOfferAction(userId string, ref string) (offer bean.Offer, ce SimpleContextError) {
+	to := s.dao.GetOfferByPath(ref)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, to) {
+		return
+	}
+	offer = to.Object.(bean.Offer)
+
+	if offer.Status == bean.OFFER_STATUS_CREATED {
+		_, ce = s.CloseFailedOffer(userId, offer.Id)
+	} else if offer.Status == bean.OFFER_STATUS_PRE_SHAKE {
+		_, ce = s.CancelFailedShakeOffer(userId, offer.Id)
+	} else {
+		_, ce = s.UpdateOfferToPreviousStatus(userId, offer.Id)
+	}
+
+	return
+}
+
 func (s OfferService) SyncToSolr(offerId string) (offer bean.Offer, ce SimpleContextError) {
 	offer = *GetOffer(*s.dao, offerId, &ce)
 	if ce.HasError() {
@@ -836,6 +922,30 @@ func (s OfferService) SyncToSolr(offerId string) (offer bean.Offer, ce SimpleCon
 	solr_service.UpdateObject(bean.NewSolrFromOffer(offer))
 
 	return
+}
+
+func (s OfferService) getSuccessTransCount(offer bean.Offer) bean.TransactionCount {
+	transCountTO := s.transDao.GetTransactionCount(offer.UID, offer.Currency)
+	var transCount bean.TransactionCount
+	if !transCountTO.HasError() {
+		transCount = transCountTO.Object.(bean.TransactionCount)
+	}
+	transCount.Currency = offer.Currency
+	transCount.Success += 1
+
+	return transCount
+}
+
+func (s OfferService) getFailedTransCount(offer bean.Offer) bean.TransactionCount {
+	transCountTO := s.transDao.GetTransactionCount(offer.UID, offer.Currency)
+	var transCount bean.TransactionCount
+	if !transCountTO.HasError() {
+		transCount = transCountTO.Object.(bean.TransactionCount)
+	}
+	transCount.Currency = offer.Currency
+	transCount.Failed += 1
+
+	return transCount
 }
 
 func (s OfferService) getOfferProfile(offer bean.Offer, profile bean.Profile, ce *SimpleContextError) (offerProfile bean.Profile) {

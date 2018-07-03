@@ -305,6 +305,35 @@ func (s OfferStoreService) RemoveOfferStoreItem(userId string, offerId string, c
 	return
 }
 
+func (s OfferStoreService) OnChainOfferStoreTracking(userId string, offerId string, body bean.OfferOnChainTransaction) (offer bean.OfferStore, ce SimpleContextError) {
+	profile := *GetProfile(s.userDao, userId, &ce)
+	if ce.HasError() {
+		return
+	}
+	offer = *GetOfferStore(*s.dao, offerId, &ce)
+	if ce.HasError() {
+		return
+	}
+
+	onChainTracking := bean.OfferOnChainActionTracking{
+		UID:      profile.UserId,
+		Offer:    offer.Id,
+		OfferRef: dao.GetOfferStoreItemPath(offer.Id),
+		Type:     bean.OFFER_ADDRESS_MAP_OFFER_STORE,
+		TxHash:   body.TxHash,
+		Currency: body.Currency,
+		Action:   body.Action,
+		Reason:   body.Reason,
+	}
+
+	err := s.offerDao.AddOfferOnChainActionTracking(onChainTracking)
+	if ce.SetError(api_error.AddDataFailed, err) {
+		return
+	}
+
+	return
+}
+
 func (s OfferStoreService) CreateOfferStoreShake(userId string, offerId string, offerShakeBody bean.OfferStoreShake) (offerShake bean.OfferStoreShake, ce SimpleContextError) {
 	profile := GetProfile(s.userDao, userId, &ce)
 	if ce.HasError() {
@@ -682,6 +711,39 @@ func (s OfferStoreService) CompleteOfferStoreShake(userId string, offerId string
 			}
 			fmt.Println(txHash)
 		}
+	}
+
+	return
+}
+
+func (s OfferStoreService) OnChainOfferStoreShakeTracking(userId string, offerId string, offerShakeId string, body bean.OfferOnChainTransaction) (offerShake bean.OfferStoreShake, ce SimpleContextError) {
+	profile := GetProfile(s.userDao, userId, &ce)
+	if ce.HasError() {
+		return
+	}
+	GetOfferStore(*s.dao, offerId, &ce)
+	if ce.HasError() {
+		return
+	}
+	offerShake = *GetOfferStoreShake(*s.dao, offerId, offerShakeId, &ce)
+	if ce.HasError() {
+		return
+	}
+
+	onChainTracking := bean.OfferOnChainActionTracking{
+		UID:      profile.UserId,
+		Offer:    offerShake.Id,
+		OfferRef: dao.GetOfferStoreShakeItemPath(offerId, offerShakeId),
+		Type:     bean.OFFER_ADDRESS_MAP_OFFER_STORE_SHAKE,
+		TxHash:   body.TxHash,
+		Currency: body.Currency,
+		Action:   body.Action,
+		Reason:   body.Reason,
+	}
+
+	err := s.offerDao.AddOfferOnChainActionTracking(onChainTracking)
+	if ce.SetError(api_error.AddDataFailed, err) {
+		return
 	}
 
 	return

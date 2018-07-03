@@ -68,20 +68,22 @@ type SolrOfferExtraData struct {
 }
 
 var offerStatusMap = map[string]int{
-	OFFER_STATUS_CREATED:     0,
-	OFFER_STATUS_ACTIVE:      1,
-	OFFER_STATUS_CLOSING:     2,
-	OFFER_STATUS_CLOSED:      3,
-	OFFER_STATUS_SHAKING:     4,
-	OFFER_STATUS_SHAKE:       5,
-	OFFER_STATUS_COMPLETING:  6,
-	OFFER_STATUS_COMPLETED:   7,
-	OFFER_STATUS_PRE_SHAKING: 8,
-	OFFER_STATUS_PRE_SHAKE:   9,
-	OFFER_STATUS_REJECTING:   10,
-	OFFER_STATUS_REJECTED:    11,
-	OFFER_STATUS_CANCELLING:  12,
-	OFFER_STATUS_CANCELLED:   13,
+	OFFER_STATUS_CREATED:          0,
+	OFFER_STATUS_ACTIVE:           1,
+	OFFER_STATUS_CLOSING:          2,
+	OFFER_STATUS_CLOSED:           3,
+	OFFER_STATUS_SHAKING:          4,
+	OFFER_STATUS_SHAKE:            5,
+	OFFER_STATUS_COMPLETING:       6,
+	OFFER_STATUS_COMPLETED:        7,
+	OFFER_STATUS_PRE_SHAKING:      8,
+	OFFER_STATUS_PRE_SHAKE:        9,
+	OFFER_STATUS_REJECTING:        10,
+	OFFER_STATUS_REJECTED:         11,
+	OFFER_STATUS_CANCELLING:       12,
+	OFFER_STATUS_CANCELLED:        13,
+	OFFER_STATUS_CREATE_FAILED:    14,
+	OFFER_STATUS_PRE_SHAKE_FAILED: 15,
 }
 
 type SolrInstantOfferExtraData struct {
@@ -106,7 +108,7 @@ var instantOfferStatusMap = map[string]int{
 func NewSolrFromOffer(offer Offer) (solr SolrOfferObject) {
 	solr.Id = fmt.Sprintf("exchange_%s", offer.Id)
 	// Need to duplicate to another feed for tracking
-	if offer.Status == OFFER_STATUS_CANCELLED && offer.ToUID != "" {
+	if (offer.Status == OFFER_STATUS_CANCELLED || offer.Status == OFFER_STATUS_PRE_SHAKE_FAILED) && offer.ToUID != "" {
 		solr.Id = fmt.Sprintf("exchange_%s_cancelled", offer.Id)
 	}
 	solr.Type = 6

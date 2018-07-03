@@ -171,3 +171,36 @@ func (api OfferStoreApi) ReviewOfferStore(context *gin.Context) {
 
 	bean.SuccessResponse(context, offerStore)
 }
+
+func (api OfferStoreApi) OnChainOfferStoreTracking(context *gin.Context) {
+	userId := common.GetUserId(context)
+	offerId := context.Param("offerId")
+	var body bean.OfferOnChainTransaction
+	if common.ValidateBody(context, &body) != nil {
+		return
+	}
+
+	offer, ce := service.OfferStoreServiceInst.OnChainOfferStoreTracking(userId, offerId, body)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, offer)
+}
+
+func (api OfferStoreApi) OnChainOfferStoreShakeTracking(context *gin.Context) {
+	userId := common.GetUserId(context)
+	offerId := context.Param("offerId")
+	offerShakeId := context.Param("offerShakeId")
+	var body bean.OfferOnChainTransaction
+	if common.ValidateBody(context, &body) != nil {
+		return
+	}
+
+	offer, ce := service.OfferStoreServiceInst.OnChainOfferStoreShakeTracking(userId, offerId, offerShakeId, body)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, offer)
+}

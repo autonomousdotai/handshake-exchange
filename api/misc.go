@@ -322,6 +322,16 @@ func (api MiscApi) UpdateUserCCLimitTracks(context *gin.Context) {
 	bean.SuccessResponse(context, true)
 }
 
+//CRON_JOB
+func (api MiscApi) CheckOfferOnChainTransaction(context *gin.Context) {
+	err := service.OfferServiceInst.CheckOfferOnChainTransaction()
+	if api_error.PropagateErrorAndAbort(context, api_error.UpdateDataFailed, err) != nil {
+		return
+	}
+
+	bean.SuccessResponse(context, true)
+}
+
 // CRON JOB
 //func (api MiscApi) UpdateTransferTracking(context *gin.Context) {
 //	ce := service.OfferServiceInst.EndOffers()

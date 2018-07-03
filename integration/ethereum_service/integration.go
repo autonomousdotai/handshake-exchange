@@ -115,3 +115,22 @@ func (c *EthereumClient) GetAuth(amount decimal.Decimal) (auth *bind.TransactOpt
 
 	return
 }
+
+func (c *EthereumClient) GetTransactionReceipt(txHash string) (status bool, isPending bool, err error) {
+	c.Initialize()
+
+	_, isPending, err = c.client.TransactionByHash(context.Background(), common.HexToHash(txHash))
+	if err == nil {
+		if !isPending {
+			txReceipt, err1 := c.client.TransactionReceipt(context.Background(), common.HexToHash(txHash))
+			err = err1
+			if err == nil {
+				status = txReceipt.Status == 1
+			}
+		}
+	}
+
+	c.Close()
+
+	return
+}

@@ -24,6 +24,9 @@ func (url OfferStoreUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	group.DELETE("/:offerId", func(context *gin.Context) {
 		offerApi.RemoveOfferStoreItem(context)
 	})
+	group.POST("/:offerId/onchain-tracking", func(context *gin.Context) {
+		offerApi.OnChainOfferStoreTracking(context)
+	})
 	group.POST("/:offerId/reviews/:offerShakeId", func(context *gin.Context) {
 		offerApi.ReviewOfferStore(context)
 	})
@@ -41,6 +44,9 @@ func (url OfferStoreUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	})
 	group.POST("/:offerId/shakes/:offerShakeId/cancel", func(context *gin.Context) {
 		offerApi.CancelOfferStoreShake(context)
+	})
+	group.POST("/:offerId/shakes/:offerShakeId/onchain-tracking", func(context *gin.Context) {
+		offerApi.OnChainOfferStoreShakeTracking(context)
 	})
 
 	return group

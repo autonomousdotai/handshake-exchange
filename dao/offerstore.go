@@ -10,6 +10,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/integration/firebase_service"
 	"github.com/shopspring/decimal"
 	"google.golang.org/api/iterator"
+	"strings"
 )
 
 type OfferStoreDao struct {
@@ -24,8 +25,9 @@ func (dao OfferStoreDao) GetOfferStore(offerId string) (t TransferObject) {
 func (dao OfferStoreDao) AddOfferStore(offer bean.OfferStore, item bean.OfferStoreItem, profile bean.Profile) (bean.OfferStore, error) {
 	dbClient := firebase_service.FirestoreClient
 
+	offerPath := GetOfferStoreItemPath(offer.UID)
 	profileDocRef := dbClient.Doc(GetUserPath(offer.UID))
-	docRef := dbClient.Doc(GetOfferStoreItemPath(offer.UID))
+	docRef := dbClient.Doc(offerPath)
 	offer.Id = docRef.ID
 	offer.ItemSnapshots = map[string]bean.OfferStoreItem{
 		item.Currency: item,
@@ -49,6 +51,19 @@ func (dao OfferStoreDao) AddOfferStore(offer bean.OfferStore, item bean.OfferSto
 
 	batch.Set(docRef, offer.GetAddOfferStore())
 	batch.Set(profileDocRef, profile.GetUpdateOfferStoreProfile(), firestore.MergeAll)
+
+	if item.Currency == bean.ETH.Code && item.Status == bean.OFFER_STORE_ITEM_STATUS_CREATED {
+		// Store a record to check onchain
+		onChainTrackingRef := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(true, strings.Replace(offerPath, "/", "-", -1)))
+		batch.Set(onChainTrackingRef, bean.OfferOnChainActionTracking{
+			Action:   item.Status,
+			Currency: item.Currency,
+			Offer:    offer.Id,
+			OfferRef: offerPath,
+			Type:     bean.OFFER_ADDRESS_MAP_OFFER_STORE,
+			UID:      offer.UID,
+		}.GetAddOfferOnChainActionTracking())
+	}
 
 	_, err := batch.Commit(context.Background())
 
@@ -80,7 +95,8 @@ func (dao OfferStoreDao) AddOfferStoreItem(offer bean.OfferStore, item bean.Offe
 	dbClient := firebase_service.FirestoreClient
 
 	profileDocRef := dbClient.Doc(GetUserPath(offer.UID))
-	docRef := dbClient.Doc(GetOfferStoreItemPath(offer.Id))
+	offerPath := GetOfferStoreItemPath(offer.UID)
+	docRef := dbClient.Doc(offerPath)
 
 	batch := dbClient.Batch()
 	itemDocRef := dbClient.Doc(GetOfferStoreItemItemPath(offer.Id, item.Currency))
@@ -99,6 +115,19 @@ func (dao OfferStoreDao) AddOfferStoreItem(offer bean.OfferStore, item bean.Offe
 	batch.Set(itemDocRef, item.GetAddOfferStoreItem())
 	batch.Set(docRef, offer.GetUpdateOfferStoreChangeItem(), firestore.MergeAll)
 	batch.Set(profileDocRef, profile.GetUpdateOfferStoreProfile(), firestore.MergeAll)
+
+	if item.Currency == bean.ETH.Code && item.Status == bean.OFFER_STORE_ITEM_STATUS_CREATED {
+		// Store a record to check onchain
+		onChainTrackingRef := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(true, strings.Replace(offerPath, "/", "-", -1)))
+		batch.Set(onChainTrackingRef, bean.OfferOnChainActionTracking{
+			Action:   item.Status,
+			Currency: item.Currency,
+			Offer:    offer.Id,
+			OfferRef: offerPath,
+			Type:     bean.OFFER_ADDRESS_MAP_OFFER_STORE,
+			UID:      offer.UID,
+		}.GetAddOfferOnChainActionTracking())
+	}
 
 	_, err := batch.Commit(context.Background())
 
@@ -144,11 +173,27 @@ func (dao OfferStoreDao) UpdateOfferStoreItemActive(offer bean.OfferStore, item 
 func (dao OfferStoreDao) UpdateOfferStoreItemClosing(offer bean.OfferStore, item bean.OfferStoreItem) error {
 	dbClient := firebase_service.FirestoreClient
 	batch := dbClient.Batch()
+
+	offerPath := GetOfferStoreItemPath(offer.Id)
 	docRef := dbClient.Doc(GetOfferStoreItemPath(offer.Id))
 	docItemRef := dbClient.Doc(GetOfferStoreItemItemPath(offer.Id, item.Currency))
 
 	batch.Set(docRef, offer.GetUpdateOfferStoreChangeItem(), firestore.MergeAll)
 	batch.Set(docItemRef, item.GetUpdateOfferStoreItemClosing(), firestore.MergeAll)
+
+	if item.Currency == bean.ETH.Code && item.Status == bean.OFFER_STORE_ITEM_STATUS_CLOSING {
+		// Store a record to check onchain
+		onChainTrackingRef := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(true, strings.Replace(offerPath, "/", "-", -1)))
+		batch.Set(onChainTrackingRef, bean.OfferOnChainActionTracking{
+			Action:   item.Status,
+			Currency: item.Currency,
+			Offer:    offer.Id,
+			OfferRef: offerPath,
+			Type:     bean.OFFER_ADDRESS_MAP_OFFER_STORE,
+			UID:      offer.UID,
+		}.GetAddOfferOnChainActionTracking())
+	}
+
 	_, err := batch.Commit(context.Background())
 
 	return err
@@ -212,11 +257,12 @@ func (dao OfferStoreDao) AddOfferStoreShake(offer bean.OfferStore, offerShake be
 	offerShake.OffChainId = fmt.Sprintf("%s-%s", offer.UID, offerShake.Id)
 
 	batch := dbClient.Batch()
+	offerStoreShake := GetOfferStoreShakeItemPath(offer.Id, offerShake.Id)
 	if offerShake.SystemAddress != "" {
 		mapping := bean.OfferAddressMap{
 			Address:  offerShake.SystemAddress,
 			Offer:    offerShake.Id,
-			OfferRef: GetOfferStoreShakeItemPath(offer.Id, offerShake.Id),
+			OfferRef: offerStoreShake,
 			UID:      offerShake.UID,
 			Type:     bean.OFFER_ADDRESS_MAP_OFFER_STORE_SHAKE,
 		}
@@ -226,6 +272,19 @@ func (dao OfferStoreDao) AddOfferStoreShake(offer bean.OfferStore, offerShake be
 
 	batch.Set(docRef, offerShake.GetAddOfferStoreShake())
 
+	if offerShake.Currency == bean.ETH.Code && (offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_PRE_SHAKING || offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_SHAKING) {
+		// Store a record to check onchain
+		onChainTrackingRef := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(true, strings.Replace(offerStoreShake, "/", "-", -1)))
+		batch.Set(onChainTrackingRef, bean.OfferOnChainActionTracking{
+			Action:   offerShake.Status,
+			Currency: offerShake.Currency,
+			Offer:    offerShake.Id,
+			OfferRef: offerStoreShake,
+			Type:     bean.OFFER_ADDRESS_MAP_OFFER_STORE_SHAKE,
+			UID:      offer.UID,
+		}.GetAddOfferOnChainActionTracking())
+	}
+
 	_, err := batch.Commit(context.Background())
 
 	return offerShake, err
@@ -233,9 +292,32 @@ func (dao OfferStoreDao) AddOfferStoreShake(offer bean.OfferStore, offerShake be
 
 func (dao OfferStoreDao) UpdateOfferStoreShake(offerId string, offerShake bean.OfferStoreShake, updateData map[string]interface{}) error {
 	dbClient := firebase_service.FirestoreClient
+	batch := dbClient.Batch()
 
-	docRef := dbClient.Doc(GetOfferStoreShakeItemPath(offerId, offerShake.Id))
-	_, err := docRef.Set(context.Background(), updateData, firestore.MergeAll)
+	offerShakePath := GetOfferStoreShakeItemPath(offerId, offerShake.Id)
+	docRef := dbClient.Doc(offerShakePath)
+	batch.Set(docRef, updateData, firestore.MergeAll)
+
+	if offerShake.Currency == bean.ETH.Code &&
+		(offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_PRE_SHAKING ||
+			offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_SHAKING ||
+			offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_CANCELLING ||
+			offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_REJECTING ||
+			offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_COMPLETING) {
+
+		// Store a record to check onchain
+		onChainTrackingRef := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(true, strings.Replace(offerShakePath, "/", "-", -1)))
+		batch.Set(onChainTrackingRef, bean.OfferOnChainActionTracking{
+			Action:   offerShake.Status,
+			Currency: offerShake.Currency,
+			Offer:    offerShake.Id,
+			OfferRef: offerShakePath,
+			Type:     bean.OFFER_ADDRESS_MAP_OFFER_STORE_SHAKE,
+			UID:      offerId,
+		}.GetAddOfferOnChainActionTracking())
+	}
+
+	_, err := batch.Commit(context.Background())
 
 	return err
 }
@@ -243,12 +325,26 @@ func (dao OfferStoreDao) UpdateOfferStoreShake(offerId string, offerShake bean.O
 func (dao OfferStoreDao) UpdateOfferStoreShakeReject(offer bean.OfferStore, offerShake bean.OfferStoreShake, profile bean.Profile, transactionCount bean.TransactionCount) error {
 	dbClient := firebase_service.FirestoreClient
 
-	docRef := dbClient.Doc(GetOfferStoreShakeItemPath(offer.Id, offerShake.Id))
+	offerShakePath := GetOfferStoreShakeItemPath(offer.Id, offerShake.Id)
+	docRef := dbClient.Doc(offerShakePath)
 	transCountDocRef := dbClient.Doc(GetTransactionCountItemPath(profile.UserId, transactionCount.Currency))
 
 	batch := dbClient.Batch()
 	batch.Set(docRef, offerShake.GetChangeStatus(), firestore.MergeAll)
 	batch.Set(transCountDocRef, transactionCount.GetUpdateFailed(), firestore.MergeAll)
+
+	if offerShake.Currency == bean.ETH.Code && (offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_REJECTING) {
+		// Store a record to check onchain
+		onChainTrackingRef := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(true, strings.Replace(offerShakePath, "/", "-", -1)))
+		batch.Set(onChainTrackingRef, bean.OfferOnChainActionTracking{
+			Action:   offerShake.Status,
+			Currency: offerShake.Currency,
+			Offer:    offerShake.Id,
+			OfferRef: offerShakePath,
+			Type:     bean.OFFER_ADDRESS_MAP_OFFER_STORE_SHAKE,
+			UID:      offer.UID,
+		}.GetAddOfferOnChainActionTracking())
+	}
 
 	_, err := batch.Commit(context.Background())
 
@@ -259,7 +355,8 @@ func (dao OfferStoreDao) UpdateOfferStoreShakeComplete(offer bean.OfferStore, of
 	transactionCount1 bean.TransactionCount, transactionCount2 bean.TransactionCount) error {
 	dbClient := firebase_service.FirestoreClient
 
-	docRef := dbClient.Doc(GetOfferStoreShakeItemPath(offer.Id, offerShake.Id))
+	offerShakePath := GetOfferStoreShakeItemPath(offer.Id, offerShake.Id)
+	docRef := dbClient.Doc(offerShakePath)
 	transCountDocRef1 := dbClient.Doc(GetTransactionCountItemPath(offer.UID, transactionCount1.Currency))
 	transCountDocRef2 := dbClient.Doc(GetTransactionCountItemPath(offerShake.UID, transactionCount2.Currency))
 
@@ -267,6 +364,19 @@ func (dao OfferStoreDao) UpdateOfferStoreShakeComplete(offer bean.OfferStore, of
 	batch.Set(docRef, offerShake.GetChangeStatus(), firestore.MergeAll)
 	batch.Set(transCountDocRef1, transactionCount1.GetUpdateSuccess(), firestore.MergeAll)
 	batch.Set(transCountDocRef2, transactionCount2.GetUpdateSuccess(), firestore.MergeAll)
+
+	if offerShake.Currency == bean.ETH.Code && (offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_COMPLETING) {
+		// Store a record to check onchain
+		onChainTrackingRef := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(true, strings.Replace(offerShakePath, "/", "-", -1)))
+		batch.Set(onChainTrackingRef, bean.OfferOnChainActionTracking{
+			Action:   offerShake.Status,
+			Currency: offerShake.Currency,
+			Offer:    offerShake.Id,
+			OfferRef: offerShakePath,
+			Type:     bean.OFFER_ADDRESS_MAP_OFFER_STORE_SHAKE,
+			UID:      offer.UID,
+		}.GetAddOfferOnChainActionTracking())
+	}
 
 	_, err := batch.Commit(context.Background())
 

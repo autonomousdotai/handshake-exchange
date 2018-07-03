@@ -13,6 +13,7 @@ const OFFER_TYPE_SELL = "sell"
 const OFFER_PROVIDER_COINBASE = "coinbase"
 
 const OFFER_STATUS_CREATED = "created"
+const OFFER_STATUS_CREATE_FAILED = "create_failed"
 const OFFER_STATUS_ACTIVE = "active"
 const OFFER_STATUS_PRE_SHAKING = "pre_shaking"
 const OFFER_STATUS_PRE_SHAKE = "pre_shake"
@@ -24,6 +25,7 @@ const OFFER_STATUS_CLOSING = "closing"
 const OFFER_STATUS_CLOSED = "closed"
 const OFFER_STATUS_CANCELLING = "cancelling"
 const OFFER_STATUS_CANCELLED = "cancelled"
+const OFFER_STATUS_PRE_SHAKE_FAILED = "pre_shake_failed"
 const OFFER_STATUS_REJECTING = "rejecting"
 const OFFER_STATUS_REJECTED = "rejected"
 
@@ -333,4 +335,38 @@ func (offer OfferTransferMap) GetUpdateTick() map[string]interface{} {
 type OfferOnchain struct {
 	Hid   int64
 	Offer string
+}
+
+type OfferOnChainTransaction struct {
+	TxHash   string `json:"tx_hash"`
+	Action   string `json:"action"`
+	Reason   string `json:"reason"`
+	Currency string `json:"currency"`
+}
+
+type OfferOnChainActionTracking struct {
+	Id        string    `json:"id" firestore:"id"`
+	UID       string    `json:"uid" firestore:"uid"`
+	Offer     string    `json:"offer" firestore:"offer"`
+	OfferRef  string    `json:"offer_ref" firestore:"offer_ref"`
+	Type      string    `json:"type" firestore:"type"`
+	TxHash    string    `json:"tx_hash" firestore:"tx_hash"`
+	Currency  string    `json:"currency" firestore:"currency"`
+	Action    string    `json:"action" firestore:"action"`
+	Reason    string    `json:"reason" firestore:"reason"`
+	CreatedAt time.Time `json:"created_at" firestore:"created_at"`
+}
+
+func (offer OfferOnChainActionTracking) GetAddOfferOnChainActionTracking() map[string]interface{} {
+	return map[string]interface{}{
+		"id":         offer.Id,
+		"uid":        offer.UID,
+		"offer":      offer.Offer,
+		"offer_ref":  offer.OfferRef,
+		"type":       offer.Type,
+		"tx_hash":    offer.TxHash,
+		"currency":   offer.Currency,
+		"action":     offer.Action,
+		"created_at": firestore.ServerTimestamp,
+	}
 }

@@ -39,6 +39,8 @@ func (url OfferUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	group.POST("/:offerId/cancel", func(context *gin.Context) {
 		offerApi.CancelShakeOffer(context)
 	})
-
+	group.POST("/:offerId/onchain-tracking", func(context *gin.Context) {
+		offerApi.OnChainOfferTracking(context)
+	})
 	return group
 }

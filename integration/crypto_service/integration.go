@@ -33,3 +33,14 @@ func SendTransaction(address string, amountStr string, currency string) (string,
 
 	return "", errors.New("Currency not support")
 }
+
+func GetTransactionReceipt(txHash string, currency string) (isSuccess bool, isPending bool, err error) {
+	if currency == bean.ETH.Code {
+		client := ethereum_service.EthereumClient{}
+		return client.GetTransactionReceipt(txHash)
+	} else if currency == bean.BTC.Code {
+		return true, false, nil
+	}
+
+	return false, false, nil
+}

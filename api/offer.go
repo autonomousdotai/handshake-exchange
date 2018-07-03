@@ -145,6 +145,22 @@ func (api OfferApi) CompleteShakeOffer(context *gin.Context) {
 	bean.SuccessResponse(context, offer)
 }
 
+func (api OfferApi) OnChainOfferTracking(context *gin.Context) {
+	userId := common.GetUserId(context)
+	offerId := context.Param("offerId")
+	var body bean.OfferOnChainTransaction
+	if common.ValidateBody(context, &body) != nil {
+		return
+	}
+
+	offer, ce := service.OfferServiceInst.OnChainOfferTracking(userId, offerId, body)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, offer)
+}
+
 func extractListOfferParams(context *gin.Context) (string, string, string, string, interface{}, int) {
 	offerType := context.DefaultQuery("type", "")
 	currency := context.DefaultQuery("currency", "")

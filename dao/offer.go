@@ -7,6 +7,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/bean"
 	"github.com/ninjadotorg/handshake-exchange/integration/firebase_service"
 	"google.golang.org/api/iterator"
+	"strings"
 )
 
 type OfferDao struct {
@@ -23,16 +24,30 @@ func (dao OfferDao) AddOffer(offer bean.Offer, profile bean.Profile) (bean.Offer
 	batch.Set(docRef, offer.GetAddOffer())
 	// batch.Set(profileDocRef, profile.GetUpdateOfferProfile(), firestore.MergeAll)
 
+	offerPath := GetOfferItemPath(offer.Id)
 	if offer.SystemAddress != "" {
 		mapping := bean.OfferAddressMap{
 			Address:  offer.SystemAddress,
 			Offer:    offer.Id,
-			OfferRef: GetOfferItemPath(offer.Id),
+			OfferRef: offerPath,
 			UID:      offer.UID,
 			Type:     bean.OFFER_ADDRESS_MAP_OFFER,
 		}
 		mappingDocRef := dbClient.Doc(GetOfferAddressMapItemPath(offer.SystemAddress))
 		batch.Set(mappingDocRef, mapping.GetAddOfferAddressMap())
+	}
+
+	if offer.Currency == bean.ETH.Code && (offer.Status == bean.OFFER_STATUS_CREATED) {
+		// Store a record to check onchain
+		onChainTrackingRef := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(true, strings.Replace(offerPath, "/", "-", -1)))
+		batch.Set(onChainTrackingRef, bean.OfferOnChainActionTracking{
+			Action:   offer.Status,
+			Currency: offer.Currency,
+			Offer:    offer.Id,
+			OfferRef: offerPath,
+			Type:     bean.OFFER_ADDRESS_MAP_OFFER,
+			UID:      offer.UID,
+		}.GetAddOfferOnChainActionTracking())
 	}
 
 	_, err := batch.Commit(context.Background())
@@ -99,8 +114,40 @@ func (dao OfferDao) GetOfferByPath(path string) (t TransferObject) {
 func (dao OfferDao) UpdateOffer(offer bean.Offer, updateData map[string]interface{}) error {
 	dbClient := firebase_service.FirestoreClient
 
-	docRef := dbClient.Doc(GetOfferItemPath(offer.Id))
-	_, err := docRef.Set(context.Background(), updateData, firestore.MergeAll)
+	offerPath := GetOfferItemPath(offer.Id)
+	docRef := dbClient.Doc(offerPath)
+
+	batch := dbClient.Batch()
+	batch.Set(docRef, updateData, firestore.MergeAll)
+
+	if offer.SystemAddress != "" &&
+		(offer.Status == bean.OFFER_STATUS_CREATE_FAILED ||
+			offer.Status == bean.OFFER_STATUS_PRE_SHAKE_FAILED) {
+		addressMapDocRef := dbClient.Doc(GetOfferAddressMapItemPath(offer.SystemAddress))
+		batch.Delete(addressMapDocRef)
+	}
+
+	if offer.Currency == bean.ETH.Code &&
+		(offer.Status == bean.OFFER_STATUS_CREATED ||
+			offer.Status == bean.OFFER_STATUS_PRE_SHAKING ||
+			offer.Status == bean.OFFER_STATUS_SHAKING ||
+			offer.Status == bean.OFFER_STATUS_CANCELLING ||
+			offer.Status == bean.OFFER_STATUS_REJECTING ||
+			offer.Status == bean.OFFER_STATUS_CLOSING ||
+			offer.Status == bean.OFFER_STATUS_COMPLETING) {
+		// Store a record to check onchain
+		onChainTrackingRef := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(true, strings.Replace(offerPath, "/", "-", -1)))
+		batch.Set(onChainTrackingRef, bean.OfferOnChainActionTracking{
+			Action:   offer.Status,
+			Currency: offer.Currency,
+			Offer:    offer.Id,
+			OfferRef: offerPath,
+			Type:     bean.OFFER_ADDRESS_MAP_OFFER,
+			UID:      offer.UID,
+		}.GetAddOfferOnChainActionTracking())
+	}
+
+	_, err := batch.Commit(context.Background())
 
 	return err
 }
@@ -125,7 +172,8 @@ func (dao OfferDao) UpdateOfferActive(offer bean.Offer) error {
 func (dao OfferDao) UpdateOfferShaking(offer bean.Offer) error {
 	dbClient := firebase_service.FirestoreClient
 
-	docRef := dbClient.Doc(GetOfferItemPath(offer.Id))
+	offerPath := GetOfferItemPath(offer.Id)
+	docRef := dbClient.Doc(offerPath)
 
 	batch := dbClient.Batch()
 	batch.Set(docRef, offer.GetUpdateOfferShake(), firestore.MergeAll)
@@ -139,6 +187,19 @@ func (dao OfferDao) UpdateOfferShaking(offer bean.Offer) error {
 		}
 		mappingDocRef := dbClient.Doc(GetOfferAddressMapItemPath(offer.SystemAddress))
 		batch.Set(mappingDocRef, mapping.GetAddOfferAddressMap())
+	}
+
+	if offer.Currency == bean.ETH.Code && (offer.Status == bean.OFFER_STATUS_PRE_SHAKING || offer.Status == bean.OFFER_STATUS_SHAKING) {
+		// Store a record to check onchain
+		onChainTrackingRef := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(true, strings.Replace(offerPath, "/", "-", -1)))
+		batch.Set(onChainTrackingRef, bean.OfferOnChainActionTracking{
+			Action:   offer.Status,
+			Currency: offer.Currency,
+			Offer:    offer.Id,
+			OfferRef: offerPath,
+			Type:     bean.OFFER_ADDRESS_MAP_OFFER,
+			UID:      offer.UID,
+		}.GetAddOfferOnChainActionTracking())
 	}
 
 	_, err := batch.Commit(context.Background())
@@ -166,11 +227,30 @@ func (dao OfferDao) UpdateOfferClose(offer bean.Offer, profile bean.Profile) err
 	dbClient := firebase_service.FirestoreClient
 
 	// profileDocRef := dbClient.Doc(GetUserPath(offer.UID))
-	docRef := dbClient.Doc(GetOfferItemPath(offer.Id))
+	offerPath := GetOfferItemPath(offer.Id)
+	docRef := dbClient.Doc(offerPath)
 
 	batch := dbClient.Batch()
 	batch.Set(docRef, offer.GetUpdateOfferClose(), firestore.MergeAll)
 	// batch.Set(profileDocRef, profile.GetUpdateOfferProfile(), firestore.MergeAll)
+
+	if offer.SystemAddress != "" {
+		addressMapDocRef := dbClient.Doc(GetOfferAddressMapItemPath(offer.SystemAddress))
+		batch.Delete(addressMapDocRef)
+	}
+
+	if offer.Currency == bean.ETH.Code && (offer.Status == bean.OFFER_STATUS_CREATED) {
+		// Store a record to check onchain
+		onChainTrackingRef := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(true, strings.Replace(offerPath, "/", "-", -1)))
+		batch.Set(onChainTrackingRef, bean.OfferOnChainActionTracking{
+			Action:   offer.Status,
+			Currency: offer.Currency,
+			Offer:    offer.Id,
+			OfferRef: offerPath,
+			Type:     bean.OFFER_ADDRESS_MAP_OFFER,
+			UID:      offer.UID,
+		}.GetAddOfferOnChainActionTracking())
+	}
 
 	_, err := batch.Commit(context.Background())
 
@@ -180,6 +260,7 @@ func (dao OfferDao) UpdateOfferClose(offer bean.Offer, profile bean.Profile) err
 func (dao OfferDao) UpdateOfferReject(offer bean.Offer, profile bean.Profile, transactionCount bean.TransactionCount) error {
 	dbClient := firebase_service.FirestoreClient
 
+	offerPath := GetOfferItemPath(offer.Id)
 	profileDocRef := dbClient.Doc(GetUserPath(offer.UID))
 	docRef := dbClient.Doc(GetOfferItemPath(offer.Id))
 	transCountDocRef := dbClient.Doc(GetTransactionCountItemPath(offer.UID, offer.Currency))
@@ -188,6 +269,19 @@ func (dao OfferDao) UpdateOfferReject(offer bean.Offer, profile bean.Profile, tr
 	batch.Set(docRef, offer.GetUpdateOfferReject(), firestore.MergeAll)
 	batch.Set(profileDocRef, profile.GetUpdateOfferProfile(), firestore.MergeAll)
 	batch.Set(transCountDocRef, transactionCount.GetUpdateFailed(), firestore.MergeAll)
+
+	if offer.Currency == bean.ETH.Code && (offer.Status == bean.OFFER_STATUS_REJECTING) {
+		// Store a record to check onchain
+		onChainTrackingRef := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(true, strings.Replace(offerPath, "/", "-", -1)))
+		batch.Set(onChainTrackingRef, bean.OfferOnChainActionTracking{
+			Action:   offer.Status,
+			Currency: offer.Currency,
+			Offer:    offer.Id,
+			OfferRef: offerPath,
+			Type:     bean.OFFER_ADDRESS_MAP_OFFER,
+			UID:      offer.UID,
+		}.GetAddOfferOnChainActionTracking())
+	}
 
 	_, err := batch.Commit(context.Background())
 
@@ -283,6 +377,24 @@ func (dao OfferDao) ListOfferConfirmingAddressMap() ([]bean.OfferConfirmingAddre
 	return offers, nil
 }
 
+func (dao OfferDao) AddOfferConfirmingAddressMap(offerMap bean.OfferConfirmingAddressMap) error {
+	dbClient := firebase_service.FirestoreClient
+	docRef := dbClient.Doc(GetOfferConfirmingAddressMapItemPath(offerMap.TxHash))
+
+	_, err := docRef.Set(context.Background(), offerMap.GetAddOfferConfirmingAddressMap(), firestore.MergeAll)
+
+	return err
+}
+
+func (dao OfferDao) RemoveOfferConfirmingAddressMap(txHash string) error {
+	dbClient := firebase_service.FirestoreClient
+	docRef := dbClient.Doc(GetOfferConfirmingAddressMapItemPath(txHash))
+
+	_, err := docRef.Delete(context.Background())
+
+	return err
+}
+
 func (dao OfferDao) ListCryptoPendingTransfer() ([]bean.CryptoPendingTransfer, error) {
 	dbClient := firebase_service.FirestoreClient
 
@@ -306,29 +418,57 @@ func (dao OfferDao) ListCryptoPendingTransfer() ([]bean.CryptoPendingTransfer, e
 	return transfers, nil
 }
 
-func (dao OfferDao) AddOfferConfirmingAddressMap(offerMap bean.OfferConfirmingAddressMap) error {
-	dbClient := firebase_service.FirestoreClient
-	docRef := dbClient.Doc(GetOfferConfirmingAddressMapItemPath(offerMap.TxHash))
-
-	_, err := docRef.Set(context.Background(), offerMap.GetAddOfferConfirmingAddressMap(), firestore.MergeAll)
-
-	return err
-}
-
-func (dao OfferDao) RemoveOfferConfirmingAddressMap(txHash string) error {
-	dbClient := firebase_service.FirestoreClient
-	docRef := dbClient.Doc(GetOfferConfirmingAddressMapItemPath(txHash))
-
-	_, err := docRef.Delete(context.Background())
-
-	return err
-}
-
 func (dao OfferDao) RemoveCryptoPendingTransfer(id string) error {
 	dbClient := firebase_service.FirestoreClient
 	docRef := dbClient.Doc(GetCryptoPendingTransferItemPath(id))
 
 	_, err := docRef.Delete(context.Background())
+
+	return err
+}
+
+func (dao OfferDao) ListOfferOnChainActionTracking(isOriginal bool) ([]bean.OfferOnChainActionTracking, error) {
+	dbClient := firebase_service.FirestoreClient
+
+	iter := dbClient.Collection(GetOfferOnChainActionTrackingPath(isOriginal)).Documents(context.Background())
+	offers := make([]bean.OfferOnChainActionTracking, 0)
+
+	for {
+		var offer bean.OfferOnChainActionTracking
+		doc, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return offers, err
+		}
+		doc.DataTo(&offer)
+		offers = append(offers, offer)
+	}
+
+	return offers, nil
+}
+
+func (dao OfferDao) AddOfferOnChainActionTracking(offerTracking bean.OfferOnChainActionTracking) error {
+	dbClient := firebase_service.FirestoreClient
+	id := strings.Replace(offerTracking.OfferRef, "/", "-", -1)
+	docRef := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(false, id))
+	offerTracking.Id = id
+
+	_, err := docRef.Set(context.Background(), offerTracking.GetAddOfferOnChainActionTracking(), firestore.MergeAll)
+
+	return err
+}
+
+func (dao OfferDao) RemoveOfferOnChainActionTracking(id string) error {
+	dbClient := firebase_service.FirestoreClient
+	docRef1 := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(false, id))
+	docRef2 := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(true, id))
+
+	batch := dbClient.Batch()
+	batch.Delete(docRef1)
+	batch.Delete(docRef2)
+	_, err := batch.Commit(context.Background())
 
 	return err
 }
@@ -370,6 +510,18 @@ func GetOfferTransferMapItemPath(id string) string {
 	return fmt.Sprintf("offer_transfers/%s", id)
 }
 
+func GetOfferOnChainActionTrackingPath(isOriginal bool) string {
+	str := "original"
+	if !isOriginal {
+		str = "check"
+	}
+	return fmt.Sprintf("offer_onchain_action_trackings/%s/trackings", str)
+}
+
+func GetOfferOnChainActionTrackingItemPath(isOriginal bool, id string) string {
+	return fmt.Sprintf("%s/%s", GetOfferOnChainActionTrackingPath(isOriginal), id)
+}
+
 func snapshotToOffer(snapshot *firestore.DocumentSnapshot) interface{} {
 	var obj bean.Offer
 	snapshot.DataTo(&obj)
@@ -379,6 +531,12 @@ func snapshotToOffer(snapshot *firestore.DocumentSnapshot) interface{} {
 
 func snapshotToOfferAddressMap(snapshot *firestore.DocumentSnapshot) interface{} {
 	var obj bean.OfferAddressMap
+	snapshot.DataTo(&obj)
+	return obj
+}
+
+func snapshotToOfferOnChainActionTracking(snapshot *firestore.DocumentSnapshot) interface{} {
+	var obj bean.OfferOnChainActionTracking
 	snapshot.DataTo(&obj)
 	return obj
 }
