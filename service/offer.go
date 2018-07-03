@@ -654,7 +654,7 @@ func (s OfferService) CheckOfferOnChainTransaction() error {
 		onChainItem, ok := onChainMap[item.OfferRef]
 		if ok {
 			txHash := onChainItem.TxHash
-			fmt.Sprintf(txHash)
+			fmt.Printf(txHash)
 			isSuccess, isPending, err := crypto_service.GetTransactionReceipt(txHash, item.Currency)
 			if err == nil {
 				// Completed and failed
