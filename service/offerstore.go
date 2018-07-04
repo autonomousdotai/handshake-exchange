@@ -305,6 +305,57 @@ func (s OfferStoreService) RemoveOfferStoreItem(userId string, offerId string, c
 	return
 }
 
+func (s OfferStoreService) RemoveFailedOfferStoreItem(userId string, offerId string, currency string) (offer bean.OfferStore, ce SimpleContextError) {
+	profile := GetProfile(s.userDao, userId, &ce)
+	if ce.HasError() {
+		return
+	}
+	offer = *GetOfferStore(*s.dao, offerId, &ce)
+	if ce.HasError() {
+		return
+	}
+	item := *GetOfferStoreItem(*s.dao, offerId, currency, &ce)
+	if ce.HasError() {
+		return
+	}
+
+	if item.Status != bean.OFFER_STORE_ITEM_STATUS_CREATED {
+		ce.SetStatusKey(api_error.OfferStatusInvalid)
+		return
+	}
+
+	allFalse := true
+	// Just for check
+	offer.ItemFlags[item.Currency] = false
+	for _, v := range offer.ItemFlags {
+		if v == true {
+			allFalse = false
+			break
+		}
+	}
+	if allFalse {
+		offer.Status = bean.OFFER_STORE_STATUS_CLOSED
+	}
+
+	profile.ActiveOfferStores[item.Currency] = false
+	offer.ItemFlags = profile.ActiveOfferStores
+
+	// Really remove the item
+	item.Status = bean.OFFER_STORE_ITEM_STATUS_CLOSED
+	offer.ItemSnapshots[item.Currency] = item
+
+	err := s.dao.RemoveOfferStoreItem(offer, item, *profile)
+	if ce.SetError(api_error.DeleteDataFailed, err) {
+		return
+	}
+
+	// Assign to correct flag
+	offer.ItemFlags[item.Currency] = item.Status != bean.OFFER_STORE_ITEM_STATUS_CLOSED
+	notification.SendOfferStoreNotification(offer, item)
+
+	return
+}
+
 func (s OfferStoreService) OnChainOfferStoreTracking(userId string, offerId string, body bean.OfferOnChainTransaction) (offer bean.OfferStore, ce SimpleContextError) {
 	profile := *GetProfile(s.userDao, userId, &ce)
 	if ce.HasError() {

@@ -11,6 +11,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/integration/solr_service"
 	"github.com/ninjadotorg/handshake-exchange/service"
 	"github.com/shopspring/decimal"
+	"strings"
 )
 
 type MiscApi struct {
@@ -191,62 +192,14 @@ func (api MiscApi) GetCryptoQuote(context *gin.Context) {
 }
 
 func (api MiscApi) GetAllCryptoQuotes(context *gin.Context) {
-	type quoteStruct struct {
-		Type         string
-		Currency     string
-		FiatCurrency string
-		// FiatAmount   string
-		Price string
+	fiatCurrencyStr := context.DefaultQuery("fiat_currency", "RUB,VND,PHP,CAD,USD")
+	fiatCurrencies := strings.Split(fiatCurrencyStr, ",")
+
+	quotes := make([]interface{}, 0)
+	for _, fiatCurrency := range fiatCurrencies {
+		quotesTmp := service.OfferServiceInst.GetAllQuotes(fiatCurrency)
+		quotes = append(quotes, quotesTmp...)
 	}
-
-	fiatCurrency := context.DefaultQuery("fiat_currency", "")
-
-	var quote quoteStruct
-	quotes := make([]quoteStruct, 4)
-
-	quote = quoteStruct{
-		Type:         bean.OFFER_TYPE_SELL,
-		Currency:     bean.BTC.Code,
-		FiatCurrency: fiatCurrency,
-	}
-	_, fiatPrice, _, _ := service.OfferServiceInst.GetQuote(quote.Type, "1", quote.Currency, fiatCurrency)
-	quote.Price = fiatPrice.Round(2).String()
-	// quote.FiatAmount = fiatAmount.Round(2).String()
-
-	quotes[0] = quote
-
-	quote = quoteStruct{
-		Type:         bean.OFFER_TYPE_BUY,
-		Currency:     bean.BTC.Code,
-		FiatCurrency: fiatCurrency,
-	}
-	_, fiatPrice, _, _ = service.OfferServiceInst.GetQuote(quote.Type, "1", quote.Currency, fiatCurrency)
-	quote.Price = fiatPrice.Round(2).String()
-	// quote.FiatAmount = fiatAmount.Round(2).String()
-
-	quotes[1] = quote
-
-	quote = quoteStruct{
-		Type:         bean.OFFER_TYPE_SELL,
-		Currency:     bean.ETH.Code,
-		FiatCurrency: fiatCurrency,
-	}
-	_, fiatPrice, _, _ = service.OfferServiceInst.GetQuote(quote.Type, "1", quote.Currency, fiatCurrency)
-	quote.Price = fiatPrice.Round(2).String()
-	// quote.FiatAmount = fiatAmount.Round(2).String()
-
-	quotes[2] = quote
-
-	quote = quoteStruct{
-		Type:         bean.OFFER_TYPE_BUY,
-		Currency:     bean.ETH.Code,
-		FiatCurrency: fiatCurrency,
-	}
-	_, fiatPrice, _, _ = service.OfferServiceInst.GetQuote(quote.Type, "1", quote.Currency, fiatCurrency)
-	quote.Price = fiatPrice.Round(2).String()
-	// quote.FiatAmount = fiatAmount.Round(2).String()
-
-	quotes[3] = quote
 
 	bean.SuccessResponse(context, quotes)
 }

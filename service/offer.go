@@ -829,6 +829,65 @@ func (s OfferService) GetQuote(quoteType string, amountStr string, currency stri
 	return
 }
 
+func (s OfferService) GetAllQuotes(fiatCurrency string) []interface{} {
+	type quoteStruct struct {
+		Type         string
+		Currency     string
+		FiatCurrency string
+		// FiatAmount   string
+		Price string
+	}
+
+	var quoteObj quoteStruct
+	quotes := make([]interface{}, 4)
+
+	quoteObj = quoteStruct{
+		Type:         bean.OFFER_TYPE_SELL,
+		Currency:     bean.BTC.Code,
+		FiatCurrency: fiatCurrency,
+	}
+	_, fiatPrice, _, _ := s.GetQuote(quoteObj.Type, "1", quoteObj.Currency, fiatCurrency)
+	quoteObj.Price = fiatPrice.Round(2).String()
+	// quote.FiatAmount = fiatAmount.Round(2).String()
+
+	quotes[0] = quoteObj
+
+	quoteObj = quoteStruct{
+		Type:         bean.OFFER_TYPE_BUY,
+		Currency:     bean.BTC.Code,
+		FiatCurrency: fiatCurrency,
+	}
+	_, fiatPrice, _, _ = s.GetQuote(quoteObj.Type, "1", quoteObj.Currency, fiatCurrency)
+	quoteObj.Price = fiatPrice.Round(2).String()
+	// quote.FiatAmount = fiatAmount.Round(2).String()
+
+	quotes[1] = quoteObj
+
+	quoteObj = quoteStruct{
+		Type:         bean.OFFER_TYPE_SELL,
+		Currency:     bean.ETH.Code,
+		FiatCurrency: fiatCurrency,
+	}
+	_, fiatPrice, _, _ = s.GetQuote(quoteObj.Type, "1", quoteObj.Currency, fiatCurrency)
+	quoteObj.Price = fiatPrice.Round(2).String()
+	// quote.FiatAmount = fiatAmount.Round(2).String()
+
+	quotes[2] = quoteObj
+
+	quoteObj = quoteStruct{
+		Type:         bean.OFFER_TYPE_BUY,
+		Currency:     bean.ETH.Code,
+		FiatCurrency: fiatCurrency,
+	}
+	_, fiatPrice, _, _ = s.GetQuote(quoteObj.Type, "1", quoteObj.Currency, fiatCurrency)
+	quoteObj.Price = fiatPrice.Round(2).String()
+	// quote.FiatAmount = fiatAmount.Round(2).String()
+
+	quotes[3] = quoteObj
+
+	return quotes
+}
+
 func (s OfferService) FinishOfferConfirmingAddresses() (finishedInstantOffers []bean.Offer, ce SimpleContextError) {
 	pendingOffers, err := s.dao.ListOfferConfirmingAddressMap()
 	if ce.SetError(api_error.GetDataFailed, err) {
