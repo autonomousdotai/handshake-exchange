@@ -39,8 +39,10 @@ func (dao OfferDao) AddOffer(offer bean.Offer, profile bean.Profile) (bean.Offer
 
 	if offer.Currency == bean.ETH.Code && (offer.Status == bean.OFFER_STATUS_CREATED) {
 		// Store a record to check onchain
-		onChainTrackingRef := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(true, strings.Replace(offerPath, "/", "-", -1)))
+		docId := strings.Replace(offerPath, "/", "-", -1)
+		onChainTrackingRef := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(true, docId))
 		batch.Set(onChainTrackingRef, bean.OfferOnChainActionTracking{
+			Id:       docId,
 			Action:   offer.Status,
 			Currency: offer.Currency,
 			Offer:    offer.Id,
@@ -136,8 +138,10 @@ func (dao OfferDao) UpdateOffer(offer bean.Offer, updateData map[string]interfac
 			offer.Status == bean.OFFER_STATUS_CLOSING ||
 			offer.Status == bean.OFFER_STATUS_COMPLETING) {
 		// Store a record to check onchain
-		onChainTrackingRef := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(true, strings.Replace(offerPath, "/", "-", -1)))
+		docId := strings.Replace(offerPath, "/", "-", -1)
+		onChainTrackingRef := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(true, docId))
 		batch.Set(onChainTrackingRef, bean.OfferOnChainActionTracking{
+			Id:       docId,
 			Action:   offer.Status,
 			Currency: offer.Currency,
 			Offer:    offer.Id,
@@ -191,8 +195,10 @@ func (dao OfferDao) UpdateOfferShaking(offer bean.Offer) error {
 
 	if offer.Currency == bean.ETH.Code && (offer.Status == bean.OFFER_STATUS_PRE_SHAKING || offer.Status == bean.OFFER_STATUS_SHAKING) {
 		// Store a record to check onchain
-		onChainTrackingRef := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(true, strings.Replace(offerPath, "/", "-", -1)))
+		docId := strings.Replace(offerPath, "/", "-", -1)
+		onChainTrackingRef := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(true, docId))
 		batch.Set(onChainTrackingRef, bean.OfferOnChainActionTracking{
+			Id:       docId,
 			Action:   offer.Status,
 			Currency: offer.Currency,
 			Offer:    offer.Id,
@@ -241,8 +247,10 @@ func (dao OfferDao) UpdateOfferClose(offer bean.Offer, profile bean.Profile) err
 
 	if offer.Currency == bean.ETH.Code && (offer.Status == bean.OFFER_STATUS_CREATED) {
 		// Store a record to check onchain
-		onChainTrackingRef := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(true, strings.Replace(offerPath, "/", "-", -1)))
+		docId := strings.Replace(offerPath, "/", "-", -1)
+		onChainTrackingRef := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(true, docId))
 		batch.Set(onChainTrackingRef, bean.OfferOnChainActionTracking{
+			Id:       docId,
 			Action:   offer.Status,
 			Currency: offer.Currency,
 			Offer:    offer.Id,
@@ -272,8 +280,10 @@ func (dao OfferDao) UpdateOfferReject(offer bean.Offer, profile bean.Profile, tr
 
 	if offer.Currency == bean.ETH.Code && (offer.Status == bean.OFFER_STATUS_REJECTING) {
 		// Store a record to check onchain
-		onChainTrackingRef := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(true, strings.Replace(offerPath, "/", "-", -1)))
+		docId := strings.Replace(offerPath, "/", "-", -1)
+		onChainTrackingRef := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(true, docId))
 		batch.Set(onChainTrackingRef, bean.OfferOnChainActionTracking{
+			Id:       docId,
 			Action:   offer.Status,
 			Currency: offer.Currency,
 			Offer:    offer.Id,
@@ -462,11 +472,11 @@ func (dao OfferDao) AddOfferOnChainActionTracking(offerTracking bean.OfferOnChai
 
 func (dao OfferDao) RemoveOfferOnChainActionTracking(id string) error {
 	dbClient := firebase_service.FirestoreClient
-	docRef1 := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(false, id))
+	// docRef1 := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(false, id))
 	docRef2 := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(true, id))
 
 	batch := dbClient.Batch()
-	batch.Delete(docRef1)
+	// batch.Delete(docRef1)
 	batch.Delete(docRef2)
 	_, err := batch.Commit(context.Background())
 

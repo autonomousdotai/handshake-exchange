@@ -54,8 +54,10 @@ func (dao OfferStoreDao) AddOfferStore(offer bean.OfferStore, item bean.OfferSto
 
 	if item.Currency == bean.ETH.Code && item.Status == bean.OFFER_STORE_ITEM_STATUS_CREATED {
 		// Store a record to check onchain
-		onChainTrackingRef := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(true, strings.Replace(offerPath, "/", "-", -1)))
+		docId := strings.Replace(offerPath, "/", "-", -1)
+		onChainTrackingRef := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(true, docId))
 		batch.Set(onChainTrackingRef, bean.OfferOnChainActionTracking{
+			Id:       docId,
 			Action:   item.Status,
 			Currency: item.Currency,
 			Offer:    offer.Id,
@@ -118,8 +120,10 @@ func (dao OfferStoreDao) AddOfferStoreItem(offer bean.OfferStore, item bean.Offe
 
 	if item.Currency == bean.ETH.Code && item.Status == bean.OFFER_STORE_ITEM_STATUS_CREATED {
 		// Store a record to check onchain
-		onChainTrackingRef := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(true, strings.Replace(offerPath, "/", "-", -1)))
+		docId := strings.Replace(offerPath, "/", "-", -1)
+		onChainTrackingRef := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(true, docId))
 		batch.Set(onChainTrackingRef, bean.OfferOnChainActionTracking{
+			Id:       docId,
 			Action:   item.Status,
 			Currency: item.Currency,
 			Offer:    offer.Id,
@@ -183,8 +187,10 @@ func (dao OfferStoreDao) UpdateOfferStoreItemClosing(offer bean.OfferStore, item
 
 	if item.Currency == bean.ETH.Code && item.Status == bean.OFFER_STORE_ITEM_STATUS_CLOSING {
 		// Store a record to check onchain
-		onChainTrackingRef := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(true, strings.Replace(offerPath, "/", "-", -1)))
+		docId := strings.Replace(offerPath, "/", "-", -1)
+		onChainTrackingRef := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(true, docId))
 		batch.Set(onChainTrackingRef, bean.OfferOnChainActionTracking{
+			Id:       docId,
 			Action:   item.Status,
 			Currency: item.Currency,
 			Offer:    offer.Id,
@@ -274,8 +280,10 @@ func (dao OfferStoreDao) AddOfferStoreShake(offer bean.OfferStore, offerShake be
 
 	if offerShake.Currency == bean.ETH.Code && (offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_PRE_SHAKING || offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_SHAKING) {
 		// Store a record to check onchain
-		onChainTrackingRef := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(true, strings.Replace(offerStoreShake, "/", "-", -1)))
+		docId := strings.Replace(offerStoreShake, "/", "-", -1)
+		onChainTrackingRef := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(true, docId))
 		batch.Set(onChainTrackingRef, bean.OfferOnChainActionTracking{
+			Id:       docId,
 			Action:   offerShake.Status,
 			Currency: offerShake.Currency,
 			Offer:    offerShake.Id,
@@ -306,8 +314,10 @@ func (dao OfferStoreDao) UpdateOfferStoreShake(offerId string, offerShake bean.O
 			offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_COMPLETING) {
 
 		// Store a record to check onchain
-		onChainTrackingRef := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(true, strings.Replace(offerShakePath, "/", "-", -1)))
+		docId := strings.Replace(offerShakePath, "/", "-", -1)
+		onChainTrackingRef := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(true, docId))
 		batch.Set(onChainTrackingRef, bean.OfferOnChainActionTracking{
+			Id:       docId,
 			Action:   offerShake.Status,
 			Currency: offerShake.Currency,
 			Offer:    offerShake.Id,
@@ -335,8 +345,10 @@ func (dao OfferStoreDao) UpdateOfferStoreShakeReject(offer bean.OfferStore, offe
 
 	if offerShake.Currency == bean.ETH.Code && (offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_REJECTING) {
 		// Store a record to check onchain
-		onChainTrackingRef := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(true, strings.Replace(offerShakePath, "/", "-", -1)))
+		docId := strings.Replace(offerShakePath, "/", "-", -1)
+		onChainTrackingRef := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(true, docId))
 		batch.Set(onChainTrackingRef, bean.OfferOnChainActionTracking{
+			Id:       docId,
 			Action:   offerShake.Status,
 			Currency: offerShake.Currency,
 			Offer:    offerShake.Id,
@@ -367,8 +379,10 @@ func (dao OfferStoreDao) UpdateOfferStoreShakeComplete(offer bean.OfferStore, of
 
 	if offerShake.Currency == bean.ETH.Code && (offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_COMPLETING) {
 		// Store a record to check onchain
-		onChainTrackingRef := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(true, strings.Replace(offerShakePath, "/", "-", -1)))
+		docId := strings.Replace(offerShakePath, "/", "-", -1)
+		onChainTrackingRef := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(true, docId))
 		batch.Set(onChainTrackingRef, bean.OfferOnChainActionTracking{
+			Id:       docId,
 			Action:   offerShake.Status,
 			Currency: offerShake.Currency,
 			Offer:    offerShake.Id,

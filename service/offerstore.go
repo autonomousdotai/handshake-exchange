@@ -314,7 +314,7 @@ func (s OfferStoreService) RemoveFailedOfferStoreItem(userId string, offerId str
 	if ce.HasError() {
 		return
 	}
-	item := *GetOfferStoreItem(*s.dao, offerId, currency, &ce)
+	item := GetOfferStoreItem(*s.dao, offerId, currency, &ce)
 	if ce.HasError() {
 		return
 	}
@@ -342,15 +342,44 @@ func (s OfferStoreService) RemoveFailedOfferStoreItem(userId string, offerId str
 
 	// Really remove the item
 	item.Status = bean.OFFER_STORE_ITEM_STATUS_CLOSED
-	offer.ItemSnapshots[item.Currency] = item
+	offer.ItemSnapshots[item.Currency] = *item
 
-	err := s.dao.RemoveOfferStoreItem(offer, item, *profile)
+	err := s.dao.RemoveOfferStoreItem(offer, *item, *profile)
 	if ce.SetError(api_error.DeleteDataFailed, err) {
 		return
 	}
 
 	// Assign to correct flag
 	offer.ItemFlags[item.Currency] = item.Status != bean.OFFER_STORE_ITEM_STATUS_CLOSED
+	notification.SendOfferStoreNotification(offer, *item)
+
+	return
+}
+
+func (s OfferStoreService) OpenCloseFailedOfferStore(userId, offerId string, currency string) (offer bean.OfferStore, ce SimpleContextError) {
+	offer = *GetOfferStore(*s.dao, offerId, &ce)
+	if ce.HasError() {
+		return
+	}
+	item := *GetOfferStoreItem(*s.dao, offerId, currency, &ce)
+	if ce.HasError() {
+		return
+	}
+	if item.Status != bean.OFFER_STORE_ITEM_STATUS_CLOSING {
+		ce.SetStatusKey(api_error.OfferStatusInvalid)
+		return
+	}
+
+	item.Status = bean.OFFER_STORE_ITEM_STATUS_ACTIVE
+	offer.ItemFlags[item.Currency] = item.Status != bean.OFFER_STORE_ITEM_STATUS_CLOSED
+	if offer.Status == bean.OFFER_STORE_STATUS_CLOSING {
+		offer.Status = bean.OFFER_STORE_STATUS_ACTIVE
+	}
+	offer.ItemSnapshots[item.Currency] = item
+	err := s.dao.UpdateOfferStoreItemActive(offer, item)
+	if ce.SetError(api_error.UpdateDataFailed, err) {
+		return
+	}
 	notification.SendOfferStoreNotification(offer, item)
 
 	return
@@ -763,6 +792,40 @@ func (s OfferStoreService) CompleteOfferStoreShake(userId string, offerId string
 			fmt.Println(txHash)
 		}
 	}
+
+	return
+}
+
+func (s OfferStoreService) UpdateOfferShakeToPreviousStatus(userId string, offerShakeId string) (offerShake bean.OfferStoreShake, ce SimpleContextError) {
+	offer := *GetOfferStore(*s.dao, userId, &ce)
+	if ce.HasError() {
+		return
+	}
+	offerShake = *GetOfferStoreShake(*s.dao, userId, offerShakeId, &ce)
+	if ce.HasError() {
+		return
+	}
+	if offerShake.Status == bean.OFFER_STATUS_SHAKING {
+		if offerShake.Currency == bean.ETH.Code {
+			offerShake.Status = bean.OFFER_STATUS_PRE_SHAKE
+		} else {
+			offerShake.Status = bean.OFFER_STATUS_ACTIVE
+		}
+	} else if offerShake.Status == bean.OFFER_STATUS_CANCELLING {
+		offerShake.Status = bean.OFFER_STATUS_PRE_SHAKE
+	} else if offerShake.Status == bean.OFFER_STATUS_REJECTING {
+		offerShake.Status = bean.OFFER_STATUS_SHAKE
+	} else if offerShake.Status == bean.OFFER_STATUS_COMPLETING {
+		offerShake.Status = bean.OFFER_STATUS_SHAKE
+	} else {
+		ce.SetStatusKey(api_error.OfferStatusInvalid)
+	}
+
+	err := s.dao.UpdateOfferStoreShake(userId, offerShake, offerShake.GetChangeStatus())
+	if ce.SetError(api_error.UpdateDataFailed, err) {
+		return
+	}
+	notification.SendOfferStoreShakeNotification(offerShake, offer)
 
 	return
 }

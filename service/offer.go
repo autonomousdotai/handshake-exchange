@@ -654,7 +654,8 @@ func (s OfferService) CheckOfferOnChainTransaction() error {
 		onChainItem, ok := onChainMap[item.OfferRef]
 		if ok {
 			txHash := onChainItem.TxHash
-			fmt.Printf(txHash)
+			fmt.Println("There is on chain tx hash")
+			fmt.Println(txHash)
 			isSuccess, isPending, err := crypto_service.GetTransactionReceipt(txHash, item.Currency)
 			if err == nil {
 				// Completed and failed
@@ -667,6 +668,8 @@ func (s OfferService) CheckOfferOnChainTransaction() error {
 				}
 			}
 		} else {
+			fmt.Println("There is NO on chain tx hash")
+			fmt.Println(int64(time.Now().UTC().Sub(item.CreatedAt).Minutes()))
 			// Reverse the status if there is no tx hash within 5 minutes
 			if int64(time.Now().UTC().Sub(item.CreatedAt).Minutes()) > 5 {
 				txOk = false
@@ -675,10 +678,19 @@ func (s OfferService) CheckOfferOnChainTransaction() error {
 
 		if !txOk {
 			if item.Type == bean.OFFER_ADDRESS_MAP_OFFER {
-				s.RevertOfferAction(item.UID, item.OfferRef)
+				_, ce := s.RevertOfferAction(item.UID, item.OfferRef)
+				fmt.Println(ce.Error)
 			} else if item.Type == bean.OFFER_ADDRESS_MAP_OFFER_STORE {
-
+				if item.Action == bean.OFFER_STORE_STATUS_CREATED {
+					_, ce := OfferStoreServiceInst.RemoveFailedOfferStoreItem(item.UID, item.Offer, item.Currency)
+					fmt.Println(ce.Error)
+				} else if item.Action == bean.OFFER_STORE_STATUS_CLOSING {
+					_, ce := OfferStoreServiceInst.OpenCloseFailedOfferStore(item.UID, item.Offer, item.Currency)
+					fmt.Println(ce.Error)
+				}
 			} else if item.Type == bean.OFFER_ADDRESS_MAP_OFFER_STORE_SHAKE {
+				_, ce := OfferStoreServiceInst.UpdateOfferShakeToPreviousStatus(item.UID, item.Offer)
+				fmt.Println(ce.Error)
 			}
 			s.dao.RemoveOfferOnChainActionTracking(item.Id)
 		}
