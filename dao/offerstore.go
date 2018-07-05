@@ -625,9 +625,9 @@ func GetOfferStoreFreeStartItemPath(level string) string {
 	return fmt.Sprintf("offer_store_free_starts/%s", level)
 }
 
-func GetOfferStoreFreeStartUserPath() string {
-	return fmt.Sprintf("offer_store_free_start_users")
-}
+//func GetOfferStoreFreeStartUserPath() string {
+//	return fmt.Sprintf("offer_store_free_start_users")
+//}
 
 func GetOfferStoreFreeStartUserItemPath(userId string) string {
 	return fmt.Sprintf("offer_store_free_start_users/%s", userId)

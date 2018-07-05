@@ -192,7 +192,7 @@ func (api MiscApi) GetCryptoQuote(context *gin.Context) {
 }
 
 func (api MiscApi) GetAllCryptoQuotes(context *gin.Context) {
-	fiatCurrencyStr := context.DefaultQuery("fiat_currency", "RUB,VND,PHP,CAD,USD")
+	fiatCurrencyStr := context.DefaultQuery("fiat_currency", "RUB,VND,PHP,CAD,USD,EUR")
 	fiatCurrencies := strings.Split(fiatCurrencyStr, ",")
 
 	quotes := make([]interface{}, 0)
