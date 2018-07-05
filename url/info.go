@@ -44,7 +44,7 @@ func (url InfoUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	group.POST("/cc-limits", func(context *gin.Context) {
 		miscApi.GetCCLimits(context)
 	})
-	group.GET("/offer-store-free-start/:currency", func(context *gin.Context) {
+	group.GET("/offer-store-free-start/:token", func(context *gin.Context) {
 		miscApi.GetOfferStoreFreeStart(context)
 	})
 

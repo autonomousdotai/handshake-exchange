@@ -277,7 +277,7 @@ type SolrOfferStoreItemSnapshot struct {
 	UserAddress    string `json:"user_address"`
 	ChatUsername   string `json:"chat_username"`
 	Status         string `json:"status"`
-	FreeStart      bool   `json:"free_start"`
+	FreeStart      string `json:"free_start"`
 }
 
 func NewSolrFromOfferStore(offer OfferStore, item OfferStoreItem) (solr SolrOfferObject) {
@@ -400,7 +400,7 @@ type SolrOfferStoreShakeExtraData struct {
 	Status           string `json:"status"`
 	Success          int64  `json:"success"`
 	Failed           int64  `json:"failed"`
-	FreeStart        bool   `json:"free_start"`
+	FreeStart        string `json:"free_start"`
 }
 
 var offerStoreSHakeStatusMap = map[string]int{

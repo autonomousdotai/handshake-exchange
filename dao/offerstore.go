@@ -503,7 +503,7 @@ func (dao OfferStoreDao) AddOfferStoreReview(offer bean.OfferStore, review bean.
 	return err
 }
 
-func (dao OfferStoreDao) ListOfferStoreFreeStart(currency string) ([]bean.OfferStoreFreeStart, error) {
+func (dao OfferStoreDao) ListOfferStoreFreeStart(token string) ([]bean.OfferStoreFreeStart, error) {
 	dbClient := firebase_service.FirestoreClient
 
 	iter := dbClient.Collection(GetOfferStoreFreeStartPath()).Documents(context.Background())
@@ -519,7 +519,7 @@ func (dao OfferStoreDao) ListOfferStoreFreeStart(currency string) ([]bean.OfferS
 			return objs, err
 		}
 		doc.DataTo(&obj)
-		if obj.Currency == currency {
+		if obj.Token == token {
 			objs = append(objs, obj)
 		}
 	}
@@ -530,7 +530,7 @@ func (dao OfferStoreDao) ListOfferStoreFreeStart(currency string) ([]bean.OfferS
 func (dao OfferStoreDao) AddOfferStoreFreeStartUser(freeStart *bean.OfferStoreFreeStart, freeStartUser *bean.OfferStoreFreeStartUser) error {
 	dbClient := firebase_service.FirestoreClient
 
-	freeStartRef := dbClient.Doc(GetOfferStoreFreeStartItemPath(freeStart.Level))
+	freeStartRef := dbClient.Doc(GetOfferStoreFreeStartItemPath(freeStart.Id))
 	freeStartUserRef := dbClient.Doc(GetOfferStoreFreeStartUserItemPath(freeStartUser.UID))
 
 	err := dbClient.RunTransaction(context.Background(), func(ctx context.Context, tx *firestore.Transaction) error {

@@ -60,7 +60,7 @@ type OfferStoreItem struct {
 	WalletProvider  string `json:"-" firestore:"wallet_provider"`
 	RewardAddress   string `json:"reward_address" firestore:"reward_address"`
 	ShakeCount      int64  `json:"shake_count" firestore:"shake_count"`
-	FreeStart       bool   `json:"free_start" firestore:"free_start"`
+	FreeStart       string `json:"free_start" firestore:"free_start"`
 	FreeStartRef    string `json:"-" firestore:"free_start_ref"`
 }
 
@@ -137,9 +137,6 @@ func (offer OfferStore) GetNotificationUpdate() map[string]interface{} {
 }
 
 func (item OfferStoreItem) GetAddOfferStoreItem() map[string]interface{} {
-	if item.FreeStartRef != "" {
-		item.FreeStart = true
-	}
 	return map[string]interface{}{
 		"currency":          item.Currency,
 		"status":            item.Status,
@@ -246,7 +243,7 @@ type OfferStoreShake struct {
 	Provider         string      `json:"-" firestore:"provider"`
 	ProviderData     interface{} `json:"-" firestore:"provider_data"`
 	ChainId          int64       `json:"-" firestore:"chain_id"`
-	FreeStart        bool        `json:"free_start" firestore:"free_start"`
+	FreeStart        string      `json:"free_start" firestore:"free_start"`
 	Longitude        float64     `json:"longitude" firestore:"longitude"`
 	Latitude         float64     `json:"latitude" firestore:"latitude"`
 	CreatedAt        time.Time   `json:"created_at" firestore:"created_at"`
@@ -328,7 +325,9 @@ func (offer OfferStoreReview) GetAddOfferStoreReview() map[string]interface{} {
 }
 
 type OfferStoreFreeStart struct {
-	Level    string `json:"level" firestore:"level"`
+	Id       string `json:"id" firestore:"id"`
+	Token    string `json:"token" firestore:"token"`
+	Level    int64  `json:"level" firestore:"level"`
 	Limit    int64  `json:"limit" firestore:"limit"`
 	Count    int64  `json:"count" firestore:"count"`
 	Reward   string `json:"reward" firestore:"reward"`
@@ -346,18 +345,18 @@ const OFFER_STORE_FREE_START_STATUS_USING = "using"
 const OFFER_STORE_FREE_START_STATUS_DONE = "done"
 
 type OfferStoreFreeStartUser struct {
-	UID      string `json:"uid" firestore:"uid"`
-	Level    string `json:"level" firestore:"level"`
-	Reward   string `json:"reward" firestore:"reward"`
-	Currency string `json:"currency" firestore:"currency"`
-	Status   string `json:"status" firestore:"status"`
-	Seq      int64  `json:"seq" firestore:"seq"`
+	UID       string `json:"uid" firestore:"uid"`
+	FreeStart string `json:"free_start" firestore:"free_start"`
+	Reward    string `json:"reward" firestore:"reward"`
+	Currency  string `json:"currency" firestore:"currency"`
+	Status    string `json:"status" firestore:"status"`
+	Seq       int64  `json:"seq" firestore:"seq"`
 }
 
 func (offer OfferStoreFreeStartUser) GetAddFreeStartUser() map[string]interface{} {
 	return map[string]interface{}{
 		"uid":        offer.UID,
-		"level":      offer.Level,
+		"free_start": offer.FreeStart,
 		"reward":     offer.Reward,
 		"currency":   offer.Currency,
 		"seq":        offer.Seq,

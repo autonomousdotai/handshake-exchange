@@ -56,7 +56,7 @@ func (s OfferStoreService) CreateOfferStore(userId string, offerSetup bean.Offer
 	if ce.HasError() {
 		return
 	}
-	if offerItemBody.FreeStart {
+	if offerItemBody.FreeStart != "" {
 		s.registerFreeStart(userId, &offerItemBody, &ce)
 		if ce.HasError() {
 			return
@@ -76,7 +76,7 @@ func (s OfferStoreService) CreateOfferStore(userId string, offerSetup bean.Offer
 	offer.Item = offerItemBody
 
 	// Everything done, call contract
-	if offerItemBody.FreeStart {
+	if offerItemBody.FreeStart != "" {
 		// Only ETH
 		if offerItemBody.Currency == bean.ETH.Code {
 			client := exchangehandshakeshop_service.ExchangeHandshakeShopClient{}
@@ -140,7 +140,7 @@ func (s OfferStoreService) AddOfferStoreItem(userId string, offerId string, item
 	if ce.HasError() {
 		return
 	}
-	if item.FreeStart {
+	if item.FreeStart != "" {
 		s.registerFreeStart(userId, &item, &ce)
 		if ce.HasError() {
 			return
@@ -155,7 +155,7 @@ func (s OfferStoreService) AddOfferStoreItem(userId string, offerId string, item
 	notification.SendOfferStoreNotification(offer, item)
 
 	// Everything done, call contract
-	if item.FreeStart {
+	if item.FreeStart != "" {
 		// Only ETH
 		if item.Currency == bean.ETH.Code {
 			client := exchangehandshakeshop_service.ExchangeHandshakeShopClient{}
@@ -289,7 +289,7 @@ func (s OfferStoreService) RemoveOfferStoreItem(userId string, offerId string, c
 	notification.SendOfferStoreNotification(offer, item)
 
 	// Everything done, call contract
-	if item.FreeStart {
+	if item.FreeStart != "" {
 		// Only ETH
 		s.dao.UpdateOfferStoreFreeStartUserUsing(profile.UserId)
 		if item.Currency == bean.ETH.Code && waitOnChain {
@@ -552,7 +552,7 @@ func (s OfferStoreService) RejectOfferStoreShake(userId string, offerId string, 
 			return
 		}
 		// Special for free start
-		if item.FreeStart {
+		if item.FreeStart != "" {
 			s.dao.UpdateOfferStoreFreeStartUserUsing(profile.UserId)
 		}
 	} else {
@@ -779,7 +779,7 @@ func (s OfferStoreService) CompleteOfferStoreShake(userId string, offerId string
 	notification.SendOfferStoreShakeNotification(offerShake, offer)
 
 	// Everything done, call contract
-	if item.FreeStart {
+	if item.FreeStart != "" {
 		// Only ETH
 		s.dao.UpdateOfferStoreFreeStartUserDone(profile.UserId)
 		if item.Currency == bean.ETH.Code && profile.UserId == offer.UID {
@@ -1211,7 +1211,7 @@ func (s OfferStoreService) GetQuote(quoteType string, amountStr string, currency
 	return
 }
 
-func (s OfferStoreService) GetCurrentFreeStart(userId string, currency string) (freeStart bean.OfferStoreFreeStart, ce SimpleContextError) {
+func (s OfferStoreService) GetCurrentFreeStart(userId string, token string) (freeStart bean.OfferStoreFreeStart, ce SimpleContextError) {
 	systemConfigTO := s.miscDao.GetSystemConfigFromCache(bean.CONFIG_OFFER_STORE_FREE_START)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, systemConfigTO) {
 		return
@@ -1233,7 +1233,7 @@ func (s OfferStoreService) GetCurrentFreeStart(userId string, currency string) (
 		}
 	}
 
-	freeStarts, err := s.dao.ListOfferStoreFreeStart(currency)
+	freeStarts, err := s.dao.ListOfferStoreFreeStart(token)
 	if err != nil {
 		ce.SetError(api_error.GetDataFailed, err)
 	}
@@ -1695,7 +1695,7 @@ func (s OfferStoreService) countActiveShake(offerId string, offerType string, cu
 }
 
 func (s OfferStoreService) registerFreeStart(userId string, offerItem *bean.OfferStoreItem, ce *SimpleContextError) (freeStartUser bean.OfferStoreFreeStartUser) {
-	freeStart, freeStartCE := s.GetCurrentFreeStart(userId, offerItem.Currency)
+	freeStart, freeStartCE := s.GetCurrentFreeStart(userId, offerItem.FreeStart)
 	if ce.FeedContextError(api_error.GetDataFailed, freeStartCE) {
 		return
 	}
@@ -1703,14 +1703,12 @@ func (s OfferStoreService) registerFreeStart(userId string, offerItem *bean.Offe
 		if freeStart.Reward != offerItem.SellAmount {
 			ce.SetStatusKey(api_error.InvalidFreeStartAmount)
 		}
-
-		offerItem.FreeStart = true
-		offerItem.FreeStartRef = dao.GetOfferStoreFreeStartItemPath(freeStart.Level)
+		offerItem.FreeStartRef = dao.GetOfferStoreFreeStartItemPath(freeStart.Id)
 
 		freeStartUser.UID = userId
 		freeStartUser.Reward = freeStart.Reward
 		freeStartUser.Currency = freeStart.Currency
-		freeStartUser.Level = freeStart.Level
+		freeStartUser.FreeStart = freeStart.Id
 		err := s.dao.AddOfferStoreFreeStartUser(&freeStart, &freeStartUser)
 
 		if err != nil {
@@ -1719,6 +1717,10 @@ func (s OfferStoreService) registerFreeStart(userId string, offerItem *bean.Offe
 		}
 		// Change address to our address
 		offerItem.UserAddress = ethereum_service.GetAddress()
+	} else {
+		// Cannot find free start for this store
+		offerItem.FreeStart = ""
+		ce.SetStatusKey(api_error.InvalidFreeStartAmount)
 	}
 	return
 }

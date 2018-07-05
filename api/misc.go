@@ -297,9 +297,10 @@ func (api MiscApi) CheckOfferOnChainTransaction(context *gin.Context) {
 
 func (api MiscApi) GetOfferStoreFreeStart(context *gin.Context) {
 	userId := common.GetUserId(context)
-	currency := context.Param("currency")
-	freeStart, ce := service.OfferStoreServiceInst.GetCurrentFreeStart(userId, currency)
-	freeStart.Level = ""
+	token := context.Param("token")
+	freeStart, ce := service.OfferStoreServiceInst.GetCurrentFreeStart(userId, token)
+	freeStart.Id = ""
+	freeStart.Level = 0
 	freeStart.Count = 0
 	freeStart.Limit = 0
 	if ce.ContextValidate(context) {
