@@ -663,7 +663,7 @@ func (s OfferService) CheckOfferOnChainTransaction() error {
 					if !isSuccess {
 						txOk = false
 					} else {
-						s.dao.RemoveOfferOnChainActionTracking(item.Id)
+						s.dao.RemoveOfferOnChainActionTracking(item.Id, true)
 					}
 				}
 			}
@@ -692,7 +692,7 @@ func (s OfferService) CheckOfferOnChainTransaction() error {
 				_, ce := OfferStoreServiceInst.UpdateOfferShakeToPreviousStatus(item.UID, item.Offer)
 				fmt.Println(ce.Error)
 			}
-			s.dao.RemoveOfferOnChainActionTracking(item.Id)
+			s.dao.RemoveOfferOnChainActionTracking(item.Id, false)
 		}
 	}
 

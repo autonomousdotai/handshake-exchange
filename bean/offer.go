@@ -367,6 +367,7 @@ func (offer OfferOnChainActionTracking) GetAddOfferOnChainActionTracking() map[s
 		"tx_hash":    offer.TxHash,
 		"currency":   offer.Currency,
 		"action":     offer.Action,
+		"reason":     offer.Reason,
 		"created_at": firestore.ServerTimestamp,
 	}
 }

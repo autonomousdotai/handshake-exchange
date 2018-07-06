@@ -470,13 +470,15 @@ func (dao OfferDao) AddOfferOnChainActionTracking(offerTracking bean.OfferOnChai
 	return err
 }
 
-func (dao OfferDao) RemoveOfferOnChainActionTracking(id string) error {
+func (dao OfferDao) RemoveOfferOnChainActionTracking(id string, all bool) error {
 	dbClient := firebase_service.FirestoreClient
-	// docRef1 := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(false, id))
 	docRef2 := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(true, id))
 
 	batch := dbClient.Batch()
-	// batch.Delete(docRef1)
+	if all {
+		docRef1 := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(false, id))
+		batch.Delete(docRef1)
+	}
 	batch.Delete(docRef2)
 	_, err := batch.Commit(context.Background())
 
