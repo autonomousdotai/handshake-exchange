@@ -277,6 +277,7 @@ func (offer OfferStoreShake) GetAddOfferStoreShake() map[string]interface{} {
 		"reward_percentage": offer.RewardPercentage,
 		"action_uid":        offer.ActionUID,
 		"chain_id":          offer.ChainId,
+		"free_start":        offer.FreeStart,
 		"provider":          offer.Provider,
 		"provider_data":     offer.ProviderData,
 		"latitude":          offer.Latitude,
