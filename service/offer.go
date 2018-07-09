@@ -654,18 +654,23 @@ func (s OfferService) CheckOfferOnChainTransaction() error {
 		onChainItem, ok := onChainMap[item.OfferRef]
 		if ok {
 			txHash := onChainItem.TxHash
-			fmt.Println("There is on chain tx hash")
-			fmt.Println(txHash)
-			isSuccess, isPending, err := crypto_service.GetTransactionReceipt(txHash, item.Currency)
-			if err == nil {
-				// Completed and failed
-				if !isPending {
-					if !isSuccess {
-						txOk = false
-					} else {
-						s.dao.RemoveOfferOnChainActionTracking(item.Id, true)
+			if txHash != "" {
+				fmt.Println("There is on chain tx hash")
+				fmt.Println(txHash)
+				isSuccess, isPending, err := crypto_service.GetTransactionReceipt(txHash, item.Currency)
+				if err == nil {
+					// Completed and failed
+					if !isPending {
+						if !isSuccess {
+							txOk = false
+						} else {
+							s.dao.RemoveOfferOnChainActionTracking(item.Id, true)
+						}
 					}
 				}
+			} else {
+				fmt.Println("There is NO on chain tx hash")
+				txOk = false
 			}
 		} else {
 			fmt.Println("There is NO on chain tx hash")

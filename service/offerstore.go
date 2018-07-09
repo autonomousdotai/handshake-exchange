@@ -260,6 +260,8 @@ func (s OfferStoreService) RemoveOfferStoreItem(userId string, offerId string, c
 		}
 	}
 
+	// Just a time to response
+	item.UpdatedAt = time.Now().UTC()
 	if waitOnChain {
 		// Only update
 		item.Status = bean.OFFER_STORE_ITEM_STATUS_CLOSING
@@ -1323,6 +1325,7 @@ func (s OfferStoreService) prepareOfferStore(offer *bean.OfferStore, item *bean.
 	item.BuyAmountMin = minAmount.String()
 	item.SellBalance = "0"
 	item.SellAmountMin = minAmount.String()
+	item.CreatedAt = time.Now().UTC()
 	amount := common.StringToDecimal(item.SellAmount)
 	if amount.GreaterThan(common.Zero) {
 		exchFeeTO := s.miscDao.GetSystemFeeFromCache(bean.FEE_KEY_EXCHANGE)
@@ -1663,7 +1666,11 @@ func (s OfferStoreService) getUsageBalance(offerId string, offerType string, cur
 	usage := common.Zero
 	if err == nil {
 		for _, offerShake := range offerShakes {
-			if offerShake.Status != bean.OFFER_STORE_SHAKE_STATUS_REJECTING && offerShake.Status != bean.OFFER_STORE_SHAKE_STATUS_REJECTED && offerShake.Type == offerType && offerShake.Currency == currency {
+			if offerShake.Status != bean.OFFER_STORE_SHAKE_STATUS_REJECTING &&
+				offerShake.Status != bean.OFFER_STORE_SHAKE_STATUS_REJECTED &&
+				offerShake.Status != bean.OFFER_STORE_SHAKE_STATUS_CANCELLING &&
+				offerShake.Status != bean.OFFER_STORE_SHAKE_STATUS_CANCELLED &&
+				offerShake.Type == offerType && offerShake.Currency == currency {
 				amount := common.StringToDecimal(offerShake.Amount)
 				usage = usage.Add(amount)
 			}
