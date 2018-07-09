@@ -807,18 +807,20 @@ func (s OfferStoreService) UpdateOfferShakeToPreviousStatus(userId string, offer
 	if ce.HasError() {
 		return
 	}
-	if offerShake.Status == bean.OFFER_STATUS_SHAKING {
+	if offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_SHAKING {
 		if offerShake.Currency == bean.ETH.Code {
-			offerShake.Status = bean.OFFER_STATUS_PRE_SHAKE
+			offerShake.Status = bean.OFFER_STORE_SHAKE_STATUS_PRE_SHAKE
 		} else {
-			offerShake.Status = bean.OFFER_STATUS_ACTIVE
+			offerShake.Status = bean.OFFER_STORE_SHAKE_STATUS_CANCELLED
 		}
-	} else if offerShake.Status == bean.OFFER_STATUS_CANCELLING {
-		offerShake.Status = bean.OFFER_STATUS_PRE_SHAKE
-	} else if offerShake.Status == bean.OFFER_STATUS_REJECTING {
-		offerShake.Status = bean.OFFER_STATUS_SHAKE
-	} else if offerShake.Status == bean.OFFER_STATUS_COMPLETING {
-		offerShake.Status = bean.OFFER_STATUS_SHAKE
+	} else if offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_PRE_SHAKING {
+		offerShake.Status = bean.OFFER_STORE_SHAKE_STATUS_CANCELLED
+	} else if offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_CANCELLING {
+		offerShake.Status = bean.OFFER_STORE_SHAKE_STATUS_PRE_SHAKE
+	} else if offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_REJECTING {
+		offerShake.Status = bean.OFFER_STORE_SHAKE_STATUS_SHAKE
+	} else if offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_COMPLETING {
+		offerShake.Status = bean.OFFER_STORE_SHAKE_STATUS_SHAKE
 	} else {
 		ce.SetStatusKey(api_error.OfferStatusInvalid)
 	}
