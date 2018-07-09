@@ -658,6 +658,7 @@ func (s OfferService) CheckOfferOnChainTransaction() error {
 				fmt.Println("There is on chain tx hash")
 				fmt.Println(txHash)
 				isSuccess, isPending, err := crypto_service.GetTransactionReceipt(txHash, item.Currency)
+				fmt.Printf("%s %s %s", isSuccess, isPending, err)
 				if err == nil {
 					// Completed and failed
 					if !isPending {
