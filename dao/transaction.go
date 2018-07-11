@@ -66,7 +66,7 @@ func (dao TransactionDao) GetTransactionCountByPath(path string) (t TransferObje
 }
 
 func (dao TransactionDao) ListTransactionCounts(userId string) (t TransferObject) {
-	ListObjects(GetTransactionCountPath(userId), &t, nil, snapshotToTransaction)
+	ListObjects(GetTransactionCountPath(userId), &t, nil, snapshotToTransactionCount)
 
 	return
 }
