@@ -495,6 +495,7 @@ func (s OfferStoreService) CreateOfferStoreShake(userId string, offerId string, 
 		if ce.SetError(api_error.UpdateDataFailed, err) {
 			return
 		}
+		s.updatePendingTransCount(offer, offerShakeBody, userId)
 	} else {
 		if offerShakeBody.Currency == bean.ETH.Code {
 			offerShakeBody.Status = bean.OFFER_STORE_SHAKE_STATUS_PRE_SHAKING
@@ -967,6 +968,9 @@ func (s OfferStoreService) UpdateOnChainOfferStoreShake(offerId string, offerSha
 		if offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_SHAKE {
 			// SHAKE
 			err = s.dao.UpdateOfferStoreShakeBalance(offer, &item, offerShake, true)
+			if err == nil {
+				s.updatePendingTransCount(offer, offerShake, offer.UID)
+			}
 		} else if offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_REJECTED {
 			// REJECTED
 			err = s.dao.UpdateOfferStoreShakeBalance(offer, &item, offerShake, false)
