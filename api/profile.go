@@ -94,5 +94,13 @@ func (api ProfileApi) ListTransactionCounts(context *gin.Context) {
 	if to.ContextValidate(context) {
 		return
 	}
-	bean.SuccessResponse(context, to.Objects)
+	objs := map[string]bean.TransactionCount{}
+	if to.Objects != nil {
+		for _, item := range to.Objects {
+			countItem := item.(bean.TransactionCount)
+			objs[countItem.Currency] = countItem
+		}
+	}
+
+	bean.SuccessResponse(context, objs)
 }
