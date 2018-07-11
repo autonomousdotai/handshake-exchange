@@ -1577,8 +1577,8 @@ func (s OfferStoreService) sendTransaction(address string, amountStr string, cur
 
 func (s OfferStoreService) updateSuccessTransCount(offer bean.OfferStore, offerShake bean.OfferStoreShake, actionUID string) (transCount1 bean.TransactionCount, transCount2 bean.TransactionCount) {
 	transCountTO := s.transDao.GetTransactionCount(offer.UID, offerShake.Currency)
-	if !transCountTO.HasError() && transCountTO.Found {
-		transCount1 = transCountTO.Object.(bean.TransactionCount)
+	if transCountTO.HasError() {
+		return
 	}
 	transCount1.Currency = offerShake.Currency
 	transCount1.Success += 1
@@ -1630,8 +1630,8 @@ func (s OfferStoreService) updateSuccessTransCount(offer bean.OfferStore, offerS
 
 func (s OfferStoreService) updatePendingTransCount(offer bean.OfferStore, offerShake bean.OfferStoreShake, actionUID string) (transCount bean.TransactionCount) {
 	transCountTO := s.transDao.GetTransactionCount(offer.UID, offerShake.Currency)
-	if !transCountTO.HasError() && transCountTO.Found {
-		transCount = transCountTO.Object.(bean.TransactionCount)
+	if transCountTO.HasError() {
+		return
 	}
 	transCount.Currency = offerShake.Currency
 	transCount.Pending += 1
@@ -1643,8 +1643,8 @@ func (s OfferStoreService) updatePendingTransCount(offer bean.OfferStore, offerS
 
 func (s OfferStoreService) updateFailedTransCount(offer bean.OfferStore, offerShake bean.OfferStoreShake, actionUID string) (transCount bean.TransactionCount) {
 	transCountTO := s.transDao.GetTransactionCount(offer.UID, offerShake.Currency)
-	if !transCountTO.HasError() && transCountTO.Found {
-		transCount = transCountTO.Object.(bean.TransactionCount)
+	if !transCountTO.HasError() {
+		return
 	}
 	transCount.Currency = offerShake.Currency
 	if actionUID == offer.UID {
