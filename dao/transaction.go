@@ -2,8 +2,11 @@ package dao
 
 import (
 	"cloud.google.com/go/firestore"
+	"context"
 	"fmt"
 	"github.com/ninjadotorg/handshake-exchange/bean"
+	"github.com/ninjadotorg/handshake-exchange/common"
+	"github.com/ninjadotorg/handshake-exchange/integration/firebase_service"
 )
 
 type TransactionDao struct {
@@ -33,9 +36,14 @@ func (dao TransactionDao) GetTransactionCount(userId string, currency string) Tr
 
 	if !to.Found {
 		to.Object = bean.TransactionCount{
-			Currency: currency,
-			Success:  0,
-			Failed:   0,
+			Currency:        currency,
+			Success:         0,
+			Failed:          0,
+			Pending:         0,
+			BuyAmount:       common.Zero.String(),
+			SellAmount:      common.Zero.String(),
+			BuyFiatAmounts:  map[string]bean.TransactionFiatAmount{},
+			SellFiatAmounts: map[string]bean.TransactionFiatAmount{},
 		}
 		to.Found = true
 	}
@@ -43,9 +51,23 @@ func (dao TransactionDao) GetTransactionCount(userId string, currency string) Tr
 	return to
 }
 
+func (dao TransactionDao) UpdateTransactionCount(userId string, currency string, txCountData map[string]interface{}) error {
+	dbClient := firebase_service.FirestoreClient
+	docRef := dbClient.Doc(GetTransactionCountItemPath(userId, currency))
+	_, err := docRef.Set(context.Background(), txCountData, firestore.MergeAll)
+
+	return err
+}
+
 func (dao TransactionDao) GetTransactionCountByPath(path string) (t TransferObject) {
 	// users/{uid}/transaction_counts/{currency}
 	GetObject(path, &t, snapshotToTransactionCount)
+	return
+}
+
+func (dao TransactionDao) ListTransactionCounts(userId string) (t TransferObject) {
+	ListObjects(GetTransactionCountPath(userId), &t, nil, snapshotToTransaction)
+
 	return
 }
 
@@ -55,6 +77,10 @@ func GetTransactionPath(userId string) string {
 
 func GetTransactionItemPath(userId string, id string) string {
 	return fmt.Sprintf("users/%s/transactions/%s", userId, id)
+}
+
+func GetTransactionCountPath(userId string) string {
+	return fmt.Sprintf("users/%s/transaction_counts", userId)
 }
 
 func GetTransactionCountItemPath(userId string, currency string) string {

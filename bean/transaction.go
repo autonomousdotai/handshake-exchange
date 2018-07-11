@@ -145,15 +145,38 @@ func (transaction Transaction) GetPageValue() interface{} {
 }
 
 type TransactionCount struct {
+	Currency        string                           `json:"currency" firestore:"currency"`
+	Success         int64                            `json:"success" firestore:"success"`
+	Failed          int64                            `json:"failed" firestore:"failed"`
+	Pending         int64                            `json:"pending" firestore:"pending"`
+	BuyAmount       string                           `json:"buy_amount" firestore:"buy_amount"`
+	SellAmount      string                           `json:"sell_amount" firestore:"sell_amount"`
+	BuyFiatAmounts  map[string]TransactionFiatAmount `json:"buy_fiat_amounts" firestore:"buy_fiat_amounts"`
+	SellFiatAmounts map[string]TransactionFiatAmount `json:"sell_fiat_amounts" firestore:"sell_fiat_amounts"`
+}
+
+type TransactionFiatAmount struct {
 	Currency string `json:"currency" firestore:"currency"`
-	Success  int64  `json:"success" firestore:"success"`
-	Failed   int64  `json:"failed" firestore:"failed"`
+	Amount   string `json:"amount" firestore:"amount"`
 }
 
 func (t TransactionCount) GetUpdateSuccess() map[string]interface{} {
 	return map[string]interface{}{
+		"currency":          t.Currency,
+		"success":           t.Success,
+		"pending":           t.Pending,
+		"buy_amount":        t.BuyAmount,
+		"sell_amount":       t.SellAmount,
+		"buy_fiat_amounts":  t.BuyFiatAmounts,
+		"sell_fiat_amounts": t.SellFiatAmounts,
+		"updated_at":        firestore.ServerTimestamp,
+	}
+}
+
+func (t TransactionCount) GetUpdatePending() map[string]interface{} {
+	return map[string]interface{}{
 		"currency":   t.Currency,
-		"success":    t.Success,
+		"pending":    t.Pending,
 		"updated_at": firestore.ServerTimestamp,
 	}
 }
@@ -162,6 +185,7 @@ func (t TransactionCount) GetUpdateFailed() map[string]interface{} {
 	return map[string]interface{}{
 		"currency":   t.Currency,
 		"failed":     t.Failed,
+		"pending":    t.Pending,
 		"updated_at": firestore.ServerTimestamp,
 	}
 }

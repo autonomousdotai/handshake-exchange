@@ -27,6 +27,9 @@ func (url UserUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	group.GET("/transactions", func(context *gin.Context) {
 		profileApi.ListTransactions(context)
 	})
+	group.GET("/transaction-counts", func(context *gin.Context) {
+		profileApi.ListTransactionCounts(context)
+	})
 
 	return group
 }

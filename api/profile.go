@@ -87,3 +87,12 @@ func (api ProfileApi) GetCCLimit(context *gin.Context) {
 
 	bean.SuccessResponse(context, userCCLimit)
 }
+
+func (api ProfileApi) ListTransactionCounts(context *gin.Context) {
+	userId := common.GetUserId(context)
+	to := dao.TransactionDaoInst.ListTransactionCounts(userId)
+	if to.ContextValidate(context) {
+		return
+	}
+	bean.SuccessResponse(context, to.Objects)
+}
