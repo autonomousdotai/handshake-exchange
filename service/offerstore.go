@@ -575,6 +575,7 @@ func (s OfferStoreService) RejectOfferStoreShake(userId string, offerId string, 
 	}
 	if offerShake.Status != bean.OFFER_STORE_SHAKE_STATUS_SHAKE {
 		ce.SetStatusKey(api_error.OfferStatusInvalid)
+		return
 	}
 
 	if offerShake.Type == bean.OFFER_TYPE_SELL {
@@ -1643,6 +1644,7 @@ func (s OfferStoreService) updateSuccessTransCount(offer bean.OfferStore, offerS
 	if transCountTO.HasError() {
 		return
 	}
+	transCount1 = transCountTO.Object.(bean.TransactionCount)
 	transCount1.Currency = offerShake.Currency
 	transCount1.Success += 1
 	transCount1.Pending -= 1
@@ -1679,9 +1681,10 @@ func (s OfferStoreService) updateSuccessTransCount(offer bean.OfferStore, offerS
 	}
 
 	transCountTO = s.transDao.GetTransactionCount(offerShake.UID, offerShake.Currency)
-	if !transCountTO.HasError() && transCountTO.Found {
-		transCount2 = transCountTO.Object.(bean.TransactionCount)
+	if transCountTO.HasError() {
+		return
 	}
+	transCount2 = transCountTO.Object.(bean.TransactionCount)
 	transCount2.Currency = offerShake.Currency
 	transCount2.Success += 1
 
@@ -1696,6 +1699,7 @@ func (s OfferStoreService) updatePendingTransCount(offer bean.OfferStore, offerS
 	if transCountTO.HasError() {
 		return
 	}
+	transCount = transCountTO.Object.(bean.TransactionCount)
 	transCount.Currency = offerShake.Currency
 	transCount.Pending += 1
 
@@ -1706,15 +1710,15 @@ func (s OfferStoreService) updatePendingTransCount(offer bean.OfferStore, offerS
 
 func (s OfferStoreService) updateFailedTransCount(offer bean.OfferStore, offerShake bean.OfferStoreShake, actionUID string) (transCount bean.TransactionCount) {
 	transCountTO := s.transDao.GetTransactionCount(offer.UID, offerShake.Currency)
-	if !transCountTO.HasError() {
+	if transCountTO.HasError() {
 		return
 	}
+	transCount = transCountTO.Object.(bean.TransactionCount)
 	transCount.Currency = offerShake.Currency
 	if actionUID == offer.UID {
 		transCount.Failed += 1
 	}
 	transCount.Pending -= 1
-
 	s.transDao.UpdateTransactionCount(offer.UID, offerShake.Currency, transCount.GetUpdateFailed())
 
 	return

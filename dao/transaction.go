@@ -33,7 +33,6 @@ func (dao TransactionDao) GetTransactionByPath(path string) (t TransferObject) {
 
 func (dao TransactionDao) GetTransactionCount(userId string, currency string) TransferObject {
 	to := dao.GetTransactionCountByPath(GetTransactionCountItemPath(userId, currency))
-
 	if !to.Found {
 		to.Object = bean.TransactionCount{
 			Currency:        currency,
