@@ -138,9 +138,50 @@ func (dao OfferStoreDao) AddOfferStoreItem(offer bean.OfferStore, item bean.Offe
 	return item, err
 }
 
-//func (dao OfferStoreDao) RefillOfferStoreItem(item bean.OfferStoreItem) (bean.OfferStoreItem, error) {
-//
-//}
+func (dao OfferStoreDao) RefillOfferStoreItem(offer bean.OfferStore, item *bean.OfferStoreItem, body bean.OfferStoreItem, offerType string) error {
+	dbClient := firebase_service.FirestoreClient
+
+	offerStoreRef := dbClient.Doc(GetOfferStoreItemPath(offer.Id))
+	offerStoreItemRef := dbClient.Doc(GetOfferStoreItemItemPath(offer.Id, item.Currency))
+
+	err := dbClient.RunTransaction(context.Background(), func(ctx context.Context, tx *firestore.Transaction) error {
+		// Get From Wallet Balance
+		walletDoc, err := tx.Get(offerStoreItemRef)
+		if err != nil {
+			return err
+		}
+
+		sellAmount := common.StringToDecimal(body.SellAmount)
+		buyAmount := common.StringToDecimal(body.BuyAmount)
+
+		buyBalance, err := common.ConvertToDecimal(walletDoc, "buy_balance")
+		if err != nil {
+			return err
+		}
+		sellBalance, err := common.ConvertToDecimal(walletDoc, "sell_balance")
+		if err != nil {
+			return err
+		}
+
+		sellBalance = buyBalance.Add(sellAmount)
+		buyBalance = buyBalance.Add(buyAmount)
+
+		if offerType == bean.OFFER_TYPE_BUY {
+			buyBalance = buyBalance.Add(buyAmount)
+			item.BuyBalance = buyBalance.String()
+		} else {
+			sellBalance = buyBalance.Add(sellAmount)
+			item.SellBalance = sellBalance.String()
+		}
+		err = tx.Set(offerStoreItemRef, item.GetUpdateOfferStoreItemRefill(), firestore.MergeAll)
+
+		offer.ItemSnapshots[item.Currency] = *item
+		err = tx.Set(offerStoreRef, offer.GetUpdateOfferStoreChangeSnapshot(), firestore.MergeAll)
+		return err
+
+	})
+	return err
+}
 
 func (dao OfferStoreDao) RemoveOfferStoreItem(offer bean.OfferStore, item bean.OfferStoreItem, profile bean.Profile) error {
 	dbClient := firebase_service.FirestoreClient

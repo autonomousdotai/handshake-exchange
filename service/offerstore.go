@@ -194,7 +194,8 @@ func (s OfferStoreService) RefillOfferStoreItem(userId string, offerId string, b
 		return
 	}
 
-	_, err := s.dao.AddOfferStoreItem(offer, item, *profile)
+	// Only update buy first
+	err := s.dao.RefillOfferStoreItem(offer, &item, body, bean.OFFER_TYPE_BUY)
 	if ce.SetError(api_error.AddDataFailed, err) {
 		return
 	}

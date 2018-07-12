@@ -277,6 +277,7 @@ type SolrOfferStoreItemSnapshot struct {
 	UserAddress    string `json:"user_address"`
 	ChatUsername   string `json:"chat_username"`
 	Status         string `json:"status"`
+	SubStatus      string `json:"sub_status"`
 	FreeStart      string `json:"free_start"`
 	CreatedAt      int64  `json:"created_at"`
 	UpdatedAt      int64  `json:"updated_at"`
@@ -345,6 +346,7 @@ func NewSolrFromOfferStore(offer OfferStore, item OfferStoreItem) (solr SolrOffe
 			SystemAddress:  value.SystemAddress,
 			UserAddress:    value.UserAddress,
 			Status:         status,
+			SubStatus:      value.SubStatus,
 			FreeStart:      value.FreeStart,
 			CreatedAt:      value.CreatedAt.Unix(),
 			UpdatedAt:      time.Now().UTC().Unix(),
