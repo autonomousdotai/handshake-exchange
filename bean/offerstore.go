@@ -16,6 +16,7 @@ const OFFER_STORE_ITEM_STATUS_CREATED = "created"
 const OFFER_STORE_ITEM_STATUS_ACTIVE = "active"
 const OFFER_STORE_ITEM_STATUS_CLOSING = "closing"
 const OFFER_STORE_ITEM_STATUS_CLOSED = "closed"
+const OFFER_STORE_ITEM_STATUS_REFILLING = "refilling"
 
 type OfferStore struct {
 	Id               string                    `json:"id" firestore:"id"`
@@ -46,6 +47,7 @@ type OfferStore struct {
 type OfferStoreItem struct {
 	Currency        string    `json:"currency" firestore:"currency"`
 	Status          string    `json:"status" firestore:"status"`
+	SubStatus       string    `json:"sub_status" firestore:"sub_status"`
 	SellAmountMin   string    `json:"sell_amount_min" firestore:"sell_amount_min"`
 	SellAmount      string    `json:"sell_amount" firestore:"sell_amount" validate:"required"`
 	SellBalance     string    `json:"sell_balance" firestore:"sell_balance"`
@@ -189,6 +191,18 @@ func (item OfferStoreItem) GetUpdateOfferStoreItemBalance() map[string]interface
 		"buy_balance":  item.BuyBalance,
 		"sell_balance": item.SellBalance,
 		"updated_at":   firestore.ServerTimestamp,
+	}
+}
+
+func (item OfferStoreItem) GetUpdateOfferStoreItemRefill() map[string]interface{} {
+	return map[string]interface{}{
+		"buy_amount":        item.BuyAmount,
+		"buy_balance":       item.BuyBalance,
+		"sell_amount":       item.SellAmount,
+		"sell_total_amount": item.SellTotalAmount,
+		"sell_balance":      item.SellBalance,
+		"sub_status":        item.SubStatus,
+		"updated_at":        firestore.ServerTimestamp,
 	}
 }
 

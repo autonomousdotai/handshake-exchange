@@ -171,6 +171,37 @@ func (s OfferStoreService) AddOfferStoreItem(userId string, offerId string, item
 	return
 }
 
+func (s OfferStoreService) RefillOfferStoreItem(userId string, offerId string, body bean.OfferStoreItem) (offer bean.OfferStore, ce SimpleContextError) {
+	profile := GetProfile(s.userDao, userId, &ce)
+	if ce.HasError() {
+		return
+	}
+	offer = *GetOfferStore(*s.dao, offerId, &ce)
+	if ce.HasError() {
+		return
+	}
+	item := *GetOfferStoreItem(*s.dao, offerId, body.Currency, &ce)
+	if ce.HasError() {
+		return
+	}
+	if item.FreeStart != "" {
+		ce.SetStatusKey(api_error.InvalidRequestBody)
+		return
+	}
+
+	s.prepareOfferStore(&offer, &item, profile, &ce)
+	if ce.HasError() {
+		return
+	}
+
+	_, err := s.dao.AddOfferStoreItem(offer, item, *profile)
+	if ce.SetError(api_error.AddDataFailed, err) {
+		return
+	}
+
+	return
+}
+
 func (s OfferStoreService) RemoveOfferStoreItem(userId string, offerId string, currency string) (offer bean.OfferStore, ce SimpleContextError) {
 	profile := GetProfile(s.userDao, userId, &ce)
 	if ce.HasError() {
@@ -558,6 +589,8 @@ func (s OfferStoreService) RejectOfferStoreShake(userId string, offerId string, 
 		if item.FreeStart != "" {
 			s.dao.UpdateOfferStoreFreeStartUserUsing(profile.UserId)
 		}
+
+		s.updateFailedTransCount(offer, offerShake, userId)
 	} else {
 		if offerShake.Currency == bean.ETH.Code {
 			// Only ETH
@@ -589,11 +622,12 @@ func (s OfferStoreService) RejectOfferStoreShake(userId string, offerId string, 
 					Currency:         offerShake.Currency,
 				})
 			}
+
+			s.updateFailedTransCount(offer, offerShake, userId)
 		}
 	}
 
-	transCount := s.updateFailedTransCount(offer, offerShake, userId)
-	err := s.dao.UpdateOfferStoreShakeReject(offer, offerShake, profile, transCount)
+	err := s.dao.UpdateOfferStoreShakeReject(offer, offerShake, profile)
 	if ce.SetError(api_error.UpdateDataFailed, err) {
 		return
 	}
@@ -1284,6 +1318,35 @@ func (s OfferStoreService) SyncOfferStoreShakeToSolr(offerId, offerShakeId strin
 	}
 	offerShake = offerShakeTO.Object.(bean.OfferStoreShake)
 	solr_service.UpdateObject(bean.NewSolrFromOfferStoreShake(offerShake, offer))
+
+	return
+}
+
+func (s OfferStoreService) prepareRefillOfferStoreItem(item *bean.OfferStoreItem, body bean.OfferStoreItem, ce *SimpleContextError) {
+	s.checkOfferStoreItemAmount(item, ce)
+	if ce.HasError() {
+		return
+	}
+	sellAmount := common.StringToDecimal(item.SellAmount)
+	bodySellAmount := common.StringToDecimal(body.SellAmount)
+	sellAmount = sellAmount.Add(bodySellAmount)
+	item.SellAmount = sellAmount.String()
+	if bodySellAmount.GreaterThan(common.Zero) {
+		exchFeeTO := s.miscDao.GetSystemFeeFromCache(bean.FEE_KEY_EXCHANGE)
+		if ce.FeedDaoTransfer(api_error.GetDataFailed, exchFeeTO) {
+			return
+		}
+		exchFeeObj := exchFeeTO.Object.(bean.SystemFee)
+		exchFee := decimal.NewFromFloat(exchFeeObj.Value).Round(6)
+		fee := bodySellAmount.Mul(exchFee)
+		item.SellTotalAmount = sellAmount.Add(fee).String()
+	}
+
+	buyAmount := common.StringToDecimal(item.BuyAmount)
+	bodyBuyAmount := common.StringToDecimal(body.BuyAmount)
+	buyAmount = buyAmount.Add(bodyBuyAmount)
+	item.BuyAmount = sellAmount.String()
+	item.SubStatus = bean.OFFER_STORE_ITEM_STATUS_REFILLING
 
 	return
 }

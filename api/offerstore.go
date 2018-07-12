@@ -81,6 +81,23 @@ func (api OfferStoreApi) RemoveOfferStoreItem(context *gin.Context) {
 	bean.SuccessResponse(context, offer)
 }
 
+func (api OfferStoreApi) RefillOfferStoreItem(context *gin.Context) {
+	userId := common.GetUserId(context)
+	offerId := context.Param("offerId")
+
+	var body bean.OfferStoreItem
+	if common.ValidateBody(context, &body) != nil {
+		return
+	}
+
+	offer, ce := service.OfferStoreServiceInst.RefillOfferStoreItem(userId, offerId, body)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, offer)
+}
+
 func (api OfferStoreApi) CreateOfferStoreShake(context *gin.Context) {
 	userId := common.GetUserId(context)
 	chainId := common.GetChainId(context)

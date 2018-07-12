@@ -138,6 +138,10 @@ func (dao OfferStoreDao) AddOfferStoreItem(offer bean.OfferStore, item bean.Offe
 	return item, err
 }
 
+//func (dao OfferStoreDao) RefillOfferStoreItem(item bean.OfferStoreItem) (bean.OfferStoreItem, error) {
+//
+//}
+
 func (dao OfferStoreDao) RemoveOfferStoreItem(offer bean.OfferStore, item bean.OfferStoreItem, profile bean.Profile) error {
 	dbClient := firebase_service.FirestoreClient
 
@@ -332,16 +336,14 @@ func (dao OfferStoreDao) UpdateOfferStoreShake(offerId string, offerShake bean.O
 	return err
 }
 
-func (dao OfferStoreDao) UpdateOfferStoreShakeReject(offer bean.OfferStore, offerShake bean.OfferStoreShake, profile bean.Profile, transactionCount bean.TransactionCount) error {
+func (dao OfferStoreDao) UpdateOfferStoreShakeReject(offer bean.OfferStore, offerShake bean.OfferStoreShake, profile bean.Profile) error {
 	dbClient := firebase_service.FirestoreClient
 
 	offerShakePath := GetOfferStoreShakeItemPath(offer.Id, offerShake.Id)
 	docRef := dbClient.Doc(offerShakePath)
-	transCountDocRef := dbClient.Doc(GetTransactionCountItemPath(profile.UserId, transactionCount.Currency))
 
 	batch := dbClient.Batch()
 	batch.Set(docRef, offerShake.GetChangeStatus(), firestore.MergeAll)
-	batch.Set(transCountDocRef, transactionCount.GetUpdateFailed(), firestore.MergeAll)
 
 	if offerShake.Currency == bean.ETH.Code && (offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_REJECTING) {
 		// Store a record to check onchain
