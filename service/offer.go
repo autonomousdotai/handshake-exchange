@@ -926,7 +926,7 @@ func (s OfferService) FinishOfferConfirmingAddresses() (finishedInstantOffers []
 						}
 					}
 				} else if pendingOffer.Type == bean.OFFER_ADDRESS_MAP_OFFER_STORE {
-					_, ce = OfferStoreServiceInst.ActiveOffChainOfferStore(pendingOffer.Address, pendingOffer.Amount)
+					_, ce = OfferStoreServiceInst.ActiveOffChainOfferStore(pendingOffer.Address, pendingOffer.Amount, pendingOffer.Currency)
 					completed = !ce.HasError()
 				} else if pendingOffer.Type == bean.OFFER_ADDRESS_MAP_OFFER_STORE_SHAKE {
 					_, ce = OfferStoreServiceInst.PreShakeOffChainOfferStoreShake(pendingOffer.Address, pendingOffer.Amount)

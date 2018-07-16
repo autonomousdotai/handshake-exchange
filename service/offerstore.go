@@ -252,7 +252,7 @@ func (s OfferStoreService) RemoveOfferStoreItem(userId string, offerId string, c
 	}
 
 	// Only BTC, refund the crypto
-	if item.Currency == bean.BTC.Code {
+	if item.Currency != bean.ETH.Code {
 		// Do Refund
 		if hasSell {
 			description := fmt.Sprintf("Refund to userId %s due to close the offer", userId)
@@ -486,6 +486,12 @@ func (s OfferStoreService) CreateOfferStoreShake(userId string, offerId string, 
 	}
 	if offerShakeBody.Currency == bean.BTC.Code {
 		if amount.LessThan(bean.MIN_BTC) {
+			ce.SetStatusKey(api_error.AmountIsTooSmall)
+			return
+		}
+	}
+	if offerShakeBody.Currency == bean.BCH.Code {
+		if amount.LessThan(bean.MIN_BCH) {
 			ce.SetStatusKey(api_error.AmountIsTooSmall)
 			return
 		}
@@ -1062,7 +1068,7 @@ func (s OfferStoreService) CompleteOnChainOfferStoreShake(offerId string, offerS
 	return s.UpdateOnChainOfferStoreShake(offerId, offerShakeId, 0, bean.OFFER_STORE_SHAKE_STATUS_COMPLETING, bean.OFFER_STORE_SHAKE_STATUS_COMPLETED)
 }
 
-func (s OfferStoreService) ActiveOffChainOfferStore(address string, amountStr string) (offer bean.OfferStore, ce SimpleContextError) {
+func (s OfferStoreService) ActiveOffChainOfferStore(address string, amountStr string, currency string) (offer bean.OfferStore, ce SimpleContextError) {
 	addressMapTO := s.offerDao.GetOfferAddress(address)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, addressMapTO) {
 		return
@@ -1091,7 +1097,7 @@ func (s OfferStoreService) ActiveOffChainOfferStore(address string, amountStr st
 
 	if sub.Equal(common.Zero) {
 		// Good
-		_, ce = s.UpdateOnChainInitOfferStore(addressMap.Offer, 0, bean.BTC.Code)
+		_, ce = s.UpdateOnChainInitOfferStore(addressMap.Offer, 0, currency)
 		if ce.HasError() {
 			return
 		}
@@ -1397,6 +1403,9 @@ func (s OfferStoreService) prepareOfferStore(offer *bean.OfferStore, item *bean.
 	if item.Currency == bean.BTC.Code {
 		minAmount = bean.MIN_BTC
 	}
+	if item.Currency == bean.BCH.Code {
+		minAmount = bean.MIN_BCH
+	}
 	item.BuyBalance = item.BuyAmount
 	item.BuyAmountMin = minAmount.String()
 	item.SellBalance = "0"
@@ -1438,6 +1447,12 @@ func (s OfferStoreService) checkOfferStoreItemAmount(item *bean.OfferStoreItem, 
 			return
 		}
 	}
+	if item.Currency == bean.BCH.Code {
+		if sellAmount.GreaterThan(common.Zero) && sellAmount.LessThan(bean.MIN_BCH) {
+			ce.SetStatusKey(api_error.AmountIsTooSmall)
+			return
+		}
+	}
 	if item.SellPercentage != "" {
 		// Convert to 0.0x
 		percentage, errFmt := decimal.NewFromString(item.SellPercentage)
@@ -1465,6 +1480,12 @@ func (s OfferStoreService) checkOfferStoreItemAmount(item *bean.OfferStoreItem, 
 			return
 		}
 	}
+	if item.Currency == bean.BCH.Code {
+		if buyAmount.GreaterThan(common.Zero) && buyAmount.LessThan(bean.MIN_BCH) {
+			ce.SetStatusKey(api_error.AmountIsTooSmall)
+			return
+		}
+	}
 	if item.BuyPercentage != "" {
 		// Convert to 0.0x
 		percentage, errFmt := decimal.NewFromString(item.BuyPercentage)
@@ -1479,7 +1500,7 @@ func (s OfferStoreService) checkOfferStoreItemAmount(item *bean.OfferStoreItem, 
 
 func (s OfferStoreService) generateSystemAddress(offer bean.OfferStore, item *bean.OfferStoreItem, ce *SimpleContextError) {
 	// Only BTC need to generate address to transfer in
-	if item.Currency == bean.BTC.Code {
+	if item.Currency != bean.ETH.Code {
 		systemConfigTO := s.miscDao.GetSystemConfigFromCache(bean.CONFIG_BTC_WALLET)
 		if ce.FeedDaoTransfer(api_error.GetDataFailed, systemConfigTO) {
 			return
@@ -1511,7 +1532,7 @@ func (s OfferStoreService) generateSystemAddress(offer bean.OfferStore, item *be
 // TODO remove func duplicate
 func (s OfferStoreService) generateSystemAddressForShake(offer bean.OfferStore, offerShake *bean.OfferStoreShake, ce *SimpleContextError) {
 	// Only BTC need to generate address to transfer in
-	if offerShake.Currency == bean.BTC.Code {
+	if offerShake.Currency != bean.ETH.Code {
 		systemConfigTO := s.miscDao.GetSystemConfigFromCache(bean.CONFIG_BTC_WALLET)
 		if ce.FeedDaoTransfer(api_error.GetDataFailed, systemConfigTO) {
 			return
@@ -1614,7 +1635,7 @@ func (s OfferStoreService) transferCrypto(offer *bean.OfferStore, offerShake *be
 func (s OfferStoreService) sendTransaction(address string, amountStr string, currency string, description string, withdrawId string,
 	walletProvider string, ce *SimpleContextError) interface{} {
 	// Only BTC
-	if currency == bean.BTC.Code {
+	if currency != bean.ETH.Code {
 
 		if walletProvider == bean.BTC_WALLET_COINBASE {
 			response, err := coinbase_service.SendTransaction(address, amountStr, currency, description, withdrawId)

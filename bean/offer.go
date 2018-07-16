@@ -30,9 +30,8 @@ const OFFER_STATUS_REJECTING = "rejecting"
 const OFFER_STATUS_REJECTED = "rejected"
 
 var MIN_ETH = decimal.NewFromFloat(0.01).Round(2)
-
-// TODO Change to 0.001 when going to production
-var MIN_BTC = decimal.NewFromFloat(0.0001).Round(4)
+var MIN_BTC = decimal.NewFromFloat(0.001).Round(3)
+var MIN_BCH = decimal.NewFromFloat(0.01).Round(2)
 
 type Offer struct {
 	Id               string           `json:"id"`
