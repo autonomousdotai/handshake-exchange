@@ -138,6 +138,14 @@ func (dao OfferStoreDao) AddOfferStoreItem(offer bean.OfferStore, item bean.Offe
 	return item, err
 }
 
+func (dao OfferStoreDao) UpdateOfferStoreItem(offerId string, item bean.OfferStoreItem) (bean.OfferStoreItem, error) {
+	dbClient := firebase_service.FirestoreClient
+	itemDocRef := dbClient.Doc(GetOfferStoreItemItemPath(offerId, item.Currency))
+
+	_, err := itemDocRef.Set(context.Background(), item.GetUpdateOfferStoreItemInfo(), firestore.MergeAll)
+	return item, err
+}
+
 func (dao OfferStoreDao) RefillOfferStoreItem(offer bean.OfferStore, item *bean.OfferStoreItem, body bean.OfferStoreItem, offerType string) error {
 	dbClient := firebase_service.FirestoreClient
 

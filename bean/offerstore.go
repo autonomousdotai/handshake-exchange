@@ -206,6 +206,14 @@ func (item OfferStoreItem) GetUpdateOfferStoreItemRefill() map[string]interface{
 	}
 }
 
+func (item OfferStoreItem) GetUpdateOfferStoreItemInfo() map[string]interface{} {
+	return map[string]interface{}{
+		"buy_percentage":  item.BuyPercentage,
+		"sell_percentage": item.SellPercentage,
+		"updated_at":      firestore.ServerTimestamp,
+	}
+}
+
 func (item OfferStoreItem) GetNotificationUpdate(offer OfferStore) map[string]interface{} {
 	return map[string]interface{}{
 		"id":     offer.Id,

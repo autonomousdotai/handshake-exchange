@@ -21,6 +21,9 @@ func (url OfferStoreUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	group.POST("/:offerId", func(context *gin.Context) {
 		offerApi.AddOfferStoreItem(context)
 	})
+	group.PUT("/:offerId", func(context *gin.Context) {
+		offerApi.UpdateOfferStoreItem(context)
+	})
 	group.DELETE("/:offerId", func(context *gin.Context) {
 		offerApi.RemoveOfferStoreItem(context)
 	})

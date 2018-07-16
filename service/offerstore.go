@@ -171,6 +171,36 @@ func (s OfferStoreService) AddOfferStoreItem(userId string, offerId string, item
 	return
 }
 
+func (s OfferStoreService) UpdateOfferStoreItem(userId string, offerId string, body bean.OfferStoreItem) (offer bean.OfferStore, ce SimpleContextError) {
+	_ = GetProfile(s.userDao, userId, &ce)
+	if ce.HasError() {
+		return
+	}
+	checkOffer := GetOfferStore(*s.dao, offerId, &ce)
+	if ce.HasError() {
+		return
+	}
+	offer = *checkOffer
+	checkOfferItem := GetOfferStoreItem(*s.dao, offerId, body.Currency, &ce)
+	if ce.HasError() {
+		return
+	}
+	// Copy data
+	item := *checkOfferItem
+	item.SellPercentage = body.SellPercentage
+	item.BuyPercentage = body.BuyPercentage
+	offer.ItemSnapshots[body.Currency] = item
+
+	_, err := s.dao.UpdateOfferStoreItem(offerId, item)
+	if ce.SetError(api_error.AddDataFailed, err) {
+		return
+	}
+	// Only sync to solr
+	solr_service.UpdateObject(bean.NewSolrFromOfferStore(offer, item))
+
+	return
+}
+
 func (s OfferStoreService) RefillOfferStoreItem(userId string, offerId string, body bean.OfferStoreItem) (offer bean.OfferStore, ce SimpleContextError) {
 	profile := GetProfile(s.userDao, userId, &ce)
 	if ce.HasError() {
@@ -199,6 +229,8 @@ func (s OfferStoreService) RefillOfferStoreItem(userId string, offerId string, b
 	if ce.SetError(api_error.AddDataFailed, err) {
 		return
 	}
+	// Only sync to solr
+	solr_service.UpdateObject(bean.NewSolrFromOfferStore(offer, item))
 
 	return
 }

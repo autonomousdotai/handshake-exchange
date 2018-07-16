@@ -64,6 +64,23 @@ func (api OfferStoreApi) AddOfferStoreItem(context *gin.Context) {
 	bean.SuccessResponse(context, offer)
 }
 
+func (api OfferStoreApi) UpdateOfferStoreItem(context *gin.Context) {
+	userId := common.GetUserId(context)
+	offerId := context.Param("offerId")
+
+	var body bean.OfferStoreItem
+	if common.ValidateBody(context, &body) != nil {
+		return
+	}
+
+	offer, ce := service.OfferStoreServiceInst.UpdateOfferStoreItem(userId, offerId, body)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, offer)
+}
+
 func (api OfferStoreApi) RemoveOfferStoreItem(context *gin.Context) {
 	userId := common.GetUserId(context)
 	offerId := context.Param("offerId")
