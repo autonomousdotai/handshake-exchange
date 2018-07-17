@@ -204,16 +204,17 @@ func (s OfferStoreService) UpdateOfferStore(userId string, offerId string, body 
 	return
 }
 
-func (s OfferStoreService) RefillOfferStoreItem(userId string, offerId string, body bean.OfferStoreItem) (offerItem bean.OfferStoreItem, ce SimpleContextError) {
+func (s OfferStoreService) RefillOfferStoreItem(userId string, offerId string, body bean.OfferStoreSetup) (offer bean.OfferStore, ce SimpleContextError) {
 	_ = GetProfile(s.userDao, userId, &ce)
 	if ce.HasError() {
 		return
 	}
-	offer := *GetOfferStore(*s.dao, offerId, &ce)
+	offer = *GetOfferStore(*s.dao, offerId, &ce)
 	if ce.HasError() {
 		return
 	}
-	item := *GetOfferStoreItem(*s.dao, offerId, body.Currency, &ce)
+	bodyItem := body.Item
+	item := *GetOfferStoreItem(*s.dao, offerId, bodyItem.Currency, &ce)
 	if ce.HasError() {
 		return
 	}
@@ -222,7 +223,7 @@ func (s OfferStoreService) RefillOfferStoreItem(userId string, offerId string, b
 		return
 	}
 
-	s.prepareRefillOfferStoreItem(&offer, &item, &body, &ce)
+	s.prepareRefillOfferStoreItem(&offer, &item, &bodyItem, &ce)
 	if ce.HasError() {
 		return
 	}
@@ -232,13 +233,14 @@ func (s OfferStoreService) RefillOfferStoreItem(userId string, offerId string, b
 		return
 	}
 	// Only update buy first
-	err = s.dao.RefillBalanceOfferStoreItem(offer, &item, body, bean.OFFER_TYPE_BUY)
+	err = s.dao.RefillBalanceOfferStoreItem(offer, &item, bodyItem, bean.OFFER_TYPE_BUY)
 	if ce.SetError(api_error.UpdateDataFailed, err) {
 		return
 	}
 	// Only sync to solr
 	solr_service.UpdateObject(bean.NewSolrFromOfferStore(offer, item))
-	offerItem = body
+	// For response
+	offer.ItemSnapshots[item.Currency] = item
 
 	return
 }

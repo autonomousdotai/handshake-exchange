@@ -102,7 +102,7 @@ func (api OfferStoreApi) RefillOfferStoreItem(context *gin.Context) {
 	userId := common.GetUserId(context)
 	offerId := context.Param("offerId")
 
-	var body bean.OfferStoreItem
+	var body bean.OfferStoreSetup
 	if common.ValidateBody(context, &body) != nil {
 		return
 	}
