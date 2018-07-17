@@ -840,6 +840,10 @@ func (s OfferStoreService) AcceptOfferStoreShake(userId string, offerId string, 
 	if ce.HasError() {
 		return
 	}
+	item := *GetOfferStoreItem(*s.dao, offerId, offerShake.Currency, &ce)
+	if ce.HasError() {
+		return
+	}
 
 	if profile.UserId != offer.UID {
 		ce.SetStatusKey(api_error.InvalidRequestBody)
@@ -851,8 +855,14 @@ func (s OfferStoreService) AcceptOfferStoreShake(userId string, offerId string, 
 
 	// Now accept always to SHAKE
 	offerShake.Status = bean.OFFER_STORE_SHAKE_STATUS_SHAKE
+	err := s.dao.UpdateOfferStoreShakeBalance(offer, &item, offerShake, true)
+	if err == nil {
+		s.updatePendingTransCount(offer, offerShake, offer.UID)
+	} else {
+		return
+	}
 
-	err := s.dao.UpdateOfferStoreShake(offerId, offerShake, offerShake.GetChangeStatus())
+	err = s.dao.UpdateOfferStoreShake(offerId, offerShake, offerShake.GetChangeStatus())
 	if err != nil {
 		ce.SetError(api_error.UpdateDataFailed, err)
 		return
