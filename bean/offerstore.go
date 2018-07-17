@@ -17,6 +17,7 @@ const OFFER_STORE_ITEM_STATUS_ACTIVE = "active"
 const OFFER_STORE_ITEM_STATUS_CLOSING = "closing"
 const OFFER_STORE_ITEM_STATUS_CLOSED = "closed"
 const OFFER_STORE_ITEM_STATUS_REFILLING = "refilling"
+const OFFER_STORE_ITEM_STATUS_REFILLED = "refilled"
 
 type OfferStore struct {
 	Id               string                    `json:"id" firestore:"id"`
@@ -143,9 +144,10 @@ func (offer OfferStore) GetNotificationUpdate() map[string]interface{} {
 
 func (offer OfferStore) GetUpdateOfferItemInfo() map[string]interface{} {
 	return map[string]interface{}{
-		"contact_info":  offer.ContactInfo,
-		"contact_phone": offer.ContactPhone,
-		"updated_at":    firestore.ServerTimestamp,
+		"contact_info":   offer.ContactInfo,
+		"contact_phone":  offer.ContactPhone,
+		"item_snapshots": offer.ItemSnapshots,
+		"updated_at":     firestore.ServerTimestamp,
 	}
 }
 

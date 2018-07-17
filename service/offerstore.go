@@ -1061,7 +1061,7 @@ func (s OfferStoreService) UpdateOnChainRefillBalanceOfferStore(offerId string, 
 		return
 	}
 
-	item.SubStatus = ""
+	item.SubStatus = bean.OFFER_STORE_ITEM_STATUS_REFILLED
 	offer.ItemSnapshots[item.Currency] = item
 
 	oldSellAmount := common.StringToDecimal(item.SellBackupAmounts["sell_amount"].(string))
