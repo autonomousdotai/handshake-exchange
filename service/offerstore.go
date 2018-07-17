@@ -1518,6 +1518,12 @@ func (s OfferStoreService) prepareRefillOfferStoreItem(offer *bean.OfferStore, i
 	if ce.HasError() {
 		return
 	}
+
+	item.SellBackupAmounts = map[string]interface{}{
+		"sell_amount":       item.SellAmount,
+		"sell_total_amount": item.SellTotalAmount,
+	}
+
 	sellAmount := common.StringToDecimal(item.SellAmount)
 	bodySellAmount := common.StringToDecimal(body.SellAmount)
 	sellAmount = sellAmount.Add(bodySellAmount)
@@ -1533,20 +1539,13 @@ func (s OfferStoreService) prepareRefillOfferStoreItem(offer *bean.OfferStore, i
 		fee := bodySellAmount.Mul(exchFee)
 		item.SellTotalAmount = sellAmount.Add(fee).String()
 		body.SellTotalAmount = bodySellAmount.Add(fee).String()
+		item.SubStatus = bean.OFFER_STORE_ITEM_STATUS_REFILLING
 	}
 
 	buyAmount := common.StringToDecimal(item.BuyAmount)
 	bodyBuyAmount := common.StringToDecimal(body.BuyAmount)
 	buyAmount = buyAmount.Add(bodyBuyAmount)
 	item.BuyAmount = buyAmount.String()
-
-	if sellAmount.GreaterThan(common.Zero) {
-		item.SubStatus = bean.OFFER_STORE_ITEM_STATUS_REFILLING
-	}
-	item.SellBackupAmounts = map[string]interface{}{
-		"sell_amount":       item.SellAmount,
-		"sell_total_amount": item.SellTotalAmount,
-	}
 
 	offer.ItemSnapshots[item.Currency] = *item
 
