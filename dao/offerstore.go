@@ -243,7 +243,7 @@ func (dao OfferStoreDao) RefillBalanceOfferStoreItem(offer bean.OfferStore, item
 			buyBalance = buyBalance.Add(buyAmount)
 			item.BuyBalance = buyBalance.String()
 		} else {
-			sellBalance = buyBalance.Add(sellAmount)
+			sellBalance = sellBalance.Add(sellAmount)
 			item.SellBalance = sellBalance.String()
 		}
 		err = tx.Set(offerStoreItemRef, item.GetUpdateOfferStoreItemRefillBalance(), firestore.MergeAll)
