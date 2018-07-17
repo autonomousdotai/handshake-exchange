@@ -239,9 +239,6 @@ func (dao OfferStoreDao) RefillBalanceOfferStoreItem(offer bean.OfferStore, item
 			return err
 		}
 
-		sellBalance = buyBalance.Add(sellAmount)
-		buyBalance = buyBalance.Add(buyAmount)
-
 		if offerType == bean.OFFER_TYPE_BUY {
 			buyBalance = buyBalance.Add(buyAmount)
 			item.BuyBalance = buyBalance.String()

@@ -238,7 +238,7 @@ func (s OfferStoreService) RefillOfferStoreItem(userId string, offerId string, b
 	}
 	// Only sync to solr
 	solr_service.UpdateObject(bean.NewSolrFromOfferStore(offer, item))
-	offer.ItemSnapshots[item.Currency] = item
+	offer.ItemSnapshots[item.Currency] = body
 
 	return
 }
@@ -1524,6 +1524,8 @@ func (s OfferStoreService) prepareRefillOfferStoreItem(offer *bean.OfferStore, i
 		"sell_total_amount": item.SellTotalAmount,
 	}
 
+	sellTotalAmount := common.StringToDecimal(item.SellTotalAmount)
+
 	sellAmount := common.StringToDecimal(item.SellAmount)
 	bodySellAmount := common.StringToDecimal(body.SellAmount)
 	sellAmount = sellAmount.Add(bodySellAmount)
@@ -1537,8 +1539,10 @@ func (s OfferStoreService) prepareRefillOfferStoreItem(offer *bean.OfferStore, i
 		exchFeeObj := exchFeeTO.Object.(bean.SystemFee)
 		exchFee := decimal.NewFromFloat(exchFeeObj.Value).Round(6)
 		fee := bodySellAmount.Mul(exchFee)
-		item.SellTotalAmount = sellAmount.Add(fee).String()
+
+		item.SellTotalAmount = sellTotalAmount.Add(bodySellAmount).Add(fee).String()
 		body.SellTotalAmount = bodySellAmount.Add(fee).String()
+
 		item.SubStatus = bean.OFFER_STORE_ITEM_STATUS_REFILLING
 	}
 
