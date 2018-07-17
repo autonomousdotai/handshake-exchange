@@ -53,6 +53,7 @@ func (dao TransactionDao) GetTransactionCount(userId string, currency string) Tr
 		if transCount.BuyFiatAmounts == nil {
 			transCount.BuyFiatAmounts = map[string]bean.TransactionFiatAmount{}
 		}
+		to.Object = transCount
 	}
 
 	return to
