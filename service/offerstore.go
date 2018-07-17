@@ -1869,6 +1869,10 @@ func (s OfferStoreService) updateSuccessTransCount(offer bean.OfferStore, offerS
 	transCount1.Currency = offerShake.Currency
 	transCount1.Success += 1
 	transCount1.Pending -= 1
+	if transCount1.Pending < 0 {
+		// Just for prevent weird number
+		transCount1.Pending = 0
+	}
 	if offerShake.IsTypeSell() {
 		sellAmount := common.StringToDecimal(transCount1.SellAmount)
 		amount := common.StringToDecimal(offerShake.Amount)
@@ -1940,6 +1944,10 @@ func (s OfferStoreService) updateFailedTransCount(offer bean.OfferStore, offerSh
 		transCount.Failed += 1
 	}
 	transCount.Pending -= 1
+	if transCount.Pending < 0 {
+		// Just for prevent weird number
+		transCount.Pending = 0
+	}
 	s.transDao.UpdateTransactionCount(offer.UID, offerShake.Currency, transCount.GetUpdateFailed())
 
 	return
