@@ -208,15 +208,12 @@ func (item OfferStoreItem) GetUpdateOfferStoreItemBalance() map[string]interface
 
 func (item OfferStoreItem) GetUpdateOfferStoreItemRefill() map[string]interface{} {
 	return map[string]interface{}{
-		"buy_amount":        item.BuyAmount,
-		"sell_amount":       item.SellAmount,
-		"sell_total_amount": item.SellTotalAmount,
-		"sell_backup_amounts": map[string]interface{}{
-			"sell_amount":       item.SellAmount,
-			"sell_total_amount": item.SellTotalAmount,
-		},
-		"sub_status": item.SubStatus,
-		"updated_at": firestore.ServerTimestamp,
+		"buy_amount":          item.BuyAmount,
+		"sell_amount":         item.SellAmount,
+		"sell_total_amount":   item.SellTotalAmount,
+		"sell_backup_amounts": item.SellBackupAmounts,
+		"sub_status":          item.SubStatus,
+		"updated_at":          firestore.ServerTimestamp,
 	}
 }
 
