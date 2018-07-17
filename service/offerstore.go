@@ -1068,7 +1068,7 @@ func (s OfferStoreService) UpdateOnChainRefillBalanceOfferStore(offerId string, 
 	newSellAmount := common.StringToDecimal(item.SellAmount)
 	increasedSellAmount := newSellAmount.Sub(oldSellAmount).String()
 
-	// Only update buy first
+	// Only update sell
 	err := s.dao.RefillBalanceOfferStoreItem(offer, &item, bean.OfferStoreItem{
 		SellAmount: increasedSellAmount,
 		BuyAmount:  common.Zero.String(),
@@ -1519,9 +1519,10 @@ func (s OfferStoreService) prepareRefillOfferStoreItem(offer *bean.OfferStore, i
 		return
 	}
 
+	// Copy to back up
 	item.SellBackupAmounts = map[string]interface{}{
-		"sell_amount":       item.SellAmount,
-		"sell_total_amount": item.SellTotalAmount,
+		"sell_amount":       fmt.Sprintf("%s", item.SellAmount),
+		"sell_total_amount": fmt.Sprintf("%s", item.SellTotalAmount),
 	}
 
 	sellTotalAmount := common.StringToDecimal(item.SellTotalAmount)
@@ -1544,6 +1545,7 @@ func (s OfferStoreService) prepareRefillOfferStoreItem(offer *bean.OfferStore, i
 		body.SellTotalAmount = bodySellAmount.Add(fee).String()
 
 		item.SubStatus = bean.OFFER_STORE_ITEM_STATUS_REFILLING
+		body.SubStatus = bean.OFFER_STORE_ITEM_STATUS_REFILLING
 	}
 
 	buyAmount := common.StringToDecimal(item.BuyAmount)

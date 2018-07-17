@@ -229,6 +229,7 @@ func (item OfferStoreItem) GetCancelOfferStoreItemRefill() map[string]interface{
 
 func (item OfferStoreItem) GetUpdateOfferStoreItemRefillBalance() map[string]interface{} {
 	return map[string]interface{}{
+		"sub_status":   item.SubStatus,
 		"buy_balance":  item.BuyBalance,
 		"sell_balance": item.SellBalance,
 		"updated_at":   firestore.ServerTimestamp,
