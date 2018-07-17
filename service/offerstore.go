@@ -204,7 +204,7 @@ func (s OfferStoreService) UpdateOfferStore(userId string, offerId string, body 
 	return
 }
 
-func (s OfferStoreService) RefillOfferStoreItem(userId string, offerId string, body bean.OfferStoreSetup) (offer bean.OfferStore, ce SimpleContextError) {
+func (s OfferStoreService) RefillOfferStoreItem(userId string, offerId string, body bean.OfferStoreItem) (offer bean.OfferStore, ce SimpleContextError) {
 	_ = GetProfile(s.userDao, userId, &ce)
 	if ce.HasError() {
 		return
@@ -213,8 +213,7 @@ func (s OfferStoreService) RefillOfferStoreItem(userId string, offerId string, b
 	if ce.HasError() {
 		return
 	}
-	bodyItem := body.Item
-	item := *GetOfferStoreItem(*s.dao, offerId, bodyItem.Currency, &ce)
+	item := *GetOfferStoreItem(*s.dao, offerId, body.Currency, &ce)
 	if ce.HasError() {
 		return
 	}
@@ -223,7 +222,7 @@ func (s OfferStoreService) RefillOfferStoreItem(userId string, offerId string, b
 		return
 	}
 
-	s.prepareRefillOfferStoreItem(&offer, &item, &bodyItem, &ce)
+	s.prepareRefillOfferStoreItem(&offer, &item, &body, &ce)
 	if ce.HasError() {
 		return
 	}
@@ -233,13 +232,12 @@ func (s OfferStoreService) RefillOfferStoreItem(userId string, offerId string, b
 		return
 	}
 	// Only update buy first
-	err = s.dao.RefillBalanceOfferStoreItem(offer, &item, bodyItem, bean.OFFER_TYPE_BUY)
+	err = s.dao.RefillBalanceOfferStoreItem(offer, &item, body, bean.OFFER_TYPE_BUY)
 	if ce.SetError(api_error.UpdateDataFailed, err) {
 		return
 	}
 	// Only sync to solr
 	solr_service.UpdateObject(bean.NewSolrFromOfferStore(offer, item))
-	// For response
 	offer.ItemSnapshots[item.Currency] = item
 
 	return
@@ -1524,6 +1522,7 @@ func (s OfferStoreService) prepareRefillOfferStoreItem(offer *bean.OfferStore, i
 	bodySellAmount := common.StringToDecimal(body.SellAmount)
 	sellAmount = sellAmount.Add(bodySellAmount)
 	item.SellAmount = sellAmount.String()
+
 	if bodySellAmount.GreaterThan(common.Zero) {
 		exchFeeTO := s.miscDao.GetSystemFeeFromCache(bean.FEE_KEY_EXCHANGE)
 		if ce.FeedDaoTransfer(api_error.GetDataFailed, exchFeeTO) {
@@ -1539,8 +1538,11 @@ func (s OfferStoreService) prepareRefillOfferStoreItem(offer *bean.OfferStore, i
 	buyAmount := common.StringToDecimal(item.BuyAmount)
 	bodyBuyAmount := common.StringToDecimal(body.BuyAmount)
 	buyAmount = buyAmount.Add(bodyBuyAmount)
-	item.BuyAmount = sellAmount.String()
-	item.SubStatus = bean.OFFER_STORE_ITEM_STATUS_REFILLING
+	item.BuyAmount = buyAmount.String()
+
+	if sellAmount.GreaterThan(common.Zero) {
+		item.SubStatus = bean.OFFER_STORE_ITEM_STATUS_REFILLING
+	}
 	item.SellBackupAmounts = map[string]interface{}{
 		"sell_amount":       item.SellAmount,
 		"sell_total_amount": item.SellTotalAmount,
