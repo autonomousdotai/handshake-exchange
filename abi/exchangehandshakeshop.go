@@ -16,7 +16,7 @@ import (
 )
 
 // ExchangeHandshakeShopABI is the input ABI used to generate the binding from.
-const ExchangeHandshakeShopABI = "[{\"constant\":true,\"inputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"ex\",\"outputs\":[{\"name\":\"shopOwner\",\"type\":\"address\"},{\"name\":\"customer\",\"type\":\"address\"},{\"name\":\"escrow\",\"type\":\"uint256\"},{\"name\":\"state\",\"type\":\"uint8\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"hid\",\"type\":\"uint256\"},{\"name\":\"customer\",\"type\":\"address\"},{\"name\":\"amount\",\"type\":\"uint256\"},{\"name\":\"offchainP\",\"type\":\"bytes32\"},{\"name\":\"offchainC\",\"type\":\"bytes32\"}],\"name\":\"releasePartialFund\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"hid\",\"type\":\"uint256\"}],\"name\":\"getBalance\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"initByShopOwner\",\"outputs\":[],\"payable\":true,\"stateMutability\":\"payable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"hid\",\"type\":\"uint256\"},{\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"finish\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"hid\",\"type\":\"uint256\"}],\"name\":\"getState\",\"outputs\":[{\"name\":\"\",\"type\":\"uint8\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"f\",\"type\":\"uint256\"}],\"name\":\"setFee\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"hid\",\"type\":\"uint256\"},{\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"reject\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"hid\",\"type\":\"uint256\"},{\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"closeByShopOwner\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"shopOwner\",\"type\":\"address\"},{\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"initByCustomer\",\"outputs\":[],\"payable\":true,\"stateMutability\":\"payable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"hid\",\"type\":\"uint256\"},{\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"shake\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"hid\",\"type\":\"uint256\"},{\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"cancel\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"fee\",\"type\":\"uint256\"}],\"name\":\"__setFee\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hid\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"shopOwner\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"value\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"__initByShopOwner\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hid\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"__closeByShopOwner\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hid\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"customer\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"offchainP\",\"type\":\"bytes32\"},{\"indexed\":false,\"name\":\"offchainC\",\"type\":\"bytes32\"}],\"name\":\"__releasePartialFund\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hid\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"customer\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"shopOwner\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"value\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"__initByCustomer\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hid\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"__cancel\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hid\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"__shake\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hid\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"__reject\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hid\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"__finish\",\"type\":\"event\"}]"
+const ExchangeHandshakeShopABI = "[{\"constant\":true,\"inputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"ex\",\"outputs\":[{\"name\":\"stationOwner\",\"type\":\"address\"},{\"name\":\"customer\",\"type\":\"address\"},{\"name\":\"escrow\",\"type\":\"uint256\"},{\"name\":\"state\",\"type\":\"uint8\"},{\"name\":\"exType\",\"type\":\"uint8\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"hid\",\"type\":\"uint256\"},{\"name\":\"customer\",\"type\":\"address\"},{\"name\":\"amount\",\"type\":\"uint256\"},{\"name\":\"offchainP\",\"type\":\"bytes32\"},{\"name\":\"offchainC\",\"type\":\"bytes32\"}],\"name\":\"releasePartialFund\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"hid\",\"type\":\"uint256\"}],\"name\":\"getBalance\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"hid\",\"type\":\"uint256\"},{\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"finish\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"hid\",\"type\":\"uint256\"}],\"name\":\"getState\",\"outputs\":[{\"name\":\"\",\"type\":\"uint8\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"resetAllStation\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"f\",\"type\":\"uint256\"}],\"name\":\"setFee\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"hid\",\"type\":\"uint256\"},{\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"reject\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"hid\",\"type\":\"uint256\"},{\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"addInventory\",\"outputs\":[],\"payable\":true,\"stateMutability\":\"payable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"stationOwner\",\"type\":\"address\"},{\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"initByCustomer\",\"outputs\":[],\"payable\":true,\"stateMutability\":\"payable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"hid\",\"type\":\"uint256\"},{\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"shake\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"initByStationOwner\",\"outputs\":[],\"payable\":true,\"stateMutability\":\"payable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"hid\",\"type\":\"uint256\"},{\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"cancel\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"hid\",\"type\":\"uint256\"},{\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"closeByStationOwner\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"fee\",\"type\":\"uint256\"}],\"name\":\"__setFee\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hid\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"stationOwner\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"value\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"__initByStationOwner\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hid\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"__closeByStationOwner\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hid\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"customer\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"offchainP\",\"type\":\"bytes32\"},{\"indexed\":false,\"name\":\"offchainC\",\"type\":\"bytes32\"}],\"name\":\"__releasePartialFund\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hid\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"__addInventory\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hid\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"customer\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"stationOwner\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"value\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"__initByCustomer\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hid\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"__cancel\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hid\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"__shake\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hid\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"__reject\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hid\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"__finish\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"offchain\",\"type\":\"bytes32\"},{\"indexed\":false,\"name\":\"hid\",\"type\":\"uint256\"}],\"name\":\"__resetAllStation\",\"type\":\"event\"}]"
 
 // ExchangeHandshakeShop is an auto generated Go binding around an Ethereum contract.
 type ExchangeHandshakeShop struct {
@@ -162,18 +162,20 @@ func (_ExchangeHandshakeShop *ExchangeHandshakeShopTransactorRaw) Transact(opts 
 
 // Ex is a free data retrieval call binding the contract method 0x1089f215.
 //
-// Solidity: function ex( uint256) constant returns(shopOwner address, customer address, escrow uint256, state uint8)
+// Solidity: function ex( uint256) constant returns(stationOwner address, customer address, escrow uint256, state uint8, exType uint8)
 func (_ExchangeHandshakeShop *ExchangeHandshakeShopCaller) Ex(opts *bind.CallOpts, arg0 *big.Int) (struct {
-	ShopOwner common.Address
-	Customer  common.Address
-	Escrow    *big.Int
-	State     uint8
+	StationOwner common.Address
+	Customer     common.Address
+	Escrow       *big.Int
+	State        uint8
+	ExType       uint8
 }, error) {
 	ret := new(struct {
-		ShopOwner common.Address
-		Customer  common.Address
-		Escrow    *big.Int
-		State     uint8
+		StationOwner common.Address
+		Customer     common.Address
+		Escrow       *big.Int
+		State        uint8
+		ExType       uint8
 	})
 	out := ret
 	err := _ExchangeHandshakeShop.contract.Call(opts, out, "ex", arg0)
@@ -182,24 +184,26 @@ func (_ExchangeHandshakeShop *ExchangeHandshakeShopCaller) Ex(opts *bind.CallOpt
 
 // Ex is a free data retrieval call binding the contract method 0x1089f215.
 //
-// Solidity: function ex( uint256) constant returns(shopOwner address, customer address, escrow uint256, state uint8)
+// Solidity: function ex( uint256) constant returns(stationOwner address, customer address, escrow uint256, state uint8, exType uint8)
 func (_ExchangeHandshakeShop *ExchangeHandshakeShopSession) Ex(arg0 *big.Int) (struct {
-	ShopOwner common.Address
-	Customer  common.Address
-	Escrow    *big.Int
-	State     uint8
+	StationOwner common.Address
+	Customer     common.Address
+	Escrow       *big.Int
+	State        uint8
+	ExType       uint8
 }, error) {
 	return _ExchangeHandshakeShop.Contract.Ex(&_ExchangeHandshakeShop.CallOpts, arg0)
 }
 
 // Ex is a free data retrieval call binding the contract method 0x1089f215.
 //
-// Solidity: function ex( uint256) constant returns(shopOwner address, customer address, escrow uint256, state uint8)
+// Solidity: function ex( uint256) constant returns(stationOwner address, customer address, escrow uint256, state uint8, exType uint8)
 func (_ExchangeHandshakeShop *ExchangeHandshakeShopCallerSession) Ex(arg0 *big.Int) (struct {
-	ShopOwner common.Address
-	Customer  common.Address
-	Escrow    *big.Int
-	State     uint8
+	StationOwner common.Address
+	Customer     common.Address
+	Escrow       *big.Int
+	State        uint8
+	ExType       uint8
 }, error) {
 	return _ExchangeHandshakeShop.Contract.Ex(&_ExchangeHandshakeShop.CallOpts, arg0)
 }
@@ -256,6 +260,27 @@ func (_ExchangeHandshakeShop *ExchangeHandshakeShopCallerSession) GetState(hid *
 	return _ExchangeHandshakeShop.Contract.GetState(&_ExchangeHandshakeShop.CallOpts, hid)
 }
 
+// AddInventory is a paid mutator transaction binding the contract method 0x93341a0b.
+//
+// Solidity: function addInventory(hid uint256, offchain bytes32) returns()
+func (_ExchangeHandshakeShop *ExchangeHandshakeShopTransactor) AddInventory(opts *bind.TransactOpts, hid *big.Int, offchain [32]byte) (*types.Transaction, error) {
+	return _ExchangeHandshakeShop.contract.Transact(opts, "addInventory", hid, offchain)
+}
+
+// AddInventory is a paid mutator transaction binding the contract method 0x93341a0b.
+//
+// Solidity: function addInventory(hid uint256, offchain bytes32) returns()
+func (_ExchangeHandshakeShop *ExchangeHandshakeShopSession) AddInventory(hid *big.Int, offchain [32]byte) (*types.Transaction, error) {
+	return _ExchangeHandshakeShop.Contract.AddInventory(&_ExchangeHandshakeShop.TransactOpts, hid, offchain)
+}
+
+// AddInventory is a paid mutator transaction binding the contract method 0x93341a0b.
+//
+// Solidity: function addInventory(hid uint256, offchain bytes32) returns()
+func (_ExchangeHandshakeShop *ExchangeHandshakeShopTransactorSession) AddInventory(hid *big.Int, offchain [32]byte) (*types.Transaction, error) {
+	return _ExchangeHandshakeShop.Contract.AddInventory(&_ExchangeHandshakeShop.TransactOpts, hid, offchain)
+}
+
 // Cancel is a paid mutator transaction binding the contract method 0xeafb64d5.
 //
 // Solidity: function cancel(hid uint256, offchain bytes32) returns()
@@ -277,25 +302,25 @@ func (_ExchangeHandshakeShop *ExchangeHandshakeShopTransactorSession) Cancel(hid
 	return _ExchangeHandshakeShop.Contract.Cancel(&_ExchangeHandshakeShop.TransactOpts, hid, offchain)
 }
 
-// CloseByShopOwner is a paid mutator transaction binding the contract method 0x9d21288f.
+// CloseByStationOwner is a paid mutator transaction binding the contract method 0xef3ae612.
 //
-// Solidity: function closeByShopOwner(hid uint256, offchain bytes32) returns()
-func (_ExchangeHandshakeShop *ExchangeHandshakeShopTransactor) CloseByShopOwner(opts *bind.TransactOpts, hid *big.Int, offchain [32]byte) (*types.Transaction, error) {
-	return _ExchangeHandshakeShop.contract.Transact(opts, "closeByShopOwner", hid, offchain)
+// Solidity: function closeByStationOwner(hid uint256, offchain bytes32) returns()
+func (_ExchangeHandshakeShop *ExchangeHandshakeShopTransactor) CloseByStationOwner(opts *bind.TransactOpts, hid *big.Int, offchain [32]byte) (*types.Transaction, error) {
+	return _ExchangeHandshakeShop.contract.Transact(opts, "closeByStationOwner", hid, offchain)
 }
 
-// CloseByShopOwner is a paid mutator transaction binding the contract method 0x9d21288f.
+// CloseByStationOwner is a paid mutator transaction binding the contract method 0xef3ae612.
 //
-// Solidity: function closeByShopOwner(hid uint256, offchain bytes32) returns()
-func (_ExchangeHandshakeShop *ExchangeHandshakeShopSession) CloseByShopOwner(hid *big.Int, offchain [32]byte) (*types.Transaction, error) {
-	return _ExchangeHandshakeShop.Contract.CloseByShopOwner(&_ExchangeHandshakeShop.TransactOpts, hid, offchain)
+// Solidity: function closeByStationOwner(hid uint256, offchain bytes32) returns()
+func (_ExchangeHandshakeShop *ExchangeHandshakeShopSession) CloseByStationOwner(hid *big.Int, offchain [32]byte) (*types.Transaction, error) {
+	return _ExchangeHandshakeShop.Contract.CloseByStationOwner(&_ExchangeHandshakeShop.TransactOpts, hid, offchain)
 }
 
-// CloseByShopOwner is a paid mutator transaction binding the contract method 0x9d21288f.
+// CloseByStationOwner is a paid mutator transaction binding the contract method 0xef3ae612.
 //
-// Solidity: function closeByShopOwner(hid uint256, offchain bytes32) returns()
-func (_ExchangeHandshakeShop *ExchangeHandshakeShopTransactorSession) CloseByShopOwner(hid *big.Int, offchain [32]byte) (*types.Transaction, error) {
-	return _ExchangeHandshakeShop.Contract.CloseByShopOwner(&_ExchangeHandshakeShop.TransactOpts, hid, offchain)
+// Solidity: function closeByStationOwner(hid uint256, offchain bytes32) returns()
+func (_ExchangeHandshakeShop *ExchangeHandshakeShopTransactorSession) CloseByStationOwner(hid *big.Int, offchain [32]byte) (*types.Transaction, error) {
+	return _ExchangeHandshakeShop.Contract.CloseByStationOwner(&_ExchangeHandshakeShop.TransactOpts, hid, offchain)
 }
 
 // Finish is a paid mutator transaction binding the contract method 0x35e8b2df.
@@ -321,44 +346,44 @@ func (_ExchangeHandshakeShop *ExchangeHandshakeShopTransactorSession) Finish(hid
 
 // InitByCustomer is a paid mutator transaction binding the contract method 0xa3b2ea71.
 //
-// Solidity: function initByCustomer(shopOwner address, offchain bytes32) returns()
-func (_ExchangeHandshakeShop *ExchangeHandshakeShopTransactor) InitByCustomer(opts *bind.TransactOpts, shopOwner common.Address, offchain [32]byte) (*types.Transaction, error) {
-	return _ExchangeHandshakeShop.contract.Transact(opts, "initByCustomer", shopOwner, offchain)
+// Solidity: function initByCustomer(stationOwner address, offchain bytes32) returns()
+func (_ExchangeHandshakeShop *ExchangeHandshakeShopTransactor) InitByCustomer(opts *bind.TransactOpts, stationOwner common.Address, offchain [32]byte) (*types.Transaction, error) {
+	return _ExchangeHandshakeShop.contract.Transact(opts, "initByCustomer", stationOwner, offchain)
 }
 
 // InitByCustomer is a paid mutator transaction binding the contract method 0xa3b2ea71.
 //
-// Solidity: function initByCustomer(shopOwner address, offchain bytes32) returns()
-func (_ExchangeHandshakeShop *ExchangeHandshakeShopSession) InitByCustomer(shopOwner common.Address, offchain [32]byte) (*types.Transaction, error) {
-	return _ExchangeHandshakeShop.Contract.InitByCustomer(&_ExchangeHandshakeShop.TransactOpts, shopOwner, offchain)
+// Solidity: function initByCustomer(stationOwner address, offchain bytes32) returns()
+func (_ExchangeHandshakeShop *ExchangeHandshakeShopSession) InitByCustomer(stationOwner common.Address, offchain [32]byte) (*types.Transaction, error) {
+	return _ExchangeHandshakeShop.Contract.InitByCustomer(&_ExchangeHandshakeShop.TransactOpts, stationOwner, offchain)
 }
 
 // InitByCustomer is a paid mutator transaction binding the contract method 0xa3b2ea71.
 //
-// Solidity: function initByCustomer(shopOwner address, offchain bytes32) returns()
-func (_ExchangeHandshakeShop *ExchangeHandshakeShopTransactorSession) InitByCustomer(shopOwner common.Address, offchain [32]byte) (*types.Transaction, error) {
-	return _ExchangeHandshakeShop.Contract.InitByCustomer(&_ExchangeHandshakeShop.TransactOpts, shopOwner, offchain)
+// Solidity: function initByCustomer(stationOwner address, offchain bytes32) returns()
+func (_ExchangeHandshakeShop *ExchangeHandshakeShopTransactorSession) InitByCustomer(stationOwner common.Address, offchain [32]byte) (*types.Transaction, error) {
+	return _ExchangeHandshakeShop.Contract.InitByCustomer(&_ExchangeHandshakeShop.TransactOpts, stationOwner, offchain)
 }
 
-// InitByShopOwner is a paid mutator transaction binding the contract method 0x27b6bcaa.
+// InitByStationOwner is a paid mutator transaction binding the contract method 0xb4bd5dbb.
 //
-// Solidity: function initByShopOwner(offchain bytes32) returns()
-func (_ExchangeHandshakeShop *ExchangeHandshakeShopTransactor) InitByShopOwner(opts *bind.TransactOpts, offchain [32]byte) (*types.Transaction, error) {
-	return _ExchangeHandshakeShop.contract.Transact(opts, "initByShopOwner", offchain)
+// Solidity: function initByStationOwner(offchain bytes32) returns()
+func (_ExchangeHandshakeShop *ExchangeHandshakeShopTransactor) InitByStationOwner(opts *bind.TransactOpts, offchain [32]byte) (*types.Transaction, error) {
+	return _ExchangeHandshakeShop.contract.Transact(opts, "initByStationOwner", offchain)
 }
 
-// InitByShopOwner is a paid mutator transaction binding the contract method 0x27b6bcaa.
+// InitByStationOwner is a paid mutator transaction binding the contract method 0xb4bd5dbb.
 //
-// Solidity: function initByShopOwner(offchain bytes32) returns()
-func (_ExchangeHandshakeShop *ExchangeHandshakeShopSession) InitByShopOwner(offchain [32]byte) (*types.Transaction, error) {
-	return _ExchangeHandshakeShop.Contract.InitByShopOwner(&_ExchangeHandshakeShop.TransactOpts, offchain)
+// Solidity: function initByStationOwner(offchain bytes32) returns()
+func (_ExchangeHandshakeShop *ExchangeHandshakeShopSession) InitByStationOwner(offchain [32]byte) (*types.Transaction, error) {
+	return _ExchangeHandshakeShop.Contract.InitByStationOwner(&_ExchangeHandshakeShop.TransactOpts, offchain)
 }
 
-// InitByShopOwner is a paid mutator transaction binding the contract method 0x27b6bcaa.
+// InitByStationOwner is a paid mutator transaction binding the contract method 0xb4bd5dbb.
 //
-// Solidity: function initByShopOwner(offchain bytes32) returns()
-func (_ExchangeHandshakeShop *ExchangeHandshakeShopTransactorSession) InitByShopOwner(offchain [32]byte) (*types.Transaction, error) {
-	return _ExchangeHandshakeShop.Contract.InitByShopOwner(&_ExchangeHandshakeShop.TransactOpts, offchain)
+// Solidity: function initByStationOwner(offchain bytes32) returns()
+func (_ExchangeHandshakeShop *ExchangeHandshakeShopTransactorSession) InitByStationOwner(offchain [32]byte) (*types.Transaction, error) {
+	return _ExchangeHandshakeShop.Contract.InitByStationOwner(&_ExchangeHandshakeShop.TransactOpts, offchain)
 }
 
 // Reject is a paid mutator transaction binding the contract method 0x6be1320b.
@@ -403,6 +428,27 @@ func (_ExchangeHandshakeShop *ExchangeHandshakeShopTransactorSession) ReleasePar
 	return _ExchangeHandshakeShop.Contract.ReleasePartialFund(&_ExchangeHandshakeShop.TransactOpts, hid, customer, amount, offchainP, offchainC)
 }
 
+// ResetAllStation is a paid mutator transaction binding the contract method 0x5dccb051.
+//
+// Solidity: function resetAllStation(offchain bytes32) returns()
+func (_ExchangeHandshakeShop *ExchangeHandshakeShopTransactor) ResetAllStation(opts *bind.TransactOpts, offchain [32]byte) (*types.Transaction, error) {
+	return _ExchangeHandshakeShop.contract.Transact(opts, "resetAllStation", offchain)
+}
+
+// ResetAllStation is a paid mutator transaction binding the contract method 0x5dccb051.
+//
+// Solidity: function resetAllStation(offchain bytes32) returns()
+func (_ExchangeHandshakeShop *ExchangeHandshakeShopSession) ResetAllStation(offchain [32]byte) (*types.Transaction, error) {
+	return _ExchangeHandshakeShop.Contract.ResetAllStation(&_ExchangeHandshakeShop.TransactOpts, offchain)
+}
+
+// ResetAllStation is a paid mutator transaction binding the contract method 0x5dccb051.
+//
+// Solidity: function resetAllStation(offchain bytes32) returns()
+func (_ExchangeHandshakeShop *ExchangeHandshakeShopTransactorSession) ResetAllStation(offchain [32]byte) (*types.Transaction, error) {
+	return _ExchangeHandshakeShop.Contract.ResetAllStation(&_ExchangeHandshakeShop.TransactOpts, offchain)
+}
+
 // SetFee is a paid mutator transaction binding the contract method 0x69fe0e2d.
 //
 // Solidity: function setFee(f uint256) returns()
@@ -443,6 +489,129 @@ func (_ExchangeHandshakeShop *ExchangeHandshakeShopSession) Shake(hid *big.Int, 
 // Solidity: function shake(hid uint256, offchain bytes32) returns()
 func (_ExchangeHandshakeShop *ExchangeHandshakeShopTransactorSession) Shake(hid *big.Int, offchain [32]byte) (*types.Transaction, error) {
 	return _ExchangeHandshakeShop.Contract.Shake(&_ExchangeHandshakeShop.TransactOpts, hid, offchain)
+}
+
+// ExchangeHandshakeShopAddInventoryIterator is returned from FilterAddInventory and is used to iterate over the raw logs and unpacked data for AddInventory events raised by the ExchangeHandshakeShop contract.
+type ExchangeHandshakeShopAddInventoryIterator struct {
+	Event *ExchangeHandshakeShopAddInventory // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *ExchangeHandshakeShopAddInventoryIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(ExchangeHandshakeShopAddInventory)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(ExchangeHandshakeShopAddInventory)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *ExchangeHandshakeShopAddInventoryIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *ExchangeHandshakeShopAddInventoryIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// ExchangeHandshakeShopAddInventory represents a AddInventory event raised by the ExchangeHandshakeShop contract.
+type ExchangeHandshakeShopAddInventory struct {
+	Hid      *big.Int
+	Offchain [32]byte
+	Raw      types.Log // Blockchain specific contextual infos
+}
+
+// FilterAddInventory is a free log retrieval operation binding the contract event 0x414b45f3f079051d7402c185b2031c6033fd30f7ff54ea87dbc22ec69c626452.
+//
+// Solidity: e __addInventory(hid uint256, offchain bytes32)
+func (_ExchangeHandshakeShop *ExchangeHandshakeShopFilterer) FilterAddInventory(opts *bind.FilterOpts) (*ExchangeHandshakeShopAddInventoryIterator, error) {
+
+	logs, sub, err := _ExchangeHandshakeShop.contract.FilterLogs(opts, "__addInventory")
+	if err != nil {
+		return nil, err
+	}
+	return &ExchangeHandshakeShopAddInventoryIterator{contract: _ExchangeHandshakeShop.contract, event: "__addInventory", logs: logs, sub: sub}, nil
+}
+
+// WatchAddInventory is a free log subscription operation binding the contract event 0x414b45f3f079051d7402c185b2031c6033fd30f7ff54ea87dbc22ec69c626452.
+//
+// Solidity: e __addInventory(hid uint256, offchain bytes32)
+func (_ExchangeHandshakeShop *ExchangeHandshakeShopFilterer) WatchAddInventory(opts *bind.WatchOpts, sink chan<- *ExchangeHandshakeShopAddInventory) (event.Subscription, error) {
+
+	logs, sub, err := _ExchangeHandshakeShop.contract.WatchLogs(opts, "__addInventory")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(ExchangeHandshakeShopAddInventory)
+				if err := _ExchangeHandshakeShop.contract.UnpackLog(event, "__addInventory", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
 }
 
 // ExchangeHandshakeShopCancelIterator is returned from FilterCancel and is used to iterate over the raw logs and unpacked data for Cancel events raised by the ExchangeHandshakeShop contract.
@@ -568,9 +737,9 @@ func (_ExchangeHandshakeShop *ExchangeHandshakeShopFilterer) WatchCancel(opts *b
 	}), nil
 }
 
-// ExchangeHandshakeShopCloseByShopOwnerIterator is returned from FilterCloseByShopOwner and is used to iterate over the raw logs and unpacked data for CloseByShopOwner events raised by the ExchangeHandshakeShop contract.
-type ExchangeHandshakeShopCloseByShopOwnerIterator struct {
-	Event *ExchangeHandshakeShopCloseByShopOwner // Event containing the contract specifics and raw log
+// ExchangeHandshakeShopCloseByStationOwnerIterator is returned from FilterCloseByStationOwner and is used to iterate over the raw logs and unpacked data for CloseByStationOwner events raised by the ExchangeHandshakeShop contract.
+type ExchangeHandshakeShopCloseByStationOwnerIterator struct {
+	Event *ExchangeHandshakeShopCloseByStationOwner // Event containing the contract specifics and raw log
 
 	contract *bind.BoundContract // Generic contract to use for unpacking event data
 	event    string              // Event name to use for unpacking event data
@@ -584,7 +753,7 @@ type ExchangeHandshakeShopCloseByShopOwnerIterator struct {
 // Next advances the iterator to the subsequent event, returning whether there
 // are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
-func (it *ExchangeHandshakeShopCloseByShopOwnerIterator) Next() bool {
+func (it *ExchangeHandshakeShopCloseByStationOwnerIterator) Next() bool {
 	// If the iterator failed, stop iterating
 	if it.fail != nil {
 		return false
@@ -593,7 +762,7 @@ func (it *ExchangeHandshakeShopCloseByShopOwnerIterator) Next() bool {
 	if it.done {
 		select {
 		case log := <-it.logs:
-			it.Event = new(ExchangeHandshakeShopCloseByShopOwner)
+			it.Event = new(ExchangeHandshakeShopCloseByStationOwner)
 			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 				it.fail = err
 				return false
@@ -608,7 +777,7 @@ func (it *ExchangeHandshakeShopCloseByShopOwnerIterator) Next() bool {
 	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
-		it.Event = new(ExchangeHandshakeShopCloseByShopOwner)
+		it.Event = new(ExchangeHandshakeShopCloseByStationOwner)
 		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 			it.fail = err
 			return false
@@ -624,42 +793,42 @@ func (it *ExchangeHandshakeShopCloseByShopOwnerIterator) Next() bool {
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
-func (it *ExchangeHandshakeShopCloseByShopOwnerIterator) Error() error {
+func (it *ExchangeHandshakeShopCloseByStationOwnerIterator) Error() error {
 	return it.fail
 }
 
 // Close terminates the iteration process, releasing any pending underlying
 // resources.
-func (it *ExchangeHandshakeShopCloseByShopOwnerIterator) Close() error {
+func (it *ExchangeHandshakeShopCloseByStationOwnerIterator) Close() error {
 	it.sub.Unsubscribe()
 	return nil
 }
 
-// ExchangeHandshakeShopCloseByShopOwner represents a CloseByShopOwner event raised by the ExchangeHandshakeShop contract.
-type ExchangeHandshakeShopCloseByShopOwner struct {
+// ExchangeHandshakeShopCloseByStationOwner represents a CloseByStationOwner event raised by the ExchangeHandshakeShop contract.
+type ExchangeHandshakeShopCloseByStationOwner struct {
 	Hid      *big.Int
 	Offchain [32]byte
 	Raw      types.Log // Blockchain specific contextual infos
 }
 
-// FilterCloseByShopOwner is a free log retrieval operation binding the contract event 0x23ad9e1b0211e48a066f4dccf880a274bb12ce0e8449bb30fcf58aa03c0298a3.
+// FilterCloseByStationOwner is a free log retrieval operation binding the contract event 0xa4b2dfc35c48bbe07f2063bd9fcf0afa08891ebf8b417a983f957ac8708612a3.
 //
-// Solidity: e __closeByShopOwner(hid uint256, offchain bytes32)
-func (_ExchangeHandshakeShop *ExchangeHandshakeShopFilterer) FilterCloseByShopOwner(opts *bind.FilterOpts) (*ExchangeHandshakeShopCloseByShopOwnerIterator, error) {
+// Solidity: e __closeByStationOwner(hid uint256, offchain bytes32)
+func (_ExchangeHandshakeShop *ExchangeHandshakeShopFilterer) FilterCloseByStationOwner(opts *bind.FilterOpts) (*ExchangeHandshakeShopCloseByStationOwnerIterator, error) {
 
-	logs, sub, err := _ExchangeHandshakeShop.contract.FilterLogs(opts, "__closeByShopOwner")
+	logs, sub, err := _ExchangeHandshakeShop.contract.FilterLogs(opts, "__closeByStationOwner")
 	if err != nil {
 		return nil, err
 	}
-	return &ExchangeHandshakeShopCloseByShopOwnerIterator{contract: _ExchangeHandshakeShop.contract, event: "__closeByShopOwner", logs: logs, sub: sub}, nil
+	return &ExchangeHandshakeShopCloseByStationOwnerIterator{contract: _ExchangeHandshakeShop.contract, event: "__closeByStationOwner", logs: logs, sub: sub}, nil
 }
 
-// WatchCloseByShopOwner is a free log subscription operation binding the contract event 0x23ad9e1b0211e48a066f4dccf880a274bb12ce0e8449bb30fcf58aa03c0298a3.
+// WatchCloseByStationOwner is a free log subscription operation binding the contract event 0xa4b2dfc35c48bbe07f2063bd9fcf0afa08891ebf8b417a983f957ac8708612a3.
 //
-// Solidity: e __closeByShopOwner(hid uint256, offchain bytes32)
-func (_ExchangeHandshakeShop *ExchangeHandshakeShopFilterer) WatchCloseByShopOwner(opts *bind.WatchOpts, sink chan<- *ExchangeHandshakeShopCloseByShopOwner) (event.Subscription, error) {
+// Solidity: e __closeByStationOwner(hid uint256, offchain bytes32)
+func (_ExchangeHandshakeShop *ExchangeHandshakeShopFilterer) WatchCloseByStationOwner(opts *bind.WatchOpts, sink chan<- *ExchangeHandshakeShopCloseByStationOwner) (event.Subscription, error) {
 
-	logs, sub, err := _ExchangeHandshakeShop.contract.WatchLogs(opts, "__closeByShopOwner")
+	logs, sub, err := _ExchangeHandshakeShop.contract.WatchLogs(opts, "__closeByStationOwner")
 	if err != nil {
 		return nil, err
 	}
@@ -669,8 +838,8 @@ func (_ExchangeHandshakeShop *ExchangeHandshakeShopFilterer) WatchCloseByShopOwn
 			select {
 			case log := <-logs:
 				// New log arrived, parse the event and forward to the user
-				event := new(ExchangeHandshakeShopCloseByShopOwner)
-				if err := _ExchangeHandshakeShop.contract.UnpackLog(event, "__closeByShopOwner", log); err != nil {
+				event := new(ExchangeHandshakeShopCloseByStationOwner)
+				if err := _ExchangeHandshakeShop.contract.UnpackLog(event, "__closeByStationOwner", log); err != nil {
 					return err
 				}
 				event.Raw = log
@@ -883,17 +1052,17 @@ func (it *ExchangeHandshakeShopInitByCustomerIterator) Close() error {
 
 // ExchangeHandshakeShopInitByCustomer represents a InitByCustomer event raised by the ExchangeHandshakeShop contract.
 type ExchangeHandshakeShopInitByCustomer struct {
-	Hid       *big.Int
-	Customer  common.Address
-	ShopOwner common.Address
-	Value     *big.Int
-	Offchain  [32]byte
-	Raw       types.Log // Blockchain specific contextual infos
+	Hid          *big.Int
+	Customer     common.Address
+	StationOwner common.Address
+	Value        *big.Int
+	Offchain     [32]byte
+	Raw          types.Log // Blockchain specific contextual infos
 }
 
 // FilterInitByCustomer is a free log retrieval operation binding the contract event 0xaa539cf6b39fbef365d4e0d2b9d8017bd6b1a36893a02b2a7f0324a705e83094.
 //
-// Solidity: e __initByCustomer(hid uint256, customer address, shopOwner address, value uint256, offchain bytes32)
+// Solidity: e __initByCustomer(hid uint256, customer address, stationOwner address, value uint256, offchain bytes32)
 func (_ExchangeHandshakeShop *ExchangeHandshakeShopFilterer) FilterInitByCustomer(opts *bind.FilterOpts) (*ExchangeHandshakeShopInitByCustomerIterator, error) {
 
 	logs, sub, err := _ExchangeHandshakeShop.contract.FilterLogs(opts, "__initByCustomer")
@@ -905,7 +1074,7 @@ func (_ExchangeHandshakeShop *ExchangeHandshakeShopFilterer) FilterInitByCustome
 
 // WatchInitByCustomer is a free log subscription operation binding the contract event 0xaa539cf6b39fbef365d4e0d2b9d8017bd6b1a36893a02b2a7f0324a705e83094.
 //
-// Solidity: e __initByCustomer(hid uint256, customer address, shopOwner address, value uint256, offchain bytes32)
+// Solidity: e __initByCustomer(hid uint256, customer address, stationOwner address, value uint256, offchain bytes32)
 func (_ExchangeHandshakeShop *ExchangeHandshakeShopFilterer) WatchInitByCustomer(opts *bind.WatchOpts, sink chan<- *ExchangeHandshakeShopInitByCustomer) (event.Subscription, error) {
 
 	logs, sub, err := _ExchangeHandshakeShop.contract.WatchLogs(opts, "__initByCustomer")
@@ -940,9 +1109,9 @@ func (_ExchangeHandshakeShop *ExchangeHandshakeShopFilterer) WatchInitByCustomer
 	}), nil
 }
 
-// ExchangeHandshakeShopInitByShopOwnerIterator is returned from FilterInitByShopOwner and is used to iterate over the raw logs and unpacked data for InitByShopOwner events raised by the ExchangeHandshakeShop contract.
-type ExchangeHandshakeShopInitByShopOwnerIterator struct {
-	Event *ExchangeHandshakeShopInitByShopOwner // Event containing the contract specifics and raw log
+// ExchangeHandshakeShopInitByStationOwnerIterator is returned from FilterInitByStationOwner and is used to iterate over the raw logs and unpacked data for InitByStationOwner events raised by the ExchangeHandshakeShop contract.
+type ExchangeHandshakeShopInitByStationOwnerIterator struct {
+	Event *ExchangeHandshakeShopInitByStationOwner // Event containing the contract specifics and raw log
 
 	contract *bind.BoundContract // Generic contract to use for unpacking event data
 	event    string              // Event name to use for unpacking event data
@@ -956,7 +1125,7 @@ type ExchangeHandshakeShopInitByShopOwnerIterator struct {
 // Next advances the iterator to the subsequent event, returning whether there
 // are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
-func (it *ExchangeHandshakeShopInitByShopOwnerIterator) Next() bool {
+func (it *ExchangeHandshakeShopInitByStationOwnerIterator) Next() bool {
 	// If the iterator failed, stop iterating
 	if it.fail != nil {
 		return false
@@ -965,7 +1134,7 @@ func (it *ExchangeHandshakeShopInitByShopOwnerIterator) Next() bool {
 	if it.done {
 		select {
 		case log := <-it.logs:
-			it.Event = new(ExchangeHandshakeShopInitByShopOwner)
+			it.Event = new(ExchangeHandshakeShopInitByStationOwner)
 			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 				it.fail = err
 				return false
@@ -980,7 +1149,7 @@ func (it *ExchangeHandshakeShopInitByShopOwnerIterator) Next() bool {
 	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
-		it.Event = new(ExchangeHandshakeShopInitByShopOwner)
+		it.Event = new(ExchangeHandshakeShopInitByStationOwner)
 		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 			it.fail = err
 			return false
@@ -996,44 +1165,44 @@ func (it *ExchangeHandshakeShopInitByShopOwnerIterator) Next() bool {
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
-func (it *ExchangeHandshakeShopInitByShopOwnerIterator) Error() error {
+func (it *ExchangeHandshakeShopInitByStationOwnerIterator) Error() error {
 	return it.fail
 }
 
 // Close terminates the iteration process, releasing any pending underlying
 // resources.
-func (it *ExchangeHandshakeShopInitByShopOwnerIterator) Close() error {
+func (it *ExchangeHandshakeShopInitByStationOwnerIterator) Close() error {
 	it.sub.Unsubscribe()
 	return nil
 }
 
-// ExchangeHandshakeShopInitByShopOwner represents a InitByShopOwner event raised by the ExchangeHandshakeShop contract.
-type ExchangeHandshakeShopInitByShopOwner struct {
-	Hid       *big.Int
-	ShopOwner common.Address
-	Value     *big.Int
-	Offchain  [32]byte
-	Raw       types.Log // Blockchain specific contextual infos
+// ExchangeHandshakeShopInitByStationOwner represents a InitByStationOwner event raised by the ExchangeHandshakeShop contract.
+type ExchangeHandshakeShopInitByStationOwner struct {
+	Hid          *big.Int
+	StationOwner common.Address
+	Value        *big.Int
+	Offchain     [32]byte
+	Raw          types.Log // Blockchain specific contextual infos
 }
 
-// FilterInitByShopOwner is a free log retrieval operation binding the contract event 0x311669895ce0216ae436745ebfab7e15a10c540ff3459e2b74abef58a43545fd.
+// FilterInitByStationOwner is a free log retrieval operation binding the contract event 0x04d411f10f50ce6fe597ddd1436d44c2118417e90cbb982e009b8215ee689c79.
 //
-// Solidity: e __initByShopOwner(hid uint256, shopOwner address, value uint256, offchain bytes32)
-func (_ExchangeHandshakeShop *ExchangeHandshakeShopFilterer) FilterInitByShopOwner(opts *bind.FilterOpts) (*ExchangeHandshakeShopInitByShopOwnerIterator, error) {
+// Solidity: e __initByStationOwner(hid uint256, stationOwner address, value uint256, offchain bytes32)
+func (_ExchangeHandshakeShop *ExchangeHandshakeShopFilterer) FilterInitByStationOwner(opts *bind.FilterOpts) (*ExchangeHandshakeShopInitByStationOwnerIterator, error) {
 
-	logs, sub, err := _ExchangeHandshakeShop.contract.FilterLogs(opts, "__initByShopOwner")
+	logs, sub, err := _ExchangeHandshakeShop.contract.FilterLogs(opts, "__initByStationOwner")
 	if err != nil {
 		return nil, err
 	}
-	return &ExchangeHandshakeShopInitByShopOwnerIterator{contract: _ExchangeHandshakeShop.contract, event: "__initByShopOwner", logs: logs, sub: sub}, nil
+	return &ExchangeHandshakeShopInitByStationOwnerIterator{contract: _ExchangeHandshakeShop.contract, event: "__initByStationOwner", logs: logs, sub: sub}, nil
 }
 
-// WatchInitByShopOwner is a free log subscription operation binding the contract event 0x311669895ce0216ae436745ebfab7e15a10c540ff3459e2b74abef58a43545fd.
+// WatchInitByStationOwner is a free log subscription operation binding the contract event 0x04d411f10f50ce6fe597ddd1436d44c2118417e90cbb982e009b8215ee689c79.
 //
-// Solidity: e __initByShopOwner(hid uint256, shopOwner address, value uint256, offchain bytes32)
-func (_ExchangeHandshakeShop *ExchangeHandshakeShopFilterer) WatchInitByShopOwner(opts *bind.WatchOpts, sink chan<- *ExchangeHandshakeShopInitByShopOwner) (event.Subscription, error) {
+// Solidity: e __initByStationOwner(hid uint256, stationOwner address, value uint256, offchain bytes32)
+func (_ExchangeHandshakeShop *ExchangeHandshakeShopFilterer) WatchInitByStationOwner(opts *bind.WatchOpts, sink chan<- *ExchangeHandshakeShopInitByStationOwner) (event.Subscription, error) {
 
-	logs, sub, err := _ExchangeHandshakeShop.contract.WatchLogs(opts, "__initByShopOwner")
+	logs, sub, err := _ExchangeHandshakeShop.contract.WatchLogs(opts, "__initByStationOwner")
 	if err != nil {
 		return nil, err
 	}
@@ -1043,8 +1212,8 @@ func (_ExchangeHandshakeShop *ExchangeHandshakeShopFilterer) WatchInitByShopOwne
 			select {
 			case log := <-logs:
 				// New log arrived, parse the event and forward to the user
-				event := new(ExchangeHandshakeShopInitByShopOwner)
-				if err := _ExchangeHandshakeShop.contract.UnpackLog(event, "__initByShopOwner", log); err != nil {
+				event := new(ExchangeHandshakeShopInitByStationOwner)
+				if err := _ExchangeHandshakeShop.contract.UnpackLog(event, "__initByStationOwner", log); err != nil {
 					return err
 				}
 				event.Raw = log
@@ -1294,6 +1463,129 @@ func (_ExchangeHandshakeShop *ExchangeHandshakeShopFilterer) WatchReleasePartial
 				// New log arrived, parse the event and forward to the user
 				event := new(ExchangeHandshakeShopReleasePartialFund)
 				if err := _ExchangeHandshakeShop.contract.UnpackLog(event, "__releasePartialFund", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ExchangeHandshakeShopResetAllStationIterator is returned from FilterResetAllStation and is used to iterate over the raw logs and unpacked data for ResetAllStation events raised by the ExchangeHandshakeShop contract.
+type ExchangeHandshakeShopResetAllStationIterator struct {
+	Event *ExchangeHandshakeShopResetAllStation // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *ExchangeHandshakeShopResetAllStationIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(ExchangeHandshakeShopResetAllStation)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(ExchangeHandshakeShopResetAllStation)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *ExchangeHandshakeShopResetAllStationIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *ExchangeHandshakeShopResetAllStationIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// ExchangeHandshakeShopResetAllStation represents a ResetAllStation event raised by the ExchangeHandshakeShop contract.
+type ExchangeHandshakeShopResetAllStation struct {
+	Offchain [32]byte
+	Hid      *big.Int
+	Raw      types.Log // Blockchain specific contextual infos
+}
+
+// FilterResetAllStation is a free log retrieval operation binding the contract event 0x662e91d90d55337d5d94803948f0c8af02b95ffe65407b3412119e88666787c9.
+//
+// Solidity: e __resetAllStation(offchain bytes32, hid uint256)
+func (_ExchangeHandshakeShop *ExchangeHandshakeShopFilterer) FilterResetAllStation(opts *bind.FilterOpts) (*ExchangeHandshakeShopResetAllStationIterator, error) {
+
+	logs, sub, err := _ExchangeHandshakeShop.contract.FilterLogs(opts, "__resetAllStation")
+	if err != nil {
+		return nil, err
+	}
+	return &ExchangeHandshakeShopResetAllStationIterator{contract: _ExchangeHandshakeShop.contract, event: "__resetAllStation", logs: logs, sub: sub}, nil
+}
+
+// WatchResetAllStation is a free log subscription operation binding the contract event 0x662e91d90d55337d5d94803948f0c8af02b95ffe65407b3412119e88666787c9.
+//
+// Solidity: e __resetAllStation(offchain bytes32, hid uint256)
+func (_ExchangeHandshakeShop *ExchangeHandshakeShopFilterer) WatchResetAllStation(opts *bind.WatchOpts, sink chan<- *ExchangeHandshakeShopResetAllStation) (event.Subscription, error) {
+
+	logs, sub, err := _ExchangeHandshakeShop.contract.WatchLogs(opts, "__resetAllStation")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(ExchangeHandshakeShopResetAllStation)
+				if err := _ExchangeHandshakeShop.contract.UnpackLog(event, "__resetAllStation", log); err != nil {
 					return err
 				}
 				event.Raw = log

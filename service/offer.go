@@ -694,6 +694,9 @@ func (s OfferService) CheckOfferOnChainTransaction() error {
 					_, ce := OfferStoreServiceInst.OpenCloseFailedOfferStore(item.UID, item.Offer, item.Currency)
 					fmt.Println(ce.Error)
 				}
+			} else if item.Type == bean.OFFER_ADDRESS_MAP_OFFER_STORE_ITEM {
+				_, ce := OfferStoreServiceInst.CancelRefillOfferStoreItem(item.UID, item.Offer, item.Currency)
+				fmt.Println(ce.Error)
 			} else if item.Type == bean.OFFER_ADDRESS_MAP_OFFER_STORE_SHAKE {
 				_, ce := OfferStoreServiceInst.UpdateOfferShakeToPreviousStatus(item.UID, item.Offer)
 				fmt.Println(ce.Error)
@@ -927,6 +930,9 @@ func (s OfferService) FinishOfferConfirmingAddresses() (finishedInstantOffers []
 					}
 				} else if pendingOffer.Type == bean.OFFER_ADDRESS_MAP_OFFER_STORE {
 					_, ce = OfferStoreServiceInst.ActiveOffChainOfferStore(pendingOffer.Address, pendingOffer.Amount, pendingOffer.Currency)
+					completed = !ce.HasError()
+				} else if pendingOffer.Type == bean.OFFER_ADDRESS_MAP_OFFER_STORE_ITEM {
+					_, ce = OfferStoreServiceInst.RefillBalanceOffChainOfferStore(pendingOffer.Address, pendingOffer.Amount, pendingOffer.Currency)
 					completed = !ce.HasError()
 				} else if pendingOffer.Type == bean.OFFER_ADDRESS_MAP_OFFER_STORE_SHAKE {
 					_, ce = OfferStoreServiceInst.PreShakeOffChainOfferStoreShake(pendingOffer.Address, pendingOffer.Amount)

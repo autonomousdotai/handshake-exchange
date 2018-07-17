@@ -55,7 +55,7 @@ func (c *ExchangeHandshakeShopClient) GetInitOfferStoreEvent(startBlock uint64) 
 	opt := &bind.FilterOpts{
 		Start: startBlock,
 	}
-	past, errInit := c.handshake.FilterInitByShopOwner(opt)
+	past, errInit := c.handshake.FilterInitByStationOwner(opt)
 	if errInit != nil {
 		err = errInit
 		return
@@ -88,7 +88,7 @@ func (c *ExchangeHandshakeShopClient) GetCloseOfferStoreEvent(startBlock uint64)
 	opt := &bind.FilterOpts{
 		Start: startBlock,
 	}
-	past, errInit := c.handshake.FilterCloseByShopOwner(opt)
+	past, errInit := c.handshake.FilterCloseByStationOwner(opt)
 	if errInit != nil {
 		err = errInit
 		return
@@ -313,6 +313,39 @@ func (c *ExchangeHandshakeShopClient) GetCompleteUserOfferStoreEvent(startBlock 
 	return
 }
 
+func (c *ExchangeHandshakeShopClient) GetRefillBalanceEvent(startBlock uint64) (offers []bean.OfferOnchain, endBlock uint64, err error) {
+	c.initialize()
+
+	opt := &bind.FilterOpts{
+		Start: startBlock,
+	}
+	past, errInit := c.handshake.FilterAddInventory(opt)
+	if errInit != nil {
+		err = errInit
+		return
+	}
+
+	notEmpty := true
+	endBlock = startBlock
+	for notEmpty {
+		notEmpty = past.Next()
+		if notEmpty {
+			endBlock = past.Event.Raw.BlockNumber
+
+			offerId := string(bytes.Trim(past.Event.Offchain[:], "\x00"))
+			if offerId != "" {
+				offers = append(offers, bean.OfferOnchain{
+					Hid:   int64(past.Event.Hid.Uint64()),
+					Offer: offerId,
+				})
+			}
+		}
+	}
+	c.close()
+
+	return
+}
+
 func (c *ExchangeHandshakeShopClient) InitByShopOwner(offerId string, amount decimal.Decimal) (txHash string, err error) {
 	c.initialize()
 	c.initializeWrite()
@@ -320,7 +353,7 @@ func (c *ExchangeHandshakeShopClient) InitByShopOwner(offerId string, amount dec
 	auth, err := c.writeClient.GetAuth(amount)
 	offChain := [32]byte{}
 	copy(offChain[:], []byte(offerId))
-	tx, err := c.handshake.InitByShopOwner(auth, offChain)
+	tx, err := c.handshake.InitByStationOwner(auth, offChain)
 	if err != nil {
 		return
 	}
@@ -339,7 +372,7 @@ func (c *ExchangeHandshakeShopClient) CloseByShopOwner(offerId string, hid int64
 	auth, err := c.writeClient.GetAuth(decimal.NewFromFloat(0))
 	offChain := [32]byte{}
 	copy(offChain[:], []byte(offerId))
-	tx, err := c.handshake.CloseByShopOwner(auth, big.NewInt(hid), offChain)
+	tx, err := c.handshake.CloseByStationOwner(auth, big.NewInt(hid), offChain)
 	if err != nil {
 		return
 	}

@@ -257,6 +257,7 @@ type OfferShakeRequest struct {
 
 const OFFER_ADDRESS_MAP_OFFER = "offer"
 const OFFER_ADDRESS_MAP_OFFER_STORE = "offer_store"
+const OFFER_ADDRESS_MAP_OFFER_STORE_ITEM = "offer_store_item"
 const OFFER_ADDRESS_MAP_OFFER_STORE_SHAKE = "offer_store_shake"
 
 type OfferAddressMap struct {

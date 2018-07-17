@@ -138,15 +138,83 @@ func (dao OfferStoreDao) AddOfferStoreItem(offer bean.OfferStore, item bean.Offe
 	return item, err
 }
 
-func (dao OfferStoreDao) UpdateOfferStoreItem(offerId string, item bean.OfferStoreItem) (bean.OfferStoreItem, error) {
+func (dao OfferStoreDao) UpdateOfferStoreItem(offer bean.OfferStore, item bean.OfferStoreItem) (bean.OfferStoreItem, error) {
 	dbClient := firebase_service.FirestoreClient
-	itemDocRef := dbClient.Doc(GetOfferStoreItemItemPath(offerId, item.Currency))
 
-	_, err := itemDocRef.Set(context.Background(), item.GetUpdateOfferStoreItemInfo(), firestore.MergeAll)
+	docRef := dbClient.Doc(GetOfferStoreItemPath(offer.UID))
+	itemDocRef := dbClient.Doc(GetOfferStoreItemItemPath(offer.Id, item.Currency))
+
+	batch := dbClient.Batch()
+
+	batch.Set(docRef, offer.GetUpdateOfferItemInfo(), firestore.MergeAll)
+	batch.Set(itemDocRef, item.GetUpdateOfferStoreItemInfo(), firestore.MergeAll)
+
+	_, err := batch.Commit(context.Background())
+
 	return item, err
 }
 
-func (dao OfferStoreDao) RefillOfferStoreItem(offer bean.OfferStore, item *bean.OfferStoreItem, body bean.OfferStoreItem, offerType string) error {
+func (dao OfferStoreDao) UpdateRefillOfferStoreItem(offer bean.OfferStore, item bean.OfferStoreItem) (bean.OfferStoreItem, error) {
+	dbClient := firebase_service.FirestoreClient
+
+	offerPath := GetOfferStoreItemPath(offer.UID)
+	docRef := dbClient.Doc(offerPath)
+
+	batch := dbClient.Batch()
+	itemDocRef := dbClient.Doc(GetOfferStoreItemItemPath(offer.Id, item.Currency))
+	if item.SystemAddress != "" {
+		mapping := bean.OfferAddressMap{
+			Address:  item.SystemAddress,
+			Offer:    offer.Id,
+			OfferRef: GetOfferStoreItemItemPath(offer.Id, item.Currency),
+			UID:      offer.UID,
+			Type:     bean.OFFER_ADDRESS_MAP_OFFER_STORE_ITEM,
+		}
+		mappingDocRef := dbClient.Doc(GetOfferAddressMapItemPath(item.SystemAddress))
+		batch.Set(mappingDocRef, mapping.GetAddOfferAddressMap())
+	}
+
+	batch.Set(itemDocRef, item.GetUpdateOfferStoreItemRefill(), firestore.MergeAll)
+	batch.Set(docRef, offer.GetUpdateOfferStoreChangeSnapshot(), firestore.MergeAll)
+
+	if item.Currency == bean.ETH.Code && item.Status == bean.OFFER_STORE_ITEM_STATUS_CREATED {
+		// Store a record to check onchain
+		docId := strings.Replace(offerPath, "/", "-", -1)
+		onChainTrackingRef := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(true, docId))
+		batch.Set(onChainTrackingRef, bean.OfferOnChainActionTracking{
+			Id:       docId,
+			Action:   item.SubStatus,
+			Currency: item.Currency,
+			Offer:    offer.Id,
+			OfferRef: offerPath,
+			Type:     bean.OFFER_ADDRESS_MAP_OFFER_STORE_ITEM,
+			UID:      offer.UID,
+		}.GetAddOfferOnChainActionTracking())
+	}
+
+	_, err := batch.Commit(context.Background())
+
+	return item, err
+}
+
+func (dao OfferStoreDao) UpdateCancelRefillOfferStoreItem(offer bean.OfferStore, item bean.OfferStoreItem) (bean.OfferStoreItem, error) {
+	dbClient := firebase_service.FirestoreClient
+
+	offerPath := GetOfferStoreItemPath(offer.UID)
+	docRef := dbClient.Doc(offerPath)
+	itemDocRef := dbClient.Doc(GetOfferStoreItemItemPath(offer.Id, item.Currency))
+
+	batch := dbClient.Batch()
+
+	batch.Set(itemDocRef, item.GetCancelOfferStoreItemRefill(), firestore.MergeAll)
+	batch.Set(docRef, offer.GetUpdateOfferStoreChangeSnapshot(), firestore.MergeAll)
+
+	_, err := batch.Commit(context.Background())
+
+	return item, err
+}
+
+func (dao OfferStoreDao) RefillBalanceOfferStoreItem(offer bean.OfferStore, item *bean.OfferStoreItem, body bean.OfferStoreItem, offerType string) error {
 	dbClient := firebase_service.FirestoreClient
 
 	offerStoreRef := dbClient.Doc(GetOfferStoreItemPath(offer.Id))
@@ -181,7 +249,7 @@ func (dao OfferStoreDao) RefillOfferStoreItem(offer bean.OfferStore, item *bean.
 			sellBalance = buyBalance.Add(sellAmount)
 			item.SellBalance = sellBalance.String()
 		}
-		err = tx.Set(offerStoreItemRef, item.GetUpdateOfferStoreItemRefill(), firestore.MergeAll)
+		err = tx.Set(offerStoreItemRef, item.GetUpdateOfferStoreItemRefillBalance(), firestore.MergeAll)
 
 		offer.ItemSnapshots[item.Currency] = *item
 		err = tx.Set(offerStoreRef, offer.GetUpdateOfferStoreChangeSnapshot(), firestore.MergeAll)

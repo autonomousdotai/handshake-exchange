@@ -45,27 +45,28 @@ type OfferStore struct {
 }
 
 type OfferStoreItem struct {
-	Currency        string    `json:"currency" firestore:"currency"`
-	Status          string    `json:"status" firestore:"status"`
-	SubStatus       string    `json:"sub_status" firestore:"sub_status"`
-	SellAmountMin   string    `json:"sell_amount_min" firestore:"sell_amount_min"`
-	SellAmount      string    `json:"sell_amount" firestore:"sell_amount" validate:"required"`
-	SellBalance     string    `json:"sell_balance" firestore:"sell_balance"`
-	SellPercentage  string    `json:"sell_percentage" firestore:"sell_percentage"`
-	SellTotalAmount string    `json:"sell_total_amount" firestore:"sell_total_amount"`
-	BuyAmountMin    string    `json:"buy_amount_min" firestore:"buy_amount_min"`
-	BuyAmount       string    `json:"buy_amount" firestore:"buy_amount" validate:"required"`
-	BuyBalance      string    `json:"buy_balance" firestore:"buy_balance"`
-	BuyPercentage   string    `json:"buy_percentage" firestore:"buy_percentage"`
-	SystemAddress   string    `json:"system_address" firestore:"system_address"`
-	UserAddress     string    `json:"user_address" firestore:"user_address"`
-	WalletProvider  string    `json:"-" firestore:"wallet_provider"`
-	RewardAddress   string    `json:"reward_address" firestore:"reward_address"`
-	ShakeCount      int64     `json:"shake_count" firestore:"shake_count"`
-	FreeStart       string    `json:"free_start" firestore:"free_start"`
-	FreeStartRef    string    `json:"-" firestore:"free_start_ref"`
-	CreatedAt       time.Time `json:"created_at" firestore:"created_at"`
-	UpdatedAt       time.Time `json:"updated_at" firestore:"updated_at"`
+	Currency          string                 `json:"currency" firestore:"currency"`
+	Status            string                 `json:"status" firestore:"status"`
+	SubStatus         string                 `json:"sub_status" firestore:"sub_status"`
+	SellAmountMin     string                 `json:"sell_amount_min" firestore:"sell_amount_min"`
+	SellAmount        string                 `json:"sell_amount" firestore:"sell_amount" validate:"required"`
+	SellBalance       string                 `json:"sell_balance" firestore:"sell_balance"`
+	SellPercentage    string                 `json:"sell_percentage" firestore:"sell_percentage"`
+	SellTotalAmount   string                 `json:"sell_total_amount" firestore:"sell_total_amount"`
+	SellBackupAmounts map[string]interface{} `json:"sell_backup_amounts" firestore:"sell_backup_amounts"`
+	BuyAmountMin      string                 `json:"buy_amount_min" firestore:"buy_amount_min"`
+	BuyAmount         string                 `json:"buy_amount" firestore:"buy_amount" validate:"required"`
+	BuyBalance        string                 `json:"buy_balance" firestore:"buy_balance"`
+	BuyPercentage     string                 `json:"buy_percentage" firestore:"buy_percentage"`
+	SystemAddress     string                 `json:"system_address" firestore:"system_address"`
+	UserAddress       string                 `json:"user_address" firestore:"user_address"`
+	WalletProvider    string                 `json:"-" firestore:"wallet_provider"`
+	RewardAddress     string                 `json:"reward_address" firestore:"reward_address"`
+	ShakeCount        int64                  `json:"shake_count" firestore:"shake_count"`
+	FreeStart         string                 `json:"free_start" firestore:"free_start"`
+	FreeStartRef      string                 `json:"-" firestore:"free_start_ref"`
+	CreatedAt         time.Time              `json:"created_at" firestore:"created_at"`
+	UpdatedAt         time.Time              `json:"updated_at" firestore:"updated_at"`
 }
 
 func (offer OfferStore) GetAddOfferStore() map[string]interface{} {
@@ -140,27 +141,36 @@ func (offer OfferStore) GetNotificationUpdate() map[string]interface{} {
 	}
 }
 
+func (offer OfferStore) GetUpdateOfferItemInfo() map[string]interface{} {
+	return map[string]interface{}{
+		"contact_info":  offer.ContactInfo,
+		"contact_phone": offer.ContactPhone,
+		"updated_at":    firestore.ServerTimestamp,
+	}
+}
+
 func (item OfferStoreItem) GetAddOfferStoreItem() map[string]interface{} {
 	return map[string]interface{}{
-		"currency":          item.Currency,
-		"status":            item.Status,
-		"sell_amount_min":   item.SellAmountMin,
-		"sell_amount":       item.SellAmount,
-		"sell_total_amount": item.SellTotalAmount,
-		"sell_balance":      "0",
-		"sell_percentage":   item.SellPercentage,
-		"buy_amount_min":    item.BuyAmountMin,
-		"buy_amount":        item.BuyAmount,
-		"buy_balance":       item.BuyAmount,
-		"buy_percentage":    item.BuyPercentage,
-		"system_address":    item.SystemAddress,
-		"user_address":      item.UserAddress,
-		"reward_address":    item.RewardAddress,
-		"wallet_provider":   item.WalletProvider,
-		"shake_count":       item.ShakeCount,
-		"free_start_ref":    item.FreeStartRef,
-		"free_start":        item.FreeStart,
-		"created_at":        firestore.ServerTimestamp,
+		"currency":            item.Currency,
+		"status":              item.Status,
+		"sell_amount_min":     item.SellAmountMin,
+		"sell_amount":         item.SellAmount,
+		"sell_total_amount":   item.SellTotalAmount,
+		"sell_balance":        "0",
+		"sell_percentage":     item.SellPercentage,
+		"sell_backup_amounts": map[string]interface{}{},
+		"buy_amount_min":      item.BuyAmountMin,
+		"buy_amount":          item.BuyAmount,
+		"buy_balance":         item.BuyAmount,
+		"buy_percentage":      item.BuyPercentage,
+		"system_address":      item.SystemAddress,
+		"user_address":        item.UserAddress,
+		"reward_address":      item.RewardAddress,
+		"wallet_provider":     item.WalletProvider,
+		"shake_count":         item.ShakeCount,
+		"free_start_ref":      item.FreeStartRef,
+		"free_start":          item.FreeStart,
+		"created_at":          firestore.ServerTimestamp,
 	}
 }
 
@@ -197,12 +207,31 @@ func (item OfferStoreItem) GetUpdateOfferStoreItemBalance() map[string]interface
 func (item OfferStoreItem) GetUpdateOfferStoreItemRefill() map[string]interface{} {
 	return map[string]interface{}{
 		"buy_amount":        item.BuyAmount,
-		"buy_balance":       item.BuyBalance,
 		"sell_amount":       item.SellAmount,
 		"sell_total_amount": item.SellTotalAmount,
-		"sell_balance":      item.SellBalance,
+		"sell_backup_amounts": map[string]interface{}{
+			"sell_amount":       item.SellAmount,
+			"sell_total_amount": item.SellTotalAmount,
+		},
+		"sub_status": item.SubStatus,
+		"updated_at": firestore.ServerTimestamp,
+	}
+}
+
+func (item OfferStoreItem) GetCancelOfferStoreItemRefill() map[string]interface{} {
+	return map[string]interface{}{
+		"sell_amount":       item.SellAmount,
+		"sell_total_amount": item.SellTotalAmount,
 		"sub_status":        item.SubStatus,
 		"updated_at":        firestore.ServerTimestamp,
+	}
+}
+
+func (item OfferStoreItem) GetUpdateOfferStoreItemRefillBalance() map[string]interface{} {
+	return map[string]interface{}{
+		"buy_balance":  item.BuyBalance,
+		"sell_balance": item.SellBalance,
+		"updated_at":   firestore.ServerTimestamp,
 	}
 }
 

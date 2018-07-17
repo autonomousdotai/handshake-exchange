@@ -240,6 +240,24 @@ func (dao OnChainDao) UpdateOfferStoreCompleteUserEventBlock(offer bean.OfferEve
 	return nil
 }
 
+func (dao OnChainDao) GetOfferStoreRefillBalanceEventBlock() (t TransferObject) {
+	obj := bean.OfferEventBlock{}
+	GetCacheObject(GetOfferStoreRefillBalanceEventBlockKey(), &t, func(val string) interface{} {
+		block, _ := strconv.Atoi(val)
+		obj.LastBlock = int64(block)
+		return obj
+	})
+
+	return
+}
+
+func (dao OnChainDao) UpdateOfferStoreRefillBalanceEventBlock(offer bean.OfferEventBlock) error {
+	key := GetOfferStoreRefillBalanceEventBlockKey()
+	cache.RedisClient.Set(key, offer.LastBlock, 0)
+
+	return nil
+}
+
 func GetOfferStoreInitEventBlockKey() string {
 	return "handshake_exchange.onchain_events.offer_store_init"
 }
@@ -270,4 +288,8 @@ func GetOfferStoreCompleteEventBlockKey() string {
 
 func GetOfferStoreCompleteUserEventBlockKey() string {
 	return "handshake_exchange.onchain_events.offer_store_complete_user"
+}
+
+func GetOfferStoreRefillBalanceEventBlockKey() string {
+	return "handshake_exchange.onchain_events.offer_store_refill_balance"
 }

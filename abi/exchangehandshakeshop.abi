@@ -10,7 +10,7 @@
       "name": "ex",
       "outputs": [
         {
-          "name": "shopOwner",
+          "name": "stationOwner",
           "type": "address"
         },
         {
@@ -23,6 +23,10 @@
         },
         {
           "name": "state",
+          "type": "uint8"
+        },
+        {
+          "name": "exType",
           "type": "uint8"
         }
       ],
@@ -83,20 +87,6 @@
       "constant": false,
       "inputs": [
         {
-          "name": "offchain",
-          "type": "bytes32"
-        }
-      ],
-      "name": "initByShopOwner",
-      "outputs": [],
-      "payable": true,
-      "stateMutability": "payable",
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [
-        {
           "name": "hid",
           "type": "uint256"
         },
@@ -128,6 +118,20 @@
       ],
       "payable": false,
       "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "offchain",
+          "type": "bytes32"
+        }
+      ],
+      "name": "resetAllStation",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
@@ -174,17 +178,17 @@
           "type": "bytes32"
         }
       ],
-      "name": "closeByShopOwner",
+      "name": "addInventory",
       "outputs": [],
-      "payable": false,
-      "stateMutability": "nonpayable",
+      "payable": true,
+      "stateMutability": "payable",
       "type": "function"
     },
     {
       "constant": false,
       "inputs": [
         {
-          "name": "shopOwner",
+          "name": "stationOwner",
           "type": "address"
         },
         {
@@ -220,6 +224,20 @@
       "constant": false,
       "inputs": [
         {
+          "name": "offchain",
+          "type": "bytes32"
+        }
+      ],
+      "name": "initByStationOwner",
+      "outputs": [],
+      "payable": true,
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
           "name": "hid",
           "type": "uint256"
         },
@@ -229,6 +247,24 @@
         }
       ],
       "name": "cancel",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "hid",
+          "type": "uint256"
+        },
+        {
+          "name": "offchain",
+          "type": "bytes32"
+        }
+      ],
+      "name": "closeByStationOwner",
       "outputs": [],
       "payable": false,
       "stateMutability": "nonpayable",
@@ -262,7 +298,7 @@
         },
         {
           "indexed": false,
-          "name": "shopOwner",
+          "name": "stationOwner",
           "type": "address"
         },
         {
@@ -276,7 +312,7 @@
           "type": "bytes32"
         }
       ],
-      "name": "__initByShopOwner",
+      "name": "__initByStationOwner",
       "type": "event"
     },
     {
@@ -293,7 +329,7 @@
           "type": "bytes32"
         }
       ],
-      "name": "__closeByShopOwner",
+      "name": "__closeByStationOwner",
       "type": "event"
     },
     {
@@ -338,12 +374,29 @@
         },
         {
           "indexed": false,
+          "name": "offchain",
+          "type": "bytes32"
+        }
+      ],
+      "name": "__addInventory",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "name": "hid",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
           "name": "customer",
           "type": "address"
         },
         {
           "indexed": false,
-          "name": "shopOwner",
+          "name": "stationOwner",
           "type": "address"
         },
         {
@@ -426,6 +479,23 @@
         }
       ],
       "name": "__finish",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "name": "offchain",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "name": "hid",
+          "type": "uint256"
+        }
+      ],
+      "name": "__resetAllStation",
       "type": "event"
     }
   ]

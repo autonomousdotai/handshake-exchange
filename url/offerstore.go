@@ -33,6 +33,9 @@ func (url OfferStoreUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	group.POST("/:offerId/onchain-tracking", func(context *gin.Context) {
 		offerApi.OnChainOfferStoreTracking(context)
 	})
+	group.POST("/:offerId/onchain-item-tracking", func(context *gin.Context) {
+		offerApi.OnChainOfferStoreItemTracking(context)
+	})
 	group.POST("/:offerId/reviews/:offerShakeId", func(context *gin.Context) {
 		offerApi.ReviewOfferStore(context)
 	})

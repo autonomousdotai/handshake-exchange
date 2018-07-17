@@ -383,6 +383,33 @@ func (api OnChainApi) UpdateOfferStoreCompleteUser(context *gin.Context) {
 	bean.SuccessResponse(context, true)
 }
 
+func (api OnChainApi) UpdateOfferStoreRefillBalance(context *gin.Context) {
+	client := exchangehandshakeshop_service.ExchangeHandshakeShopClient{}
+	to := dao.OnChainDaoInst.GetOfferStoreRefillBalanceEventBlock()
+	if to.ContextValidate(context) {
+		return
+	}
+	block := to.Object.(bean.OfferEventBlock)
+	offerOnChains, lastBlock, err := client.GetRefillBalanceEvent(uint64(block.LastBlock))
+	if api_error.PropagateErrorAndAbort(context, api_error.UpdateDataFailed, err) != nil {
+		return
+	}
+	for _, offerOnChain := range offerOnChains {
+		fmt.Println(offerOnChain)
+		service.OfferStoreServiceInst.RefillBalanceOnChainOfferStore(offerOnChain.Offer)
+	}
+	if len(offerOnChains) > 0 {
+		lastBlock += 1
+	}
+	block.LastBlock = int64(lastBlock)
+	err = dao.OnChainDaoInst.UpdateOfferStoreRefillBalanceEventBlock(block)
+	if api_error.PropagateErrorAndAbort(context, api_error.UpdateDataFailed, err) != nil {
+		return
+	}
+
+	bean.SuccessResponse(context, true)
+}
+
 func (api OnChainApi) StartOnChainOfferStoreBlock(context *gin.Context) {
 	blockStr := os.Getenv("ETH_EXCHANGE_HANDSHAKE_OFFER_STORE_BLOCK")
 	blockInt, _ := strconv.Atoi(blockStr)
@@ -410,6 +437,9 @@ func (api OnChainApi) StartOnChainOfferStoreBlock(context *gin.Context) {
 		LastBlock: block,
 	})
 	dao.OnChainDaoInst.UpdateOfferStoreCompleteUserEventBlock(bean.OfferEventBlock{
+		LastBlock: block,
+	})
+	dao.OnChainDaoInst.UpdateOfferStoreRefillBalanceEventBlock(bean.OfferEventBlock{
 		LastBlock: block,
 	})
 

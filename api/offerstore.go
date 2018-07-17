@@ -68,12 +68,12 @@ func (api OfferStoreApi) UpdateOfferStoreItem(context *gin.Context) {
 	userId := common.GetUserId(context)
 	offerId := context.Param("offerId")
 
-	var body bean.OfferStoreItem
+	var body bean.OfferStoreSetup
 	if common.ValidateBody(context, &body) != nil {
 		return
 	}
 
-	offer, ce := service.OfferStoreServiceInst.UpdateOfferStoreItem(userId, offerId, body)
+	offer, ce := service.OfferStoreServiceInst.UpdateOfferStore(userId, offerId, body)
 	if ce.ContextValidate(context) {
 		return
 	}
@@ -215,6 +215,22 @@ func (api OfferStoreApi) OnChainOfferStoreTracking(context *gin.Context) {
 	}
 
 	offer, ce := service.OfferStoreServiceInst.OnChainOfferStoreTracking(userId, offerId, body)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, offer)
+}
+
+func (api OfferStoreApi) OnChainOfferStoreItemTracking(context *gin.Context) {
+	userId := common.GetUserId(context)
+	offerId := context.Param("offerId")
+	var body bean.OfferOnChainTransaction
+	if common.ValidateBody(context, &body) != nil {
+		return
+	}
+
+	offer, ce := service.OfferStoreServiceInst.OnChainOfferStoreItemTracking(userId, offerId, body)
 	if ce.ContextValidate(context) {
 		return
 	}
