@@ -1908,7 +1908,7 @@ func (s OfferStoreService) updateSuccessTransCount(offer bean.OfferStore, offerS
 			newFiatAmount := common.StringToDecimal(offerShake.FiatAmount)
 			fiatAmountObj.Amount = fiatAmount.Add(newFiatAmount).String()
 		} else {
-			transCount1.SellFiatAmounts[offerShake.FiatCurrency] = bean.TransactionFiatAmount{
+			transCount1.BuyFiatAmounts[offerShake.FiatCurrency] = bean.TransactionFiatAmount{
 				Currency: offerShake.FiatCurrency,
 				Amount:   offerShake.FiatAmount,
 			}
