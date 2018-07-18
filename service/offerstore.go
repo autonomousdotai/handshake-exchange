@@ -1915,16 +1915,16 @@ func (s OfferStoreService) updateSuccessTransCount(offer bean.OfferStore, offerS
 		}
 	}
 
-	transCountTO = s.transDao.GetTransactionCount(offerShake.UID, offerShake.Currency)
-	if transCountTO.HasError() {
-		return
-	}
-	transCount2 = transCountTO.Object.(bean.TransactionCount)
-	transCount2.Currency = offerShake.Currency
-	transCount2.Success += 1
+	//transCountTO = s.transDao.GetTransactionCount(offerShake.UID, offerShake.Currency)
+	//if transCountTO.HasError() {
+	//	return
+	//}
+	//transCount2 = transCountTO.Object.(bean.TransactionCount)
+	//transCount2.Currency = offerShake.Currency
+	//transCount2.Success += 1
 
 	s.transDao.UpdateTransactionCount(offer.UID, offerShake.Currency, transCount1.GetUpdateSuccess())
-	s.transDao.UpdateTransactionCount(offerShake.UID, offerShake.Currency, transCount2.GetUpdateSuccess())
+	//s.transDao.UpdateTransactionCount(offerShake.UID, offerShake.Currency, transCount2.GetUpdateSuccess())
 
 	return
 }
