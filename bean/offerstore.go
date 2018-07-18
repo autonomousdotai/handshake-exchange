@@ -18,6 +18,7 @@ const OFFER_STORE_ITEM_STATUS_CLOSING = "closing"
 const OFFER_STORE_ITEM_STATUS_CLOSED = "closed"
 const OFFER_STORE_ITEM_STATUS_REFILLING = "refilling"
 const OFFER_STORE_ITEM_STATUS_REFILLED = "refilled"
+const OFFER_STORE_ITEM_STATUS_UNDO_REFILL = "undo_refill"
 
 type OfferStore struct {
 	Id               string                    `json:"id" firestore:"id"`

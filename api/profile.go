@@ -98,7 +98,10 @@ func (api ProfileApi) ListTransactionCounts(context *gin.Context) {
 	if to.Objects != nil {
 		for _, item := range to.Objects {
 			countItem := item.(bean.TransactionCount)
-			objs[countItem.Currency] = countItem
+			if countItem.Currency != "ALL" {
+				objs[countItem.Currency] = countItem
+			}
+
 		}
 	}
 

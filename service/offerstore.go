@@ -450,7 +450,7 @@ func (s OfferStoreService) CancelRefillOfferStoreItem(userId string, offerId str
 		return
 	}
 
-	item.SubStatus = ""
+	item.SubStatus = bean.OFFER_STORE_ITEM_STATUS_UNDO_REFILL
 	item.SellAmount = item.SellBackupAmounts["sell_amount"].(string)
 	item.SellTotalAmount = item.SellBackupAmounts["sell_total_amount"].(string)
 	offer.ItemSnapshots[item.Currency] = *item
@@ -610,9 +610,9 @@ func (s OfferStoreService) CreateOfferStoreShake(userId string, offerId string, 
 		return
 	}
 	if offerShakeBody.IsTypeSell() {
-		balance = common.StringToDecimal(item.SellAmount)
+		balance = common.StringToDecimal(item.SellBalance)
 	} else {
-		balance = common.StringToDecimal(item.BuyAmount)
+		balance = common.StringToDecimal(item.BuyBalance)
 	}
 	if balance.LessThan(usageBalance.Add(amount)) {
 		ce.SetStatusKey(api_error.OfferStoreNotEnoughBalance)
@@ -2027,10 +2027,9 @@ func (s OfferStoreService) getUsageBalance(offerId string, offerType string, cur
 	usage := common.Zero
 	if err == nil {
 		for _, offerShake := range offerShakes {
-			if offerShake.Status != bean.OFFER_STORE_SHAKE_STATUS_REJECTING &&
-				offerShake.Status != bean.OFFER_STORE_SHAKE_STATUS_REJECTED &&
-				offerShake.Status != bean.OFFER_STORE_SHAKE_STATUS_CANCELLING &&
+			if offerShake.Status != bean.OFFER_STORE_SHAKE_STATUS_REJECTED &&
 				offerShake.Status != bean.OFFER_STORE_SHAKE_STATUS_CANCELLED &&
+				offerShake.Status != bean.OFFER_STORE_SHAKE_STATUS_COMPLETED &&
 				offerShake.Type == offerType && offerShake.Currency == currency {
 				amount := common.StringToDecimal(offerShake.Amount)
 				usage = usage.Add(amount)
