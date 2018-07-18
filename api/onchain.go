@@ -268,34 +268,34 @@ func (api OnChainApi) UpdateOfferStoreCancel(context *gin.Context) {
 	bean.SuccessResponse(context, true)
 }
 
-func (api OnChainApi) UpdateOfferStoreShake(context *gin.Context) {
-	client := exchangehandshakeshop_service.ExchangeHandshakeShopClient{}
-	to := dao.OnChainDaoInst.GetOfferStoreShakeEventBlock()
-	if to.ContextValidate(context) {
-		return
-	}
-	block := to.Object.(bean.OfferEventBlock)
-
-	offerOnChains, lastBlock, err := client.GetShakeOfferStoreEvent(uint64(block.LastBlock))
-	if api_error.PropagateErrorAndAbort(context, api_error.UpdateDataFailed, err) != nil {
-		return
-	}
-	for _, offerOnChain := range offerOnChains {
-		fmt.Println(offerOnChain)
-		parts := strings.Split(offerOnChain.Offer, "-")
-		service.OfferStoreServiceInst.ShakeOnChainOfferStoreShake(parts[0], parts[1])
-	}
-	if len(offerOnChains) > 0 {
-		lastBlock += 1
-	}
-	block.LastBlock = int64(lastBlock)
-	err = dao.OnChainDaoInst.UpdateOfferStoreShakeEventBlock(block)
-	if api_error.PropagateErrorAndAbort(context, api_error.UpdateDataFailed, err) != nil {
-		return
-	}
-
-	bean.SuccessResponse(context, true)
-}
+//func (api OnChainApi) UpdateOfferStoreShake(context *gin.Context) {
+//	client := exchangehandshakeshop_service.ExchangeHandshakeShopClient{}
+//	to := dao.OnChainDaoInst.GetOfferStoreShakeEventBlock()
+//	if to.ContextValidate(context) {
+//		return
+//	}
+//	block := to.Object.(bean.OfferEventBlock)
+//
+//	offerOnChains, lastBlock, err := client.GetShakeOfferStoreEvent(uint64(block.LastBlock))
+//	if api_error.PropagateErrorAndAbort(context, api_error.UpdateDataFailed, err) != nil {
+//		return
+//	}
+//	for _, offerOnChain := range offerOnChains {
+//		fmt.Println(offerOnChain)
+//		parts := strings.Split(offerOnChain.Offer, "-")
+//		service.OfferStoreServiceInst.ShakeOnChainOfferStoreShake(parts[0], parts[1])
+//	}
+//	if len(offerOnChains) > 0 {
+//		lastBlock += 1
+//	}
+//	block.LastBlock = int64(lastBlock)
+//	err = dao.OnChainDaoInst.UpdateOfferStoreShakeEventBlock(block)
+//	if api_error.PropagateErrorAndAbort(context, api_error.UpdateDataFailed, err) != nil {
+//		return
+//	}
+//
+//	bean.SuccessResponse(context, true)
+//}
 
 func (api OnChainApi) UpdateOfferStoreReject(context *gin.Context) {
 	client := exchangehandshakeshop_service.ExchangeHandshakeShopClient{}

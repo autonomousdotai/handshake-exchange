@@ -2092,3 +2092,101 @@ func (s OfferStoreService) registerFreeStart(userId string, offerItem *bean.Offe
 	}
 	return
 }
+
+func (s OfferStoreService) ScriptUpdateTransactionCount() error {
+	t := s.dao.ListOfferStore()
+	if !t.HasError() {
+		for _, item := range t.Objects {
+			offer := item.(bean.OfferStore)
+			fmt.Printf("Updating store %s", offer.UID)
+			fmt.Println("")
+
+			shakes, err := s.dao.ListOfferStoreShake(offer.UID)
+			if err == nil {
+				btcTxCount := bean.TransactionCount{
+					Currency:        bean.BTC.Code,
+					Success:         0,
+					Failed:          0,
+					Pending:         0,
+					BuyAmount:       common.Zero.String(),
+					SellAmount:      common.Zero.String(),
+					BuyFiatAmounts:  map[string]bean.TransactionFiatAmount{},
+					SellFiatAmounts: map[string]bean.TransactionFiatAmount{},
+				}
+				ethTxCount := bean.TransactionCount{
+					Currency:        bean.ETH.Code,
+					Success:         0,
+					Failed:          0,
+					Pending:         0,
+					BuyAmount:       common.Zero.String(),
+					SellAmount:      common.Zero.String(),
+					BuyFiatAmounts:  map[string]bean.TransactionFiatAmount{},
+					SellFiatAmounts: map[string]bean.TransactionFiatAmount{},
+				}
+
+				txCountMap := map[string]*bean.TransactionCount{
+					bean.ETH.Code: &ethTxCount,
+					bean.BTC.Code: &btcTxCount,
+				}
+
+				for _, offerShake := range shakes {
+					currency := offerShake.Currency
+					fmt.Printf("Processing shake %s %s", offerShake.Id, offerShake.Currency)
+					fmt.Println("")
+
+					if offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_COMPLETED {
+						txCountMap[currency].Success += 1
+
+						if offerShake.IsTypeSell() {
+							sellAmount := common.StringToDecimal(txCountMap[currency].SellAmount)
+							amount := common.StringToDecimal(offerShake.Amount)
+							txCountMap[currency].SellAmount = sellAmount.Add(amount).String()
+
+							if fiatAmountObj, ok := txCountMap[currency].SellFiatAmounts[offerShake.FiatCurrency]; ok {
+								fiatAmount := common.StringToDecimal(fiatAmountObj.Amount)
+								newFiatAmount := common.StringToDecimal(offerShake.FiatAmount)
+								fiatAmountObj.Amount = fiatAmount.Add(newFiatAmount).String()
+							} else {
+								txCountMap[currency].SellFiatAmounts[offerShake.FiatCurrency] = bean.TransactionFiatAmount{
+									Currency: offerShake.FiatCurrency,
+									Amount:   offerShake.FiatAmount,
+								}
+							}
+						} else {
+							buyAmount := common.StringToDecimal(txCountMap[currency].BuyAmount)
+							amount := common.StringToDecimal(offerShake.Amount)
+							txCountMap[currency].BuyAmount = buyAmount.Add(amount).String()
+
+							if fiatAmountObj, ok := txCountMap[currency].BuyFiatAmounts[offerShake.FiatCurrency]; ok {
+								fiatAmount := common.StringToDecimal(fiatAmountObj.Amount)
+								newFiatAmount := common.StringToDecimal(offerShake.FiatAmount)
+								fiatAmountObj.Amount = fiatAmount.Add(newFiatAmount).String()
+							} else {
+								txCountMap[currency].BuyFiatAmounts[offerShake.FiatCurrency] = bean.TransactionFiatAmount{
+									Currency: offerShake.FiatCurrency,
+									Amount:   offerShake.FiatAmount,
+								}
+							}
+						}
+					} else if offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_REJECTED {
+						txCountMap[currency].Failed += 1
+					} else {
+						txCountMap[currency].Pending += 1
+					}
+				}
+				if btcTxCount.Pending > 0 || btcTxCount.Success > 0 || btcTxCount.Failed > 0 {
+					fmt.Printf("Making update BTC tx count %s", offer.UID)
+					fmt.Println("")
+					s.transDao.UpdateTransactionCountForce(offer.UID, bean.BTC.Code, btcTxCount.GetUpdateOverride())
+				}
+				if ethTxCount.Pending > 0 || ethTxCount.Success > 0 || ethTxCount.Failed > 0 {
+					fmt.Printf("Making update ETH tx count %s", offer.UID)
+					fmt.Println("")
+					s.transDao.UpdateTransactionCountForce(offer.UID, bean.ETH.Code, ethTxCount.GetUpdateOverride())
+				}
+			}
+		}
+	}
+
+	return t.Error
+}

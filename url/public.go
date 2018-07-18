@@ -78,9 +78,9 @@ func (url CronJobUrl) Create(router *gin.Engine) *gin.RouterGroup {
 		onChainApi.UpdateOfferStoreCancel(context)
 	})
 	// CRON JOB
-	group.POST("/update-offer-store-shake-on-chain", func(context *gin.Context) {
-		onChainApi.UpdateOfferStoreShake(context)
-	})
+	//group.POST("/update-offer-store-shake-on-chain", func(context *gin.Context) {
+	//	onChainApi.UpdateOfferStoreShake(context)
+	//})
 	// CRON JOB
 	group.POST("/update-offer-store-reject-on-chain", func(context *gin.Context) {
 		onChainApi.UpdateOfferStoreReject(context)
@@ -130,6 +130,9 @@ func (url CronJobUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	})
 	group.POST("/start-app", func(context *gin.Context) {
 		miscApi.StartApp(context)
+	})
+	group.POST("/script-update-tx-count", func(context *gin.Context) {
+		miscApi.ScriptUpdateTxCount(context)
 	})
 
 	return group

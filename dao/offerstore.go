@@ -22,6 +22,11 @@ func (dao OfferStoreDao) GetOfferStore(offerId string) (t TransferObject) {
 	return
 }
 
+func (dao OfferStoreDao) ListOfferStore() (t TransferObject) {
+	ListObjects(GetOfferStorePath(), &t, nil, snapshotToOfferStore)
+	return
+}
+
 func (dao OfferStoreDao) AddOfferStore(offer bean.OfferStore, item bean.OfferStoreItem, profile bean.Profile) (bean.OfferStore, error) {
 	dbClient := firebase_service.FirestoreClient
 
@@ -354,20 +359,23 @@ func (dao OfferStoreDao) GetOfferStoreShakeByPath(path string) (t TransferObject
 
 func (dao OfferStoreDao) ListOfferStoreShake(offerId string) ([]bean.OfferStoreShake, error) {
 	dbClient := firebase_service.FirestoreClient
-	iter := dbClient.Collection(GetOfferStoreShakePath(offerId)).Documents(context.Background())
+	collection := dbClient.Collection(GetOfferStoreShakePath(offerId))
 	offerShakes := make([]bean.OfferStoreShake, 0)
 
-	for {
-		var offerShake bean.OfferStoreShake
-		doc, err := iter.Next()
-		if err == iterator.Done {
-			break
+	if collection != nil {
+		iter := collection.Documents(context.Background())
+		for {
+			var offerShake bean.OfferStoreShake
+			doc, err := iter.Next()
+			if err == iterator.Done {
+				break
+			}
+			if err != nil {
+				return offerShakes, err
+			}
+			doc.DataTo(&offerShake)
+			offerShakes = append(offerShakes, offerShake)
 		}
-		if err != nil {
-			return offerShakes, err
-		}
-		doc.DataTo(&offerShake)
-		offerShakes = append(offerShakes, offerShake)
 	}
 
 	return offerShakes, nil
@@ -707,6 +715,10 @@ func (dao OfferStoreDao) GetOfferStoreFreeStartUser(userId string) (t TransferOb
 //func GetOfferStorePath() string {
 //	return "offer_stores"
 //}
+
+func GetOfferStorePath() string {
+	return fmt.Sprintf("offer_stores")
+}
 
 func GetOfferStoreItemPath(id string) string {
 	return fmt.Sprintf("offer_stores/%s", id)

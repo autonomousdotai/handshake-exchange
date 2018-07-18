@@ -181,38 +181,38 @@ func (c *ExchangeHandshakeShopClient) GetCancelOfferStoreEvent(startBlock uint64
 	return
 }
 
-func (c *ExchangeHandshakeShopClient) GetShakeOfferStoreEvent(startBlock uint64) (offers []bean.OfferOnchain, endBlock uint64, err error) {
-	c.initialize()
-
-	opt := &bind.FilterOpts{
-		Start: startBlock,
-	}
-	past, errInit := c.handshake.FilterShake(opt)
-	if errInit != nil {
-		err = errInit
-		return
-	}
-
-	notEmpty := true
-	endBlock = startBlock
-	for notEmpty {
-		notEmpty = past.Next()
-		if notEmpty {
-			endBlock = past.Event.Raw.BlockNumber
-
-			offerId := string(bytes.Trim(past.Event.Offchain[:], "\x00"))
-			if offerId != "" {
-				offers = append(offers, bean.OfferOnchain{
-					Hid:   int64(past.Event.Hid.Uint64()),
-					Offer: offerId,
-				})
-			}
-		}
-	}
-	c.close()
-
-	return
-}
+//func (c *ExchangeHandshakeShopClient) GetShakeOfferStoreEvent(startBlock uint64) (offers []bean.OfferOnchain, endBlock uint64, err error) {
+//	c.initialize()
+//
+//	opt := &bind.FilterOpts{
+//		Start: startBlock,
+//	}
+//	past, errInit := c.handshake.FilterShake(opt)
+//	if errInit != nil {
+//		err = errInit
+//		return
+//	}
+//
+//	notEmpty := true
+//	endBlock = startBlock
+//	for notEmpty {
+//		notEmpty = past.Next()
+//		if notEmpty {
+//			endBlock = past.Event.Raw.BlockNumber
+//
+//			offerId := string(bytes.Trim(past.Event.Offchain[:], "\x00"))
+//			if offerId != "" {
+//				offers = append(offers, bean.OfferOnchain{
+//					Hid:   int64(past.Event.Hid.Uint64()),
+//					Offer: offerId,
+//				})
+//			}
+//		}
+//	}
+//	c.close()
+//
+//	return
+//}
 
 func (c *ExchangeHandshakeShopClient) GetRejectOfferStoreEvent(startBlock uint64) (offers []bean.OfferOnchain, endBlock uint64, err error) {
 	c.initialize()

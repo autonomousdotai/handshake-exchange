@@ -160,6 +160,20 @@ type TransactionFiatAmount struct {
 	Amount   string `json:"amount" firestore:"amount"`
 }
 
+func (t TransactionCount) GetUpdateOverride() map[string]interface{} {
+	return map[string]interface{}{
+		"currency":          t.Currency,
+		"success":           t.Success,
+		"pending":           t.Pending,
+		"failed":            t.Failed,
+		"buy_amount":        t.BuyAmount,
+		"sell_amount":       t.SellAmount,
+		"buy_fiat_amounts":  t.BuyFiatAmounts,
+		"sell_fiat_amounts": t.SellFiatAmounts,
+		"updated_at":        firestore.ServerTimestamp,
+	}
+}
+
 func (t TransactionCount) GetUpdateSuccess() map[string]interface{} {
 	return map[string]interface{}{
 		"currency":          t.Currency,

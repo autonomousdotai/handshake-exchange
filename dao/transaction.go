@@ -67,6 +67,14 @@ func (dao TransactionDao) UpdateTransactionCount(userId string, currency string,
 	return err
 }
 
+func (dao TransactionDao) UpdateTransactionCountForce(userId string, currency string, txCountData map[string]interface{}) error {
+	dbClient := firebase_service.FirestoreClient
+	docRef := dbClient.Doc(GetTransactionCountItemPath(userId, currency))
+	_, err := docRef.Set(context.Background(), txCountData)
+
+	return err
+}
+
 func (dao TransactionDao) GetTransactionCountByPath(path string) (t TransferObject) {
 	// users/{uid}/transaction_counts/{currency}
 	GetObject(path, &t, snapshotToTransactionCount)

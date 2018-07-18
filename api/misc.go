@@ -405,3 +405,8 @@ func (api MiscApi) RemoveSolr(context *gin.Context) {
 
 	bean.SuccessResponse(context, resp)
 }
+
+func (api MiscApi) ScriptUpdateTxCount(context *gin.Context) {
+	service.OfferStoreServiceInst.ScriptUpdateTransactionCount()
+	bean.SuccessResponse(context, "ok")
+}
