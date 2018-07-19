@@ -241,6 +241,10 @@ func (s OfferStoreService) RefillOfferStoreItem(userId string, offerId string, b
 		ce.SetStatusKey(api_error.InvalidRequestBody)
 		return
 	}
+	if item.SubStatus == bean.OFFER_STORE_ITEM_STATUS_REFILLING {
+		ce.SetStatusKey(api_error.InvalidRequestBody)
+		return
+	}
 
 	s.prepareRefillOfferStoreItem(&offer, &item, &body, &ce)
 	if ce.HasError() {
