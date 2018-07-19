@@ -145,6 +145,7 @@ func (offer OfferStore) GetNotificationUpdate() map[string]interface{} {
 
 func (offer OfferStore) GetUpdateOfferItemInfo() map[string]interface{} {
 	return map[string]interface{}{
+		"fiat_currency":  offer.FiatCurrency,
 		"contact_info":   offer.ContactInfo,
 		"contact_phone":  offer.ContactPhone,
 		"item_snapshots": offer.ItemSnapshots,

@@ -187,6 +187,7 @@ func (s OfferStoreService) UpdateOfferStore(userId string, offerId string, body 
 		return
 	}
 	// Copy data
+	offer.FiatCurrency = body.Offer.FiatCurrency
 	offer.ContactPhone = body.Offer.ContactPhone
 	offer.ContactInfo = body.Offer.ContactInfo
 	item := *checkOfferItem
@@ -194,7 +195,6 @@ func (s OfferStoreService) UpdateOfferStore(userId string, offerId string, body 
 	item.BuyPercentage = bodyItem.BuyPercentage
 	offer.ItemSnapshots[bodyItem.Currency] = item
 
-	// For now only update Percentage, other info will not be updated
 	_, err := s.dao.UpdateOfferStoreItem(offer, item)
 	if ce.SetError(api_error.AddDataFailed, err) {
 		return
