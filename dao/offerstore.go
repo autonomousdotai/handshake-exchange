@@ -146,12 +146,13 @@ func (dao OfferStoreDao) AddOfferStoreItem(offer bean.OfferStore, item bean.Offe
 func (dao OfferStoreDao) UpdateOfferStoreItem(offer bean.OfferStore, item bean.OfferStoreItem) (bean.OfferStoreItem, error) {
 	dbClient := firebase_service.FirestoreClient
 
-	docRef := dbClient.Doc(GetOfferStoreItemPath(offer.UID))
+	// docRef := dbClient.Doc(GetOfferStoreItemPath(offer.UID))
 	itemDocRef := dbClient.Doc(GetOfferStoreItemItemPath(offer.Id, item.Currency))
 
 	batch := dbClient.Batch()
 
-	batch.Set(docRef, offer.GetUpdateOfferItemInfo(), firestore.MergeAll)
+	// For now only update Percentage, other info will not be updated
+	// batch.Set(docRef, offer.GetUpdateOfferItemInfo(), firestore.MergeAll)
 	batch.Set(itemDocRef, item.GetUpdateOfferStoreItemInfo(), firestore.MergeAll)
 
 	_, err := batch.Commit(context.Background())
