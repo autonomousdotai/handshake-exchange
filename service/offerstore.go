@@ -1549,6 +1549,8 @@ func (s OfferStoreService) prepareRefillOfferStoreItem(offer *bean.OfferStore, i
 		return
 	}
 
+	s.generateSystemAddress(*offer, item, ce)
+
 	// Copy to back up
 	item.SellBackupAmounts = map[string]interface{}{
 		"sell_amount":       fmt.Sprintf("%s", item.SellAmount),
