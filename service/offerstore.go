@@ -191,8 +191,27 @@ func (s OfferStoreService) UpdateOfferStore(userId string, offerId string, body 
 	offer.ContactPhone = body.Offer.ContactPhone
 	offer.ContactInfo = body.Offer.ContactInfo
 	item := *checkOfferItem
-	item.SellPercentage = bodyItem.SellPercentage
-	item.BuyPercentage = bodyItem.BuyPercentage
+	if bodyItem.SellPercentage != "" {
+		// Convert to 0.0x
+		percentage, errFmt := decimal.NewFromString(item.SellPercentage)
+		if ce.SetError(api_error.InvalidRequestBody, errFmt) {
+			return
+		}
+		item.SellPercentage = percentage.Div(decimal.NewFromFloat(100)).String()
+	} else {
+		item.SellPercentage = "0"
+	}
+
+	if bodyItem.BuyPercentage != "" {
+		// Convert to 0.0x
+		percentage, errFmt := decimal.NewFromString(item.BuyPercentage)
+		if ce.SetError(api_error.InvalidRequestBody, errFmt) {
+			return
+		}
+		item.BuyPercentage = percentage.Div(decimal.NewFromFloat(100)).String()
+	} else {
+		item.BuyPercentage = "0"
+	}
 	offer.ItemSnapshots[bodyItem.Currency] = item
 
 	_, err := s.dao.UpdateOfferStoreItem(offer, item)
