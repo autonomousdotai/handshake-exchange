@@ -193,7 +193,7 @@ func (s OfferStoreService) UpdateOfferStore(userId string, offerId string, body 
 	item := *checkOfferItem
 	if bodyItem.SellPercentage != "" {
 		// Convert to 0.0x
-		percentage, errFmt := decimal.NewFromString(item.SellPercentage)
+		percentage, errFmt := decimal.NewFromString(bodyItem.SellPercentage)
 		if ce.SetError(api_error.InvalidRequestBody, errFmt) {
 			return
 		}
@@ -204,7 +204,7 @@ func (s OfferStoreService) UpdateOfferStore(userId string, offerId string, body 
 
 	if bodyItem.BuyPercentage != "" {
 		// Convert to 0.0x
-		percentage, errFmt := decimal.NewFromString(item.BuyPercentage)
+		percentage, errFmt := decimal.NewFromString(bodyItem.BuyPercentage)
 		if ce.SetError(api_error.InvalidRequestBody, errFmt) {
 			return
 		}
