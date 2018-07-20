@@ -253,6 +253,14 @@ func (item OfferStoreItem) GetNotificationUpdate(offer OfferStore) map[string]in
 	}
 }
 
+func (item OfferStoreItem) GetNotificationUpdateItem(offer OfferStore) map[string]interface{} {
+	return map[string]interface{}{
+		"id":     offer.Id,
+		"status": fmt.Sprintf("%s_%s", strings.ToLower(item.Currency), item.SubStatus),
+		"type":   "offer_store_item",
+	}
+}
+
 type OfferStoreSetup struct {
 	Item  OfferStoreItem `json:"item"`
 	Offer OfferStore     `json:"offer"`
@@ -459,8 +467,24 @@ type Location struct {
 }
 
 type LocationInput struct {
-	Data       string   `json:"data" firestore:"data"`
-	Offer      string   `json:"offer" firestore:"offer"`
-	OfferShake string   `json:"offer_shake" firestore:"offer_shake"`
-	Location   Location `json:"location" firestore:"location"`
+	Data       string `json:"data" firestore:"data"`
+	Offer      string `json:"offer" firestore:"offer"`
+	OfferShake string `json:"offer_shake" firestore:"offer_shake"`
+	IP         string `json:"ip" firestore:"ip"`
+	Type       string `json:"type" firestore:"type"`
+}
+
+func (offer OfferStoreLocationTracking) GetUpdateOfferStoreLocationShake() map[string]interface{} {
+	return map[string]interface{}{
+		"shake_location": offer.ShakeLocation,
+		"offer_uid":      offer.OfferUID,
+		"updated_at":     firestore.ServerTimestamp,
+	}
+}
+
+func (offer OfferStoreLocationTracking) GetUpdateOfferStoreLocationComplete() map[string]interface{} {
+	return map[string]interface{}{
+		"complete_location": offer.ShakeLocation,
+		"updated_at":        firestore.ServerTimestamp,
+	}
 }

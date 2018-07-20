@@ -256,9 +256,22 @@ func (api OfferStoreApi) OnChainOfferStoreShakeTracking(context *gin.Context) {
 }
 
 func (api OfferStoreApi) OfferStoreLocationTracking(context *gin.Context) {
-	//data := context.DefaultQuery("data", "")
+	var body bean.LocationInput
+	if common.ValidateBody(context, &body) != nil {
+		return
+	}
 
-	//ce := service.OfferStoreServiceInst.OfferStoreLocationTracking(data)
+	ce := service.OfferStoreServiceInst.UpdateOfferStoreLocationTracking(body)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, true)
+}
+
+func (api OfferStoreApi) GetOfferStoreLocationTracking(context *gin.Context) {
+	//userId := common.GetUserId(context)
+	//ce := service.OfferStoreServiceInst.GetOfferStoreLocationTracking(userId)
 	//if ce.ContextValidate(context) {
 	//	return
 	//}

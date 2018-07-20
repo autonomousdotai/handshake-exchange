@@ -218,6 +218,7 @@ func (s OfferStoreService) UpdateOfferStore(userId string, offerId string, body 
 	if ce.SetError(api_error.AddDataFailed, err) {
 		return
 	}
+
 	// Only sync to solr
 	solr_service.UpdateObject(bean.NewSolrFromOfferStore(offer, item))
 
@@ -260,8 +261,9 @@ func (s OfferStoreService) RefillOfferStoreItem(userId string, offerId string, b
 	if ce.SetError(api_error.UpdateDataFailed, err) {
 		return
 	}
-	// Only sync to solr
+	// Only sync to solr and notification firebase
 	solr_service.UpdateObject(bean.NewSolrFromOfferStore(offer, item))
+	dao.OfferStoreDaoInst.UpdateNotificationOfferStore(offer, item)
 	offer.ItemSnapshots[item.Currency] = body
 
 	return
@@ -484,8 +486,9 @@ func (s OfferStoreService) CancelRefillOfferStoreItem(userId string, offerId str
 		return
 	}
 
-	// Only sync to solr
+	// Only sync to solr and notification firebase
 	solr_service.UpdateObject(bean.NewSolrFromOfferStore(offer, *item))
+	dao.OfferStoreDaoInst.UpdateNotificationOfferStore(offer, *item)
 
 	return
 }
@@ -1056,7 +1059,9 @@ func (s OfferStoreService) UpdateOnChainInitOfferStore(offerId string, hid int64
 	if ce.HasError() {
 		return
 	}
-	if item.Status != bean.OFFER_STORE_ITEM_STATUS_CREATED {
+	if item.Status != bean.OFFER_STORE_ITEM_STATUS_CREATED ||
+		(item.Status == bean.OFFER_STORE_ITEM_STATUS_ACTIVE &&
+			item.SubStatus != bean.OFFER_STORE_ITEM_STATUS_REFILLING) {
 		ce.SetStatusKey(api_error.OfferStatusInvalid)
 		return
 	}
@@ -1070,6 +1075,10 @@ func (s OfferStoreService) UpdateOnChainInitOfferStore(offerId string, hid int64
 	if offer.Status == bean.OFFER_STORE_STATUS_CREATED {
 		offer.Status = bean.OFFER_STORE_STATUS_ACTIVE
 	}
+	if item.Status == bean.OFFER_STORE_ITEM_STATUS_ACTIVE &&
+		item.SubStatus != bean.OFFER_STORE_ITEM_STATUS_REFILLING {
+		item.SubStatus = bean.OFFER_STORE_ITEM_STATUS_REFILLED
+	}
 	offer.ItemSnapshots[item.Currency] = item
 	err := s.dao.UpdateOfferStoreItemActive(offer, item)
 	if ce.SetError(api_error.UpdateDataFailed, err) {
@@ -1077,6 +1086,9 @@ func (s OfferStoreService) UpdateOnChainInitOfferStore(offerId string, hid int64
 	}
 
 	notification.SendOfferStoreNotification(offer, item)
+	if item.SubStatus == bean.OFFER_STORE_ITEM_STATUS_REFILLED {
+		dao.OfferStoreDaoInst.UpdateNotificationOfferStore(offer, item)
+	}
 
 	return
 }
@@ -1110,8 +1122,9 @@ func (s OfferStoreService) UpdateOnChainRefillBalanceOfferStore(offerId string, 
 	if ce.SetError(api_error.UpdateDataFailed, err) {
 		return
 	}
-	// Only sync to solr
+	// Only sync to solr and notification firebase
 	solr_service.UpdateObject(bean.NewSolrFromOfferStore(offer, item))
+	dao.OfferStoreDaoInst.UpdateNotificationOfferStore(offer, item)
 
 	return
 }
@@ -1520,6 +1533,14 @@ func (s OfferStoreService) GetCurrentFreeStart(userId string, token string) (fre
 	return
 }
 
+func (s OfferStoreService) UpdateOfferStoreLocationTracking(body bean.LocationInput) (ce SimpleContextError) {
+	return
+}
+
+func (s OfferStoreService) GetOfferStoreLocationTracking(body bean.LocationInput) (offlineIds []string, ce SimpleContextError) {
+	return
+}
+
 func (s OfferStoreService) SyncOfferStoreToSolr(offerId string) (offer bean.OfferStore, ce SimpleContextError) {
 	offerTO := s.dao.GetOfferStore(offerId)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, offerTO) {
@@ -1645,6 +1666,7 @@ func (s OfferStoreService) prepareOfferStore(offer *bean.OfferStore, item *bean.
 	item.BuyAmountMin = minAmount.String()
 	item.SellBalance = "0"
 	item.SellAmountMin = minAmount.String()
+	item.SellTotalAmount = "0"
 	item.CreatedAt = time.Now().UTC()
 	amount := common.StringToDecimal(item.SellAmount)
 	if amount.GreaterThan(common.Zero) {
