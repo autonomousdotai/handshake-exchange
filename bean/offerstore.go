@@ -435,3 +435,32 @@ func (offer OfferStoreFreeStartUser) GetUpdateFreeStartUserUsing() map[string]in
 		"updated_at": firestore.ServerTimestamp,
 	}
 }
+
+type OfferStoreLocationTracking struct {
+	ShakeLocation    OfferStoreShakeLocation `json:"shake_location" firestore:"shake_location"`
+	CompleteLocation OfferStoreShakeLocation `json:"complete_location" firestore:"complete_location"`
+	OfferUID         string                  `json:"store_uid" firestore:"store_uid"`
+	OfferShakeUID    string                  `json:"offer_shake_uid" firestore:"offer_shake_uid"`
+	Offer            string                  `json:"offer" firestore:"offer"`
+	OfferShake       string                  `json:"offer_shake" firestore:"offer_shake"`
+}
+
+type OfferStoreShakeLocation struct {
+	OfferLocation      Location `json:"offer_location" firestore:"offer_location"`
+	OfferShakeLocation Location `json:"offer_shake_location" firestore:"offer_shake_location"`
+	Distance           float64  `json:"distance" firestore:"distance"`
+}
+
+type Location struct {
+	Latitude  float64 `json:"latitude" firestore:"latitude"`
+	Longitude float64 `json:"longitude" firestore:"longitude"`
+	IP        string  `json:"ip" firestore:"ip"`
+	Type      string  `json:"type" firestore:"type"`
+}
+
+type LocationInput struct {
+	Data       string   `json:"data" firestore:"data"`
+	Offer      string   `json:"offer" firestore:"offer"`
+	OfferShake string   `json:"offer_shake" firestore:"offer_shake"`
+	Location   Location `json:"location" firestore:"location"`
+}

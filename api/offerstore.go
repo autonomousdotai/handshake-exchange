@@ -254,3 +254,14 @@ func (api OfferStoreApi) OnChainOfferStoreShakeTracking(context *gin.Context) {
 
 	bean.SuccessResponse(context, offer)
 }
+
+func (api OfferStoreApi) OfferStoreLocationTracking(context *gin.Context) {
+	//data := context.DefaultQuery("data", "")
+
+	//ce := service.OfferStoreServiceInst.OfferStoreLocationTracking(data)
+	//if ce.ContextValidate(context) {
+	//	return
+	//}
+
+	bean.SuccessResponse(context, true)
+}
