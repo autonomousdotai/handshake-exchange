@@ -167,7 +167,8 @@ func (dao OfferStoreDao) UpdateRefillOfferStoreItem(offer bean.OfferStore, item 
 	docRef := dbClient.Doc(offerPath)
 
 	batch := dbClient.Batch()
-	itemDocRef := dbClient.Doc(GetOfferStoreItemItemPath(offer.Id, item.Currency))
+	offerItemPath := GetOfferStoreItemItemPath(offer.Id, item.Currency)
+	itemDocRef := dbClient.Doc(offerItemPath)
 	if item.SystemAddress != "" {
 		mapping := bean.OfferAddressMap{
 			Address:  item.SystemAddress,
@@ -185,14 +186,14 @@ func (dao OfferStoreDao) UpdateRefillOfferStoreItem(offer bean.OfferStore, item 
 
 	if item.Currency == bean.ETH.Code && item.SubStatus == bean.OFFER_STORE_ITEM_STATUS_REFILLING {
 		// Store a record to check onchain
-		docId := strings.Replace(offerPath, "/", "-", -1)
+		docId := strings.Replace(offerItemPath, "/", "-", -1)
 		onChainTrackingRef := dbClient.Doc(GetOfferOnChainActionTrackingItemPath(true, docId))
 		batch.Set(onChainTrackingRef, bean.OfferOnChainActionTracking{
 			Id:       docId,
 			Action:   item.SubStatus,
 			Currency: item.Currency,
 			Offer:    offer.Id,
-			OfferRef: offerPath,
+			OfferRef: offerItemPath,
 			Type:     bean.OFFER_ADDRESS_MAP_OFFER_STORE_ITEM,
 			UID:      offer.UID,
 		}.GetAddOfferOnChainActionTracking())
@@ -721,6 +722,11 @@ func (dao OfferStoreDao) GetOfferStoreFreeStartUser(userId string) (t TransferOb
 	return
 }
 
+func (dao OfferStoreDao) ListOfferStoreLocationTracking(userId string, offer bool) (t TransferObject) {
+	ListObjects(GetOfferStoreLocationTrackingPath(userId, offer), &t, nil, snapshotToOfferStoreLocationTracking)
+	return
+}
+
 func (dao OfferStoreDao) UpdateOfferStoreLocationShakeTracking(userId string, offerShake bean.OfferStoreShake,
 	offerLocation bean.OfferStoreLocationTracking, offerShakeLocation bean.OfferStoreLocationTracking) error {
 
@@ -855,6 +861,12 @@ func snapshotToOfferStoreFreeStart(snapshot *firestore.DocumentSnapshot) interfa
 
 func snapshotToOfferStoreFreeStartUser(snapshot *firestore.DocumentSnapshot) interface{} {
 	var obj bean.OfferStoreFreeStartUser
+	snapshot.DataTo(&obj)
+	return obj
+}
+
+func snapshotToOfferStoreLocationTracking(snapshot *firestore.DocumentSnapshot) interface{} {
+	var obj bean.OfferStoreLocationTracking
 	snapshot.DataTo(&obj)
 	return obj
 }

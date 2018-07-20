@@ -263,7 +263,7 @@ func (s OfferStoreService) RefillOfferStoreItem(userId string, offerId string, b
 	}
 	// Only sync to solr and notification firebase
 	solr_service.UpdateObject(bean.NewSolrFromOfferStore(offer, item))
-	dao.OfferStoreDaoInst.UpdateNotificationOfferStore(offer, item)
+	dao.OfferStoreDaoInst.UpdateNotificationOfferStoreItem(offer, item)
 	offer.ItemSnapshots[item.Currency] = body
 
 	return
@@ -488,7 +488,7 @@ func (s OfferStoreService) CancelRefillOfferStoreItem(userId string, offerId str
 
 	// Only sync to solr and notification firebase
 	solr_service.UpdateObject(bean.NewSolrFromOfferStore(offer, *item))
-	dao.OfferStoreDaoInst.UpdateNotificationOfferStore(offer, *item)
+	dao.OfferStoreDaoInst.UpdateNotificationOfferStoreItem(offer, *item)
 
 	return
 }
@@ -1059,9 +1059,12 @@ func (s OfferStoreService) UpdateOnChainInitOfferStore(offerId string, hid int64
 	if ce.HasError() {
 		return
 	}
-	if item.Status != bean.OFFER_STORE_ITEM_STATUS_CREATED ||
-		(item.Status == bean.OFFER_STORE_ITEM_STATUS_ACTIVE &&
-			item.SubStatus != bean.OFFER_STORE_ITEM_STATUS_REFILLING) {
+
+	fmt.Println(item.Status)
+	fmt.Println(item.SubStatus)
+	if item.Status == bean.OFFER_STORE_ITEM_STATUS_CREATED ||
+		(item.Status == bean.OFFER_STORE_ITEM_STATUS_ACTIVE && item.SubStatus == bean.OFFER_STORE_ITEM_STATUS_REFILLING) {
+	} else {
 		ce.SetStatusKey(api_error.OfferStatusInvalid)
 		return
 	}
@@ -1076,7 +1079,7 @@ func (s OfferStoreService) UpdateOnChainInitOfferStore(offerId string, hid int64
 		offer.Status = bean.OFFER_STORE_STATUS_ACTIVE
 	}
 	if item.Status == bean.OFFER_STORE_ITEM_STATUS_ACTIVE &&
-		item.SubStatus != bean.OFFER_STORE_ITEM_STATUS_REFILLING {
+		item.SubStatus == bean.OFFER_STORE_ITEM_STATUS_REFILLING {
 		item.SubStatus = bean.OFFER_STORE_ITEM_STATUS_REFILLED
 	}
 	offer.ItemSnapshots[item.Currency] = item
@@ -1087,7 +1090,7 @@ func (s OfferStoreService) UpdateOnChainInitOfferStore(offerId string, hid int64
 
 	notification.SendOfferStoreNotification(offer, item)
 	if item.SubStatus == bean.OFFER_STORE_ITEM_STATUS_REFILLED {
-		dao.OfferStoreDaoInst.UpdateNotificationOfferStore(offer, item)
+		dao.OfferStoreDaoInst.UpdateNotificationOfferStoreItem(offer, item)
 	}
 
 	return
@@ -1124,7 +1127,7 @@ func (s OfferStoreService) UpdateOnChainRefillBalanceOfferStore(offerId string, 
 	}
 	// Only sync to solr and notification firebase
 	solr_service.UpdateObject(bean.NewSolrFromOfferStore(offer, item))
-	dao.OfferStoreDaoInst.UpdateNotificationOfferStore(offer, item)
+	dao.OfferStoreDaoInst.UpdateNotificationOfferStoreItem(offer, item)
 
 	return
 }
@@ -1537,7 +1540,30 @@ func (s OfferStoreService) UpdateOfferStoreLocationTracking(body bean.LocationIn
 	return
 }
 
-func (s OfferStoreService) GetOfferStoreLocationTracking(body bean.LocationInput) (offlineIds []string, ce SimpleContextError) {
+func (s OfferStoreService) GetOfferStoreLocationTracking(userId string) (locationInputs []bean.LocationInput, ce SimpleContextError) {
+	// Guess if this is from offer store
+	to := s.dao.ListOfferStoreLocationTracking(userId, true)
+	if !to.HasError() {
+		for _, obj := range to.Objects {
+			location := obj.(bean.OfferStoreLocationTracking)
+
+			// Shake buy need to fill location
+			if location.ShakeLocation.OfferLocation.Type == "" {
+			}
+		}
+	}
+	// Guess if this is from offer store shake
+	to = s.dao.ListOfferStoreLocationTracking(userId, false)
+	if !to.HasError() {
+		for _, obj := range to.Objects {
+			location := obj.(bean.OfferStoreLocationTracking)
+
+			// Shake buy need to fill location
+			if location.ShakeLocation.OfferShakeLocation.Type == "" {
+			}
+		}
+	}
+
 	return
 }
 

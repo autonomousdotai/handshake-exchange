@@ -181,6 +181,7 @@ func (item OfferStoreItem) GetAddOfferStoreItem() map[string]interface{} {
 func (item OfferStoreItem) GetUpdateOfferStoreItemActive() map[string]interface{} {
 	return map[string]interface{}{
 		"sell_balance": item.SellBalance,
+		"sub_status":   item.SubStatus,
 		"status":       OFFER_STORE_ITEM_STATUS_ACTIVE,
 		"updated_at":   firestore.ServerTimestamp,
 	}
