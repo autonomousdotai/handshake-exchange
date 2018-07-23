@@ -722,40 +722,14 @@ func (dao OfferStoreDao) GetOfferStoreFreeStartUser(userId string) (t TransferOb
 	return
 }
 
-func (dao OfferStoreDao) ListOfferStoreLocationTracking(userId string, offer bool) (t TransferObject) {
-	ListObjects(GetOfferStoreLocationTrackingPath(userId, offer), &t, nil, snapshotToOfferStoreLocationTracking)
-	return
-}
-
-func (dao OfferStoreDao) UpdateOfferStoreLocationShakeTracking(userId string, offerShake bean.OfferStoreShake,
-	offerLocation bean.OfferStoreLocationTracking, offerShakeLocation bean.OfferStoreLocationTracking) error {
+func (dao OfferStoreDao) UpdateOfferStoreShakeLocation(userId string, offerShake bean.OfferStoreShake,
+	offerShakeLocation bean.OfferStoreShakeLocation) error {
 
 	dbClient := firebase_service.FirestoreClient
-	offerLocationRef := dbClient.Doc(GetOfferStoreLocationTrackingItemPath(userId, offerShake.Id, true))
-	shakeLocationRef := dbClient.Doc(GetOfferStoreLocationTrackingItemPath(offerShake.UID, offerShake.Id, false))
+	shakeLocationRef := dbClient.Doc(GetOfferStoreShakeLocationItemPath(offerShake.UID,
+		fmt.Sprintf("%s-%s", offerShake.Id, offerShakeLocation.Action)))
 
-	batch := dbClient.Batch()
-	batch.Set(offerLocationRef, offerLocation.GetUpdateOfferStoreLocationShake(), firestore.MergeAll)
-	batch.Set(shakeLocationRef, offerShakeLocation.GetUpdateOfferStoreLocationShake(), firestore.MergeAll)
-
-	_, err := batch.Commit(context.Background())
-
-	return err
-}
-
-func (dao OfferStoreDao) UpdateOfferStoreLocationCompleteTracking(userId string, offerShake bean.OfferStoreShake,
-	offerLocation bean.OfferStoreLocationTracking) error {
-
-	dbClient := firebase_service.FirestoreClient
-	offerLocationRef := dbClient.Doc(GetOfferStoreLocationTrackingItemPath(userId, offerShake.Id, true))
-	shakeLocationRef := dbClient.Doc(GetOfferStoreLocationTrackingItemPath(offerShake.UID, offerShake.Id, false))
-
-	batch := dbClient.Batch()
-	batch.Set(offerLocationRef, offerLocation.GetUpdateOfferStoreLocationComplete(), firestore.MergeAll)
-	batch.Delete(shakeLocationRef)
-
-	_, err := batch.Commit(context.Background())
-
+	_, err := shakeLocationRef.Set(context.Background(), offerShakeLocation.GetUpdateOfferStoreShakeLocation())
 	return err
 }
 
@@ -804,20 +778,12 @@ func GetOfferStoreFreeStartUserItemPath(userId string) string {
 	return fmt.Sprintf("offer_store_free_start_users/%s", userId)
 }
 
-func GetOfferStoreLocationTrackingPath(userId string, offer bool) string {
-	path := fmt.Sprintf("offer_store_location_tracking/%s/shake", userId)
-	if offer {
-		path = fmt.Sprintf("offer_store_location_tracking/%s/offer", userId)
-	}
-	return path
+func GetOfferStoreShakeLocationPath(userId string) string {
+	return fmt.Sprintf("offer_store_shake_location/%s/shake", userId)
 }
 
-func GetOfferStoreLocationTrackingItemPath(userId string, offerShake string, offer bool) string {
-	path := fmt.Sprintf("offer_store_location_tracking/%s/shake/%s", userId, offerShake)
-	if offer {
-		path = fmt.Sprintf("offer_store_location_tracking/%s/offer/%s", userId, offerShake)
-	}
-	return path
+func GetOfferStoreShakeLocationItemPath(userId string, offerShake string) string {
+	return fmt.Sprintf("offer_store_shake_location/%s/shake/%s", userId, offerShake)
 }
 
 // Firebase
@@ -865,8 +831,8 @@ func snapshotToOfferStoreFreeStartUser(snapshot *firestore.DocumentSnapshot) int
 	return obj
 }
 
-func snapshotToOfferStoreLocationTracking(snapshot *firestore.DocumentSnapshot) interface{} {
-	var obj bean.OfferStoreLocationTracking
+func snapshotToOfferStoreShakeLocation(snapshot *firestore.DocumentSnapshot) interface{} {
+	var obj bean.OfferStoreShakeLocation
 	snapshot.DataTo(&obj)
 	return obj
 }

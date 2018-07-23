@@ -14,6 +14,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/integration/solr_service"
 	"github.com/ninjadotorg/handshake-exchange/service/notification"
 	"github.com/shopspring/decimal"
+	"strconv"
 	"time"
 )
 
@@ -1463,6 +1464,44 @@ func (s OfferStoreService) ReviewOfferStore(userId string, offerId string, score
 	return
 }
 
+func (s OfferStoreService) UpdateOfferStoreShakeLocation(userId string, offerId string, offerShakeId string, body bean.OfferStoreShakeLocation) (offerLocation bean.OfferStoreShakeLocation, ce SimpleContextError) {
+	data := body.Data
+	offerShake := *GetOfferStoreShake(*s.dao, offerId, offerShakeId, &ce)
+	if ce.HasError() {
+		return
+	}
+
+	locationType := "GPS"
+	if data[0:1] != "G" {
+		locationType = "IP"
+	}
+
+	lat1n, _ := strconv.Atoi(data[1:2])
+	lat1 := data[2 : 2+lat1n]
+	lat2n, _ := strconv.Atoi(data[2+lat1n : 2+lat1n+1])
+	lat2 := data[2+lat1n+1 : 2+lat1n+1+lat2n]
+	startLong := 2 + lat1n + 1 + lat2n
+	long1n, _ := strconv.Atoi(data[startLong : startLong+1])
+	long1 := data[startLong+1 : startLong+1+long1n]
+	long2n, _ := strconv.Atoi(data[startLong+1+long1n : startLong+1+long1n+1])
+	long2 := data[startLong+1+long1n+1 : startLong+1+long1n+1+long2n]
+
+	lat, _ := decimal.NewFromString(fmt.Sprintf("%s.%s", lat1, lat2))
+	long, _ := decimal.NewFromString(fmt.Sprintf("%s.%s", long1, long2))
+
+	offerLocation = body
+	offerLocation.ActionUID = userId
+	offerLocation.Offer = offerId
+	offerLocation.OfferShake = offerShakeId
+	offerLocation.LocationType = locationType
+	offerLocation.Latitude, _ = lat.Float64()
+	offerLocation.Latitude, _ = long.Float64()
+
+	s.dao.UpdateOfferStoreShakeLocation(userId, offerShake, offerLocation)
+
+	return
+}
+
 func (s OfferStoreService) GetQuote(quoteType string, amountStr string, currency string, fiatCurrency string) (price decimal.Decimal, fiatPrice decimal.Decimal,
 	fiatAmount decimal.Decimal, err error) {
 	amount, numberErr := decimal.NewFromString(amountStr)
@@ -1530,37 +1569,6 @@ func (s OfferStoreService) GetCurrentFreeStart(userId string, token string) (fre
 		if item.Count < item.Limit {
 			freeStart = item
 			break
-		}
-	}
-
-	return
-}
-
-func (s OfferStoreService) UpdateOfferStoreLocationTracking(body bean.LocationInput) (ce SimpleContextError) {
-	return
-}
-
-func (s OfferStoreService) GetOfferStoreLocationTracking(userId string) (locationInputs []bean.LocationInput, ce SimpleContextError) {
-	// Guess if this is from offer store
-	to := s.dao.ListOfferStoreLocationTracking(userId, true)
-	if !to.HasError() {
-		for _, obj := range to.Objects {
-			location := obj.(bean.OfferStoreLocationTracking)
-
-			// Shake buy need to fill location
-			if location.ShakeLocation.OfferLocation.Type == "" {
-			}
-		}
-	}
-	// Guess if this is from offer store shake
-	to = s.dao.ListOfferStoreLocationTracking(userId, false)
-	if !to.HasError() {
-		for _, obj := range to.Objects {
-			location := obj.(bean.OfferStoreLocationTracking)
-
-			// Shake buy need to fill location
-			if location.ShakeLocation.OfferShakeLocation.Type == "" {
-			}
 		}
 	}
 

@@ -255,26 +255,20 @@ func (api OfferStoreApi) OnChainOfferStoreShakeTracking(context *gin.Context) {
 	bean.SuccessResponse(context, offer)
 }
 
-func (api OfferStoreApi) OfferStoreLocationTracking(context *gin.Context) {
-	var body bean.LocationInput
+func (api OfferStoreApi) OfferStoreShakeLocationTracking(context *gin.Context) {
+	userId := common.GetUserId(context)
+	offerId := context.Param("offerId")
+	offerShakeId := context.Param("offerShakeId")
+
+	var body bean.OfferStoreShakeLocation
 	if common.ValidateBody(context, &body) != nil {
 		return
 	}
 
-	ce := service.OfferStoreServiceInst.UpdateOfferStoreLocationTracking(body)
+	_, ce := service.OfferStoreServiceInst.UpdateOfferStoreShakeLocation(userId, offerId, offerShakeId, body)
 	if ce.ContextValidate(context) {
 		return
 	}
 
-	bean.SuccessResponse(context, true)
-}
-
-func (api OfferStoreApi) GetOfferStoreLocationTracking(context *gin.Context) {
-	//userId := common.GetUserId(context)
-	//ce := service.OfferStoreServiceInst.GetOfferStoreLocationTracking(userId)
-	//if ce.ContextValidate(context) {
-	//	return
-	//}
-
-	bean.SuccessResponse(context, true)
+	bean.SuccessResponse(context, body)
 }

@@ -445,47 +445,28 @@ func (offer OfferStoreFreeStartUser) GetUpdateFreeStartUserUsing() map[string]in
 	}
 }
 
-type OfferStoreLocationTracking struct {
-	ShakeLocation    OfferStoreShakeLocation `json:"shake_location" firestore:"shake_location"`
-	CompleteLocation OfferStoreShakeLocation `json:"complete_location" firestore:"complete_location"`
-	OfferUID         string                  `json:"store_uid" firestore:"store_uid"`
-	OfferShakeUID    string                  `json:"offer_shake_uid" firestore:"offer_shake_uid"`
-	Offer            string                  `json:"offer" firestore:"offer"`
-	OfferShake       string                  `json:"offer_shake" firestore:"offer_shake"`
-}
-
 type OfferStoreShakeLocation struct {
-	OfferLocation      Location `json:"offer_location" firestore:"offer_location"`
-	OfferShakeLocation Location `json:"offer_shake_location" firestore:"offer_shake_location"`
-	Distance           float64  `json:"distance" firestore:"distance"`
+	Data         string  `json:"data" firestore:"data"`
+	Offer        string  `json:"offer" firestore:"offer"`
+	OfferShake   string  `json:"offer_shake" firestore:"offer_shake"`
+	Latitude     float64 `json:"-" firestore:"latitude"`
+	Longitude    float64 `json:"-" firestore:"longitude"`
+	LocationType string  `json:"-" firestore:"location_type"`
+	IP           string  `json:"ip" firestore:"ip"`
+	Action       string  `json:"action" firestore:"action"`
+	ActionUID    string  `json:"action_uid" firestore:"action_uid"`
 }
 
-type Location struct {
-	Latitude  float64 `json:"latitude" firestore:"latitude"`
-	Longitude float64 `json:"longitude" firestore:"longitude"`
-	IP        string  `json:"ip" firestore:"ip"`
-	Type      string  `json:"type" firestore:"type"`
-}
-
-type LocationInput struct {
-	Data       string `json:"data" firestore:"data"`
-	Offer      string `json:"offer" firestore:"offer"`
-	OfferShake string `json:"offer_shake" firestore:"offer_shake"`
-	IP         string `json:"ip" firestore:"ip"`
-	Type       string `json:"type" firestore:"type"`
-}
-
-func (offer OfferStoreLocationTracking) GetUpdateOfferStoreLocationShake() map[string]interface{} {
+func (offer OfferStoreShakeLocation) GetUpdateOfferStoreShakeLocation() map[string]interface{} {
 	return map[string]interface{}{
-		"shake_location": offer.ShakeLocation,
-		"offer_uid":      offer.OfferUID,
-		"updated_at":     firestore.ServerTimestamp,
-	}
-}
-
-func (offer OfferStoreLocationTracking) GetUpdateOfferStoreLocationComplete() map[string]interface{} {
-	return map[string]interface{}{
-		"complete_location": offer.ShakeLocation,
-		"updated_at":        firestore.ServerTimestamp,
+		"data":          offer.Data,
+		"offer":         offer.Offer,
+		"offer_shake":   offer.OfferShake,
+		"latitude":      offer.Latitude,
+		"longitude":     offer.Longitude,
+		"location_type": offer.LocationType,
+		"ip":            offer.IP,
+		"action":        offer.Action,
+		"created_at":    firestore.ServerTimestamp,
 	}
 }
