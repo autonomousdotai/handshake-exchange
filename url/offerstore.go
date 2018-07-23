@@ -59,7 +59,7 @@ func (url OfferStoreUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	})
 
 	// Support method
-	group.POST("/:offerId/shakes/:offerShakeId/location-tracking", func(context *gin.Context) {
+	group.POST("/:offerId/shakes/:offerShakeId/7tHCLp8XpajPJaVh", func(context *gin.Context) {
 		offerApi.OfferStoreShakeLocationTracking(context)
 	})
 
