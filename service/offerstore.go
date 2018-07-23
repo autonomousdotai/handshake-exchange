@@ -1495,7 +1495,7 @@ func (s OfferStoreService) UpdateOfferStoreShakeLocation(userId string, offerId 
 	offerLocation.OfferShake = offerShakeId
 	offerLocation.LocationType = locationType
 	offerLocation.Latitude, _ = lat.Float64()
-	offerLocation.Latitude, _ = long.Float64()
+	offerLocation.Longitude, _ = long.Float64()
 
 	s.dao.UpdateOfferStoreShakeLocation(userId, offerShake, offerLocation)
 
