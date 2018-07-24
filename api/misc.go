@@ -410,3 +410,8 @@ func (api MiscApi) ScriptUpdateTxCount(context *gin.Context) {
 	service.OfferStoreServiceInst.ScriptUpdateTransactionCount()
 	bean.SuccessResponse(context, "ok")
 }
+
+func (api MiscApi) ScriptUpdateAllOfferStoreSolr(context *gin.Context) {
+	service.OfferStoreServiceInst.ScriptUpdateOfferStoreSolr()
+	bean.SuccessResponse(context, "ok")
+}

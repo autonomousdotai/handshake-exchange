@@ -2271,3 +2271,16 @@ func (s OfferStoreService) ScriptUpdateTransactionCount() error {
 
 	return t.Error
 }
+
+func (s OfferStoreService) ScriptUpdateOfferStoreSolr() error {
+	t := s.dao.ListOfferStore()
+	if !t.HasError() {
+		for _, item := range t.Objects {
+			offer := item.(bean.OfferStore)
+			fmt.Printf("Updating store %s", offer.UID)
+			fmt.Println("")
+			solr_service.UpdateObject(bean.NewSolrFromOfferStore(offer, bean.OfferStoreItem{}))
+		}
+	}
+	return t.Error
+}
