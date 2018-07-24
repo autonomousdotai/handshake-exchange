@@ -31,6 +31,10 @@ type SolrOfferObject struct {
 	Offline       int      `json:"offline_i"`
 	Review        float64  `json:"review_d"`
 	ReviewCount   int      `json:"review_count_i"`
+	SellETH       float64  `json:"sell_eth_d"`
+	BuyETH        float64  `json:"buy_eth_d"`
+	SellBTC       float64  `json:"sell_btc_d"`
+	BuyBTC        float64  `json:"buy_btc_d"`
 	InitAt        int64    `json:"init_at_i"`
 	LastUpdateAt  int64    `json:"last_update_at_i"`
 }
@@ -331,6 +335,14 @@ func NewSolrFromOfferStore(offer OfferStore, item OfferStoreItem) (solr SolrOffe
 		status := value.Status
 		if key == item.Currency {
 			status = item.Status
+		}
+
+		if key == BTC.Code {
+			solr.BuyBTC, _ = buyPercentage.Float64()
+			solr.SellBTC, _ = sellPercentage.Float64()
+		} else if key == ETH.Code {
+			solr.BuyETH, _ = buyPercentage.Float64()
+			solr.SellETH, _ = sellPercentage.Float64()
 		}
 
 		items[key] = SolrOfferStoreItemSnapshot{
