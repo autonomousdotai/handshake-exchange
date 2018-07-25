@@ -16,6 +16,7 @@ import (
 	"github.com/shopspring/decimal"
 	"strconv"
 	"time"
+	"strings"
 )
 
 type OfferStoreService struct {
@@ -1373,7 +1374,8 @@ func (s OfferStoreService) PreShakeOffChainOfferStoreShake(address string, amoun
 
 	if sub.Equal(common.Zero) {
 		// Good
-		_, ce = s.UpdateOnChainOfferStoreShake(offer.UID, addressMap.Offer, 0, bean.OFFER_STORE_SHAKE_STATUS_SHAKING, bean.OFFER_STORE_SHAKE_STATUS_SHAKE)
+		ids := strings.Split(offer.OffChainId, "-")
+		_, ce = s.UpdateOnChainOfferStoreShake(ids[0], addressMap.Offer, 0, bean.OFFER_STORE_SHAKE_STATUS_SHAKING, bean.OFFER_STORE_SHAKE_STATUS_SHAKE)
 		if ce.HasError() {
 			return
 		}
