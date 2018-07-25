@@ -15,8 +15,8 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/service/notification"
 	"github.com/shopspring/decimal"
 	"strconv"
-	"time"
 	"strings"
+	"time"
 )
 
 type OfferStoreService struct {
