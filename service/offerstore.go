@@ -266,7 +266,7 @@ func (s OfferStoreService) RefillOfferStoreItem(userId string, offerId string, b
 	// Only sync to solr and notification firebase
 	solr_service.UpdateObject(bean.NewSolrFromOfferStore(offer, item))
 	dao.OfferStoreDaoInst.UpdateNotificationOfferStoreItem(offer, item)
-	offer.ItemSnapshots[item.Currency] = body
+	offer.ItemSnapshots[item.Currency] = item
 
 	return
 }

@@ -181,6 +181,7 @@ func (dao OfferStoreDao) UpdateRefillOfferStoreItem(offer bean.OfferStore, item 
 		batch.Set(mappingDocRef, mapping.GetAddOfferAddressMap())
 	}
 
+	offer.ItemSnapshots[item.Currency] = item
 	batch.Set(itemDocRef, item.GetUpdateOfferStoreItemRefill(), firestore.MergeAll)
 	batch.Set(docRef, offer.GetUpdateOfferStoreChangeSnapshot(), firestore.MergeAll)
 
