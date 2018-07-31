@@ -214,13 +214,14 @@ func SendOfferStoreItemAddedFCM(language string, fcm string) error {
 	return fcm_service.SendFCM(fcmObj)
 }
 
-func SendOfferStoreMakerSellShakeFCM(language string, fcm string, chatUsername string) error {
+func SendOfferStoreMakerSellShakeFCM(language string, fcm string, activeId string) error {
 	T, _ := i18n.Tfunc(language)
 
 	title := T("common_notification_title")
 	body := T("notification_offer_store_maker_sell_shake")
 	frontEndHost := os.Getenv("FRONTEND_HOST")
-	url := fmt.Sprintf("%s/%s/%s", frontEndHost, "chat", chatUsername)
+	// url := fmt.Sprintf("%s/%s/%s", frontEndHost, "chat", chatUsername)
+	url := fmt.Sprintf("%s/%s?id=2&tab=transaction&activeId=%s", frontEndHost, "me", activeId)
 
 	fcmObj := bean.FCMObject{
 		Notification: bean.FCMNotificationObject{
@@ -234,7 +235,7 @@ func SendOfferStoreMakerSellShakeFCM(language string, fcm string, chatUsername s
 	return fcm_service.SendFCM(fcmObj)
 }
 
-func SendOfferStoreTakerSellShakeFCM(language string, fcm string, currency string, chatUsername string) error {
+func SendOfferStoreTakerSellShakeFCM(language string, fcm string, currency string, activeId string) error {
 	T, _ := i18n.Tfunc(language)
 
 	title := T("common_notification_title")
@@ -242,7 +243,8 @@ func SendOfferStoreTakerSellShakeFCM(language string, fcm string, currency strin
 		"Currency": currency,
 	})
 	frontEndHost := os.Getenv("FRONTEND_HOST")
-	url := fmt.Sprintf("%s/%s/%s", frontEndHost, "chat", chatUsername)
+	// url := fmt.Sprintf("%s/%s/%s", frontEndHost, "chat", chatUsername)
+	url := fmt.Sprintf("%s/%s?id=2&tab=transaction&activeId=%s", frontEndHost, "me", activeId)
 
 	fcmObj := bean.FCMObject{
 		Notification: bean.FCMNotificationObject{
@@ -256,13 +258,14 @@ func SendOfferStoreTakerSellShakeFCM(language string, fcm string, currency strin
 	return fcm_service.SendFCM(fcmObj)
 }
 
-func SendOfferStoreMakerBuyShakeFCM(language string, fcm string, chatUsername string) error {
+func SendOfferStoreMakerBuyShakeFCM(language string, fcm string, activeId string) error {
 	T, _ := i18n.Tfunc(language)
 
 	title := T("common_notification_title")
 	body := T("notification_offer_store_maker_buy_shake")
 	frontEndHost := os.Getenv("FRONTEND_HOST")
-	url := fmt.Sprintf("%s/%s/%s", frontEndHost, "chat", chatUsername)
+	// url := fmt.Sprintf("%s/%s/%s", frontEndHost, "chat", chatUsername)
+	url := fmt.Sprintf("%s/%s?id=2&tab=transaction&activeId=%s", frontEndHost, "me", activeId)
 
 	fcmObj := bean.FCMObject{
 		Notification: bean.FCMNotificationObject{
@@ -276,7 +279,7 @@ func SendOfferStoreMakerBuyShakeFCM(language string, fcm string, chatUsername st
 	return fcm_service.SendFCM(fcmObj)
 }
 
-func SendOfferStoreTakerBuyShakeFCM(language string, fcm string, currency string, chatUsername string) error {
+func SendOfferStoreTakerBuyShakeFCM(language string, fcm string, currency string, activeId string) error {
 	T, _ := i18n.Tfunc(language)
 
 	title := T("common_notification_title")
@@ -284,7 +287,8 @@ func SendOfferStoreTakerBuyShakeFCM(language string, fcm string, currency string
 		"Currency": currency,
 	})
 	frontEndHost := os.Getenv("FRONTEND_HOST")
-	url := fmt.Sprintf("%s/%s/%s", frontEndHost, "chat", chatUsername)
+	// url := fmt.Sprintf("%s/%s/%s", frontEndHost, "chat", chatUsername)
+	url := fmt.Sprintf("%s/%s?id=2&tab=transaction&activeId=%s", frontEndHost, "me", activeId)
 
 	fcmObj := bean.FCMObject{
 		Notification: bean.FCMNotificationObject{

@@ -331,11 +331,11 @@ func SendOfferStoreShakeToFCM(offer bean.OfferStoreShake, offerStore bean.OfferS
 	if offer.Status == bean.OFFER_STORE_SHAKE_STATUS_PRE_SHAKE {
 	} else if offer.Status == bean.OFFER_STORE_SHAKE_STATUS_SHAKE {
 		if offer.Type == bean.OFFER_TYPE_BUY {
-			err = SendOfferStoreMakerBuyShakeFCM(offerStore.Language, offerStore.FCM, offerStore.ChatUsername)
-			err = SendOfferStoreTakerBuyShakeFCM(offer.Language, offer.FCM, offer.Currency, offer.ChatUsername)
+			err = SendOfferStoreMakerBuyShakeFCM(offerStore.Language, offerStore.FCM, offer.Id)
+			err = SendOfferStoreTakerBuyShakeFCM(offer.Language, offer.FCM, offer.Currency, offer.Id)
 		} else {
-			err = SendOfferStoreMakerSellShakeFCM(offerStore.Language, offerStore.FCM, offerStore.ChatUsername)
-			err = SendOfferStoreTakerSellShakeFCM(offer.Language, offer.FCM, offer.Currency, offer.ChatUsername)
+			err = SendOfferStoreMakerSellShakeFCM(offerStore.Language, offerStore.FCM, offer.Id)
+			err = SendOfferStoreTakerSellShakeFCM(offer.Language, offer.FCM, offer.Currency, offer.Id)
 		}
 	} else if offer.Status == bean.OFFER_STORE_SHAKE_STATUS_CANCELLED {
 
