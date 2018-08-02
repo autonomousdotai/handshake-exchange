@@ -62,27 +62,29 @@ type ReferralOfferStoreShake struct {
 
 func (b ReferralOfferStoreShake) GetAddData() map[string]interface{} {
 	return map[string]interface{}{
-		"uid":            b.UID,
-		"to_uid":         b.ToUID,
-		"to_username":    b.ToUsername,
-		"currency":       b.Currency,
-		"reward":         b.Reward,
-		"pending_reward": b.PendingReward,
-		"total_reward":   b.TotalReward,
-		"created_at":     firestore.ServerTimestamp,
+		"uid":                 b.UID,
+		"to_uid":              b.ToUID,
+		"to_username":         b.ToUsername,
+		"currency":            b.Currency,
+		"reward":              b.Reward,
+		"pending_reward":      b.PendingReward,
+		"total_reward":        b.TotalReward,
+		"referral_created_at": b.ReferralCreatedAt,
+		"created_at":          firestore.ServerTimestamp,
 	}
 }
 
 func (b ReferralOfferStoreShake) GetOverridePendingReward() map[string]interface{} {
 	return map[string]interface{}{
-		"uid":            b.UID,
-		"to_uid":         b.ToUID,
-		"to_username":    b.ToUsername,
-		"currency":       b.Currency,
-		"reward":         b.Reward,
-		"pending_reward": b.PendingReward,
-		"total_reward":   b.TotalReward,
-		"created_at":     firestore.ServerTimestamp,
+		"uid":                 b.UID,
+		"to_uid":              b.ToUID,
+		"to_username":         b.ToUsername,
+		"currency":            b.Currency,
+		"reward":              b.Reward,
+		"pending_reward":      b.PendingReward,
+		"total_reward":        b.TotalReward,
+		"referral_created_at": b.ReferralCreatedAt,
+		"created_at":          firestore.ServerTimestamp,
 	}
 }
 
