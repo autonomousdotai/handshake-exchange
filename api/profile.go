@@ -19,10 +19,17 @@ func (api ProfileApi) AddProfile(context *gin.Context) {
 	if common.ValidateBody(context, &body) != nil {
 		return
 	}
+	refUserId := context.DefaultQuery("ref", "")
 
-	err := service.UserServiceInst.AddProfile(bean.Profile{UserId: strconv.Itoa(body.Id)})
+	userId := strconv.Itoa(body.Id)
+	err := service.UserServiceInst.AddProfile(bean.Profile{UserId: userId, ReferralUser: refUserId})
 	if api_error.PropagateErrorAndAbort(context, api_error.UpdateDataFailed, err) != nil {
 		return
+	}
+
+	service.ReferralServiceInst.AddReferral(userId)
+	if refUserId != "" {
+		service.ReferralServiceInst.AddReferralRecord(refUserId, userId)
 	}
 
 	bean.SuccessResponse(context, body)
@@ -106,4 +113,14 @@ func (api ProfileApi) ListTransactionCounts(context *gin.Context) {
 	}
 
 	bean.SuccessResponse(context, objs)
+}
+
+func (api ProfileApi) ListReferralSummary(context *gin.Context) {
+	userId := common.GetUserId(context)
+	to := dao.ReferralDaoInst.ListReferralSummary(userId)
+	if to.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, to.Objects)
 }

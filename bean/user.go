@@ -19,6 +19,8 @@ type Profile struct {
 	ActiveOffers      map[string]bool `json:"-" firestore:"active_offers"`
 	ActiveOfferStores map[string]bool `json:"-" firestore:"active_offer_stores"`
 	OfferRejectLock   OfferRejectLock `json:"offer_reject_lock" firestore:"offer_reject_lock"`
+	ReferralUser      string          `json:"-" firestore:"referral_user"`
+	CreatedAt         time.Time       `json:"-" firestore:"created_at"`
 }
 
 type OfferRejectLock struct {
@@ -45,6 +47,7 @@ func (profile Profile) GetAddProfile() map[string]interface{} {
 		"credit_card_status":  CREDIT_CARD_STATUS_OK,
 		"active_offers":       offerMap,
 		"active_offer_stores": offerStoreMap,
+		"referral_user":       profile.ReferralUser,
 		"created_at":          firestore.ServerTimestamp,
 	}
 }

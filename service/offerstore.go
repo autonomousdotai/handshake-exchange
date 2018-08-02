@@ -901,6 +901,25 @@ func (s OfferStoreService) AcceptOfferStoreShake(userId string, offerId string, 
 	return
 }
 
+func (s OfferStoreService) TestReferralRecord(userId string, offerId string, offerShakeId string) (offerShake bean.OfferStoreShake, ce SimpleContextError) {
+	profile := GetProfile(s.userDao, userId, &ce)
+	if ce.HasError() {
+		return
+	}
+	offer := *GetOfferStore(*s.dao, offerId, &ce)
+	if ce.HasError() {
+		return
+	}
+	offerShake = *GetOfferStoreShake(*s.dao, offerId, offerShakeId, &ce)
+	if ce.HasError() {
+		return
+	}
+
+	ReferralServiceInst.AddReferralOfferStoreShake(*profile, offer, offerShake)
+
+	return
+}
+
 func (s OfferStoreService) CompleteOfferStoreShake(userId string, offerId string, offerShakeId string) (offerShake bean.OfferStoreShake, ce SimpleContextError) {
 	profile := GetProfile(s.userDao, userId, &ce)
 	if ce.HasError() {
@@ -919,16 +938,20 @@ func (s OfferStoreService) CompleteOfferStoreShake(userId string, offerId string
 		return
 	}
 
+	// This is profile of user (not shop) to give referral bonus
+	var userProfile bean.Profile
 	if offerShake.Type == bean.OFFER_TYPE_SELL {
 		if profile.UserId != offer.UID {
 			ce.SetStatusKey(api_error.InvalidRequestBody)
 			return
 		}
+		userProfile = *GetProfile(s.userDao, offerShake.UID, &SimpleContextError{})
 	} else {
 		if profile.UserId != offerShake.UID {
 			ce.SetStatusKey(api_error.InvalidRequestBody)
 			return
 		}
+		userProfile = *profile
 	}
 
 	if offerShake.Status != bean.OFFER_STORE_SHAKE_STATUS_SHAKE {
@@ -947,6 +970,7 @@ func (s OfferStoreService) CompleteOfferStoreShake(userId string, offerId string
 			return
 		}
 		s.updateSuccessTransCount(offer, offerShake, userId)
+		ReferralServiceInst.AddReferralOfferStoreShake(userProfile, offer, offerShake)
 	}
 
 	err := s.dao.UpdateOfferStoreShakeComplete(offer, offerShake, *profile)
@@ -1212,6 +1236,11 @@ func (s OfferStoreService) UpdateOnChainOfferStoreShake(offerId string, offerSha
 		}
 	} else if offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_COMPLETED {
 		s.updateSuccessTransCount(offer, offerShake, offerId)
+		profile := GetProfile(s.userDao, offerShake.UID, &ce)
+		if ce.HasError() {
+			return
+		}
+		ReferralServiceInst.AddReferralOfferStoreShake(*profile, offer, offerShake)
 	}
 	if offerShake.Hid == 0 {
 		offerShake.Hid = hid

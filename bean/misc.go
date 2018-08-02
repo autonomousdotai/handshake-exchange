@@ -29,6 +29,8 @@ const CONFIG_OFFER_STORE_FREE_START = "OFFER_STORE_FREE_START"
 const OFFER_STORE_FREE_START_ON = "1"
 const OFFER_STORE_FREE_START_OFF = "0"
 
+const CONFIG_OFFER_STORE_REFERRAL_PERCENTAGE = "OFFER_STORE_REFERRAL_PERCENTAGE"
+
 type SystemFee struct {
 	Key   string  `json:"key" firestore:"key"`
 	Value float64 `json:"value" firestore:"value"`

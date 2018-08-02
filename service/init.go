@@ -28,3 +28,8 @@ var OfferStoreServiceInst = OfferStoreService{
 	transDao: &dao.TransactionDaoInst,
 	offerDao: &dao.OfferDaoInst,
 }
+
+var ReferralServiceInst = ReferralService{
+	dao:     &dao.ReferralDao{},
+	miscDao: &dao.MiscDaoInst,
+}

@@ -165,6 +165,19 @@ func (api OfferStoreApi) CompleteOfferStoreShake(context *gin.Context) {
 	bean.SuccessResponse(context, offerShake)
 }
 
+func (api OfferStoreApi) TestReferralRecord(context *gin.Context) {
+	userId := common.GetUserId(context)
+	offerId := context.Param("offerId")
+	offerShakeId := context.Param("offerShakeId")
+
+	offerShake, ce := service.OfferStoreServiceInst.TestReferralRecord(userId, offerId, offerShakeId)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, offerShake)
+}
+
 func (api OfferStoreApi) AcceptOfferStoreShake(context *gin.Context) {
 	userId := common.GetUserId(context)
 	offerId := context.Param("offerId")

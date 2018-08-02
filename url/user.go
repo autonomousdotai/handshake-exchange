@@ -30,6 +30,9 @@ func (url UserUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	group.GET("/transaction-counts", func(context *gin.Context) {
 		profileApi.ListTransactionCounts(context)
 	})
+	group.GET("/referral-summary", func(context *gin.Context) {
+		profileApi.ListReferralSummary(context)
+	})
 
 	return group
 }
