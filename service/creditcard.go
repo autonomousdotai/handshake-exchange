@@ -112,6 +112,8 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 			return
 		}
 		saveCard = true
+	} else {
+		token = paymentMethodData.Token
 	}
 	if paymentMethodData.Token == "true" {
 		ccLimitCE := UserServiceInst.CheckCCLimit(offerBody.UID, offerBody.FiatAmount)
@@ -270,7 +272,15 @@ func (s CreditCardService) saveCreditCard(userId string, paymentMethodData bean.
 	profileTO := s.userDao.GetProfile(userId)
 	profile := profileTO.Object.(bean.Profile)
 	// Need to create another token to save customer
-	token, err := stripe_service.CreateToken(paymentMethodData.CCNum, paymentMethodData.ExpirationDate, paymentMethodData.CVV)
+	var token string
+	var err error
+
+	if paymentMethodData.Token == "" {
+		token, err = stripe_service.CreateToken(paymentMethodData.CCNum, paymentMethodData.ExpirationDate, paymentMethodData.CVV)
+	} else {
+		token = paymentMethodData.Token
+	}
+
 	if err == nil {
 		token, _ = stripe_service.CreateCustomer(profile.UserId, token)
 		ccUserLimit, err := UserServiceInst.GetUserCCLimitFirstLevel()
