@@ -287,6 +287,7 @@ type OfferConfirmingAddressMap struct {
 	Type       string `json:"type" firestore:"type"`
 	TxHash     string `json:"tx_hash" firestore:"tx_hash"`
 	Amount     string `json:"amount" firestore:"amount"`
+	FiatAmount string `json:"fiat_amount" firestore:"fiat_amount"`
 	Currency   string `json:"currency" firestore:"currency"`
 	ExternalId string `json:"external_id" firestore:"external_id"`
 }
@@ -300,6 +301,7 @@ func (offer OfferConfirmingAddressMap) GetAddOfferConfirmingAddressMap() map[str
 		"external_id": offer.ExternalId,
 		"tx_hash":     offer.TxHash,
 		"amount":      offer.Amount,
+		"fiat_amount": offer.FiatAmount,
 		"currency":    offer.Currency,
 		"type":        offer.Type,
 		"created_at":  firestore.ServerTimestamp,

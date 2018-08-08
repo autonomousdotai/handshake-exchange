@@ -134,6 +134,9 @@ func (url CronJobUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	group.POST("/script-update-xyz-123", func(context *gin.Context) {
 		miscApi.ScriptUpdateAllOfferStoreSolr(context)
 	})
+	group.GET("/btc-confirmations/:txId", func(context *gin.Context) {
+		miscApi.GetBTCConfirmation(context)
+	})
 
 	return group
 }

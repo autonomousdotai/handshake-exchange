@@ -8,6 +8,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/dao"
 	// "github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/firebase_service"
+	"github.com/ninjadotorg/handshake-exchange/service"
 )
 
 type CoinbaseApi struct {
@@ -75,6 +76,7 @@ func (api CoinbaseApi) ReceiveCallback(context *gin.Context) {
 						return
 					}
 					offerAddr := offerAddrTO.Object.(bean.OfferAddressMap)
+					_, _, fiatAmount, _ := service.OfferStoreServiceInst.GetQuote(bean.OFFER_TYPE_BUY, amountObj, currencyObj, bean.USD.Code)
 					err := dao.OfferDaoInst.AddOfferConfirmingAddressMap(bean.OfferConfirmingAddressMap{
 						UID:        offerAddr.UID,
 						Address:    offerAddr.Address,
@@ -82,6 +84,7 @@ func (api CoinbaseApi) ReceiveCallback(context *gin.Context) {
 						OfferRef:   offerAddr.OfferRef,
 						Type:       offerAddr.Type,
 						Amount:     amountObj,
+						FiatAmount: fiatAmount.StringFixed(2),
 						TxHash:     bodyNotification.AdditionalData.Hash,
 						ExternalId: bodyNotification.AdditionalData.Transaction.Id,
 						Currency:   currencyObj,

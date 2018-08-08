@@ -8,6 +8,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/dao"
 	"github.com/ninjadotorg/handshake-exchange/integration/blockchainio_service"
+	"github.com/ninjadotorg/handshake-exchange/integration/chainso_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/crypto_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/solr_service"
@@ -915,8 +916,12 @@ func (s OfferService) FinishOfferConfirmingAddresses() (finishedInstantOffers []
 		return
 	} else {
 		for _, pendingOffer := range pendingOffers {
-			bodyTransaction, err := coinbase_service.GetTransaction(pendingOffer.ExternalId, pendingOffer.Currency)
-			if err == nil && bodyTransaction.Status == "completed" {
+			fiatAmount := common.StringToDecimal(pendingOffer.FiatAmount)
+			confirmationRequired := s.getConfirmationRange(fiatAmount)
+			// bodyTransaction, err := coinbase_service.GetTransaction(pendingOffer.ExternalId, pendingOffer.Currency)
+			confirmation, err := chainso_service.GetConfirmations(pendingOffer.TxHash)
+			// if err == nil && bodyTransaction.Status == "completed" {
+			if err == nil && confirmation >= confirmationRequired {
 				completed := false
 				if pendingOffer.Type == bean.OFFER_ADDRESS_MAP_OFFER {
 					offer, ce := s.ActiveOffer(pendingOffer.Address, pendingOffer.Amount)
@@ -942,6 +947,8 @@ func (s OfferService) FinishOfferConfirmingAddresses() (finishedInstantOffers []
 				if completed {
 					dao.OfferDaoInst.RemoveOfferConfirmingAddressMap(pendingOffer.TxHash)
 				}
+			} else {
+				time.Sleep(1 * time.Second)
 			}
 		}
 	}
@@ -1225,4 +1232,14 @@ func (s OfferService) sendTransaction(address string, amountStr string, currency
 	}
 
 	return ""
+}
+
+func (s OfferService) getConfirmationRange(fiatAmount decimal.Decimal) int {
+	if fiatAmount.LessThan(decimal.NewFromFloat(2001)) {
+		return 1
+	} else if fiatAmount.LessThan(decimal.NewFromFloat(5001)) {
+		return 3
+	}
+
+	return 6
 }

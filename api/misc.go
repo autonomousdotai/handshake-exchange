@@ -6,6 +6,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/bean"
 	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/dao"
+	"github.com/ninjadotorg/handshake-exchange/integration/chainso_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/openexchangerates_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/solr_service"
@@ -414,4 +415,11 @@ func (api MiscApi) ScriptUpdateTxCount(context *gin.Context) {
 func (api MiscApi) ScriptUpdateAllOfferStoreSolr(context *gin.Context) {
 	service.OfferStoreServiceInst.ScriptUpdateOfferStoreSolr()
 	bean.SuccessResponse(context, "ok")
+}
+
+func (api MiscApi) GetBTCConfirmation(context *gin.Context) {
+	txId := context.Param("txId")
+	confirmations, _ := chainso_service.GetConfirmations(txId)
+
+	bean.SuccessResponse(context, confirmations)
 }
