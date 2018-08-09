@@ -31,6 +31,20 @@ func CreateToken(cardNum string, date string, cvv string) (string, error) {
 	return token.ID, err
 }
 
+func CreateCard(token string, customerId string) (string, error) {
+	sc := &client.API{}
+	sc.Init(os.Getenv("STRIPE_SECRET_KEY"), nil)
+
+	tokenParams := &stripe.CardParams{
+		Token:    token,
+		Customer: customerId,
+	}
+
+	stripeCard, err := sc.Cards.New(tokenParams)
+
+	return stripeCard.ID, err
+}
+
 func CreateCustomer(description string, token string) (string, error) {
 	sc := &client.API{}
 	sc.Init(os.Getenv("STRIPE_SECRET_KEY"), nil)
@@ -39,6 +53,18 @@ func CreateCustomer(description string, token string) (string, error) {
 		Desc: description,
 	}
 	customerParams.SetSource(token) // obtained with Stripe.js
+	c, err := sc.Customers.New(customerParams)
+
+	return c.ID, err
+}
+
+func CreateCustomerRaw(description string) (string, error) {
+	sc := &client.API{}
+	sc.Init(os.Getenv("STRIPE_SECRET_KEY"), nil)
+
+	customerParams := &stripe.CustomerParams{
+		Desc: description,
+	}
 	c, err := sc.Customers.New(customerParams)
 
 	return c.ID, err

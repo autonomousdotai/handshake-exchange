@@ -294,7 +294,11 @@ func (s CreditCardService) saveCreditCard(userId string, token string, paymentMe
 	}
 
 	if err == nil {
-		token, _ = stripe_service.CreateCustomer(profile.UserId, token)
+		// token, _ = stripe_service.CreateCustomer(profile.UserId, token)
+		token, _ = stripe_service.CreateCustomerRaw(profile.UserId)
+		// Link to card
+		stripe_service.CreateCard(paymentMethodData.Token, token)
+
 		ccUserLimit, err := UserServiceInst.GetUserCCLimitFirstLevel()
 		if err == nil {
 			err = s.userDao.UpdateProfileCreditCard(userId, bean.UserCreditCard{
