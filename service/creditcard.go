@@ -204,6 +204,9 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 
 	if isSuccess {
 		if saveCard {
+			if token != "" {
+				token = stripeCharge.Source.Card.ID
+			}
 			token, _ = s.saveCreditCard(userId, token, paymentMethodData)
 		} else {
 			token = paymentMethodData.Token
