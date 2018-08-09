@@ -131,10 +131,12 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 	statement := ""
 	description := fmt.Sprintf("User %s buys %s %s", offer.UID, offerBody.Amount, offerBody.Currency)
 
-	//Try to save card
+	//Try to save card first then use stripe customer ID to charge
 	cardToken := ""
 	if saveCard {
 		cardToken, _ = s.saveCreditCard(userId, token, paymentMethodData)
+		paymentMethodData.Token = cardToken
+		token = ""
 	}
 
 	stripeCharge, err := stripe_service.Charge(token, paymentMethodData.Token, fiatAmount, statement, description)
@@ -210,13 +212,13 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 	}
 
 	if isSuccess {
-		if saveCard {
-			token = cardToken
-		} else {
-			token = paymentMethodData.Token
-		}
+		//if saveCard {
+		//	token = cardToken
+		//} else {
+		//	token = paymentMethodData.Token
+		//}
 		// Update CC Track amount
-		s.userDao.UpdateUserCCLimitAmount(userId, token, fiatAmount)
+		s.userDao.UpdateUserCCLimitAmount(userId, paymentMethodData.Token, fiatAmount)
 
 		notification.SendInstantOfferNotification(offer)
 	}
