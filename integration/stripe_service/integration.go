@@ -56,10 +56,10 @@ func Charge(token string, customerId string, amount decimal.Decimal, statement s
 		Statement: statement,
 		NoCapture: true,
 	}
-	if customerId != "" {
-		chargeParams.Customer = customerId
-	} else {
+	if token != "" {
 		chargeParams.SetSource(token)
+	} else {
+		chargeParams.Customer = customerId
 	}
 
 	ch, err := sc.Charges.New(chargeParams)

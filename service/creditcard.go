@@ -121,6 +121,7 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 			ce.SetError(api_error.CCOverLimit, ccLimitCE.Error)
 			return
 		}
+		token = ""
 		paymentMethodData.Token = profile.CreditCard.Token
 	}
 
