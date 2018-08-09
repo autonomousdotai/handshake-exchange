@@ -202,7 +202,7 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 
 	if isSuccess {
 		if saveCard {
-			token, _ = s.saveCreditCard(userId, paymentMethodData)
+			token, _ = s.saveCreditCard(userId, token, paymentMethodData)
 		} else {
 			token = paymentMethodData.Token
 		}
@@ -268,15 +268,14 @@ func (s CreditCardService) FinishInstantOffers() (finishedInstantOffers []bean.I
 	return
 }
 
-func (s CreditCardService) saveCreditCard(userId string, paymentMethodData bean.CreditCardInfo) (string, error) {
+func (s CreditCardService) saveCreditCard(userId string, token string, paymentMethodData bean.CreditCardInfo) (string, error) {
 	ccNum := paymentMethodData.CCNum[len(paymentMethodData.CCNum)-4:]
 	profileTO := s.userDao.GetProfile(userId)
 	profile := profileTO.Object.(bean.Profile)
 	// Need to create another token to save customer
-	var token string
 	var err error
 
-	if paymentMethodData.Token == "" {
+	if token == "" {
 		token, err = stripe_service.CreateToken(paymentMethodData.CCNum, paymentMethodData.ExpirationDate, paymentMethodData.CVV)
 	} else {
 		token = paymentMethodData.Token
