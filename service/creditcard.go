@@ -114,6 +114,7 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 		saveCard = true
 	} else {
 		token = paymentMethodData.Token
+		saveCard = true
 	}
 	if paymentMethodData.Token == "true" {
 		ccLimitCE := UserServiceInst.CheckCCLimit(offerBody.UID, offerBody.FiatAmount)
@@ -123,6 +124,7 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 		}
 		token = ""
 		paymentMethodData.Token = profile.CreditCard.Token
+		saveCard = false
 	}
 
 	fiatAmount, _ := decimal.NewFromString(offerBody.FiatAmount)
