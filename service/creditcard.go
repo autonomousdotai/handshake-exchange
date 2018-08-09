@@ -130,6 +130,13 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 	fiatAmount, _ := decimal.NewFromString(offerBody.FiatAmount)
 	statement := ""
 	description := fmt.Sprintf("User %s buys %s %s", offer.UID, offerBody.Amount, offerBody.Currency)
+
+	//Try to save card
+	cardToken := ""
+	if saveCard {
+		cardToken, _ = s.saveCreditCard(userId, token, paymentMethodData)
+	}
+
 	stripeCharge, err := stripe_service.Charge(token, paymentMethodData.Token, fiatAmount, statement, description)
 	if ce.SetError(api_error.ExternalApiFailed, err) {
 		return
@@ -204,7 +211,7 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 
 	if isSuccess {
 		if saveCard {
-			token, _ = s.saveCreditCard(userId, token, paymentMethodData)
+			token = cardToken
 		} else {
 			token = paymentMethodData.Token
 		}
@@ -281,7 +288,7 @@ func (s CreditCardService) saveCreditCard(userId string, token string, paymentMe
 		ccNum = paymentMethodData.CCNum[len(paymentMethodData.CCNum)-4:]
 		token, err = stripe_service.CreateToken(paymentMethodData.CCNum, paymentMethodData.ExpirationDate, paymentMethodData.CVV)
 	} else {
-		token = paymentMethodData.CVV
+		//token = paymentMethodData.CVV
 	}
 
 	if err == nil {
