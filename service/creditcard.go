@@ -136,8 +136,10 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 	if saveCard {
 		// assign to cardToken here
 		s.saveCreditCard(userId, token, paymentMethodData)
+		token = paymentMethodData.Token
+
 		// paymentMethodData.Token = cardToken
-		token = ""
+		// token = ""
 	}
 
 	stripeCharge, err := stripe_service.Charge(token, paymentMethodData.Token, fiatAmount, statement, description)
