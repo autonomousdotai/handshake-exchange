@@ -131,17 +131,6 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 	statement := ""
 	description := fmt.Sprintf("User %s buys %s %s", offer.UID, offerBody.Amount, offerBody.Currency)
 
-	//Try to save card first then use stripe customer ID to charge
-	// cardToken := ""
-	if saveCard {
-		// assign to cardToken here
-		s.saveCreditCard(userId, token, paymentMethodData)
-		token = paymentMethodData.Token
-
-		// paymentMethodData.Token = cardToken
-		// token = ""
-	}
-
 	stripeCharge, err := stripe_service.Charge(token, paymentMethodData.Token, fiatAmount, statement, description)
 	if ce.SetError(api_error.ExternalApiFailed, err) {
 		return
@@ -215,11 +204,12 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 	}
 
 	if isSuccess {
-		//if saveCard {
-		//	token = cardToken
-		//} else {
-		//	token = paymentMethodData.Token
-		//}
+		if saveCard {
+			// Not for now
+			// s.saveCreditCard(userId, token, paymentMethodData)
+		} else {
+			token = paymentMethodData.Token
+		}
 		// Update CC Track amount
 		s.userDao.UpdateUserCCLimitAmount(userId, paymentMethodData.Token, fiatAmount)
 
