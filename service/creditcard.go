@@ -132,10 +132,11 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 	description := fmt.Sprintf("User %s buys %s %s", offer.UID, offerBody.Amount, offerBody.Currency)
 
 	//Try to save card first then use stripe customer ID to charge
-	cardToken := ""
+	// cardToken := ""
 	if saveCard {
-		cardToken, _ = s.saveCreditCard(userId, token, paymentMethodData)
-		paymentMethodData.Token = cardToken
+		// assign to cardToken here
+		s.saveCreditCard(userId, token, paymentMethodData)
+		// paymentMethodData.Token = cardToken
 		token = ""
 	}
 
