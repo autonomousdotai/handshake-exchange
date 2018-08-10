@@ -125,6 +125,11 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 		token = ""
 		paymentMethodData.Token = profile.CreditCard.Token
 		saveCard = false
+	} else {
+		chargeable, chkErr := stripe_service.GetSourceChargeable(token)
+		if !chargeable || ce.SetError(api_error.TokenInvalid, chkErr) {
+			return
+		}
 	}
 
 	fiatAmount, _ := decimal.NewFromString(offerBody.FiatAmount)

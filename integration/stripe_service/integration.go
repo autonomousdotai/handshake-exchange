@@ -70,6 +70,14 @@ func CreateCustomerRaw(description string) (string, error) {
 	return c.ID, err
 }
 
+func GetSourceChargeable(token string) (bool, error) {
+	sc := &client.API{}
+	sc.Init(os.Getenv("STRIPE_SECRET_KEY"), nil)
+
+	source, err := sc.Sources.Get(token, nil)
+	return source.Status == stripe.SourceStatusChargeable, err
+}
+
 func Charge(token string, customerId string, amount decimal.Decimal, statement string, description string) (*stripe.Charge, error) {
 	sc := &client.API{}
 	sc.Init(os.Getenv("STRIPE_SECRET_KEY"), nil)
