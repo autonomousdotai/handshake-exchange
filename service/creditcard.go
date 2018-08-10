@@ -126,10 +126,10 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 		paymentMethodData.Token = profile.CreditCard.Token
 		saveCard = false
 	} else {
-		chargeable, chkErr := stripe_service.GetSourceChargeable(token)
-		if ce.SetError(api_error.InvalidCC, chkErr) {
-			return
-		}
+		chargeable, _ := stripe_service.GetSourceChargeable(token)
+		//if ce.SetError(api_error.InvalidCC, chkErr) {
+		//	return
+		//}
 		if !chargeable {
 			ce.SetStatusKey(api_error.InvalidCC)
 			return
