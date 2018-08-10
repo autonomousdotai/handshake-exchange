@@ -98,23 +98,6 @@ func (api OfferStoreApi) RemoveOfferStoreItem(context *gin.Context) {
 	bean.SuccessResponse(context, offer)
 }
 
-func (api OfferStoreApi) RefillOfferStoreItem(context *gin.Context) {
-	userId := common.GetUserId(context)
-	offerId := context.Param("offerId")
-
-	var body bean.OfferStoreItem
-	if common.ValidateBody(context, &body) != nil {
-		return
-	}
-
-	offer, ce := service.OfferStoreServiceInst.RefillOfferStoreItem(userId, offerId, body)
-	if ce.ContextValidate(context) {
-		return
-	}
-
-	bean.SuccessResponse(context, offer)
-}
-
 func (api OfferStoreApi) CreateOfferStoreShake(context *gin.Context) {
 	userId := common.GetUserId(context)
 	chainId := common.GetChainId(context)
@@ -165,45 +148,6 @@ func (api OfferStoreApi) CompleteOfferStoreShake(context *gin.Context) {
 	bean.SuccessResponse(context, offerShake)
 }
 
-func (api OfferStoreApi) TestReferralRecord(context *gin.Context) {
-	userId := common.GetUserId(context)
-	offerId := context.Param("offerId")
-	offerShakeId := context.Param("offerShakeId")
-
-	offerShake, ce := service.OfferStoreServiceInst.TestReferralRecord(userId, offerId, offerShakeId)
-	if ce.ContextValidate(context) {
-		return
-	}
-
-	bean.SuccessResponse(context, offerShake)
-}
-
-func (api OfferStoreApi) AcceptOfferStoreShake(context *gin.Context) {
-	userId := common.GetUserId(context)
-	offerId := context.Param("offerId")
-	offerShakeId := context.Param("offerShakeId")
-
-	offerShake, ce := service.OfferStoreServiceInst.AcceptOfferStoreShake(userId, offerId, offerShakeId)
-	if ce.ContextValidate(context) {
-		return
-	}
-
-	bean.SuccessResponse(context, offerShake)
-}
-
-func (api OfferStoreApi) CancelOfferStoreShake(context *gin.Context) {
-	userId := common.GetUserId(context)
-	offerId := context.Param("offerId")
-	offerShakeId := context.Param("offerShakeId")
-
-	offerShake, ce := service.OfferStoreServiceInst.CancelOfferStoreShake(userId, offerId, offerShakeId)
-	if ce.ContextValidate(context) {
-		return
-	}
-
-	bean.SuccessResponse(context, offerShake)
-}
-
 func (api OfferStoreApi) ReviewOfferStore(context *gin.Context) {
 	userId := common.GetUserId(context)
 	offerId := context.Param("offerId")
@@ -217,55 +161,6 @@ func (api OfferStoreApi) ReviewOfferStore(context *gin.Context) {
 	}
 
 	bean.SuccessResponse(context, offerStore)
-}
-
-func (api OfferStoreApi) OnChainOfferStoreTracking(context *gin.Context) {
-	userId := common.GetUserId(context)
-	offerId := context.Param("offerId")
-	var body bean.OfferOnChainTransaction
-	if common.ValidateBody(context, &body) != nil {
-		return
-	}
-
-	offer, ce := service.OfferStoreServiceInst.OnChainOfferStoreTracking(userId, offerId, body)
-	if ce.ContextValidate(context) {
-		return
-	}
-
-	bean.SuccessResponse(context, offer)
-}
-
-func (api OfferStoreApi) OnChainOfferStoreItemTracking(context *gin.Context) {
-	userId := common.GetUserId(context)
-	offerId := context.Param("offerId")
-	var body bean.OfferOnChainTransaction
-	if common.ValidateBody(context, &body) != nil {
-		return
-	}
-
-	offer, ce := service.OfferStoreServiceInst.OnChainOfferStoreItemTracking(userId, offerId, body)
-	if ce.ContextValidate(context) {
-		return
-	}
-
-	bean.SuccessResponse(context, offer)
-}
-
-func (api OfferStoreApi) OnChainOfferStoreShakeTracking(context *gin.Context) {
-	userId := common.GetUserId(context)
-	offerId := context.Param("offerId")
-	offerShakeId := context.Param("offerShakeId")
-	var body bean.OfferOnChainTransaction
-	if common.ValidateBody(context, &body) != nil {
-		return
-	}
-
-	offer, ce := service.OfferStoreServiceInst.OnChainOfferStoreShakeTracking(userId, offerId, offerShakeId, body)
-	if ce.ContextValidate(context) {
-		return
-	}
-
-	bean.SuccessResponse(context, offer)
 }
 
 func (api OfferStoreApi) OfferStoreShakeLocationTracking(context *gin.Context) {

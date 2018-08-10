@@ -10,7 +10,6 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/integration/blockchainio_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/chainso_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
-	"github.com/ninjadotorg/handshake-exchange/integration/crypto_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/solr_service"
 	"github.com/ninjadotorg/handshake-exchange/service/notification"
 	"github.com/shopspring/decimal"
@@ -636,79 +635,6 @@ func (s OfferService) OnChainOfferTracking(userId string, offerId string, body b
 	return
 }
 
-func (s OfferService) CheckOfferOnChainTransaction() error {
-	originalList, err1 := s.dao.ListOfferOnChainActionTracking(true)
-	onChainList, err2 := s.dao.ListOfferOnChainActionTracking(false)
-	if err1 != nil {
-		return err1
-	}
-	if err2 != nil {
-		return err2
-	}
-
-	onChainMap := map[string]bean.OfferOnChainActionTracking{}
-	for _, item := range onChainList {
-		onChainMap[item.OfferRef] = item
-	}
-	for _, item := range originalList {
-		txOk := true
-		onChainItem, ok := onChainMap[item.OfferRef]
-		if ok {
-			txHash := onChainItem.TxHash
-			if txHash != "" {
-				fmt.Println("There is on chain tx hash")
-				fmt.Println(txHash)
-				isSuccess, isPending, err := crypto_service.GetTransactionReceipt(txHash, item.Currency)
-				fmt.Printf("%s %s %s", isSuccess, isPending, err)
-				if err == nil {
-					// Completed and failed
-					if !isPending {
-						if !isSuccess {
-							txOk = false
-						} else {
-							s.dao.RemoveOfferOnChainActionTracking(item.Id, true)
-						}
-					}
-				}
-			} else {
-				fmt.Println("There is NO on chain tx hash")
-				txOk = false
-			}
-		} else {
-			fmt.Println("There is NO on chain tx hash")
-			fmt.Println(int64(time.Now().UTC().Sub(item.CreatedAt).Minutes()))
-			// Reverse the status if there is no tx hash within 5 minutes
-			if int64(time.Now().UTC().Sub(item.CreatedAt).Minutes()) > 5 {
-				txOk = false
-			}
-		}
-
-		if !txOk {
-			if item.Type == bean.OFFER_ADDRESS_MAP_OFFER {
-				_, ce := s.RevertOfferAction(item.UID, item.OfferRef)
-				fmt.Println(ce.Error)
-			} else if item.Type == bean.OFFER_ADDRESS_MAP_OFFER_STORE {
-				if item.Action == bean.OFFER_STORE_STATUS_CREATED {
-					_, ce := OfferStoreServiceInst.RemoveFailedOfferStoreItem(item.UID, item.Offer, item.Currency)
-					fmt.Println(ce.Error)
-				} else if item.Action == bean.OFFER_STORE_STATUS_CLOSING {
-					_, ce := OfferStoreServiceInst.OpenCloseFailedOfferStore(item.UID, item.Offer, item.Currency)
-					fmt.Println(ce.Error)
-				}
-			} else if item.Type == bean.OFFER_ADDRESS_MAP_OFFER_STORE_ITEM {
-				_, ce := OfferStoreServiceInst.CancelRefillOfferStoreItem(item.UID, item.Offer, item.Currency)
-				fmt.Println(ce.Error)
-			} else if item.Type == bean.OFFER_ADDRESS_MAP_OFFER_STORE_SHAKE {
-				_, ce := OfferStoreServiceInst.UpdateOfferShakeToPreviousStatus(item.UID, item.Offer)
-				fmt.Println(ce.Error)
-			}
-			s.dao.RemoveOfferOnChainActionTracking(item.Id, false)
-		}
-	}
-
-	return nil
-}
-
 func (s OfferService) UpdateOnChainOffer(offerId string, hid int64, oldStatus string, newStatus string) (offer bean.Offer, ce SimpleContextError) {
 	offer = *GetOffer(*s.dao, offerId, &ce)
 	if ce.HasError() {
@@ -934,14 +860,8 @@ func (s OfferService) FinishOfferConfirmingAddresses() (finishedInstantOffers []
 						}
 					}
 				} else if pendingOffer.Type == bean.OFFER_ADDRESS_MAP_OFFER_STORE {
-					_, ce = OfferStoreServiceInst.ActiveOffChainOfferStore(pendingOffer.Address, pendingOffer.Amount, pendingOffer.Currency)
-					completed = !ce.HasError()
 				} else if pendingOffer.Type == bean.OFFER_ADDRESS_MAP_OFFER_STORE_ITEM {
-					_, ce = OfferStoreServiceInst.RefillBalanceOffChainOfferStore(pendingOffer.Address, pendingOffer.Amount, pendingOffer.Currency)
-					completed = !ce.HasError()
 				} else if pendingOffer.Type == bean.OFFER_ADDRESS_MAP_OFFER_STORE_SHAKE {
-					_, ce = OfferStoreServiceInst.PreShakeOffChainOfferStoreShake(pendingOffer.Address, pendingOffer.Amount)
-					completed = !ce.HasError()
 				}
 
 				if completed {

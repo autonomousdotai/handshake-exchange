@@ -13,7 +13,6 @@ func (url CronJobUrl) Create(router *gin.Engine) *gin.RouterGroup {
 
 	miscApi := api.MiscApi{}
 	coinbaseApi := api.CoinbaseApi{}
-	onChainApi := api.OnChainApi{}
 	blockchainIoApi := api.BlockChainApi{}
 
 	// CRON JOB
@@ -28,10 +27,7 @@ func (url CronJobUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	group.POST("/finish-instant-offers", func(context *gin.Context) {
 		miscApi.FinishInstantOffers(context)
 	})
-	// CRON JOB
-	group.POST("/finish-offer-confirming-addresses", func(context *gin.Context) {
-		miscApi.FinishOfferConfirmingAddresses(context)
-	})
+
 	// CRON JOB
 	//group.POST("/transfer-tracking", func(context *gin.Context) {
 	//	miscApi.UpdateTransferTracking(context)
@@ -39,63 +35,6 @@ func (url CronJobUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	// CRON JOB
 	group.POST("/update-cc-limit-track", func(context *gin.Context) {
 		miscApi.UpdateUserCCLimitTracks(context)
-	})
-	// CRON JOB
-	group.POST("/update-offer-init-on-chain", func(context *gin.Context) {
-		onChainApi.UpdateOfferInit(context)
-	})
-	// CRON JOB
-	group.POST("/update-offer-shake-on-chain", func(context *gin.Context) {
-		onChainApi.UpdateOfferShake(context)
-	})
-	// CRON JOB
-	group.POST("/update-offer-reject-on-chain", func(context *gin.Context) {
-		onChainApi.UpdateOfferReject(context)
-	})
-	// CRON JOB
-	group.POST("/update-offer-complete-on-chain", func(context *gin.Context) {
-		onChainApi.UpdateOfferComplete(context)
-	})
-	// CRON JOB
-	group.POST("/check-offer-on-chain-transaction", func(context *gin.Context) {
-		miscApi.CheckOfferOnChainTransaction(context)
-	})
-
-	// CRON JOB
-	group.POST("/update-offer-store-init-on-chain", func(context *gin.Context) {
-		onChainApi.UpdateOfferStoreInit(context)
-	})
-	// CRON JOB
-	group.POST("/update-offer-store-close-on-chain", func(context *gin.Context) {
-		onChainApi.UpdateOfferStoreClose(context)
-	})
-	// CRON JOB
-	group.POST("/update-offer-store-pre-shake-on-chain", func(context *gin.Context) {
-		onChainApi.UpdateOfferStorePreShake(context)
-	})
-	// CRON JOB
-	group.POST("/update-offer-store-cancel-on-chain", func(context *gin.Context) {
-		onChainApi.UpdateOfferStoreCancel(context)
-	})
-	// CRON JOB
-	//group.POST("/update-offer-store-shake-on-chain", func(context *gin.Context) {
-	//	onChainApi.UpdateOfferStoreShake(context)
-	//})
-	// CRON JOB
-	group.POST("/update-offer-store-reject-on-chain", func(context *gin.Context) {
-		onChainApi.UpdateOfferStoreReject(context)
-	})
-	// CRON JOB
-	group.POST("/update-offer-store-complete-on-chain", func(context *gin.Context) {
-		onChainApi.UpdateOfferStoreComplete(context)
-	})
-	// CRON JOB
-	group.POST("/update-offer-store-complete-user-on-chain", func(context *gin.Context) {
-		onChainApi.UpdateOfferStoreCompleteUser(context)
-	})
-	// CRON JOB
-	group.POST("/update-offer-store-refill-balance-on-chain", func(context *gin.Context) {
-		onChainApi.UpdateOfferStoreRefillBalance(context)
 	})
 
 	group.POST("/coinbase/callback", func(context *gin.Context) {
@@ -122,12 +61,7 @@ func (url CronJobUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	group.POST("/sync-to-offer-store-shake-solr/:offerId/:offerShakeId", func(context *gin.Context) {
 		miscApi.SyncOfferStoreShakeToSolr(context)
 	})
-	group.POST("/init-handshake-block", func(context *gin.Context) {
-		onChainApi.StartOnChainOfferBlock(context)
-	})
-	group.POST("/init-handshakeshop-block", func(context *gin.Context) {
-		onChainApi.StartOnChainOfferStoreBlock(context)
-	})
+
 	group.POST("/start-app", func(context *gin.Context) {
 		miscApi.StartApp(context)
 	})
