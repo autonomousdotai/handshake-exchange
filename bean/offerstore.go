@@ -278,8 +278,8 @@ const OFFER_STORE_SHAKE_STATUS_REJECTED = "rejected"
 const OFFER_STORE_SHAKE_STATUS_COMPLETING = "completing"
 const OFFER_STORE_SHAKE_STATUS_COMPLETED = "completed"
 
-const OFFER_STORE_SHAKE_SUB_STATUS_TRANSFERING = "transfering"
-const OFFER_STORE_SHAKE_SUB_STATUS_TRANSFERED = "transfered"
+const OFFER_STORE_SHAKE_SUB_STATUS_TRANSFERRING = "transferring"
+const OFFER_STORE_SHAKE_SUB_STATUS_TRANSFERRED = "transferred"
 
 type OfferStoreShake struct {
 	Id               string      `json:"id" firestore:"id"`

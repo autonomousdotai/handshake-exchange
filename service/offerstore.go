@@ -448,7 +448,7 @@ func (s OfferStoreService) TransferOfferStoreShake(userId string, offerId string
 		ce.SetStatusKey(api_error.OfferStatusInvalid)
 	}
 
-	offerShake.SubStatus = bean.OFFER_STORE_SHAKE_SUB_STATUS_TRANSFERING
+	offerShake.SubStatus = bean.OFFER_STORE_SHAKE_SUB_STATUS_TRANSFERRING
 	offerShake.TxHash = txHash
 
 	err := s.dao.UpdateOfferStoreShakeTransfer(offer, offerShake)
@@ -499,8 +499,8 @@ func (s OfferStoreService) FinishOfferStoreShakePendingTransfer(ref string) (off
 		return
 	}
 
-	if offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_COMPLETED && offerShake.SubStatus == bean.OFFER_STORE_SHAKE_SUB_STATUS_TRANSFERING {
-		offerShake.SubStatus = bean.OFFER_STORE_SHAKE_SUB_STATUS_TRANSFERED
+	if offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_COMPLETED && offerShake.SubStatus == bean.OFFER_STORE_SHAKE_SUB_STATUS_TRANSFERRING {
+		offerShake.SubStatus = bean.OFFER_STORE_SHAKE_SUB_STATUS_TRANSFERRED
 		err := s.dao.UpdateOfferStoreShakeTransfer(offer, offerShake)
 		if ce.SetError(api_error.UpdateDataFailed, err) {
 			return
