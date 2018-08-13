@@ -148,6 +148,20 @@ func (api OfferStoreApi) CompleteOfferStoreShake(context *gin.Context) {
 	bean.SuccessResponse(context, offerShake)
 }
 
+func (api OfferStoreApi) TransferOfferStoreShake(context *gin.Context) {
+	userId := common.GetUserId(context)
+	offerId := context.Param("offerId")
+	offerShakeId := context.Param("offerShakeId")
+	txHash := context.DefaultQuery("tx", "")
+
+	offerShake, ce := service.OfferStoreServiceInst.TransferOfferStoreShake(userId, offerId, offerShakeId, txHash)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, offerShake)
+}
+
 func (api OfferStoreApi) ReviewOfferStore(context *gin.Context) {
 	userId := common.GetUserId(context)
 	offerId := context.Param("offerId")

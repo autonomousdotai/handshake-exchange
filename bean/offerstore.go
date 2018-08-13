@@ -278,12 +278,16 @@ const OFFER_STORE_SHAKE_STATUS_REJECTED = "rejected"
 const OFFER_STORE_SHAKE_STATUS_COMPLETING = "completing"
 const OFFER_STORE_SHAKE_STATUS_COMPLETED = "completed"
 
+const OFFER_STORE_SHAKE_SUB_STATUS_TRANSFERING = "transfering"
+const OFFER_STORE_SHAKE_SUB_STATUS_TRANSFERED = "transfered"
+
 type OfferStoreShake struct {
 	Id               string      `json:"id" firestore:"id"`
 	Hid              int64       `json:"hid" firestore:"hid"`
 	OffChainId       string      `json:"off_chain_id" firestore:"off_chain_id"`
 	Type             string      `json:"type" firestore:"type" validate:"required,oneof=buy sell"`
 	Status           string      `json:"status" firestore:"status"`
+	SubStatus        string      `json:"sub_status" firestore:"sub_status"`
 	UID              string      `json:"-" firestore:"uid"`
 	Username         string      `json:"username" firestore:"username"`
 	ChatUsername     string      `json:"chat_username" firestore:"chat_username"`
@@ -299,6 +303,7 @@ type OfferStoreShake struct {
 	Price            string      `json:"price" firestore:"price"`
 	SystemAddress    string      `json:"system_address" firestore:"system_address"`
 	UserAddress      string      `json:"user_address" firestore:"user_address"`
+	TxHash           string      `json:"tx_hash" firestore:"tx_hash"`
 	Fee              string      `json:"-" firestore:"fee"`
 	FeePercentage    string      `json:"-" firestore:"fee_percentage"`
 	Reward           string      `json:"-" firestore:"reward"`
@@ -355,6 +360,14 @@ func (offer OfferStoreShake) GetChangeStatus() map[string]interface{} {
 	return map[string]interface{}{
 		"hid":        offer.Hid,
 		"status":     strings.ToLower(offer.Status),
+		"updated_at": firestore.ServerTimestamp,
+	}
+}
+
+func (offer OfferStoreShake) GetChangeSubStatus() map[string]interface{} {
+	return map[string]interface{}{
+		"tx_hash":    offer.TxHash,
+		"sub_status": strings.ToLower(offer.SubStatus),
 		"updated_at": firestore.ServerTimestamp,
 	}
 }

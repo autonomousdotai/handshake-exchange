@@ -40,6 +40,9 @@ func (url OfferStoreUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	group.POST("/:offerId/shakes/:offerShakeId/complete", func(context *gin.Context) {
 		offerApi.CompleteOfferStoreShake(context)
 	})
+	group.POST("/:offerId/shakes/:offerShakeId/transfer", func(context *gin.Context) {
+		offerApi.TransferOfferStoreShake(context)
+	})
 
 	// Support method
 	group.POST("/:offerId/shakes/:offerShakeId/7tHCLp8XpajPJaVh", func(context *gin.Context) {

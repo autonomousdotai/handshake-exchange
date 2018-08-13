@@ -434,6 +434,35 @@ func (s OfferStoreService) CompleteOfferStoreShake(userId string, offerId string
 	return
 }
 
+func (s OfferStoreService) TransferOfferStoreShake(userId string, offerId string, offerShakeId string, txHash string) (offerShake bean.OfferStoreShake, ce SimpleContextError) {
+	offer := *GetOfferStore(*s.dao, offerId, &ce)
+	if ce.HasError() {
+		return
+	}
+	offerShake = *GetOfferStoreShake(*s.dao, offerId, offerShakeId, &ce)
+	if ce.HasError() {
+		return
+	}
+
+	if offerShake.Status != bean.OFFER_STORE_SHAKE_STATUS_COMPLETED {
+		ce.SetStatusKey(api_error.OfferStatusInvalid)
+	}
+
+	offerShake.SubStatus = bean.OFFER_STORE_SHAKE_SUB_STATUS_TRANSFERING
+	offerShake.TxHash = txHash
+
+	err := s.dao.UpdateOfferStoreShakeTransfer(offer, offerShake)
+
+	if err != nil {
+		ce.SetError(api_error.UpdateDataFailed, err)
+		return
+	}
+
+	notification.SendOfferStoreShakeNotification(offerShake, offer)
+
+	return
+}
+
 func (s OfferStoreService) FinishOfferStorePendingTransfer(ref string) (offer bean.OfferStore, ce SimpleContextError) {
 	return
 }

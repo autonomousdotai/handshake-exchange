@@ -11,6 +11,7 @@ import (
 	"github.com/shopspring/decimal"
 	"google.golang.org/api/iterator"
 	"strings"
+	"github.com/denisenkom/go-mssqldb/batch"
 )
 
 type OfferStoreDao struct {
@@ -515,6 +516,16 @@ func (dao OfferStoreDao) UpdateOfferStoreShakeComplete(offer bean.OfferStore, of
 	}
 
 	_, err := batch.Commit(context.Background())
+
+	return err
+}
+
+func (dao OfferStoreDao) UpdateOfferStoreShakeTransfer(offer bean.OfferStore, offerShake bean.OfferStoreShake) error {
+	dbClient := firebase_service.FirestoreClient
+
+	offerShakePath := GetOfferStoreShakeItemPath(offer.Id, offerShake.Id)
+	docRef := dbClient.Doc(offerShakePath)
+	_, err := docRef.Set(context.Background(), offerShake.GetChangeSubStatus())
 
 	return err
 }
