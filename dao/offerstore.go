@@ -11,7 +11,6 @@ import (
 	"github.com/shopspring/decimal"
 	"google.golang.org/api/iterator"
 	"strings"
-	"github.com/denisenkom/go-mssqldb/batch"
 )
 
 type OfferStoreDao struct {

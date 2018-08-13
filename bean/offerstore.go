@@ -374,9 +374,10 @@ func (offer OfferStoreShake) GetChangeSubStatus() map[string]interface{} {
 
 func (offer OfferStoreShake) GetNotificationUpdate() map[string]interface{} {
 	return map[string]interface{}{
-		"id":     offer.Id,
-		"status": offer.Status,
-		"type":   "offer_store_shake",
+		"id":         offer.Id,
+		"status":     offer.Status,
+		"sub_status": offer.SubStatus,
+		"type":       "offer_store_shake",
 	}
 }
 

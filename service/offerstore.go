@@ -463,6 +463,11 @@ func (s OfferStoreService) TransferOfferStoreShake(userId string, offerId string
 		amount = offerShake.Amount
 	}
 
+	fiatAmountUSD := offerShake.FiatAmount
+	if offerShake.FiatCurrency != bean.USD.Code {
+		fiatAmountUSD, _ = s.ConvertToUSD(offerShake.FiatAmount, offerShake.FiatCurrency)
+	}
+
 	s.miscDao.AddCryptoTransferLog(bean.CryptoTransferLog{
 		Provider:         "",
 		ProviderResponse: "",
@@ -471,6 +476,7 @@ func (s OfferStoreService) TransferOfferStoreShake(userId string, offerId string
 		UID:              userId,
 		Description:      "",
 		Amount:           amount,
+		FiatAmountUSD:    fiatAmountUSD,
 		Currency:         offerShake.Currency,
 	})
 	notification.SendOfferStoreShakeNotification(offerShake, offer)
@@ -495,13 +501,14 @@ func (s OfferStoreService) FinishOfferStoreShakePendingTransfer(ref string) (off
 
 	if offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_COMPLETED && offerShake.SubStatus == bean.OFFER_STORE_SHAKE_SUB_STATUS_TRANSFERING {
 		offerShake.SubStatus = bean.OFFER_STORE_SHAKE_SUB_STATUS_TRANSFERED
-	}
+		err := s.dao.UpdateOfferStoreShakeTransfer(offer, offerShake)
+		if ce.SetError(api_error.UpdateDataFailed, err) {
+			return
+		}
 
-	err := s.dao.UpdateOfferStoreShakeTransfer(offer, offerShake)
-	if ce.SetError(api_error.UpdateDataFailed, err) {
-		return
+		solr_service.UpdateObject(bean.NewSolrFromOfferStoreShake(offerShake, offer))
+		dao.OfferStoreDaoInst.UpdateNotificationOfferStoreShake(offerShake, offer)
 	}
-	notification.SendOfferStoreShakeNotification(offerShake, offer)
 
 	return
 }
@@ -628,6 +635,16 @@ func (s OfferStoreService) GetQuote(quoteType string, amountStr string, currency
 	}
 
 	return
+}
+
+func (s OfferStoreService) ConvertToUSD(amountStr string, currency string) (string, error) {
+	amount, err := decimal.NewFromString(amountStr)
+	to := dao.MiscDaoInst.GetCurrencyRateFromCache(bean.USD.Code, currency)
+	rate := to.Object.(bean.CurrencyRate)
+	rateNumber := decimal.NewFromFloat(rate.Rate)
+	convertedAmount := amount.Div(rateNumber).Round(2).String()
+
+	return convertedAmount, err
 }
 
 func (s OfferStoreService) GetCurrentFreeStart(userId string, token string) (freeStart bean.OfferStoreFreeStart, ce SimpleContextError) {

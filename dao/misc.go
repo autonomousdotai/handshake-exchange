@@ -289,14 +289,15 @@ func (dao MiscDao) AddCryptoTransferLog(log bean.CryptoTransferLog) (bean.Crypto
 	batch := dbClient.Batch()
 	batch.Set(docRef, log.GetAddLog())
 	batch.Set(docPendingRef, bean.CryptoPendingTransfer{
-		Id:         pendingId,
-		Provider:   log.Provider,
-		ExternalId: log.ExternalId,
-		DataType:   log.DataType,
-		DataRef:    log.DataRef,
-		UID:        log.UID,
-		Amount:     log.Amount,
-		Currency:   log.Currency,
+		Id:            pendingId,
+		Provider:      log.Provider,
+		ExternalId:    log.ExternalId,
+		DataType:      log.DataType,
+		DataRef:       log.DataRef,
+		UID:           log.UID,
+		Amount:        log.Amount,
+		FiatAmountUSD: log.FiatAmountUSD,
+		Currency:      log.Currency,
 	}.GetAddCryptoPendingTransfer())
 	_, err := batch.Commit(context.Background())
 

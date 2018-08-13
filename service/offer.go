@@ -10,6 +10,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/integration/blockchainio_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/chainso_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
+	"github.com/ninjadotorg/handshake-exchange/integration/crypto_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/solr_service"
 	"github.com/ninjadotorg/handshake-exchange/service/notification"
 	"github.com/shopspring/decimal"
@@ -882,8 +883,31 @@ func (s OfferService) FinishCryptoTransfer() (finishedInstantOffers []bean.Offer
 		return
 	} else {
 		for _, pendingOffer := range pendingOffers {
-			bodyTransaction, err := coinbase_service.GetTransaction(pendingOffer.ExternalId, pendingOffer.Currency)
-			if err == nil && bodyTransaction.Status == "completed" {
+			// bodyTransaction, err := coinbase_service.GetTransaction(pendingOffer.ExternalId, pendingOffer.Currency)
+			onchainCompleted := false
+			if pendingOffer.Currency == bean.ETH.Code {
+				isSuccess, isPending, errChain := crypto_service.GetTransactionReceipt(pendingOffer.TxHash, pendingOffer.Currency)
+				if errChain == nil {
+					if isSuccess && !isPending {
+						onchainCompleted = true
+					}
+				} else {
+					err = errChain
+				}
+			} else if pendingOffer.Currency == bean.BTC.Code {
+				fiatAmountUSD := common.StringToDecimal(pendingOffer.FiatAmountUSD)
+				confirmationRequired := s.getConfirmationRange(fiatAmountUSD)
+				// bodyTransaction, err := coinbase_service.GetTransaction(pendingOffer.ExternalId, pendingOffer.Currency)
+				confirmation, errChain := chainso_service.GetConfirmations(pendingOffer.TxHash)
+				if errChain == nil {
+					if confirmation >= confirmationRequired {
+						onchainCompleted = true
+					}
+				} else {
+					err = errChain
+				}
+			}
+			if err == nil && onchainCompleted {
 				completed := false
 				if pendingOffer.DataType == bean.OFFER_ADDRESS_MAP_OFFER {
 					_, ce := s.FinishOfferPendingTransfer(pendingOffer.DataRef)
@@ -897,7 +921,7 @@ func (s OfferService) FinishCryptoTransfer() (finishedInstantOffers []bean.Offer
 				}
 
 				if completed {
-					dao.OfferDaoInst.RemoveCryptoPendingTransfer(pendingOffer.TxHash)
+					dao.OfferDaoInst.RemoveCryptoPendingTransfer(pendingOffer.Id)
 				}
 			}
 		}

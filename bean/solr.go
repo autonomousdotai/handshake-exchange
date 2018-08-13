@@ -416,6 +416,7 @@ type SolrOfferStoreShakeExtraData struct {
 	SystemAddress    string `json:"system_address"`
 	UserAddress      string `json:"user_address"`
 	Status           string `json:"status"`
+	SubStatus        string `json:"sub_status"`
 	Success          int64  `json:"success"`
 	Failed           int64  `json:"failed"`
 	FreeStart        string `json:"free_start"`
@@ -500,6 +501,7 @@ func NewSolrFromOfferStoreShake(offer OfferStoreShake, offerStore OfferStore) (s
 		SystemAddress:    offer.SystemAddress,
 		UserAddress:      userAddress,
 		Status:           offer.Status,
+		SubStatus:        offer.SubStatus,
 		FreeStart:        offer.FreeStart,
 		Success:          offerStore.TransactionCount.Success,
 		Failed:           offerStore.TransactionCount.Failed,
