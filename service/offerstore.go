@@ -577,14 +577,14 @@ func (s OfferStoreService) UpdateOfferStoreShakeLocation(userId string, offerId 
 	}
 
 	lat1n, _ := strconv.Atoi(data[1:2])
-	lat1 := data[2: 2+lat1n]
-	lat2n, _ := strconv.Atoi(data[2+lat1n: 2+lat1n+1])
-	lat2 := data[2+lat1n+1: 2+lat1n+1+lat2n]
+	lat1 := data[2 : 2+lat1n]
+	lat2n, _ := strconv.Atoi(data[2+lat1n : 2+lat1n+1])
+	lat2 := data[2+lat1n+1 : 2+lat1n+1+lat2n]
 	startLong := 2 + lat1n + 1 + lat2n
-	long1n, _ := strconv.Atoi(data[startLong: startLong+1])
-	long1 := data[startLong+1: startLong+1+long1n]
-	long2n, _ := strconv.Atoi(data[startLong+1+long1n: startLong+1+long1n+1])
-	long2 := data[startLong+1+long1n+1: startLong+1+long1n+1+long2n]
+	long1n, _ := strconv.Atoi(data[startLong : startLong+1])
+	long1 := data[startLong+1 : startLong+1+long1n]
+	long2n, _ := strconv.Atoi(data[startLong+1+long1n : startLong+1+long1n+1])
+	long2 := data[startLong+1+long1n+1 : startLong+1+long1n+1+long2n]
 
 	lat, _ := decimal.NewFromString(fmt.Sprintf("%s.%s", lat1, lat2))
 	long, _ := decimal.NewFromString(fmt.Sprintf("%s.%s", long1, long2))
