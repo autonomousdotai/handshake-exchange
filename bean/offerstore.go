@@ -304,7 +304,7 @@ type OfferStoreShake struct {
 	SystemAddress    string      `json:"system_address" firestore:"system_address"`
 	UserAddress      string      `json:"user_address" firestore:"user_address"`
 	TxHash           string      `json:"tx_hash" firestore:"tx_hash"`
-	Fee              string      `json:"-" firestore:"fee"`
+	Fee              string      `json:"fee" firestore:"fee"`
 	FeePercentage    string      `json:"-" firestore:"fee_percentage"`
 	Reward           string      `json:"-" firestore:"reward"`
 	RewardPercentage string      `json:"-" firestore:"reward_percentage"`
