@@ -524,7 +524,7 @@ func (dao OfferStoreDao) UpdateOfferStoreShakeTransfer(offer bean.OfferStore, of
 
 	offerShakePath := GetOfferStoreShakeItemPath(offer.Id, offerShake.Id)
 	docRef := dbClient.Doc(offerShakePath)
-	_, err := docRef.Set(context.Background(), offerShake.GetChangeSubStatus())
+	_, err := docRef.Set(context.Background(), offerShake.GetChangeSubStatus(), firestore.MergeAll)
 
 	return err
 }
