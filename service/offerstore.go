@@ -458,6 +458,21 @@ func (s OfferStoreService) TransferOfferStoreShake(userId string, offerId string
 		return
 	}
 
+	amount := offerShake.TotalAmount
+	if offerShake.IsTypeSell() {
+		amount = offerShake.Amount
+	}
+
+	s.miscDao.AddCryptoTransferLog(bean.CryptoTransferLog{
+		Provider:         "",
+		ProviderResponse: "",
+		DataType:         bean.OFFER_ADDRESS_MAP_OFFER_STORE_SHAKE,
+		DataRef:          dao.GetOfferStoreShakeItemPath(offerId, offerShakeId),
+		UID:              userId,
+		Description:      "",
+		Amount:           amount,
+		Currency:         offerShake.Currency,
+	})
 	notification.SendOfferStoreShakeNotification(offerShake, offer)
 
 	return
@@ -478,13 +493,11 @@ func (s OfferStoreService) FinishOfferStoreShakePendingTransfer(ref string) (off
 		return
 	}
 
-	if offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_COMPLETING {
-		offerShake.Status = bean.OFFER_STORE_SHAKE_STATUS_COMPLETED
-	} else if offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_REJECTING {
-		offerShake.Status = bean.OFFER_STORE_SHAKE_STATUS_REJECTED
+	if offerShake.Status == bean.OFFER_STORE_SHAKE_STATUS_COMPLETED && offerShake.SubStatus == bean.OFFER_STORE_SHAKE_SUB_STATUS_TRANSFERING {
+		offerShake.SubStatus = bean.OFFER_STORE_SHAKE_SUB_STATUS_TRANSFERED
 	}
 
-	err := s.dao.UpdateOfferStoreShake(offer.Id, offerShake, offerShake.GetChangeStatus())
+	err := s.dao.UpdateOfferStoreShakeTransfer(offer, offerShake)
 	if ce.SetError(api_error.UpdateDataFailed, err) {
 		return
 	}
