@@ -298,6 +298,7 @@ func (dao MiscDao) AddCryptoTransferLog(log bean.CryptoTransferLog) (bean.Crypto
 		Amount:        log.Amount,
 		FiatAmountUSD: log.FiatAmountUSD,
 		Currency:      log.Currency,
+		TxHash:        log.TxHash,
 	}.GetAddCryptoPendingTransfer())
 	_, err := batch.Commit(context.Background())
 

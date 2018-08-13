@@ -86,6 +86,7 @@ type CryptoTransferLog struct {
 	Amount           string      `json:"amount" firestore:"amount"`
 	FiatAmountUSD    string      `json:"fiat_amount_usd" firestore:"fiat_amount_usd"`
 	Currency         string      `json:"currency" firestore:"currency"`
+	TxHash           string      `json:"tx_hash" firestore:"tx_hash"`
 }
 
 func (log CryptoTransferLog) GetAddLog() map[string]interface{} {
