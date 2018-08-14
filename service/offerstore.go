@@ -12,6 +12,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/service/notification"
 	"github.com/shopspring/decimal"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -495,7 +496,8 @@ func (s OfferStoreService) FinishOfferStoreShakePendingTransfer(ref string) (off
 		return
 	}
 	offerShake = to.Object.(bean.OfferStoreShake)
-	offer := *GetOfferStore(*s.dao, offerShake.UID, &ce)
+	offChainIds := strings.Split(offerShake.OffChainId, "-")
+	offer := *GetOfferStore(*s.dao, offChainIds[0], &ce)
 	if ce.HasError() {
 		return
 	}

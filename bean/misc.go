@@ -102,6 +102,7 @@ func (log CryptoTransferLog) GetAddLog() map[string]interface{} {
 		"amount":            log.Amount,
 		"fiat_amount_usd":   log.FiatAmountUSD,
 		"currency":          log.Currency,
+		"tx_hash":           log.TxHash,
 		"created_at":        firestore.ServerTimestamp,
 	}
 }
