@@ -59,10 +59,27 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 	if ce.FeedContextError(api_error.GetDataFailed, testOfferCE) {
 		return
 	}
+
 	if offerTest.FiatAmount != offerBody.FiatAmount {
-		ce.SetStatusKey(api_error.InvalidRequestBody)
-		return
+		notOk := true
+		testFiatAmount := common.StringToDecimal(offerTest.FiatAmount)
+		inputFiatAmount := common.StringToDecimal(offerBody.FiatAmount)
+		if inputFiatAmount.GreaterThanOrEqual(testFiatAmount) {
+			notOk = false
+		} else {
+			delta := testFiatAmount.Sub(inputFiatAmount)
+			deltaPercentage := delta.Div(testFiatAmount)
+			if deltaPercentage.LessThanOrEqual(decimal.NewFromFloat(0.01)) {
+				notOk = false
+			}
+		}
+
+		if notOk {
+			ce.SetStatusKey(api_error.InvalidRequestBody)
+			return
+		}
 	}
+
 	if offerTest.Currency != offerBody.Currency {
 		ce.SetStatusKey(api_error.InvalidRequestBody)
 		return
