@@ -311,6 +311,10 @@ func (s OfferStoreService) CreateOfferStoreShake(userId string, offerId string, 
 	offerShakeBody.FiatCurrency = offer.FiatCurrency
 	offerShakeBody.Latitude = offer.Latitude
 	offerShakeBody.Longitude = offer.Longitude
+	if offerShakeBody.IsTypeBuy() {
+		// Replace user address when shake for buy
+		offerShakeBody.UserAddress = item.UserAddress
+	}
 
 	s.setupOfferShakePrice(&offerShakeBody, &ce)
 	s.setupOfferShakeAmount(&offerShakeBody, &ce)
