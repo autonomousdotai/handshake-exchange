@@ -367,7 +367,7 @@ func (offer OfferStoreShake) GetChangeStatus() map[string]interface{} {
 func (offer OfferStoreShake) GetChangeSubStatus() map[string]interface{} {
 	return map[string]interface{}{
 		"tx_hash":    offer.TxHash,
-		"status": strings.ToLower(offer.Status),
+		"status":     strings.ToLower(offer.Status),
 		"sub_status": strings.ToLower(offer.SubStatus),
 		"updated_at": firestore.ServerTimestamp,
 	}
