@@ -116,12 +116,15 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 		token = paymentMethodData.Token
 		saveCard = true
 	}
+
+	// Check CC limit
+	ccLimitCE := UserServiceInst.CheckCCLimit(offerBody.UID, offerBody.FiatAmount)
+	if ccLimitCE.HasError() {
+		ce.SetError(api_error.CCOverLimit, ccLimitCE.Error)
+		return
+	}
+
 	if paymentMethodData.Token == "true" {
-		ccLimitCE := UserServiceInst.CheckCCLimit(offerBody.UID, offerBody.FiatAmount)
-		if ccLimitCE.HasError() {
-			ce.SetError(api_error.CCOverLimit, ccLimitCE.Error)
-			return
-		}
 		token = ""
 		paymentMethodData.Token = profile.CreditCard.Token
 		saveCard = false

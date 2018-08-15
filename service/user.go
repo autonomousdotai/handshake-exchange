@@ -7,7 +7,6 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/dao"
 	"github.com/shopspring/decimal"
-	"os"
 	"strconv"
 	"time"
 )
@@ -83,12 +82,13 @@ func (s UserService) UpgradeCCLimitLevel(userId string) (ce SimpleContextError) 
 		return
 	}
 	creditCardLimit := to.Object.(bean.UserCreditCardLimit)
-	finalLevel, _ := strconv.Atoi(os.Getenv("MAX_CC_LIMIT_LEVEL"))
-	if creditCardLimit.Level < int64(finalLevel) {
-		creditCardLimit.Level += 1
-	} else {
-		// Reset the last limit
-	}
+	//finalLevel, _ := strconv.Atoi(os.Getenv("MAX_CC_LIMIT_LEVEL"))
+	//if creditCardLimit.Level < int64(finalLevel) {
+	//	creditCardLimit.Level += 1
+	//} else {
+	//	// Reset the last limit
+	//}
+	creditCardLimit.Level = 1
 
 	cacheTO := s.miscDao.GetCCLimitByLevelFromCache(strconv.Itoa(int(creditCardLimit.Level)))
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, cacheTO) {
