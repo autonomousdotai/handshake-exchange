@@ -51,13 +51,13 @@ type OfferStoreItem struct {
 	Status            string                 `json:"status" firestore:"status"`
 	SubStatus         string                 `json:"sub_status" firestore:"sub_status"`
 	SellAmountMin     string                 `json:"sell_amount_min" firestore:"sell_amount_min"`
-	SellAmount        string                 `json:"sell_amount" firestore:"sell_amount" validate:"required"`
+	SellAmount        string                 `json:"sell_amount" firestore:"sell_amount"`
 	SellBalance       string                 `json:"sell_balance" firestore:"sell_balance"`
 	SellPercentage    string                 `json:"sell_percentage" firestore:"sell_percentage"`
 	SellTotalAmount   string                 `json:"sell_total_amount" firestore:"sell_total_amount"`
 	SellBackupAmounts map[string]interface{} `json:"sell_backup_amounts" firestore:"sell_backup_amounts"`
 	BuyAmountMin      string                 `json:"buy_amount_min" firestore:"buy_amount_min"`
-	BuyAmount         string                 `json:"buy_amount" firestore:"buy_amount" validate:"required"`
+	BuyAmount         string                 `json:"buy_amount" firestore:"buy_amount"`
 	BuyBalance        string                 `json:"buy_balance" firestore:"buy_balance"`
 	BuyPercentage     string                 `json:"buy_percentage" firestore:"buy_percentage"`
 	SystemAddress     string                 `json:"system_address" firestore:"system_address"`

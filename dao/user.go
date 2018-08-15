@@ -74,8 +74,7 @@ func (dao UserDao) UpdateProfileCreditCard(userId string, creditCard bean.UserCr
 
 func (dao UserDao) UpdateUserCCLimitAmount(userId string, token string, amount decimal.Decimal) error {
 	dbClient := firebase_service.FirestoreClient
-	// TODO: Until stripe save CC
-	userCCLimitRef := dbClient.Doc(GetUserCCLimitItemPath(userId, userId))
+	userCCLimitRef := dbClient.Doc(GetUserCCLimitItemPath(userId, token))
 	err := dbClient.RunTransaction(context.Background(), func(ctx context.Context, tx *firestore.Transaction) error {
 		doc, err := tx.Get(userCCLimitRef)
 		if err != nil {

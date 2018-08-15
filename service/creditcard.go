@@ -215,7 +215,9 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 	if isSuccess {
 		if saveCard {
 			// Not for now
-			// s.saveCreditCard(userId, token, paymentMethodData)
+			// This CVV is not cvv, it's just a work around to store the CC stripe token
+			// to save CC
+			s.saveCreditCard(userId, paymentMethodData.CVV, paymentMethodData)
 		} else {
 			token = paymentMethodData.Token
 		}
@@ -296,10 +298,11 @@ func (s CreditCardService) saveCreditCard(userId string, token string, paymentMe
 	}
 
 	if err == nil {
-		// token, _ = stripe_service.CreateCustomer(profile.UserId, token)
-		token, _ = stripe_service.CreateCustomerRaw(profile.UserId)
+		token, _ = stripe_service.CreateCustomer(profile.UserId, token)
+
 		// Link to card
-		stripe_service.CreateCard(paymentMethodData.Token, token)
+		// token, _ = stripe_service.CreateCustomerRaw(profile.UserId)
+		// stripe_service.CreateCard(paymentMethodData.Token, token)
 
 		ccUserLimit, err := UserServiceInst.GetUserCCLimitFirstLevel()
 		if err == nil {
