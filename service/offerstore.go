@@ -416,7 +416,7 @@ func (s OfferStoreService) CompleteOfferStoreShake(userId string, offerId string
 		ce.SetStatusKey(api_error.OfferStatusInvalid)
 	}
 
-	offerShake.Status = bean.OFFER_STORE_SHAKE_STATUS_COMPLETED
+	offerShake.Status = bean.OFFER_STORE_SHAKE_STATUS_COMPLETING
 	s.updateSuccessTransCount(offer, offerShake, userId)
 	ReferralServiceInst.AddReferralOfferStoreShake(userProfile, offer, offerShake)
 	err := s.dao.UpdateOfferStoreShakeComplete(offer, offerShake, *profile)
@@ -449,13 +449,28 @@ func (s OfferStoreService) TransferOfferStoreShake(userId string, offerId string
 		return
 	}
 
-	if offerShake.Status != bean.OFFER_STORE_SHAKE_STATUS_COMPLETED {
+	if offerShake.Status != bean.OFFER_STORE_SHAKE_STATUS_COMPLETING {
 		ce.SetStatusKey(api_error.OfferStatusInvalid)
 	}
 
+	if txHash == "" {
+		// In case there is no TxHash
+		offerShake.Status = bean.OFFER_STORE_SHAKE_STATUS_SHAKE
+		offerShake.SubStatus = ""
+
+		err := s.dao.UpdateOfferStoreShakeTransfer(offer, offerShake)
+		if err != nil {
+			ce.SetError(api_error.UpdateDataFailed, err)
+			return
+		}
+		solr_service.UpdateObject(bean.NewSolrFromOfferStoreShake(offerShake, offer))
+
+		return
+	}
+
+	offerShake.Status = bean.OFFER_STORE_SHAKE_STATUS_COMPLETED
 	offerShake.SubStatus = bean.OFFER_STORE_SHAKE_SUB_STATUS_TRANSFERRING
 	offerShake.TxHash = txHash
-
 	err := s.dao.UpdateOfferStoreShakeTransfer(offer, offerShake)
 
 	if err != nil {
@@ -485,7 +500,8 @@ func (s OfferStoreService) TransferOfferStoreShake(userId string, offerId string
 		Currency:         offerShake.Currency,
 		TxHash:           txHash,
 	})
-	notification.SendOfferStoreShakeNotification(offerShake, offer)
+	solr_service.UpdateObject(bean.NewSolrFromOfferStoreShake(offerShake, offer))
+	dao.OfferStoreDaoInst.UpdateNotificationOfferStoreShake(offerShake, offer)
 
 	return
 }
