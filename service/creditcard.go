@@ -220,12 +220,14 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 			// Not for now
 			// This CVV is not cvv, it's just a work around to store the CC stripe token
 			// to save CC
-			s.saveCreditCard(userId, paymentMethodData.CVV, paymentMethodData)
+			token, err = s.saveCreditCard(userId, paymentMethodData.CVV, paymentMethodData)
 		} else {
 			token = paymentMethodData.Token
 		}
-		// Update CC Track amount
-		s.userDao.UpdateUserCCLimitAmount(userId, paymentMethodData.Token, fiatAmount)
+		if token != "" {
+			// Update CC Track amount
+			s.userDao.UpdateUserCCLimitAmount(userId, token, fiatAmount)
+		}
 
 		notification.SendInstantOfferNotification(offer)
 	}
@@ -315,6 +317,8 @@ func (s CreditCardService) saveCreditCard(userId string, token string, paymentMe
 				Token:          token,
 			}, ccUserLimit)
 		}
+	} else {
+		token = ""
 	}
 
 	return token, err
