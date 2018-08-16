@@ -364,7 +364,12 @@ func (s OfferStoreService) RejectOfferStoreShake(userId string, offerId string, 
 		return
 	}
 
-	offerShake.Status = bean.OFFER_STORE_SHAKE_STATUS_REJECTED
+	if userId == offer.UID {
+		offerShake.Status = bean.OFFER_STORE_SHAKE_STATUS_REJECTED
+	} else {
+		offerShake.Status = bean.OFFER_STORE_SHAKE_STATUS_CANCELLED
+	}
+
 	s.updateFailedTransCount(offer, offerShake, userId)
 	err := s.dao.UpdateOfferStoreShakeReject(offer, offerShake, profile)
 	if ce.SetError(api_error.UpdateDataFailed, err) {
