@@ -161,11 +161,11 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 	description := fmt.Sprintf("User %s buys %s %s", offer.UID, offerBody.Amount, offerBody.Currency)
 
 	stripeCharge, err := stripe_service.Charge(token, paymentMethodData.Token, fiatAmount, statement, description)
-	if ce.SetError(api_error.ExternalApiFailed, err) {
+	if ce.SetError(api_error.ChargeCCFailed, err) {
 		return
 	}
 	if stripeCharge.Status == "failed" {
-		ce.SetStatusKey(api_error.ExternalApiFailed)
+		ce.SetStatusKey(api_error.ChargeCCFailed)
 		return
 	}
 
