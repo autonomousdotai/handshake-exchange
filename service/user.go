@@ -116,8 +116,9 @@ func (s UserService) CheckCCLimit(userId string, amountStr string) (ce SimpleCon
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, to) {
 		return
 	}
-	profile := to.Object.(bean.Profile)
-	to = s.dao.GetCCLimit(userId, profile.CreditCard.Token)
+	_ = to.Object.(bean.Profile)
+	// to = s.dao.GetCCLimit(userId, profile.CreditCard.Token)
+	to = s.dao.GetCCLimit(userId, userId)
 
 	var err error
 	var creditCardLimit bean.UserCreditCardLimit

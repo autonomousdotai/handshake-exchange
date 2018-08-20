@@ -77,3 +77,5 @@ import:
   version: v30.6.1
 - package: github.com/ethereum/go-ethereum
   version: 1.8.10
+- package: github.com/btcsuite/btcd
+- package: github.com/btcsuite/btcutil
