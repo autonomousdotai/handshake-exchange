@@ -95,6 +95,11 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 		return
 	}
 
+	if offerBody.Currency != bean.ETH.Code && offerBody.Currency != bean.BTC.Code {
+		ce.SetStatusKey(api_error.UnsupportedCurrency)
+		return
+	}
+
 	// Minimum amount
 	amount, _ := decimal.NewFromString(offerBody.Amount)
 	if offerBody.Currency == bean.ETH.Code {
