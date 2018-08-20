@@ -173,7 +173,7 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 	if ce.SetError(api_error.ChargeCCFailed, err) {
 		return
 	}
-	if stripeCharge.Status == "failed" {
+	if stripeCharge.Status == "failed" || stripeCharge.FailCode == "card_declined" {
 		ce.SetStatusKey(api_error.ChargeCCFailed)
 		return
 	}
