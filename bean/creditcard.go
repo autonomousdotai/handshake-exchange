@@ -16,6 +16,7 @@ const CC_PROVIDER_CHECKOUT = "checkout"
 type CCTransaction struct {
 	Id           string      `json:"id" firestore:"id"`
 	UID          string      `json:"uid" firestore:"uid"`
+	Username     string      `json:"username" firestore:"username"`
 	Amount       string      `json:"amount" firestore:"amount"`
 	Currency     string      `json:"currency" firestore:"currency"`
 	Status       string      `json:"-" firestore:"status"`
@@ -33,6 +34,7 @@ func (cc CCTransaction) GetAddCCTransaction() map[string]interface{} {
 	return map[string]interface{}{
 		"id":            cc.Id,
 		"uid":           cc.UID,
+		"username":      cc.Username,
 		"amount":        cc.Amount,
 		"currency":      cc.Currency,
 		"status":        cc.Status,
@@ -78,6 +80,7 @@ const INSTANT_OFFER_PAYMENT_METHOD_CC = "creditcard"
 type InstantOffer struct {
 	Id                   string      `json:"id" firestore:"id"`
 	UID                  string      `json:"uid" firestore:"uid"`
+	Username             string      `json:"username" firestore:"username"`
 	Amount               string      `json:"amount" firestore:"amount" validate:"required"`
 	Currency             string      `json:"currency" firestore:"currency" validate:"required"`
 	FiatAmount           string      `json:"fiat_amount" firestore:"fiat_amount" validate:"required"`

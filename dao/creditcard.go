@@ -16,17 +16,23 @@ type CreditCardDao struct {
 
 func (dao CreditCardDao) AddCCTransaction(ccTran bean.CCTransaction) (bean.CCTransaction, error) {
 	dbClient := firebase_service.FirestoreClient
-	docRef := dbClient.Collection(GetCCTransactionPath(ccTran.UID)).NewDoc()
-	ccTran.Id = docRef.ID
+	batch := dbClient.Batch()
 
-	_, err := docRef.Set(context.Background(), ccTran.GetAddCCTransaction())
+	userDocRef := dbClient.Collection(GetUserCCTransactionPath(ccTran.UID)).NewDoc()
+	ccTran.Id = userDocRef.ID
+	docRef := dbClient.Doc(GetCCTransactionItemPath(fmt.Sprintf("%s_%s", ccTran.UID, ccTran.Id)))
+
+	batch.Set(userDocRef, ccTran.GetAddCCTransaction())
+	batch.Set(docRef, ccTran.GetAddCCTransaction())
+
+	_, err := batch.Commit(context.Background())
 
 	return ccTran, err
 }
 
 func (dao CreditCardDao) UpdateCCTransaction(ccTran bean.CCTransaction) (bean.CCTransaction, error) {
 	dbClient := firebase_service.FirestoreClient
-	docRef := dbClient.Doc(GetCCTransactionItemPath(ccTran.UID, ccTran.Id))
+	docRef := dbClient.Doc(GetUserCCTransactionItemPath(ccTran.UID, ccTran.Id))
 
 	_, err := docRef.Set(context.Background(), ccTran.GetUpdateCCTransaction(), firestore.MergeAll)
 
@@ -35,7 +41,7 @@ func (dao CreditCardDao) UpdateCCTransaction(ccTran bean.CCTransaction) (bean.CC
 
 func (dao CreditCardDao) UpdateCCTransactionStatus(ccTran bean.CCTransaction) (bean.CCTransaction, error) {
 	dbClient := firebase_service.FirestoreClient
-	docRef := dbClient.Doc(GetCCTransactionItemPath(ccTran.UID, ccTran.Id))
+	docRef := dbClient.Doc(GetUserCCTransactionItemPath(ccTran.UID, ccTran.Id))
 
 	_, err := docRef.Set(context.Background(), ccTran.GetUpdateStatus(), firestore.MergeAll)
 
@@ -43,7 +49,7 @@ func (dao CreditCardDao) UpdateCCTransactionStatus(ccTran bean.CCTransaction) (b
 }
 
 func (dao CreditCardDao) ListCCTransactions(userId string, limit int, startAt interface{}) (t TransferObject) {
-	ListPagingObjects(GetCCTransactionPath(userId), &t, limit, startAt, func(collRef *firestore.CollectionRef) firestore.Query {
+	ListPagingObjects(GetUserCCTransactionPath(userId), &t, limit, startAt, func(collRef *firestore.CollectionRef) firestore.Query {
 		query := collRef.OrderBy("created_at", firestore.Desc)
 		return query
 	}, snapshotToCCTransaction)
@@ -52,7 +58,7 @@ func (dao CreditCardDao) ListCCTransactions(userId string, limit int, startAt in
 }
 
 func (dao CreditCardDao) GetCCTransaction(userId string, ccTranId string) TransferObject {
-	return dao.GetCCTransactionByPath(GetCCTransactionItemPath(userId, ccTranId))
+	return dao.GetCCTransactionByPath(GetUserCCTransactionItemPath(userId, ccTranId))
 }
 
 func (dao CreditCardDao) GetCCTransactionByPath(path string) (t TransferObject) {
@@ -192,12 +198,20 @@ func (dao CreditCardDao) UpdateCCGlobalLimitAmount(amount decimal.Decimal) error
 	return err
 }
 
-func GetCCTransactionPath(userId string) string {
+func GetUserCCTransactionPath(userId string) string {
 	return fmt.Sprintf("users/%s/cc_transactions", userId)
 }
 
-func GetCCTransactionItemPath(userId string, id string) string {
-	return fmt.Sprintf("%s/%s", GetCCTransactionPath(userId), id)
+func GetUserCCTransactionItemPath(userId string, id string) string {
+	return fmt.Sprintf("%s/%s", GetUserCCTransactionPath(userId), id)
+}
+
+func GetCCTransactionPath() string {
+	return fmt.Sprintf("cc_transactions")
+}
+
+func GetCCTransactionItemPath(id string) string {
+	return fmt.Sprintf("%s/%s", GetCCTransactionPath(), id)
 }
 
 func GetInstantOfferPath(userId string) string {

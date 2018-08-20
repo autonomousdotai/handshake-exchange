@@ -240,7 +240,7 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 	} else {
 		setupInstantOffer(&offerBody, offerTest, gdaxResponse)
 		offerBody.PaymentMethod = bean.INSTANT_OFFER_PAYMENT_METHOD_CC
-		offerBody.PaymentMethodRef = dao.GetCCTransactionItemPath(offerBody.UID, ccTran.Id)
+		offerBody.PaymentMethodRef = dao.GetUserCCTransactionItemPath(offerBody.UID, ccTran.Id)
 
 		transaction := bean.NewTransactionFromInstantOffer(offerBody)
 		offerBody.CreatedAt = time.Now().UTC()
@@ -524,6 +524,7 @@ func setupCCTransaction(ccTran *bean.CCTransaction, offerBody bean.InstantOffer,
 	ccTran.Currency = bean.USD.Code
 	ccTran.Amount = offerBody.FiatAmount
 	ccTran.UID = offerBody.UID
+	ccTran.Username = offerBody.Username
 	ccTran.Type = bean.CC_TRANSACTION_TYPE
 	ccTran.ExternalId = stripeCharge.ID
 }
