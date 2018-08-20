@@ -162,7 +162,7 @@ func (dao CreditCardDao) UpdateNotificationInstantOffer(offer bean.InstantOffer)
 }
 
 func (dao CreditCardDao) GetCCGlobalLimit() TransferObject {
-	return dao.GetCCTransactionByPath(GetGlobalCCLimitPath())
+	return dao.GetCCGlobalLimitByPath(GetGlobalCCLimitPath())
 }
 
 func (dao CreditCardDao) GetCCGlobalLimitByPath(path string) (t TransferObject) {
