@@ -112,6 +112,7 @@ type CreditCardInfo struct {
 	ExpirationDate string `json:"expiration_date"`
 	CVV            string `json:"cvv"`
 	Token          string `json:"token"`
+	ClientSecret   string `json:"client_secret"`
 	Save           bool   `json:"save"`
 }
 

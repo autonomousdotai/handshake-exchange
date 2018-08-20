@@ -916,7 +916,9 @@ func (s OfferService) FinishCryptoTransfer() (finishedInstantOffers []bean.Offer
 					_, ce = OfferStoreServiceInst.FinishOfferStorePendingTransfer(pendingOffer.DataRef)
 					completed = !ce.HasError()
 				} else if pendingOffer.DataType == bean.OFFER_ADDRESS_MAP_OFFER_STORE_SHAKE {
+					fmt.Println("Go here")
 					_, ce = OfferStoreServiceInst.FinishOfferStoreShakePendingTransfer(pendingOffer.DataRef)
+					fmt.Println(ce)
 					completed = !ce.HasError()
 				}
 

@@ -70,11 +70,21 @@ func CreateCustomerRaw(description string) (string, error) {
 	return c.ID, err
 }
 
-func GetSourceChargeable(token string) (bool, error) {
+func GetSourceChargeable(token string, clientSecret string) (bool, error) {
 	sc := &client.API{}
 	sc.Init(os.Getenv("STRIPE_SECRET_KEY"), nil)
 
 	source, err := sc.Sources.Get(token, nil)
+	if source.ClientSecret != clientSecret {
+		return false, nil
+	}
+	if source.Type != "three_d_secure" {
+		return false, nil
+	}
+	if !source.TypeData["authenticated"].(bool) {
+		return false, nil
+	}
+
 	return source.Status == stripe.SourceStatusChargeable, err
 }
 

@@ -124,11 +124,14 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 	saveCard := false
 	var token string
 	if paymentMethodData.Token == "" {
-		token, err = stripe_service.CreateToken(paymentMethodData.CCNum, paymentMethodData.ExpirationDate, paymentMethodData.CVV)
-		if ce.SetError(api_error.ExternalApiFailed, err) {
-			return
-		}
-		saveCard = true
+		//token, err = stripe_service.CreateToken(paymentMethodData.CCNum, paymentMethodData.ExpirationDate, paymentMethodData.CVV)
+		//if ce.SetError(api_error.ExternalApiFailed, err) {
+		//	return
+		//}
+		//saveCard = true
+
+		ce.SetStatusKey(api_error.InvalidCC)
+		return
 	} else {
 		token = paymentMethodData.Token
 		saveCard = true
@@ -146,7 +149,7 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 		paymentMethodData.Token = profile.CreditCard.Token
 		saveCard = false
 	} else {
-		chargeable, chkErr := stripe_service.GetSourceChargeable(token)
+		chargeable, chkErr := stripe_service.GetSourceChargeable(token, paymentMethodData.ClientSecret)
 		if ce.SetError(api_error.InvalidCC, chkErr) {
 			return
 		}
