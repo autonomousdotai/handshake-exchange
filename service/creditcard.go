@@ -158,7 +158,13 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 
 	fiatAmount, _ := decimal.NewFromString(offerBody.FiatAmount)
 	statement := ""
-	description := fmt.Sprintf("User %s buys %s %s", offer.UID, offerBody.Amount, offerBody.Currency)
+	mapCrypto := map[string]int{
+		bean.BTC.Code: 1,
+		bean.ETH.Code: 2,
+		bean.LTC.Code: 3,
+		bean.BCH.Code: 4,
+	}
+	description := fmt.Sprintf("User %s buys %s of %d", offer.UID, offerBody.Amount, mapCrypto[offerBody.Currency])
 
 	stripeCharge, err := stripe_service.Charge(token, paymentMethodData.Token, fiatAmount, statement, description)
 	if ce.SetError(api_error.ChargeCCFailed, err) {
