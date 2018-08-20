@@ -137,6 +137,12 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 		saveCard = true
 	}
 
+	ccGlobalLimit := s.checkGlobalLimit(offerBody.FiatAmount)
+	if ccGlobalLimit {
+		ce.SetStatusKey(api_error.CCOverGlobalLimit)
+		return
+	}
+
 	// Check CC limit
 	ccLimitCE := UserServiceInst.CheckCCLimit(offerBody.UID, offerBody.FiatAmount)
 	if ccLimitCE.HasError() {
@@ -253,6 +259,7 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 		if token != "" {
 			// Update CC Track amount
 			s.userDao.UpdateUserCCLimitAmount(userId, token, fiatAmount)
+			s.updateGlobalLimit(fiatAmount)
 		}
 
 		notification.SendInstantOfferNotification(offer)
@@ -464,6 +471,27 @@ func (s CreditCardService) cancelInstantOffer(pendingOffer *bean.PendingInstantO
 	}
 
 	notification.SendInstantOfferNotification(offer)
+}
+
+func (s CreditCardService) checkGlobalLimit(fiatAmount string) bool {
+	to := s.dao.GetCCGlobalLimit()
+	if !to.HasError() {
+		ccLimit := to.Object.(bean.GlobalCCLimit)
+		amount := common.StringToDecimal(fiatAmount)
+		usage := common.StringToDecimal(ccLimit.Usage)
+		limit := common.StringToDecimal(ccLimit.Limit)
+		if limit.LessThan(usage.Add(amount)) {
+			return true
+		} else {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (s CreditCardService) updateGlobalLimit(fiatAmount decimal.Decimal) {
+	s.dao.UpdateCCGlobalLimitAmount(fiatAmount)
 }
 
 func setupInstantOffer(offer *bean.InstantOffer, offerTest bean.InstantOffer, gdaxResponse bean.GdaxOrderResponse) {

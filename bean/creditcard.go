@@ -198,3 +198,15 @@ func (offer PendingInstantOffer) GetAddInstantOffer() map[string]interface{} {
 		"created_at":        firestore.ServerTimestamp,
 	}
 }
+
+type GlobalCCLimit struct {
+	Limit string `firestore:"limit"`
+	Usage string `firestore:"usage"`
+}
+
+func (b GlobalCCLimit) GetUpdateUsage() map[string]interface{} {
+	return map[string]interface{}{
+		"usage":      b.Usage,
+		"updated_at": firestore.ServerTimestamp,
+	}
+}

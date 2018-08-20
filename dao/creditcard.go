@@ -5,7 +5,9 @@ import (
 	"context"
 	"fmt"
 	"github.com/ninjadotorg/handshake-exchange/bean"
+	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/integration/firebase_service"
+	"github.com/shopspring/decimal"
 	"google.golang.org/api/iterator"
 )
 
@@ -159,6 +161,37 @@ func (dao CreditCardDao) UpdateNotificationInstantOffer(offer bean.InstantOffer)
 	return err
 }
 
+func (dao CreditCardDao) GetCCGlobalLimit() TransferObject {
+	return dao.GetCCTransactionByPath(GetGlobalCCLimitPath())
+}
+
+func (dao CreditCardDao) GetCCGlobalLimitByPath(path string) (t TransferObject) {
+	GetObject(path, &t, snapshotToGlobalCCLimit)
+	return
+}
+
+func (dao CreditCardDao) UpdateCCGlobalLimitAmount(amount decimal.Decimal) error {
+	dbClient := firebase_service.FirestoreClient
+	limitRef := dbClient.Doc(GetGlobalCCLimitPath())
+	err := dbClient.RunTransaction(context.Background(), func(ctx context.Context, tx *firestore.Transaction) error {
+		doc, err := tx.Get(limitRef)
+		if err != nil {
+			return err
+		}
+		usage, err := common.ConvertToDecimal(doc, "usage")
+		if err != nil {
+			return err
+		}
+		usage = usage.Add(amount)
+		if usage.LessThan(common.Zero) {
+			usage = common.Zero
+		}
+		return tx.Set(limitRef, bean.GlobalCCLimit{Usage: usage.String()}.GetUpdateUsage(), firestore.MergeAll)
+	})
+
+	return err
+}
+
 func GetCCTransactionPath(userId string) string {
 	return fmt.Sprintf("users/%s/cc_transactions", userId)
 }
@@ -183,6 +216,10 @@ func GetPendingInstantOfferItemPath(pendingOfferId string) string {
 	return fmt.Sprintf("%s/%s", GetPendingInstantOfferPath(), pendingOfferId)
 }
 
+func GetGlobalCCLimitPath() string {
+	return "cc_global_limit/1"
+}
+
 // Firebase
 func GetNotificationInstantOfferItemPath(userId string, offerId string) string {
 	return fmt.Sprintf("users/%s/offers/instant_%s", userId, offerId)
@@ -200,6 +237,13 @@ func snapshotToInstantOffer(snapshot *firestore.DocumentSnapshot) interface{} {
 	var obj bean.InstantOffer
 	snapshot.DataTo(&obj)
 	obj.Id = snapshot.Ref.ID
+
+	return obj
+}
+
+func snapshotToGlobalCCLimit(snapshot *firestore.DocumentSnapshot) interface{} {
+	var obj bean.GlobalCCLimit
+	snapshot.DataTo(&obj)
 
 	return obj
 }

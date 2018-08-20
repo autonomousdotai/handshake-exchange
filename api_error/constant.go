@@ -42,6 +42,7 @@ const OfferStoreAlreadyReviewed = "OfferStoreAlreadyReviewed"
 const InvalidFreeStartAmount = "InvalidFreeStartAmount"
 const RegisterFreeStartFailed = "RegisterFreeStartFailed"
 const ChargeCCFailed = "ChargeCCFailed"
+const CCOverGlobalLimit = "CCOverGlobalLimit"
 
 var CodeMessage = map[string]struct {
 	StatusCode int
@@ -88,4 +89,5 @@ var CodeMessage = map[string]struct {
 	RegisterFreeStartFailed:        {http.StatusBadRequest, -320, "Register free start failed"},
 	OfferStoreShakeActiveExist:     {http.StatusBadRequest, -321, "There is offer store shake active"},
 	ChargeCCFailed:                 {http.StatusBadRequest, -322, "Charge CC failed"},
+	CCOverGlobalLimit:              {http.StatusBadRequest, -323, "CC over global limit"},
 }
