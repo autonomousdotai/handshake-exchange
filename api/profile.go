@@ -35,6 +35,28 @@ func (api ProfileApi) AddProfile(context *gin.Context) {
 	bean.SuccessResponse(context, body)
 }
 
+func (api ProfileApi) UpdateProfile(context *gin.Context) {
+	userId := common.GetUserId(context)
+	alias := context.DefaultQuery("alias", "")
+
+	to := dao.OfferStoreDaoInst.GetOfferStore(userId)
+	if to.Found {
+		offer := to.Object.(bean.OfferStore)
+		offer.Username = alias
+		dao.OfferStoreDaoInst.UpdateOfferStore(offer, map[string]interface{}{
+			"username": offer.Username,
+		})
+		solr_service.UpdateObject(bean.NewSolrFromOfferStore(offer, bean.OfferStoreItem{}))
+	}
+	if to.Error != nil {
+		if to.ContextValidate(context) {
+			return
+		}
+	}
+
+	bean.SuccessResponse(context, true)
+}
+
 func (api ProfileApi) UpdateProfileOffline(context *gin.Context) {
 	userId := common.GetUserId(context)
 	offline := context.Param("offline")

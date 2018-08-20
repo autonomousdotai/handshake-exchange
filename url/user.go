@@ -18,6 +18,9 @@ func (url UserUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	group.POST("/profile", func(context *gin.Context) {
 		profileApi.AddProfile(context)
 	})
+	group.PUT("/profile", func(context *gin.Context) {
+		profileApi.UpdateProfile(context)
+	})
 	group.POST("/profile/offline/:offline", func(context *gin.Context) {
 		profileApi.UpdateProfileOffline(context)
 	})
