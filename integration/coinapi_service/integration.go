@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func GetExchangeRate() (map[string][]bean.CryptoRate, error) {
+func GetExchangeRate(currencies []string) (map[string][]bean.CryptoRate, error) {
 	url := fmt.Sprintf("https://rest.coinapi.io/v1/quotes/current")
 	headers := map[string]string{
 		"X-CoinAPI-Key": os.Getenv("COINAPI_API_KEY"),
@@ -24,11 +24,11 @@ func GetExchangeRate() (map[string][]bean.CryptoRate, error) {
 	result := make(map[string][]bean.CryptoRate)
 	if err == nil {
 		resp.JSON(&data)
-		for _, currency := range []string{bean.BTC.Code, bean.BCH.Code, bean.LTC.Code, bean.ETH.Code} {
+		for _, currency := range currencies {
 			dataItems := make([]bean.CryptoRate, 0)
 			for _, item := range data {
 				symbolId := item["symbol_id"].(string)
-				symbol := fmt.Sprintf("_SPOT_%s_USD", currency)
+				symbol := fmt.Sprintf("BITFINEX_SPOT_%s_USD", currency)
 				if strings.Contains(symbolId, symbol) {
 					dataItems = append(dataItems, bean.CryptoRate{
 						From:     currency,

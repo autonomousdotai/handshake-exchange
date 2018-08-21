@@ -7,6 +7,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/dao"
 	"github.com/ninjadotorg/handshake-exchange/integration/chainso_service"
+	"github.com/ninjadotorg/handshake-exchange/integration/coinapi_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/openexchangerates_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/solr_service"
@@ -35,10 +36,14 @@ func (api MiscApi) UpdateCurrencyRates(context *gin.Context) {
 
 // CRON JOB
 func (api MiscApi) UpdateCryptoRates(context *gin.Context) {
-	//rates, err := coinapi_service.GetExchangeRate()
-	//if api_error.PropagateErrorAndAbort(context, api_error.ExternalApiFailed, err) != nil {
-	//	return
-	//}
+	rates, err := coinapi_service.GetExchangeRate([]string{bean.XRP.Code})
+	if api_error.PropagateErrorAndAbort(context, api_error.ExternalApiFailed, err) != nil {
+		return
+	}
+	err = dao.MiscDaoInst.UpdateCryptoRates(rates)
+	if api_error.PropagateErrorAndAbort(context, api_error.UpdateDataFailed, err) != nil {
+		return
+	}
 
 	allRates := make([]bean.CryptoRate, 0)
 	for _, currency := range []string{bean.BTC.Code, bean.ETH.Code, bean.LTC.Code, bean.BCH.Code} {

@@ -38,6 +38,13 @@ var LTC = Currency{
 	8,
 }
 
+var XRP = Currency{
+	"Ripple",
+	"XRP",
+	CURRENCY_CRYPTO,
+	8,
+}
+
 var USD = Currency{
 	"US Dollar",
 	"USD",
