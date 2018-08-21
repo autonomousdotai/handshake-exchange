@@ -24,6 +24,10 @@ func (url CronJobUrl) Create(router *gin.Engine) *gin.RouterGroup {
 		miscApi.UpdateCryptoRates(context)
 	})
 	// CRON JOB
+	group.POST("/crypto-rates-extra", func(context *gin.Context) {
+		miscApi.UpdateCryptoRatesExtra(context)
+	})
+	// CRON JOB
 	group.POST("/finish-instant-offers", func(context *gin.Context) {
 		miscApi.FinishInstantOffers(context)
 	})

@@ -35,7 +35,8 @@ func GetExchangeRate(currencies []string) (map[string][]bean.CryptoRate, error) 
 						To:       bean.USD.Code,
 						Buy:      item["bid_price"].(float64),
 						Sell:     item["ask_price"].(float64),
-						Exchange: strings.Replace(symbolId, symbol, "", -1),
+						Exchange: bean.INSTANT_OFFER_PROVIDER_COINBASE, // Hard code
+						// Exchange: strings.Replace(symbolId, symbol, "", -1),
 					})
 				}
 			}

@@ -54,6 +54,32 @@ func (s CreditCardService) GetProposeInstantOffer(amountStr string, currency str
 	return
 }
 
+func (s CreditCardService) GetCryptoPrice(amountStr string, currency string, fiatCurrency string) (offer bean.InstantOffer, ce SimpleContextError) {
+	cryptoRateTO := s.miscDao.GetCryptoRateFromCache(currency, bean.INSTANT_OFFER_PROVIDER_COINBASE)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, cryptoRateTO) {
+		return
+	}
+	cryptoRate := cryptoRateTO.Object.(bean.CryptoRate)
+
+	price := decimal.NewFromFloat(cryptoRate.Buy).Round(2)
+	amount, _ := decimal.NewFromString(amountStr)
+	total := amount.Mul(price)
+	exchangeRate := decimal.NewFromFloat(0)
+	if fiatCurrency != bean.USD.Code {
+		exchangeTO := s.miscDao.GetCurrencyRateFromCache(bean.USD.Code, fiatCurrency)
+		exchangeRateObj := exchangeTO.Object.(bean.CurrencyRate)
+		exchangeRate = decimal.NewFromFloat(exchangeRateObj.Rate).Round(2)
+	}
+
+	offer.FiatAmount = total.Mul(exchangeRate).Round(2).String()
+	offer.FiatCurrency = fiatCurrency
+	offer.Amount = amountStr
+	offer.Currency = currency
+	offer.Price = price.String()
+
+	return
+}
+
 func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.InstantOffer) (offer bean.InstantOffer, ce SimpleContextError) {
 	offerTest, testOfferCE := s.GetProposeInstantOffer(offerBody.Amount, offerBody.Currency)
 	if ce.FeedContextError(api_error.GetDataFailed, testOfferCE) {

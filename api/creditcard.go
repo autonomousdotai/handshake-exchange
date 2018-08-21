@@ -24,6 +24,19 @@ func (api CreditCardApi) GetProposeInstantOffer(context *gin.Context) {
 	bean.SuccessResponse(context, offer)
 }
 
+func (api CreditCardApi) GetCryptoPrice(context *gin.Context) {
+	amount := context.DefaultQuery("amount", "1")
+	currency := context.DefaultQuery("currency", "")
+	fiatCurrency := context.DefaultQuery("fiat_currency", "")
+
+	offer, ce := service.CreditCardServiceInst.GetCryptoPrice(amount, currency, fiatCurrency)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, offer)
+}
+
 func (api CreditCardApi) PayInstantOffer(context *gin.Context) {
 	userId := common.GetUserId(context)
 	chainId := common.GetChainId(context)
