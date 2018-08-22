@@ -565,3 +565,36 @@ func setupCCTransaction(ccTran *bean.CCTransaction, offerBody bean.InstantOffer,
 	ccTran.Type = bean.CC_TRANSACTION_TYPE
 	ccTran.ExternalId = stripeCharge.ID
 }
+
+func (s CreditCardService) ScriptCheckFailedTransfer() error {
+	userId := 8662
+	for userId < 9162 {
+		userId += 1
+
+		toBTC := s.dao.ListInstantOffers(strconv.Itoa(userId), bean.BTC.Code, 100, nil)
+		for _, obj := range toBTC.Objects {
+			instantOffer := obj.(bean.InstantOffer)
+			if instantOffer.Status == "success" {
+				if data, ok := instantOffer.ProviderData.(string); ok {
+					fmt.Sprintf("%s %s %s %s %s %s", instantOffer.Id,
+						instantOffer.UID, data, instantOffer.PaymentMethodRef,
+						instantOffer.Amount, instantOffer.FiatAmount)
+				}
+			}
+		}
+
+		toETH := s.dao.ListInstantOffers(strconv.Itoa(userId), bean.ETH.Code, 100, nil)
+		for _, obj := range toETH.Objects {
+			instantOffer := obj.(bean.InstantOffer)
+			if instantOffer.Status == "success" {
+				if data, ok := instantOffer.ProviderData.(string); ok {
+					fmt.Sprintf("%s %s %s %s %s %s", instantOffer.Id,
+						instantOffer.UID, data, instantOffer.PaymentMethodRef,
+						instantOffer.Amount, instantOffer.FiatAmount)
+				}
+			}
+		}
+	}
+
+	return nil
+}

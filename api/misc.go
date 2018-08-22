@@ -416,6 +416,11 @@ func (api MiscApi) ScriptUpdateAllOfferStoreSolr(context *gin.Context) {
 	bean.SuccessResponse(context, "ok")
 }
 
+func (api MiscApi) ScriptCheckFailedTransfer(context *gin.Context) {
+	service.CreditCardServiceInst.ScriptCheckFailedTransfer()
+	bean.SuccessResponse(context, "ok")
+}
+
 func (api MiscApi) GetBTCConfirmation(context *gin.Context) {
 	txId := context.Param("txId")
 	confirmations, _ := chainso_service.GetConfirmations(txId)
