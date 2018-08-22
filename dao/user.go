@@ -57,6 +57,13 @@ func (dao UserDao) UpdateProfileCreditCard(userId string, creditCard bean.UserCr
 	profileRef := dbClient.Collection("users").Doc(userId)
 	// userCCLimitRef := dbClient.Doc(GetUserCCLimitItemPath(userId, creditCard.Token))
 	userCCLimitRef := dbClient.Doc(GetUserCCLimitItemPath(userId, userId))
+
+	// Because there is only userId for the card
+	snapshot, _ := userCCLimitRef.Get(context.Background())
+	if snapshot != nil && snapshot.Exists() {
+		return nil
+	}
+
 	userCCLimitTrackRef := dbClient.Doc(GetUserCCLimitTrackItemPath(userId))
 
 	batch.Set(profileRef, creditCard.GetUpdateProfileCreditCard(), firestore.MergeAll)
