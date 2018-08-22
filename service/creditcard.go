@@ -215,7 +215,7 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 		bean.LTC.Code: 3,
 		bean.BCH.Code: 4,
 	}
-	description := fmt.Sprintf("User %s buys %s of %d", offer.UID, offerBody.Amount, mapCrypto[offerBody.Currency])
+	description := fmt.Sprintf("User %s buys %s of %d", userId, offerBody.Amount, mapCrypto[offerBody.Currency])
 
 	stripeCharge, err := stripe_service.Charge(token, paymentMethodData.Token, fiatAmount, statement, description)
 	if ce.SetError(api_error.ChargeCCFailed, err) {
