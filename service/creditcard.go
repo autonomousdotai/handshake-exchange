@@ -140,6 +140,12 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 			return
 		}
 	}
+	if offerBody.Currency == bean.BCH.Code {
+		if amount.LessThan(bean.MIN_BCH) {
+			ce.SetStatusKey(api_error.AmountIsTooSmall)
+			return
+		}
+	}
 
 	systemConfigTO := s.miscDao.GetSystemConfigFromCache(bean.CONFIG_KEY_CC_MODE)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, systemConfigTO) {
