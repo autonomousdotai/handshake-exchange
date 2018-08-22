@@ -117,10 +117,12 @@ func (dao CreditCardDao) UpdateInstantOffer(offer bean.InstantOffer, transaction
 }
 
 func (dao CreditCardDao) ListInstantOffers(userId string, currency string, limit int, startAt interface{}) (t TransferObject) {
-	ListPagingObjects(GetInstantOfferPath(userId), &t, limit, startAt, func(collRef *firestore.CollectionRef) firestore.Query {
-		query := collRef.Where("currency", "==", currency).OrderBy("created_at", firestore.Desc)
-		return query
-	}, snapshotToInstantOffer)
+	//ListPagingObjects(GetInstantOfferPath(userId), &t, limit, startAt, func(collRef *firestore.CollectionRef) firestore.Query {
+	//	query := collRef.Where("currency", "==", currency).OrderBy("created_at", firestore.Desc)
+	//	return query
+	//}, snapshotToInstantOffer)
+
+	ListPagingObjects(GetInstantOfferPath(userId), &t, limit, startAt, nil, snapshotToInstantOffer)
 
 	return
 }

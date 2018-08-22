@@ -65,7 +65,7 @@ func NewFirebaseClient() *db.Client {
 }
 
 func Intialize() {
-	firebaseService = NewFirestore("./credentials/cred.json")
+	firebaseService = NewFirestore("./credentials/production.cred.json")
 	notificationFirebaseService = NewFirebase("./credentials/notification.cred.json")
 
 	// AuthClient = NewAuthClient()

@@ -568,32 +568,40 @@ func setupCCTransaction(ccTran *bean.CCTransaction, offerBody bean.InstantOffer,
 
 func (s CreditCardService) ScriptCheckFailedTransfer() error {
 	userId := 8662
-	for userId < 9162 {
+	for userId < 9089 {
+		// fmt.Println(fmt.Sprintf("User %d", userId))
+		to := s.dao.ListInstantOffers(strconv.Itoa(userId), bean.BTC.Code, 100, nil)
+		for _, obj := range to.Objects {
+			instantOffer := obj.(bean.InstantOffer)
+			if instantOffer.Status == "success" {
+				if _, ok := instantOffer.ProviderWithdrawData.(string); ok {
+					//fmt.Println(fmt.Sprintf("%s,%s,'%s',%s,%s,%s,'%s'", instantOffer.Id,
+					//	instantOffer.UID, instantOffer.PaymentMethodRef,
+					//	instantOffer.Amount, instantOffer.Currency, instantOffer.FiatAmount,
+					//	data[0:80]))
+
+					paymentTO := s.dao.GetCCTransactionByPath(instantOffer.PaymentMethodRef)
+					payment := paymentTO.Object.(bean.CCTransaction)
+
+					fmt.Println(fmt.Sprintf("%s,%s", payment.Amount, payment.ExternalId))
+				}
+			}
+		}
+
+		//toETH := s.dao.ListInstantOffers(strconv.Itoa(userId), bean.ETH.Code, 100, nil)
+		//for _, obj := range toETH.Objects {
+		//	instantOffer := obj.(bean.InstantOffer)
+		//	fmt.Println(instantOffer)
+		//	if instantOffer.Status == "success" {
+		//		if data, ok := instantOffer.ProviderWithdrawData.(string); ok {
+		//			fmt.Println(fmt.Sprintf("%s %s %s %s %s %s", instantOffer.Id,
+		//				instantOffer.UID, data, instantOffer.PaymentMethodRef,
+		//				instantOffer.Amount, instantOffer.FiatAmount))
+		//		}
+		//	}
+		//}
+
 		userId += 1
-
-		toBTC := s.dao.ListInstantOffers(strconv.Itoa(userId), bean.BTC.Code, 100, nil)
-		for _, obj := range toBTC.Objects {
-			instantOffer := obj.(bean.InstantOffer)
-			if instantOffer.Status == "success" {
-				if data, ok := instantOffer.ProviderData.(string); ok {
-					fmt.Sprintf("%s %s %s %s %s %s", instantOffer.Id,
-						instantOffer.UID, data, instantOffer.PaymentMethodRef,
-						instantOffer.Amount, instantOffer.FiatAmount)
-				}
-			}
-		}
-
-		toETH := s.dao.ListInstantOffers(strconv.Itoa(userId), bean.ETH.Code, 100, nil)
-		for _, obj := range toETH.Objects {
-			instantOffer := obj.(bean.InstantOffer)
-			if instantOffer.Status == "success" {
-				if data, ok := instantOffer.ProviderData.(string); ok {
-					fmt.Sprintf("%s %s %s %s %s %s", instantOffer.Id,
-						instantOffer.UID, data, instantOffer.PaymentMethodRef,
-						instantOffer.Amount, instantOffer.FiatAmount)
-				}
-			}
-		}
 	}
 
 	return nil
