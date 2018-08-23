@@ -34,6 +34,7 @@ var BTC_IN_SATOSHI = decimal.NewFromBigInt(big.NewInt(100000000), 0)
 func (c *BitcoinService) SendTransaction(address string, amount decimal.Decimal) (Transaction, error) {
 	var transaction Transaction
 	wif, err := btcutil.DecodeWIF(os.Getenv("BTC_KEY"))
+
 	if err != nil {
 		return Transaction{}, err
 	}

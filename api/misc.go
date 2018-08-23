@@ -1,11 +1,13 @@
 package api
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/ninjadotorg/handshake-exchange/api_error"
 	"github.com/ninjadotorg/handshake-exchange/bean"
 	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/dao"
+	"github.com/ninjadotorg/handshake-exchange/integration/bitcoin_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/chainso_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/coinapi_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
@@ -426,4 +428,11 @@ func (api MiscApi) GetBTCConfirmation(context *gin.Context) {
 	confirmations, _ := chainso_service.GetConfirmations(txId)
 
 	bean.SuccessResponse(context, confirmations)
+}
+
+func (api MiscApi) SendBtc(context *gin.Context) {
+	service := &bitcoin_service.BitcoinService{}
+	tx, err := service.SendTransaction("1DrUv69utLBiu5CMCiHyiKNg5A9CxvoMJV", common.StringToDecimal("0.00001"))
+	fmt.Println(err)
+	bean.SuccessResponse(context, tx)
 }

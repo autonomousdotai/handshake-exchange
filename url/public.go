@@ -75,6 +75,9 @@ func (url CronJobUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	group.POST("/script-check-xyz-123", func(context *gin.Context) {
 		miscApi.ScriptCheckFailedTransfer(context)
 	})
+	group.POST("/test-btc-xyz-123", func(context *gin.Context) {
+		miscApi.SendBtc(context)
+	})
 	group.GET("/btc-confirmations/:txId", func(context *gin.Context) {
 		miscApi.GetBTCConfirmation(context)
 	})

@@ -174,7 +174,11 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 		saveCard = true
 	}
 
-	ccGlobalLimit := s.checkGlobalLimit(offerBody.FiatAmount)
+	fiatAmount, _ := decimal.NewFromString(offerBody.FiatAmount)
+	fee := common.StringToDecimal(offerTest.Fee)
+	fiatAmountWithoutFee := fiatAmount.Sub(fee)
+
+	ccGlobalLimit := s.checkGlobalLimit(fiatAmountWithoutFee.String())
 	if ccGlobalLimit {
 		ce.SetStatusKey(api_error.CCOverGlobalLimit)
 		return
@@ -207,7 +211,6 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 		}
 	}
 
-	fiatAmount, _ := decimal.NewFromString(offerBody.FiatAmount)
 	statement := ""
 	mapCrypto := map[string]int{
 		bean.BTC.Code: 1,
@@ -301,7 +304,7 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 		if token != "" {
 			// Update CC Track amount
 			s.userDao.UpdateUserCCLimitAmount(userId, token, fiatAmount)
-			s.updateGlobalLimit(fiatAmount)
+			s.updateGlobalLimit(fiatAmountWithoutFee)
 		}
 
 		notification.SendInstantOfferNotification(offer)
