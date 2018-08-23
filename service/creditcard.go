@@ -574,7 +574,7 @@ func (s CreditCardService) ScriptCheckFailedTransfer() error {
 		for _, obj := range to.Objects {
 			instantOffer := obj.(bean.InstantOffer)
 			if instantOffer.Status == "success" {
-				if _, ok := instantOffer.ProviderWithdrawData.(string); ok {
+				if data, ok := instantOffer.ProviderWithdrawData.(string); ok {
 					//fmt.Println(fmt.Sprintf("%s,%s,'%s',%s,%s,%s,'%s'", instantOffer.Id,
 					//	instantOffer.UID, instantOffer.PaymentMethodRef,
 					//	instantOffer.Amount, instantOffer.Currency, instantOffer.FiatAmount,
@@ -583,7 +583,8 @@ func (s CreditCardService) ScriptCheckFailedTransfer() error {
 					paymentTO := s.dao.GetCCTransactionByPath(instantOffer.PaymentMethodRef)
 					payment := paymentTO.Object.(bean.CCTransaction)
 
-					fmt.Println(fmt.Sprintf("%s,%s", payment.Amount, payment.ExternalId))
+					//fmt.Println(fmt.Sprintf("%s,%s,%s,%s", instantOffer.Amount, instantOffer.Currency, instantOffer.Address, data[0:80]))
+					fmt.Println(fmt.Sprintf("%s,%s,%s", instantOffer.FiatAmount, payment.ExternalId, data[0:80]))
 				}
 			}
 		}

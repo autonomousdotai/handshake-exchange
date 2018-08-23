@@ -32,18 +32,30 @@ func (dao CreditCardDao) AddCCTransaction(ccTran bean.CCTransaction) (bean.CCTra
 
 func (dao CreditCardDao) UpdateCCTransaction(ccTran bean.CCTransaction) (bean.CCTransaction, error) {
 	dbClient := firebase_service.FirestoreClient
-	docRef := dbClient.Doc(GetUserCCTransactionItemPath(ccTran.UID, ccTran.Id))
+	batch := dbClient.Batch()
 
-	_, err := docRef.Set(context.Background(), ccTran.GetUpdateCCTransaction(), firestore.MergeAll)
+	userDocRef := dbClient.Doc(GetUserCCTransactionItemPath(ccTran.UID, ccTran.Id))
+	docRef := dbClient.Doc(GetCCTransactionItemPath(fmt.Sprintf("%s_%s", ccTran.UID, ccTran.Id)))
+
+	batch.Set(userDocRef, ccTran.GetUpdateCCTransaction(), firestore.MergeAll)
+	batch.Set(docRef, ccTran.GetUpdateCCTransaction(), firestore.MergeAll)
+
+	_, err := batch.Commit(context.Background())
 
 	return ccTran, err
 }
 
 func (dao CreditCardDao) UpdateCCTransactionStatus(ccTran bean.CCTransaction) (bean.CCTransaction, error) {
 	dbClient := firebase_service.FirestoreClient
-	docRef := dbClient.Doc(GetUserCCTransactionItemPath(ccTran.UID, ccTran.Id))
 
-	_, err := docRef.Set(context.Background(), ccTran.GetUpdateStatus(), firestore.MergeAll)
+	batch := dbClient.Batch()
+	userDocRef := dbClient.Doc(GetUserCCTransactionItemPath(ccTran.UID, ccTran.Id))
+	docRef := dbClient.Doc(GetCCTransactionItemPath(fmt.Sprintf("%s_%s", ccTran.UID, ccTran.Id)))
+
+	batch.Set(userDocRef, ccTran.GetUpdateStatus(), firestore.MergeAll)
+	batch.Set(docRef, ccTran.GetUpdateStatus(), firestore.MergeAll)
+
+	_, err := batch.Commit(context.Background())
 
 	return ccTran, err
 }
