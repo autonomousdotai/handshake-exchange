@@ -36,7 +36,11 @@ func (api ProfileApi) AddProfile(context *gin.Context) {
 }
 
 func (api ProfileApi) UpdateProfile(context *gin.Context) {
-	userId := common.GetUserId(context)
+	var body bean.ProfileRequest
+	if common.ValidateBody(context, &body) != nil {
+		return
+	}
+	userId := strconv.Itoa(body.Id)
 	alias := context.DefaultQuery("alias", "")
 
 	to := dao.OfferStoreDaoInst.GetOfferStore(userId)
