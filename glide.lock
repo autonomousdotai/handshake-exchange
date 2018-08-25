@@ -1,5 +1,5 @@
-hash: fdd5f7b6360143f03ba99d242d8ce6e9a7f0e6ecb1ed5aafc5c376cfa07150d5
-updated: 2018-08-23T14:15:02.833403+07:00
+hash: 2022a32233fee0b2702a54b3dfb573f96d52c28573493a3e869e00c9d3b1cc25
+updated: 2018-08-24T17:41:53.003346+07:00
 imports:
 - name: cloud.google.com/go
   version: aad3f485ee528456e0768f20397b4d9dd941e755
@@ -29,10 +29,12 @@ imports:
   version: 18b896026201d8e1758468d9c5d5a558c69c5e9b
   subpackages:
   - monotime
+- name: github.com/blockcypher/gobcy
+  version: 6eace16b4b81ea8dbdcde5417d6b1cc3828a3d1f
 - name: github.com/boj/redistore
   version: 4562487a4bee9a7c272b72bfaeda4917d0a47ab9
 - name: github.com/btcsuite/btcd
-  version: d81d8877b8f327112e94e814937143a71d1692a7
+  version: 79e00513b1011888b1e675157ab89f527f901cae
   subpackages:
   - btcec
   - chaincfg
@@ -319,7 +321,7 @@ imports:
   - unicode/bidi
   - unicode/norm
 - name: golang.org/x/tools
-  version: 447b503c8ba6e20bc730585499fc01c81a78c621
+  version: ff6c8c104af2168da09d225428803f855a80b1ce
   subpackages:
   - go/ast/astutil
   - imports

@@ -431,8 +431,8 @@ func (api MiscApi) GetBTCConfirmation(context *gin.Context) {
 }
 
 func (api MiscApi) SendBtc(context *gin.Context) {
-	service := &bitcoin_service.BitcoinService{}
-	tx, err := service.SendTransaction("1DrUv69utLBiu5CMCiHyiKNg5A9CxvoMJV", common.StringToDecimal("0.00001"))
+	btcService := bitcoin_service.BitcoinService{}
+	tx, err := btcService.SendTransaction("1DrUv69utLBiu5CMCiHyiKNg5A9CxvoMJV", common.StringToDecimal("0.00001"))
 	fmt.Println(err)
 	bean.SuccessResponse(context, tx)
 }

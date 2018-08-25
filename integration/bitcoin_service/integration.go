@@ -14,6 +14,7 @@ import (
 	"math/big"
 	"os"
 	// "github.com/ninjadotorg/handshake-exchange/api_error"
+	"github.com/blockcypher/gobcy"
 )
 
 type BitcoinService struct {
@@ -30,7 +31,62 @@ type Transaction struct {
 
 var BTC_IN_SATOSHI = decimal.NewFromBigInt(big.NewInt(100000000), 0)
 
-func (c *BitcoinService) SendTransaction(address string, amount decimal.Decimal) (Transaction, error) {
+func (c BitcoinService) SendTransaction(address string, amount decimal.Decimal) (string, error) {
+	////note the change to BlockCypher Testnet
+	bcy := gobcy.API{"b80ed3816ca1414d87e0f7b994f27b16", "btc", "main"}
+
+	//Post New TXSkeleton
+	sendAmount := int(amount.Mul(BTC_IN_SATOSHI).IntPart())
+	fmt.Println(sendAmount)
+	skel, err := bcy.NewTX(gobcy.TempNewTX(address, "1BbPvEanf23t5XkFs3QWpTBUxsSka7f5Y4", sendAmount), false)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+	//Sign it locally
+	err = skel.Sign([]string{"c224eaa3609ad43a6226a95e4ea7448f81b240740dfde8c3d4193790b5a6c764"})
+	if err != nil {
+		fmt.Println(err)
+	}
+	//Send TXSkeleton
+	skel, err = bcy.SendTX(skel)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Printf("%+v\n", skel)
+
+	////note the change to BlockCypher Testnet
+	//bcy := gobcy.API{"b80ed3816ca1414d87e0f7b994f27b16", "bcy", "test"}
+	////generate two addresses
+	//addr1, err := bcy.GenAddrKeychain()
+	//addr2, err := bcy.GenAddrKeychain()
+	////use faucet to fund first
+	//_, err = bcy.Faucet(addr1, 3e5)
+	//if err != nil {
+	//	fmt.Println(err)
+	//}
+	////Post New TXSkeleton
+	//fmt.Println(addr1.Address)
+	//fmt.Println(addr1.OriginalAddress)
+	//fmt.Println(addr1.Private)
+	//fmt.Println(addr1.Wif)
+	//skel, err := bcy.NewTX(gobcy.TempNewTX(addr1.Address, addr2.Address, 2e5), false)
+	////Sign it locally
+	//err = skel.Sign([]string{addr1.Private})
+	//if err != nil {
+	//	fmt.Println(err)
+	//}
+	////Send TXSkeleton
+	//skel, err = bcy.SendTX(skel)
+	//if err != nil {
+	//	fmt.Println(err)
+	//}
+	//fmt.Printf("%+v\n", skel)
+
+	return skel.Trans.Hash, err
+}
+
+func (c *BitcoinService) SendTransactionRaw(address string, amount decimal.Decimal) (Transaction, error) {
 	var transaction Transaction
 	wif, err := btcutil.DecodeWIF(os.Getenv("BTC_KEY"))
 	nilTransaction := Transaction{}

@@ -80,3 +80,5 @@ import:
 - package: github.com/btcsuite/btcd
 - package: github.com/btcsuite/btcutil
 - package: github.com/btcsuite/btclog
+- package: github.com/blockcypher/gobcy
+  version: v1.3.1
