@@ -883,6 +883,7 @@ func (s OfferService) FinishCryptoTransfer() (finishedInstantOffers []bean.Offer
 		return
 	} else {
 		for _, pendingOffer := range pendingOffers {
+			err = nil
 			// bodyTransaction, err := coinbase_service.GetTransaction(pendingOffer.ExternalId, pendingOffer.Currency)
 			onchainCompleted := false
 			if pendingOffer.Currency == bean.ETH.Code {
@@ -916,9 +917,7 @@ func (s OfferService) FinishCryptoTransfer() (finishedInstantOffers []bean.Offer
 					_, ce = OfferStoreServiceInst.FinishOfferStorePendingTransfer(pendingOffer.DataRef)
 					completed = !ce.HasError()
 				} else if pendingOffer.DataType == bean.OFFER_ADDRESS_MAP_OFFER_STORE_SHAKE {
-					fmt.Println("Go here")
 					_, ce = OfferStoreServiceInst.FinishOfferStoreShakePendingTransfer(pendingOffer.DataRef)
-					fmt.Println(ce)
 					completed = !ce.HasError()
 				}
 
