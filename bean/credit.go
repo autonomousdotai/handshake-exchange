@@ -126,6 +126,7 @@ func (b Withdraw) GetAdd() map[string]interface{} {
 
 type BalanceHistory struct {
 	ItemRef   string    `json:"item_ref" firestore:"item_ref"`
+	ModifyRef string    `json:"modify_ref" firestore:"modify_ref"`
 	Old       string    `json:"old" firestore:"old"`
 	Change    string    `json:"change" firestore:"change"`
 	New       string    `json:"new" firestore:"new"`
@@ -135,6 +136,7 @@ type BalanceHistory struct {
 func (b BalanceHistory) GetAdd() map[string]interface{} {
 	return map[string]interface{}{
 		"item_ref":   b.ItemRef,
+		"modify_ref": b.ModifyRef,
 		"old":        b.Old,
 		"change":     b.Change,
 		"new":        b.New,
@@ -168,7 +170,7 @@ func (b CreditOnChainTransaction) GetAdd() map[string]interface{} {
 type CreditOnChainActionTracking struct {
 	Id        string    `json:"id" firestore:"id"`
 	UID       string    `json:"uid" firestore:"uid"`
-	ItemRef   string    `json:"offer_ref" firestore:"offer_ref"`
+	ItemRef   string    `json:"item_ref" firestore:"item_ref"`
 	TxHash    string    `json:"tx_hash" firestore:"tx_hash"`
 	Currency  string    `json:"currency" firestore:"currency"`
 	Action    string    `json:"action" firestore:"action"`
@@ -206,21 +208,22 @@ func (b CreditPool) GetAdd() map[string]interface{} {
 }
 
 type PoolBalanceHistory struct {
-	ItemRef    string    `json:"item_ref" firestore:"item_ref"`
-	DepositRef string    `json:"deposit_ref" firestore:"deposit_ref"`
-	Old        string    `json:"old" firestore:"old"`
-	Change     string    `json:"change" firestore:"change"`
-	New        string    `json:"new" firestore:"new"`
-	CreatedAt  time.Time `json:"created_at" firestore:"created_at"`
+	ItemRef   string    `json:"item_ref" firestore:"item_ref"`
+	ModifyRef string    `json:"modify_ref" firestore:"modify_ref"`
+	Type      string    `json:"type" firestore:"type"`
+	Old       string    `json:"old" firestore:"old"`
+	Change    string    `json:"change" firestore:"change"`
+	New       string    `json:"new" firestore:"new"`
+	CreatedAt time.Time `json:"created_at" firestore:"created_at"`
 }
 
 func (b PoolBalanceHistory) GetAdd() map[string]interface{} {
 	return map[string]interface{}{
-		"item_ref":    b.ItemRef,
-		"deposit_ref": b.DepositRef,
-		"old":         b.Old,
-		"change":      b.Change,
-		"new":         b.New,
-		"created_at":  firestore.ServerTimestamp,
+		"item_ref":   b.ItemRef,
+		"modify_ref": b.ModifyRef,
+		"old":        b.Old,
+		"change":     b.Change,
+		"new":        b.New,
+		"created_at": firestore.ServerTimestamp,
 	}
 }

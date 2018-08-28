@@ -783,7 +783,7 @@ func (s OfferService) GetAllQuotes(fiatCurrency string) []interface{} {
 		Type         string
 		Currency     string
 		FiatCurrency string
-		Price string
+		Price        string
 	}
 
 	var quoteObj quoteStruct
