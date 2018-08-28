@@ -783,7 +783,6 @@ func (s OfferService) GetAllQuotes(fiatCurrency string) []interface{} {
 		Type         string
 		Currency     string
 		FiatCurrency string
-		// FiatAmount   string
 		Price string
 	}
 
@@ -797,7 +796,6 @@ func (s OfferService) GetAllQuotes(fiatCurrency string) []interface{} {
 	}
 	_, fiatPrice, _, _ := s.GetQuote(quoteObj.Type, "1", quoteObj.Currency, fiatCurrency)
 	quoteObj.Price = fiatPrice.Round(2).String()
-	// quote.FiatAmount = fiatAmount.Round(2).String()
 
 	quotes[0] = quoteObj
 
@@ -808,7 +806,6 @@ func (s OfferService) GetAllQuotes(fiatCurrency string) []interface{} {
 	}
 	_, fiatPrice, _, _ = s.GetQuote(quoteObj.Type, "1", quoteObj.Currency, fiatCurrency)
 	quoteObj.Price = fiatPrice.Round(2).String()
-	// quote.FiatAmount = fiatAmount.Round(2).String()
 
 	quotes[1] = quoteObj
 
@@ -819,7 +816,6 @@ func (s OfferService) GetAllQuotes(fiatCurrency string) []interface{} {
 	}
 	_, fiatPrice, _, _ = s.GetQuote(quoteObj.Type, "1", quoteObj.Currency, fiatCurrency)
 	quoteObj.Price = fiatPrice.Round(2).String()
-	// quote.FiatAmount = fiatAmount.Round(2).String()
 
 	quotes[2] = quoteObj
 
@@ -830,9 +826,28 @@ func (s OfferService) GetAllQuotes(fiatCurrency string) []interface{} {
 	}
 	_, fiatPrice, _, _ = s.GetQuote(quoteObj.Type, "1", quoteObj.Currency, fiatCurrency)
 	quoteObj.Price = fiatPrice.Round(2).String()
-	// quote.FiatAmount = fiatAmount.Round(2).String()
 
 	quotes[3] = quoteObj
+
+	quoteObj = quoteStruct{
+		Type:         bean.OFFER_TYPE_SELL,
+		Currency:     bean.BCH.Code,
+		FiatCurrency: fiatCurrency,
+	}
+	_, fiatPrice, _, _ = s.GetQuote(quoteObj.Type, "1", quoteObj.Currency, fiatCurrency)
+	quoteObj.Price = fiatPrice.Round(2).String()
+
+	quotes[4] = quoteObj
+
+	quoteObj = quoteStruct{
+		Type:         bean.OFFER_TYPE_BUY,
+		Currency:     bean.BCH.Code,
+		FiatCurrency: fiatCurrency,
+	}
+	_, fiatPrice, _, _ = s.GetQuote(quoteObj.Type, "1", quoteObj.Currency, fiatCurrency)
+	quoteObj.Price = fiatPrice.Round(2).String()
+
+	quotes[5] = quoteObj
 
 	return quotes
 }
