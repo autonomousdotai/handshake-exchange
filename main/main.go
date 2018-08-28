@@ -107,6 +107,8 @@ func main() {
 	cronJobUrl.Create(router)
 	creditCardUrl := url.CreditCardUrl{}
 	creditCardUrl.Create(router)
+	creditUrl := url.CreditUrl{}
+	creditUrl.Create(router)
 
 	log.Printf(":%s", os.Getenv("SERVICE_PORT"))
 	router.Run(fmt.Sprintf(":%s", os.Getenv("SERVICE_PORT")))

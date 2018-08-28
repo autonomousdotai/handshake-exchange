@@ -33,3 +33,9 @@ var ReferralServiceInst = ReferralService{
 	dao:     &dao.ReferralDao{},
 	miscDao: &dao.MiscDaoInst,
 }
+
+var CreditServiceInst = CreditService{
+	dao:     &dao.CreditDaoInst,
+	miscDao: &dao.MiscDaoInst,
+	userDao: &dao.UserDaoInst,
+}

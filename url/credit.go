@@ -9,16 +9,18 @@ type CreditUrl struct {
 }
 
 func (url CreditUrl) Create(router *gin.Engine) *gin.RouterGroup {
-	group := router.Group("/atm")
+	group := router.Group("/credit")
 
 	creditApi := api.CreditApi{}
 	group.GET("", creditApi.Dashboard)
-	group.GET("/transactions", creditApi.ListTransaction)
+	group.GET("/transaction", creditApi.ListTransaction)
 	group.POST("", creditApi.Create)
-	group.PUT("", creditApi.Deposit)
-	group.POST("/transfer", creditApi.Deposit)
+	group.POST("/deposit", creditApi.Deposit)
+	group.GET("/deposit", creditApi.ListDeposit)
+	group.POST("/transfer", creditApi.Transfer)
 	group.DELETE("", creditApi.Deactivate)
 	group.POST("/withdraw", creditApi.Withdraw)
+	group.GET("/withdraw", creditApi.ListWithdraw)
 
 	return group
 }
