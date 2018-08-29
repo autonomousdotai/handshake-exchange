@@ -13,23 +13,25 @@ const CREDIT_ITEM_STATUS_CREATE = "create"
 const CREDIT_ITEM_STATUS_ACTIVE = "active"
 const CREDIT_ITEM_STATUS_INACTIVE = "inactive"
 
-const CREDIT_ITEM_SUB_STATUS_PROCESSING = "processing"
-const CREDIT_ITEM_SUB_STATUS_DONE = "done"
+const CREDIT_ITEM_SUB_STATUS_TRANSFERRING = "transferring"
+const CREDIT_ITEM_SUB_STATUS_TRANSFERRED = "transferred"
 
-const CREDIT_DEPOSIT_STATUS_PROCESSING = "processing"
+const CREDIT_DEPOSIT_STATUS_CREATED = "created"
+const CREDIT_DEPOSIT_STATUS_TRANSFERRING = "transferring"
 const CREDIT_DEPOSIT_STATUS_FAILED = "failed"
-const CREDIT_DEPOSIT_STATUS_DONE = "done"
+const CREDIT_DEPOSIT_STATUS_TRANSFERRED = "transferred"
 
 const CREDIT_WITHDRAW_STATUS_PROCESSING = "processing"
 const CREDIT_WITHDRAW_STATUS_FAILED = "failed"
-const CREDIT_WITHDRAW_STATUS_DONE = "done"
+const CREDIT_WITHDRAW_STATUS_PROCESSED = "processed"
 
 type Credit struct {
 	UID       string                `json:"-" firestore:"uid"`
 	Username  string                `json:"username" firestore:"username"`
 	Email     string                `json:"email" firestore:"email"`
-	Language  string                `json:"language" firestore:"language"`
+	Language  string                `json:"-" firestore:"language"`
 	FCM       string                `json:"-" firestore:"fcm"`
+	ChainId   string                `json:"-" firestore:"chain_id"`
 	Status    string                `json:"status" firestore:"status"`
 	Items     map[string]CreditItem `json:"items"`
 	CreatedAt time.Time             `json:"created_at" firestore:"created_at"`
@@ -43,6 +45,7 @@ func (b Credit) GetAdd() map[string]interface{} {
 		"email":      b.Email,
 		"language":   b.Language,
 		"fcm":        b.FCM,
+		"chain_id":   b.ChainId,
 		"status":     b.Status,
 		"created_at": firestore.ServerTimestamp,
 	}
@@ -111,12 +114,19 @@ func (b CreditItem) GetUpdateBalance() map[string]interface{} {
 	}
 }
 
+type CreditDepositInput struct {
+	Amount      string `json:"amount"`
+	Currency    string `json:"currency"`
+	UserAddress string `json:"user_address"`
+	Percentage  string `json:"percentage"`
+}
+
 type CreditDeposit struct {
 	Id            string    `json:"id" firestore:"id"`
 	UID           string    `json:"-" firestore:"uid"`
-	Currency      string    `json:"currency" firestore:"currency"`
 	ItemRef       string    `json:"item_ref" firestore:"item_ref"`
 	Status        string    `json:"status" firestore:"status"`
+	Currency      string    `json:"currency" firestore:"currency" validator:"oneof=BTC ETH BCH"`
 	Amount        string    `json:"amount" firestore:"amount"`
 	SystemAddress string    `json:"system_address" firestore:"system_address"`
 	CreatedAt     time.Time `json:"created_at" firestore:"created_at"`
@@ -132,6 +142,14 @@ func (b CreditDeposit) GetAdd() map[string]interface{} {
 		"amount":         b.Amount,
 		"system_address": b.SystemAddress,
 		"created_at":     firestore.ServerTimestamp,
+	}
+}
+
+func (b CreditDeposit) GetUpdate() map[string]interface{} {
+	return map[string]interface{}{
+		"status":     b.Status,
+		"amount":     b.Amount,
+		"updated_at": firestore.ServerTimestamp,
 	}
 }
 
@@ -194,21 +212,15 @@ type CreditOnChainTransaction struct {
 	Currency string `json:"currency"`
 }
 
-func (b CreditOnChainTransaction) GetAdd() map[string]interface{} {
-	return map[string]interface{}{
-		"tx_hash":    b.TxHash,
-		"action":     b.Action,
-		"reason":     b.Reason,
-		"currency":   b.Currency,
-		"created_at": firestore.ServerTimestamp,
-	}
-}
+const CREDIT_ON_CHAIN_ACTION_DEPOSIT = "deposit"
+const CREDIT_ON_CHAIN_ACTION_CLOSE = "close"
 
 type CreditOnChainActionTracking struct {
 	Id        string    `json:"id" firestore:"id"`
 	UID       string    `json:"uid" firestore:"uid"`
 	ItemRef   string    `json:"item_ref" firestore:"item_ref"`
 	TxHash    string    `json:"tx_hash" firestore:"tx_hash"`
+	Amount    string    `json:"amount" firestore:"amount"`
 	Currency  string    `json:"currency" firestore:"currency"`
 	Action    string    `json:"action" firestore:"action"`
 	Reason    string    `json:"reason" firestore:"reason"`
@@ -221,10 +233,19 @@ func (b CreditOnChainActionTracking) GetAdd() map[string]interface{} {
 		"uid":        b.UID,
 		"item_ref":   b.ItemRef,
 		"tx_hash":    b.TxHash,
+		"amount":     b.Amount,
 		"action":     b.Action,
 		"reason":     b.Reason,
 		"currency":   b.Currency,
 		"created_at": firestore.ServerTimestamp,
+	}
+}
+
+func (b CreditOnChainActionTracking) GetUpdate() map[string]interface{} {
+	return map[string]interface{}{
+		"amount":     b.Amount,
+		"reason":     b.Reason,
+		"updated_at": firestore.ServerTimestamp,
 	}
 }
 
@@ -235,7 +256,7 @@ type CreditPool struct {
 	UpdatedAt time.Time `json:"updated_at" firestore:"updated_at"`
 }
 
-func (b CreditPool) GetAdd() map[string]interface{} {
+func (b CreditPool) GetUpdate() map[string]interface{} {
 	return map[string]interface{}{
 		"level":      b.Level,
 		"balance":    b.Balance,

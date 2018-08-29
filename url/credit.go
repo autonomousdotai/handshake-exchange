@@ -13,12 +13,12 @@ func (url CreditUrl) Create(router *gin.Engine) *gin.RouterGroup {
 
 	creditApi := api.CreditApi{}
 	group.GET("", creditApi.Dashboard)
-	group.GET("/transaction", creditApi.ListTransaction)
 	group.POST("", creditApi.Create)
+	group.DELETE("", creditApi.Deactivate)
+	group.GET("/transaction", creditApi.ListTransaction)
 	group.POST("/deposit", creditApi.Deposit)
 	group.GET("/deposit", creditApi.ListDeposit)
 	group.POST("/transfer", creditApi.Transfer)
-	group.DELETE("", creditApi.Deactivate)
 	group.POST("/withdraw", creditApi.Withdraw)
 	group.GET("/withdraw", creditApi.ListWithdraw)
 
