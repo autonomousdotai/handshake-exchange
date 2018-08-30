@@ -124,7 +124,7 @@ type CreditDepositInput struct {
 type CreditDeposit struct {
 	Id            string    `json:"id" firestore:"id"`
 	UID           string    `json:"-" firestore:"uid"`
-	ItemRef       string    `json:"item_ref" firestore:"item_ref"`
+	ItemRef       string    `json:"-" firestore:"item_ref"`
 	Status        string    `json:"status" firestore:"status"`
 	Currency      string    `json:"currency" firestore:"currency" validator:"oneof=BTC ETH BCH"`
 	Amount        string    `json:"amount" firestore:"amount"`
@@ -157,7 +157,7 @@ type CreditWithdraw struct {
 	Id          string    `json:"id" firestore:"id"`
 	UID         string    `json:"-" firestore:"uid"`
 	Currency    string    `json:"currency" firestore:"currency"`
-	ItemRef     string    `json:"item_ref" firestore:"item_ref"`
+	ItemRef     string    `json:"-" firestore:"item_ref"`
 	Status      string    `json:"status" firestore:"status"`
 	Amount      string    `json:"amount" firestore:"amount"`
 	Information string    `json:"information" firestore:"information"`
@@ -179,8 +179,8 @@ func (b CreditWithdraw) GetAdd() map[string]interface{} {
 
 type CreditBalanceHistory struct {
 	Id        string    `json:"id" firestore:"id"`
-	ItemRef   string    `json:"item_ref" firestore:"item_ref"`
-	ModifyRef string    `json:"modify_ref" firestore:"modify_ref"`
+	ItemRef   string    `json:"-" firestore:"item_ref"`
+	ModifyRef string    `json:"-" firestore:"modify_ref"`
 	Old       string    `json:"old" firestore:"old"`
 	Change    string    `json:"change" firestore:"change"`
 	New       string    `json:"new" firestore:"new"`
@@ -205,9 +205,10 @@ type CreditOnchain struct {
 	Currency string
 }
 
-type CreditOnChainTransaction struct {
+type CreditOnChainActionTrackingInput struct {
+	Deposit  string `json:"deposit"`
 	TxHash   string `json:"tx_hash"`
-	Action   string `json:"action"`
+	Action   string `json:"action" validate:"oneof=deposit close"`
 	Reason   string `json:"reason"`
 	Currency string `json:"currency"`
 }
@@ -216,28 +217,30 @@ const CREDIT_ON_CHAIN_ACTION_DEPOSIT = "deposit"
 const CREDIT_ON_CHAIN_ACTION_CLOSE = "close"
 
 type CreditOnChainActionTracking struct {
-	Id        string    `json:"id" firestore:"id"`
-	UID       string    `json:"uid" firestore:"uid"`
-	ItemRef   string    `json:"item_ref" firestore:"item_ref"`
-	TxHash    string    `json:"tx_hash" firestore:"tx_hash"`
-	Amount    string    `json:"amount" firestore:"amount"`
-	Currency  string    `json:"currency" firestore:"currency"`
-	Action    string    `json:"action" firestore:"action"`
-	Reason    string    `json:"reason" firestore:"reason"`
-	CreatedAt time.Time `json:"created_at" firestore:"created_at"`
+	Id         string    `json:"id" firestore:"id"`
+	UID        string    `json:"uid" firestore:"uid"`
+	ItemRef    string    `json:"-" firestore:"item_ref"`
+	DepositRef string    `json:"-" firestore:"deposit_ref"`
+	TxHash     string    `json:"tx_hash" firestore:"tx_hash"`
+	Amount     string    `json:"amount" firestore:"amount"`
+	Currency   string    `json:"currency" firestore:"currency"`
+	Action     string    `json:"action" firestore:"action"`
+	Reason     string    `json:"reason" firestore:"reason"`
+	CreatedAt  time.Time `json:"created_at" firestore:"created_at"`
 }
 
 func (b CreditOnChainActionTracking) GetAdd() map[string]interface{} {
 	return map[string]interface{}{
-		"id":         b.Id,
-		"uid":        b.UID,
-		"item_ref":   b.ItemRef,
-		"tx_hash":    b.TxHash,
-		"amount":     b.Amount,
-		"action":     b.Action,
-		"reason":     b.Reason,
-		"currency":   b.Currency,
-		"created_at": firestore.ServerTimestamp,
+		"id":          b.Id,
+		"uid":         b.UID,
+		"item_ref":    b.ItemRef,
+		"deposit_ref": b.DepositRef,
+		"tx_hash":     b.TxHash,
+		"amount":      b.Amount,
+		"action":      b.Action,
+		"reason":      b.Reason,
+		"currency":    b.Currency,
+		"created_at":  firestore.ServerTimestamp,
 	}
 }
 
@@ -267,8 +270,8 @@ func (b CreditPool) GetUpdate() map[string]interface{} {
 
 type CreditPoolBalanceHistory struct {
 	Id        string    `json:"id" firestore:"id"`
-	ItemRef   string    `json:"item_ref" firestore:"item_ref"`
-	ModifyRef string    `json:"modify_ref" firestore:"modify_ref"`
+	ItemRef   string    `json:"-" firestore:"item_ref"`
+	ModifyRef string    `json:"-" firestore:"modify_ref"`
 	Type      string    `json:"type" firestore:"type"`
 	Old       string    `json:"old" firestore:"old"`
 	Change    string    `json:"change" firestore:"change"`
@@ -294,7 +297,7 @@ type CreditTransaction struct {
 	Currency   string    `json:"currency" firestore:"currency"`
 	Profit     string    `json:"profit" firestore:"profit"`
 	Percentage string    `json:"percentage" firestore:"percentage"`
-	OfferRef   string    `json:"offer_ref" firestore:"offer_ref"`
+	OfferRef   string    `json:"-" firestore:"offer_ref"`
 	CreatedAt  time.Time `json:"created_at" firestore:"created_at"`
 }
 

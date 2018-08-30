@@ -65,6 +65,11 @@ func (dao CreditDao) UpdateCreditItem(item *bean.CreditItem) error {
 	return err
 }
 
+func (dao CreditDao) GetCreditDeposit(currency string, depositId string) (t TransferObject) {
+	GetObject(GetCreditDepositItemPath(currency, depositId), &t, snapshotToCreditDeposit)
+	return
+}
+
 func (dao CreditDao) AddCreditDeposit(item *bean.CreditItem, deposit *bean.CreditDeposit) (err error) {
 	dbClient := firebase_service.FirestoreClient
 
@@ -163,10 +168,10 @@ func (dao CreditDao) GetCreditOnChainActionTracking(currency string) (t Transfer
 	return
 }
 
-func (dao CreditDao) AddCreditOnChainActionTracking(tracking bean.CreditOnChainActionTracking) (err error) {
+func (dao CreditDao) AddCreditOnChainActionTracking(tracking *bean.CreditOnChainActionTracking) (err error) {
 	dbClient := firebase_service.FirestoreClient
 
-	docRef := dbClient.Collection(GetCreditOnChainActionTrackingPath(tracking.Currency)).NewDoc()
+	docRef := dbClient.Collection(GetCreditOnChainActionLogPath(tracking.Currency)).NewDoc()
 	tracking.Id = docRef.ID
 	docTrackingRef := dbClient.Doc(GetCreditOnChainActionTrackingItemPath(tracking.Currency, tracking.Id))
 

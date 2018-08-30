@@ -116,3 +116,24 @@ func (s CreditService) AddDeposit(userId string, body bean.CreditDepositInput) (
 
 	return
 }
+
+func (s CreditService) AddTracking(userId string, body bean.CreditOnChainActionTrackingInput) (tracking bean.CreditOnChainActionTracking, ce SimpleContextError) {
+	depositTO := s.dao.GetCreditDeposit(body.Currency, body.Deposit)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, depositTO) {
+		return
+	}
+	deposit := depositTO.Object.(bean.CreditDeposit)
+
+	tracking = bean.CreditOnChainActionTracking{
+		UID:        userId,
+		ItemRef:    deposit.ItemRef,
+		DepositRef: dao.GetCreditDepositItemPath(body.Currency, deposit.Id),
+		TxHash:     body.TxHash,
+		Action:     body.Action,
+		Reason:     body.Reason,
+		Currency:   body.Currency,
+	}
+	s.dao.AddCreditOnChainActionTracking(&tracking)
+
+	return
+}

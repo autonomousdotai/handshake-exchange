@@ -54,7 +54,19 @@ func (api CreditApi) ListTransaction(context *gin.Context) {
 }
 
 func (api CreditApi) Deposit(context *gin.Context) {
-	bean.SuccessResponse(context, bean.CreditDeposit{})
+	userId := common.GetUserId(context)
+
+	var body bean.CreditDepositInput
+	if common.ValidateBody(context, &body) != nil {
+		return
+	}
+
+	tracking, ce := service.CreditServiceInst.AddDeposit(userId, body)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, tracking)
 }
 
 func (api CreditApi) ListDeposit(context *gin.Context) {
@@ -66,8 +78,20 @@ func (api CreditApi) ListDeposit(context *gin.Context) {
 	})
 }
 
-func (api CreditApi) Transfer(context *gin.Context) {
-	bean.SuccessResponse(context, bean.CreditOnChainActionTracking{})
+func (api CreditApi) Tracking(context *gin.Context) {
+	userId := common.GetUserId(context)
+
+	var body bean.CreditOnChainActionTrackingInput
+	if common.ValidateBody(context, &body) != nil {
+		return
+	}
+
+	tracking, ce := service.CreditServiceInst.AddTracking(userId, body)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, tracking)
 }
 
 func (api CreditApi) Deactivate(context *gin.Context) {

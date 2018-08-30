@@ -18,7 +18,7 @@ func (url CreditUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	group.GET("/transaction", creditApi.ListTransaction)
 	group.POST("/deposit", creditApi.Deposit)
 	group.GET("/deposit", creditApi.ListDeposit)
-	group.POST("/transfer", creditApi.Transfer)
+	group.POST("/tracking", creditApi.Tracking)
 	group.POST("/withdraw", creditApi.Withdraw)
 	group.GET("/withdraw", creditApi.ListWithdraw)
 
