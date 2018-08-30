@@ -64,7 +64,7 @@ type CreditItem struct {
 	Currency       string      `json:"currency" firestore:"currency"`
 	Status         string      `json:"status" firestore:"status"`
 	SubStatus      string      `json:"sub_status" firestore:"sub_status"`
-	LastActionData interface{} `json:"last_action_data" firestore:"last_action_data"`
+	LastActionData interface{} `json:"-" firestore:"last_action_data"`
 	Balance        string      `json:"balance" firestore:"balance"`
 	Sold           string      `json:"sold" firestore:"sold"`
 	Revenue        string      `json:"revenue" firestore:"revenue"`
@@ -263,11 +263,18 @@ type CreditPool struct {
 	UpdatedAt time.Time `json:"updated_at" firestore:"updated_at"`
 }
 
-func (b CreditPool) GetUpdate() map[string]interface{} {
+func (b CreditPool) GetAdd() map[string]interface{} {
 	return map[string]interface{}{
 		"level":      b.Level,
 		"balance":    b.Balance,
 		"currency":   b.Currency,
+		"updated_at": firestore.ServerTimestamp,
+	}
+}
+
+func (b CreditPool) GetUpdate() map[string]interface{} {
+	return map[string]interface{}{
+		"balance":    b.Balance,
 		"updated_at": firestore.ServerTimestamp,
 	}
 }

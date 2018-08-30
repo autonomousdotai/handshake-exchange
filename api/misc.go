@@ -436,3 +436,19 @@ func (api MiscApi) SendBtc(context *gin.Context) {
 	fmt.Println(err)
 	bean.SuccessResponse(context, tx)
 }
+
+func (api MiscApi) FinishCreditTracking(context *gin.Context) {
+	ce := service.CreditServiceInst.FinishTracking()
+	if ce.ContextValidate(context) {
+		return
+	}
+	bean.SuccessResponse(context, true)
+}
+
+func (api MiscApi) SetupCreditPool(context *gin.Context) {
+	ce := service.CreditServiceInst.SetupCreditPool()
+	if ce.ContextValidate(context) {
+		return
+	}
+	bean.SuccessResponse(context, true)
+}

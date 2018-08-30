@@ -100,14 +100,14 @@ func (dao CreditDao) FinishDepositCreditItem(item *bean.CreditItem, deposit *bea
 	depositUserDocRef := dbClient.Doc(GetCreditDepositItemUserPath(deposit.UID, deposit.Currency, deposit.Id))
 	depositDocRef := dbClient.Doc(GetCreditDepositItemPath(deposit.Currency, deposit.Id))
 
-	percentage := common.StringToDecimal(item.Percentage).IntPart()
-	level := fmt.Sprintf("%03d", percentage)
-	poolDocRef := dbClient.Doc(GetCreditPoolItemPath(deposit.Currency, level))
-	poolOrderDocRef := dbClient.Doc(GetCreditPoolItemOrderItemPath(deposit.Currency, level, poolOrder.Id))
+	poolDocRef := dbClient.Doc(GetCreditPoolItemPath(deposit.Currency, pool.Level))
+	poolOrderDocRef := dbClient.Doc(GetCreditPoolItemOrderItemPath(deposit.Currency, pool.Level, poolOrder.Id))
 	poolOrderUserDocRef := dbClient.Doc(GetCreditPoolItemOrderItemUserPath(deposit.Currency, deposit.UID, poolOrder.Id))
 
 	balanceHistoryDocRef := dbClient.Collection(GetCreditBalanceHistoryPath(deposit.UID, deposit.Currency)).NewDoc()
-	poolBalanceHistoryDocRef := dbClient.Collection(GetCreditPoolBalanceHistoryPath(deposit.Currency, level)).NewDoc()
+	itemHistory.Id = balanceHistoryDocRef.ID
+	poolBalanceHistoryDocRef := dbClient.Collection(GetCreditPoolBalanceHistoryPath(deposit.Currency, pool.Level)).NewDoc()
+	poolHistory.Id = poolBalanceHistoryDocRef.ID
 
 	docLogRef := dbClient.Doc(GetCreditOnChainActionLogItemPath(tracking.Currency, tracking.Id))
 	docTrackingRef := dbClient.Doc(GetCreditOnChainActionTrackingItemPath(tracking.Currency, tracking.Id))
@@ -142,9 +142,12 @@ func (dao CreditDao) FinishDepositCreditItem(item *bean.CreditItem, deposit *bea
 		poolHistory.Change = amount.String()
 
 		itemBalance = itemBalance.Add(amount)
-		itemHistory.New = itemBalance.String()
+		item.Balance = itemBalance.String()
+		itemHistory.New = item.Balance
+
 		poolBalance = poolBalance.Add(amount)
-		poolHistory.New = poolBalance.String()
+		pool.Balance = poolBalance.String()
+		poolHistory.New = pool.Balance
 
 		// Update balance
 		txErr = tx.Set(itemDocRef, item.GetUpdate(), firestore.MergeAll)
@@ -237,6 +240,15 @@ func (dao CreditDao) GetCreditPool(currency string, percentage int) (t TransferO
 	level := fmt.Sprintf("%03d", percentage)
 	GetObject(GetCreditPoolItemPath(currency, level), &t, snapshotToCreditPool)
 	return
+}
+
+func (dao CreditDao) AddCreditPool(pool *bean.CreditPool) error {
+	dbClient := firebase_service.FirestoreClient
+
+	poolDocRef := dbClient.Doc(GetCreditPoolItemPath(pool.Currency, pool.Level))
+	_, err := poolDocRef.Set(context.Background(), pool.GetAdd())
+
+	return err
 }
 
 func (dao CreditDao) ListCreditOnChainActionTracking(currency string) (t TransferObject) {

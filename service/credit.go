@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"github.com/ninjadotorg/handshake-exchange/api_error"
 	"github.com/ninjadotorg/handshake-exchange/bean"
 	"github.com/ninjadotorg/handshake-exchange/common"
@@ -188,8 +189,12 @@ func (s CreditService) FinishTracking() (ce SimpleContextError) {
 		trackingItem := item.(bean.CreditOnChainActionTracking)
 		amount := decimal.Zero
 		isSuccess, isPending, amount, errChain := crypto_service.GetTransactionReceipt(trackingItem.TxHash, trackingItem.Currency)
+		fmt.Println(fmt.Sprintf("%s %s %s %s", isSuccess, isPending, amount.String(), errChain))
+
+		fmt.Println(fmt.Sprintf("%s %s %s %s", trackingItem.Id, trackingItem.UID, trackingItem.TxHash, amount.String()))
 		if errChain == nil {
 			if isSuccess && !isPending && amount.GreaterThan(common.Zero) {
+				trackingItem.Amount = amount.String()
 				s.finishTrackingItem(trackingItem)
 			}
 		} else {
@@ -210,6 +215,8 @@ func (s CreditService) FinishTracking() (ce SimpleContextError) {
 		} else {
 			ce.SetError(api_error.ExternalApiFailed, errChain)
 		}
+
+		fmt.Println(fmt.Sprintf("%s %s %s %s", trackingItem.Id, trackingItem.UID, trackingItem.TxHash, amount.String()))
 		confirmationRequired := s.getConfirmationRange(amount)
 		if errChain == nil {
 			if confirmation >= confirmationRequired && amount.GreaterThan(common.Zero) {
@@ -234,6 +241,8 @@ func (s CreditService) FinishTracking() (ce SimpleContextError) {
 		} else {
 			ce.SetError(api_error.ExternalApiFailed, errChain)
 		}
+
+		fmt.Println(fmt.Sprintf("%s %s %s %s", trackingItem.Id, trackingItem.UID, trackingItem.TxHash, amount.String()))
 		confirmationRequired := s.getConfirmationRange(amount)
 		if errChain == nil {
 			if confirmation >= confirmationRequired && amount.GreaterThan(common.Zero) {
@@ -267,6 +276,7 @@ func (s CreditService) finishTrackingItem(tracking bean.CreditOnChainActionTrack
 		item.Status = bean.CREDIT_ITEM_STATUS_ACTIVE
 	}
 	item.SubStatus = bean.CREDIT_ITEM_SUB_STATUS_TRANSFERRED
+	item.LastActionData = deposit
 	deposit.Status = bean.CREDIT_DEPOSIT_STATUS_TRANSFERRED
 
 	poolTO := s.dao.GetCreditPool(item.Currency, int(common.StringToDecimal(item.Percentage).IntPart()))
@@ -295,6 +305,26 @@ func (s CreditService) finishTrackingItem(tracking bean.CreditOnChainActionTrack
 	s.dao.FinishDepositCreditItem(&item, &deposit, &itemHistory, &pool, &poolOrder, &poolHistory, &tracking)
 
 	return err
+}
+
+func (s CreditService) SetupCreditPool() (ce SimpleContextError) {
+	for _, currency := range []string{bean.BTC.Code, bean.ETH.Code, bean.BCH.Code} {
+		level := 0
+		for level <= 100 {
+			pool := bean.CreditPool{
+				Level:    fmt.Sprintf("%03d", level),
+				Balance:  common.Zero.String(),
+				Currency: currency,
+			}
+			err := s.dao.AddCreditPool(&pool)
+			if err != nil {
+				ce.SetError(api_error.AddDataFailed, err)
+			}
+			level += 1
+		}
+	}
+
+	return
 }
 
 func (s CreditService) finishFailedTrackingItem(tracking bean.CreditOnChainActionTracking) error {
