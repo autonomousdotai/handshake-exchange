@@ -66,7 +66,8 @@ type CreditItem struct {
 	SubStatus      string      `json:"sub_status" firestore:"sub_status"`
 	LastActionData interface{} `json:"last_action_data" firestore:"last_action_data"`
 	Balance        string      `json:"balance" firestore:"balance"`
-	Profit         string      `json:"profit" firestore:"profit"`
+	Sold           string      `json:"sold" firestore:"sold"`
+	Revenue        string      `json:"revenue" firestore:"revenue"`
 	Percentage     string      `json:"percentage" firestore:"percentage"`
 	UserAddress    string      `json:"user_address" firestore:"user_address"`
 	CreatedAt      time.Time   `json:"created_at" firestore:"created_at"`
@@ -81,7 +82,8 @@ func (b CreditItem) GetAdd() map[string]interface{} {
 		"status":       b.Status,
 		"sub_status":   b.SubStatus,
 		"balance":      common.Zero.String(),
-		"profit":       common.Zero.String(),
+		"sold":         common.Zero.String(),
+		"revenue":      common.Zero.String(),
 		"percentage":   b.Percentage,
 		"user_address": b.UserAddress,
 		"created_at":   firestore.ServerTimestamp,
@@ -109,7 +111,7 @@ func (b CreditItem) GetUpdate() map[string]interface{} {
 func (b CreditItem) GetUpdateBalance() map[string]interface{} {
 	return map[string]interface{}{
 		"balance":    b.Balance,
-		"profit":     b.Profit,
+		"profit":     b.Revenue,
 		"updated_at": firestore.ServerTimestamp,
 	}
 }

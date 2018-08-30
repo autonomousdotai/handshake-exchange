@@ -3,8 +3,12 @@ package service
 import (
 	"github.com/ninjadotorg/handshake-exchange/api_error"
 	"github.com/ninjadotorg/handshake-exchange/bean"
+	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/dao"
+	"github.com/ninjadotorg/handshake-exchange/integration/chainso_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
+	"github.com/ninjadotorg/handshake-exchange/integration/crypto_service"
+	"github.com/shopspring/decimal"
 )
 
 type CreditService struct {
@@ -65,6 +69,27 @@ func (s CreditService) AddCredit(userId string, body bean.Credit) (credit bean.C
 
 func (s CreditService) AddDeposit(userId string, body bean.CreditDepositInput) (deposit bean.CreditDeposit, ce SimpleContextError) {
 	var err error
+
+	// Minimum amount
+	amount, _ := decimal.NewFromString(body.Amount)
+	if body.Currency == bean.ETH.Code {
+		if amount.LessThan(bean.MIN_ETH) {
+			ce.SetStatusKey(api_error.AmountIsTooSmall)
+			return
+		}
+	}
+	if body.Currency == bean.BTC.Code {
+		if amount.LessThan(bean.MIN_BTC) {
+			ce.SetStatusKey(api_error.AmountIsTooSmall)
+			return
+		}
+	}
+	if body.Currency == bean.BCH.Code {
+		if amount.LessThan(bean.MIN_BCH) {
+			ce.SetStatusKey(api_error.AmountIsTooSmall)
+			return
+		}
+	}
 
 	creditItemTO := s.dao.GetCreditItem(userId, body.Currency)
 	var creditItem bean.CreditItem
@@ -136,4 +161,68 @@ func (s CreditService) AddTracking(userId string, body bean.CreditOnChainActionT
 	s.dao.AddCreditOnChainActionTracking(&tracking)
 
 	return
+}
+
+func (s CreditService) FinishTracking() (ce SimpleContextError) {
+	trackingTO := s.dao.ListCreditOnChainActionTracking(bean.ETH.Code)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, trackingTO) {
+		return
+	}
+	for _, item := range trackingTO.Objects {
+		trackingItem := item.(bean.CreditOnChainActionTracking)
+		isSuccess, isPending, errChain := crypto_service.GetTransactionReceipt(trackingItem.TxHash, trackingItem.Currency)
+		if errChain == nil {
+			if isSuccess && !isPending {
+				s.finishTrackingItem(trackingItem)
+			}
+		} else {
+			ce.SetError(api_error.ExternalApiFailed, errChain)
+		}
+	}
+
+	trackingTO = s.dao.ListCreditOnChainActionTracking(bean.BTC.Code)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, trackingTO) {
+		return
+	}
+	for _, item := range trackingTO.Objects {
+		trackingItem := item.(bean.CreditOnChainActionTracking)
+		confirmation, errChain := chainso_service.GetConfirmations(trackingItem.TxHash)
+		amount := decimal.Zero
+		if errChain == nil {
+			amount, errChain = chainso_service.GetAmount(trackingItem.TxHash)
+		} else {
+			ce.SetError(api_error.ExternalApiFailed, errChain)
+		}
+		confirmationRequired := s.getConfirmationRange(amount)
+		if errChain == nil {
+			if confirmation >= confirmationRequired && amount.GreaterThan(common.Zero) {
+				s.finishTrackingItem(trackingItem)
+			}
+		} else {
+			ce.SetError(api_error.ExternalApiFailed, errChain)
+		}
+	}
+
+	trackingTO = s.dao.ListCreditOnChainActionTracking(bean.BCH.Code)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, trackingTO) {
+		return
+	}
+
+	return
+}
+
+func (s CreditService) finishTrackingItem(item bean.CreditOnChainActionTracking) error {
+	var err error
+
+	return err
+}
+
+func (s CreditService) getConfirmationRange(amount decimal.Decimal) int {
+	if amount.LessThan(decimal.NewFromFloat(0.5)) {
+		return 1
+	} else if amount.LessThan(decimal.NewFromFloat(1)) {
+		return 3
+	}
+
+	return 6
 }
