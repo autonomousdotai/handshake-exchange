@@ -180,24 +180,26 @@ func (b CreditWithdraw) GetAdd() map[string]interface{} {
 }
 
 type CreditBalanceHistory struct {
-	Id        string    `json:"id" firestore:"id"`
-	ItemRef   string    `json:"-" firestore:"item_ref"`
-	ModifyRef string    `json:"-" firestore:"modify_ref"`
-	Old       string    `json:"old" firestore:"old"`
-	Change    string    `json:"change" firestore:"change"`
-	New       string    `json:"new" firestore:"new"`
-	CreatedAt time.Time `json:"created_at" firestore:"created_at"`
+	Id         string    `json:"id" firestore:"id"`
+	ItemRef    string    `json:"-" firestore:"item_ref"`
+	ModifyRef  string    `json:"-" firestore:"modify_ref"`
+	ModifyType string    `json:"-" firestore:"modify_type"`
+	Old        string    `json:"old" firestore:"old"`
+	Change     string    `json:"change" firestore:"change"`
+	New        string    `json:"new" firestore:"new"`
+	CreatedAt  time.Time `json:"created_at" firestore:"created_at"`
 }
 
 func (b CreditBalanceHistory) GetAdd() map[string]interface{} {
 	return map[string]interface{}{
-		"id":         b.Id,
-		"item_ref":   b.ItemRef,
-		"modify_ref": b.ModifyRef,
-		"old":        b.Old,
-		"change":     b.Change,
-		"new":        b.New,
-		"created_at": firestore.ServerTimestamp,
+		"id":          b.Id,
+		"item_ref":    b.ItemRef,
+		"modify_ref":  b.ModifyRef,
+		"modify_type": b.ModifyType,
+		"old":         b.Old,
+		"change":      b.Change,
+		"new":         b.New,
+		"created_at":  firestore.ServerTimestamp,
 	}
 }
 
@@ -270,46 +272,83 @@ func (b CreditPool) GetUpdate() map[string]interface{} {
 	}
 }
 
+const CREDIT_POOL_MODIFY_TYPE_DEPOSIT = "deposit"
+const CREDIT_POOL_MODIFY_TYPE_CLOSE = "close"
+const CREDIT_POOL_MODIFY_TYPE_PURCHASE = "purchase"
+
 type CreditPoolBalanceHistory struct {
-	Id        string    `json:"id" firestore:"id"`
-	ItemRef   string    `json:"-" firestore:"item_ref"`
-	ModifyRef string    `json:"-" firestore:"modify_ref"`
-	Type      string    `json:"type" firestore:"type"`
-	Old       string    `json:"old" firestore:"old"`
-	Change    string    `json:"change" firestore:"change"`
-	New       string    `json:"new" firestore:"new"`
-	CreatedAt time.Time `json:"created_at" firestore:"created_at"`
+	Id         string    `json:"id" firestore:"id"`
+	ItemRef    string    `json:"-" firestore:"item_ref"`
+	ModifyRef  string    `json:"-" firestore:"modify_ref"`
+	ModifyType string    `json:"-" firestore:"modify_type"`
+	Old        string    `json:"old" firestore:"old"`
+	Change     string    `json:"change" firestore:"change"`
+	New        string    `json:"new" firestore:"new"`
+	CreatedAt  time.Time `json:"created_at" firestore:"created_at"`
 }
 
 func (b CreditPoolBalanceHistory) GetAdd() map[string]interface{} {
 	return map[string]interface{}{
-		"id":         b.Id,
-		"item_ref":   b.ItemRef,
-		"modify_ref": b.ModifyRef,
-		"old":        b.Old,
-		"change":     b.Change,
-		"new":        b.New,
-		"created_at": firestore.ServerTimestamp,
+		"id":          b.Id,
+		"item_ref":    b.ItemRef,
+		"modify_ref":  b.ModifyRef,
+		"modify_type": b.ModifyType,
+		"old":         b.Old,
+		"change":      b.Change,
+		"new":         b.New,
+		"created_at":  firestore.ServerTimestamp,
+	}
+}
+
+type CreditPoolOrder struct {
+	Id         string    `json:"id" firestore:"id"`
+	UID        string    `json:"-" firestore:"uid"`
+	DepositRef string    `json:"deposit_ref" firestore:"deposit_ref"`
+	Amount     string    `json:"amount" firestore:"amount"`
+	Balance    string    `json:"balance" firestore:"balance"`
+	CreatedAt  time.Time `json:"created_at" firestore:"created_at"`
+}
+
+func (b CreditPoolOrder) GetAdd() map[string]interface{} {
+	return map[string]interface{}{
+		"id":          b.Id,
+		"uid":         b.UID,
+		"deposit_ref": b.DepositRef,
+		"amount":      b.Amount,
+		"balance":     b.Balance,
+		"created_at":  firestore.ServerTimestamp,
+	}
+}
+
+func (b CreditPoolOrder) GetUpdate() map[string]interface{} {
+	return map[string]interface{}{
+		"balance":    b.Balance,
+		"updated_at": firestore.ServerTimestamp,
 	}
 }
 
 type CreditTransaction struct {
 	Id         string    `json:"id" firestore:"id"`
+	UID        string    `json:"uid" firestore:"uid"`
 	Amount     string    `json:"amount" firestore:"amount"`
 	Currency   string    `json:"currency" firestore:"currency"`
-	Profit     string    `json:"profit" firestore:"profit"`
+	Revenue    string    `json:"revenue" firestore:"revenue"`
 	Percentage string    `json:"percentage" firestore:"percentage"`
 	OfferRef   string    `json:"-" firestore:"offer_ref"`
+	DepositRef string    `json:"_" firestore:"deposit_ref"`
 	CreatedAt  time.Time `json:"created_at" firestore:"created_at"`
 }
 
 func (b CreditTransaction) GetAdd() map[string]interface{} {
 	return map[string]interface{}{
-		"id":         b.Id,
-		"amount":     b.Amount,
-		"modify_ref": b.Currency,
-		"old":        b.Profit,
-		"change":     b.OfferRef,
-		"created_at": firestore.ServerTimestamp,
+		"id":          b.Id,
+		"uid":         b.UID,
+		"amount":      b.Amount,
+		"currency":    b.Currency,
+		"revenue":     b.Revenue,
+		"percentage":  b.Percentage,
+		"offer_ref":   b.OfferRef,
+		"deposit_ref": b.DepositRef,
+		"created_at":  firestore.ServerTimestamp,
 	}
 }

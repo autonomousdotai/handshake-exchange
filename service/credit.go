@@ -9,6 +9,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/crypto_service"
 	"github.com/shopspring/decimal"
+	"time"
 )
 
 type CreditService struct {
@@ -158,7 +159,7 @@ func (s CreditService) AddTracking(userId string, body bean.CreditOnChainActionT
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, itemTO) {
 		return
 	}
-	item := depositTO.Object.(bean.CreditItem)
+	item := itemTO.Object.(bean.CreditItem)
 
 	tracking = bean.CreditOnChainActionTracking{
 		UID:        userId,
@@ -185,9 +186,10 @@ func (s CreditService) FinishTracking() (ce SimpleContextError) {
 	}
 	for _, item := range trackingTO.Objects {
 		trackingItem := item.(bean.CreditOnChainActionTracking)
-		isSuccess, isPending, errChain := crypto_service.GetTransactionReceipt(trackingItem.TxHash, trackingItem.Currency)
+		amount := decimal.Zero
+		isSuccess, isPending, amount, errChain := crypto_service.GetTransactionReceipt(trackingItem.TxHash, trackingItem.Currency)
 		if errChain == nil {
-			if isSuccess && !isPending {
+			if isSuccess && !isPending && amount.GreaterThan(common.Zero) {
 				s.finishTrackingItem(trackingItem)
 			}
 		} else {
@@ -223,12 +225,100 @@ func (s CreditService) FinishTracking() (ce SimpleContextError) {
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, trackingTO) {
 		return
 	}
+	for _, item := range trackingTO.Objects {
+		trackingItem := item.(bean.CreditOnChainActionTracking)
+		confirmation, errChain := chainso_service.GetConfirmations(trackingItem.TxHash)
+		amount := decimal.Zero
+		if errChain == nil {
+			amount, errChain = chainso_service.GetAmount(trackingItem.TxHash)
+		} else {
+			ce.SetError(api_error.ExternalApiFailed, errChain)
+		}
+		confirmationRequired := s.getConfirmationRange(amount)
+		if errChain == nil {
+			if confirmation >= confirmationRequired && amount.GreaterThan(common.Zero) {
+				trackingItem.Amount = amount.String()
+				s.finishTrackingItem(trackingItem)
+			}
+		} else {
+			ce.SetError(api_error.ExternalApiFailed, errChain)
+		}
+	}
 
 	return
 }
 
-func (s CreditService) finishTrackingItem(item bean.CreditOnChainActionTracking) error {
+func (s CreditService) finishTrackingItem(tracking bean.CreditOnChainActionTracking) error {
 	var err error
+
+	depositTO := s.dao.GetCreditDepositByPath(tracking.DepositRef)
+	if depositTO.HasError() {
+		return depositTO.Error
+	}
+	deposit := depositTO.Object.(bean.CreditDeposit)
+
+	itemTO := s.dao.GetCreditItem(tracking.UID, tracking.Currency)
+	if itemTO.HasError() {
+		return itemTO.Error
+	}
+	item := itemTO.Object.(bean.CreditItem)
+
+	if item.Status == bean.CREDIT_ITEM_STATUS_CREATE || item.Status == bean.CREDIT_ITEM_STATUS_INACTIVE {
+		item.Status = bean.CREDIT_ITEM_STATUS_ACTIVE
+	}
+	item.SubStatus = bean.CREDIT_ITEM_SUB_STATUS_TRANSFERRED
+	deposit.Status = bean.CREDIT_DEPOSIT_STATUS_TRANSFERRED
+
+	poolTO := s.dao.GetCreditPool(item.Currency, int(common.StringToDecimal(item.Percentage).IntPart()))
+	if depositTO.HasError() {
+		return depositTO.Error
+	}
+	pool := poolTO.Object.(bean.CreditPool)
+	itemHistory := bean.CreditBalanceHistory{
+		ItemRef:    tracking.ItemRef,
+		ModifyRef:  tracking.DepositRef,
+		ModifyType: tracking.Action,
+	}
+	poolHistory := bean.CreditPoolBalanceHistory{
+		ItemRef:    tracking.ItemRef,
+		ModifyRef:  tracking.DepositRef,
+		ModifyType: tracking.Action,
+	}
+	poolOrder := bean.CreditPoolOrder{
+		Id:         time.Now().UTC().Format("2006-01-02T15:04:05.000000000"),
+		UID:        tracking.UID,
+		DepositRef: tracking.DepositRef,
+		Amount:     tracking.Amount,
+		Balance:    tracking.Amount,
+	}
+
+	s.dao.FinishDepositCreditItem(&item, &deposit, &itemHistory, &pool, &poolOrder, &poolHistory, &tracking)
+
+	return err
+}
+
+func (s CreditService) finishFailedTrackingItem(tracking bean.CreditOnChainActionTracking) error {
+	var err error
+
+	depositTO := s.dao.GetCreditDepositByPath(tracking.DepositRef)
+	if depositTO.HasError() {
+		return depositTO.Error
+	}
+	deposit := depositTO.Object.(bean.CreditDeposit)
+
+	itemTO := s.dao.GetCreditItem(tracking.UID, tracking.Currency)
+	if itemTO.HasError() {
+		return itemTO.Error
+	}
+	item := itemTO.Object.(bean.CreditItem)
+
+	if item.Status == bean.CREDIT_ITEM_STATUS_CREATE || item.Status == bean.CREDIT_ITEM_STATUS_INACTIVE {
+		item.Status = bean.CREDIT_ITEM_STATUS_INACTIVE
+	}
+	item.SubStatus = ""
+	deposit.Status = bean.CREDIT_DEPOSIT_STATUS_FAILED
+
+	s.dao.FinishFailedDepositCreditItem(&item, &deposit, &tracking)
 
 	return err
 }

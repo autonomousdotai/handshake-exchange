@@ -902,7 +902,7 @@ func (s OfferService) FinishCryptoTransfer() (finishedInstantOffers []bean.Offer
 			// bodyTransaction, err := coinbase_service.GetTransaction(pendingOffer.ExternalId, pendingOffer.Currency)
 			onchainCompleted := false
 			if pendingOffer.Currency == bean.ETH.Code {
-				isSuccess, isPending, errChain := crypto_service.GetTransactionReceipt(pendingOffer.TxHash, pendingOffer.Currency)
+				isSuccess, isPending, _, errChain := crypto_service.GetTransactionReceipt(pendingOffer.TxHash, pendingOffer.Currency)
 				if errChain == nil {
 					if isSuccess && !isPending {
 						onchainCompleted = true

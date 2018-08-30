@@ -66,7 +66,12 @@ func (dao CreditDao) UpdateCreditItem(item *bean.CreditItem) error {
 }
 
 func (dao CreditDao) GetCreditDeposit(currency string, depositId string) (t TransferObject) {
-	GetObject(GetCreditDepositItemPath(currency, depositId), &t, snapshotToCreditDeposit)
+	t = dao.GetCreditDepositByPath(GetCreditDepositItemPath(currency, depositId))
+	return
+}
+
+func (dao CreditDao) GetCreditDepositByPath(path string) (t TransferObject) {
+	GetObject(path, &t, snapshotToCreditDeposit)
 	return
 }
 
@@ -87,7 +92,8 @@ func (dao CreditDao) AddCreditDeposit(item *bean.CreditItem, deposit *bean.Credi
 
 func (dao CreditDao) FinishDepositCreditItem(item *bean.CreditItem, deposit *bean.CreditDeposit,
 	itemHistory *bean.CreditBalanceHistory,
-	pool *bean.CreditPool, poolHistory *bean.CreditPoolBalanceHistory) (err error) {
+	pool *bean.CreditPool, poolOrder *bean.CreditPoolOrder, poolHistory *bean.CreditPoolBalanceHistory,
+	tracking *bean.CreditOnChainActionTracking) (err error) {
 
 	dbClient := firebase_service.FirestoreClient
 	itemDocRef := dbClient.Doc(GetCreditItemItemPath(deposit.UID, deposit.Currency))
@@ -97,11 +103,18 @@ func (dao CreditDao) FinishDepositCreditItem(item *bean.CreditItem, deposit *bea
 	percentage := common.StringToDecimal(item.Percentage).IntPart()
 	level := fmt.Sprintf("%03d", percentage)
 	poolDocRef := dbClient.Doc(GetCreditPoolItemPath(deposit.Currency, level))
+	poolOrderDocRef := dbClient.Doc(GetCreditPoolItemOrderItemPath(deposit.Currency, level, poolOrder.Id))
+	poolOrderUserDocRef := dbClient.Doc(GetCreditPoolItemOrderItemUserPath(deposit.Currency, deposit.UID, poolOrder.Id))
 
 	balanceHistoryDocRef := dbClient.Collection(GetCreditBalanceHistoryPath(deposit.UID, deposit.Currency)).NewDoc()
 	poolBalanceHistoryDocRef := dbClient.Collection(GetCreditPoolBalanceHistoryPath(deposit.Currency, level)).NewDoc()
 
+	docLogRef := dbClient.Doc(GetCreditOnChainActionLogItemPath(tracking.Currency, tracking.Id))
+	docTrackingRef := dbClient.Doc(GetCreditOnChainActionTrackingItemPath(tracking.Currency, tracking.Id))
+
 	amount := common.StringToDecimal(deposit.Amount)
+	poolOrderUserDocRefs := make([]*firestore.DocumentRef, 0)
+	poolOrderDocRefs := make([]*firestore.DocumentRef, 0)
 
 	err = dbClient.RunTransaction(context.Background(), func(ctx context.Context, tx *firestore.Transaction) error {
 		var txErr error
@@ -114,6 +127,8 @@ func (dao CreditDao) FinishDepositCreditItem(item *bean.CreditItem, deposit *bea
 		if txErr != nil {
 			return txErr
 		}
+		itemHistory.Old = itemBalance.String()
+		itemHistory.Change = amount.String()
 
 		poolDoc, txErr := tx.Get(poolDocRef)
 		if err != nil {
@@ -123,9 +138,13 @@ func (dao CreditDao) FinishDepositCreditItem(item *bean.CreditItem, deposit *bea
 		if txErr != nil {
 			return txErr
 		}
+		poolHistory.Old = poolBalance.String()
+		poolHistory.Change = amount.String()
 
 		itemBalance = itemBalance.Add(amount)
+		itemHistory.New = itemBalance.String()
 		poolBalance = poolBalance.Add(amount)
+		poolHistory.New = poolBalance.String()
 
 		// Update balance
 		txErr = tx.Set(itemDocRef, item.GetUpdate(), firestore.MergeAll)
@@ -147,6 +166,30 @@ func (dao CreditDao) FinishDepositCreditItem(item *bean.CreditItem, deposit *bea
 			return txErr
 		}
 
+		// Insert pool order
+		if amount.GreaterThanOrEqual(common.Zero) {
+			txErr = tx.Set(poolOrderDocRef, poolOrder.GetAdd())
+			if txErr != nil {
+				return txErr
+			}
+			txErr = tx.Set(poolOrderUserDocRef, poolOrder.GetAdd())
+			if txErr != nil {
+				return txErr
+			}
+		} else {
+			// Remove all order of this user
+			for i, itemDocRef := range poolOrderUserDocRefs {
+				txErr = tx.Delete(itemDocRef)
+				if txErr != nil {
+					return txErr
+				}
+				txErr = tx.Delete(poolOrderDocRefs[i])
+				if txErr != nil {
+					return txErr
+				}
+			}
+		}
+
 		// Insert history
 		txErr = tx.Set(balanceHistoryDocRef, itemHistory.GetAdd())
 		if txErr != nil {
@@ -157,10 +200,43 @@ func (dao CreditDao) FinishDepositCreditItem(item *bean.CreditItem, deposit *bea
 			return txErr
 		}
 
+		// Update tracking
+		tx.Delete(docTrackingRef)
+		tx.Set(docLogRef, tracking.GetUpdate(), firestore.MergeAll)
+
 		return txErr
 	})
 
 	return err
+}
+
+func (dao CreditDao) FinishFailedDepositCreditItem(item *bean.CreditItem, deposit *bean.CreditDeposit,
+	tracking *bean.CreditOnChainActionTracking) (err error) {
+
+	dbClient := firebase_service.FirestoreClient
+	batch := dbClient.Batch()
+
+	itemDocRef := dbClient.Doc(GetCreditItemItemPath(deposit.UID, deposit.Currency))
+	depositUserDocRef := dbClient.Doc(GetCreditDepositItemUserPath(deposit.UID, deposit.Currency, deposit.Id))
+	depositDocRef := dbClient.Doc(GetCreditDepositItemPath(deposit.Currency, deposit.Id))
+
+	docLogRef := dbClient.Doc(GetCreditOnChainActionLogItemPath(tracking.Currency, tracking.Id))
+	docTrackingRef := dbClient.Doc(GetCreditOnChainActionTrackingItemPath(tracking.Currency, tracking.Id))
+
+	batch.Set(itemDocRef, item.GetUpdate(), firestore.MergeAll)
+	batch.Set(depositUserDocRef, deposit.GetUpdate(), firestore.MergeAll)
+	batch.Set(depositDocRef, deposit.GetUpdate(), firestore.MergeAll)
+	batch.Delete(docTrackingRef)
+	batch.Set(docLogRef, tracking.GetUpdate(), firestore.MergeAll)
+	_, err = batch.Commit(context.Background())
+
+	return err
+}
+
+func (dao CreditDao) GetCreditPool(currency string, percentage int) (t TransferObject) {
+	level := fmt.Sprintf("%03d", percentage)
+	GetObject(GetCreditPoolItemPath(currency, level), &t, snapshotToCreditPool)
+	return
 }
 
 func (dao CreditDao) ListCreditOnChainActionTracking(currency string) (t TransferObject) {
@@ -197,7 +273,7 @@ func (dao CreditDao) AddCreditOnChainActionTracking(item *bean.CreditItem, depos
 	return err
 }
 
-func (dao CreditDao) UpdateCreditOnChainActionTracking(tracking bean.CreditOnChainActionTracking) (err error) {
+func (dao CreditDao) UpdateCreditOnChainActionTracking(tracking *bean.CreditOnChainActionTracking) (err error) {
 	dbClient := firebase_service.FirestoreClient
 
 	docRef := dbClient.Doc(GetCreditOnChainActionLogItemPath(tracking.Currency, tracking.Id))
@@ -285,6 +361,18 @@ func GetCreditPoolPath(currency string) string {
 
 func GetCreditPoolItemPath(currency string, level string) string {
 	return fmt.Sprintf("credit_pools/%s/items/%s", currency, level)
+}
+
+func GetCreditPoolItemOrderPath(currency string, level string) string {
+	return fmt.Sprintf("credit_pools/%s/items/%s/orders", currency, level)
+}
+
+func GetCreditPoolItemOrderItemPath(currency string, level string, order string) string {
+	return fmt.Sprintf("credit_pools/%s/items/%s/orders/%s", currency, level, order)
+}
+
+func GetCreditPoolItemOrderItemUserPath(currency string, userId string, order string) string {
+	return fmt.Sprintf("credit_pool_orders/%s/items/%s/orders/%s", currency, userId, order)
 }
 
 func GetCreditPoolBalanceHistoryPath(currency string, level string) string {
