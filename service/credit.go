@@ -56,6 +56,7 @@ func (s CreditService) AddCredit(userId string, body bean.Credit) (credit bean.C
 	} else {
 		body.UID = userId
 		credit = body
+		credit.Status = bean.CREDIT_STATUS_ACTIVE
 		err = s.dao.AddCredit(&credit)
 		if err != nil {
 			ce.SetError(api_error.AddDataFailed, err)
