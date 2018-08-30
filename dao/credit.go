@@ -23,7 +23,7 @@ func (dao CreditDao) GetCreditItem(userId string, currency string) (t TransferOb
 }
 
 func (dao CreditDao) ListCreditItem(userId string) (t TransferObject) {
-	ListObjects(GetCreditItemPath(userId), &t, nil, snapshotToCredit)
+	ListObjects(GetCreditItemPath(userId), &t, nil, snapshotToCreditItem)
 	return
 }
 
