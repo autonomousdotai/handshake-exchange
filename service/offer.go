@@ -787,7 +787,7 @@ func (s OfferService) GetAllQuotes(fiatCurrency string) []interface{} {
 	}
 
 	var quoteObj quoteStruct
-	quotes := make([]interface{}, 4)
+	quotes := make([]interface{}, 6)
 
 	quoteObj = quoteStruct{
 		Type:         bean.OFFER_TYPE_SELL,

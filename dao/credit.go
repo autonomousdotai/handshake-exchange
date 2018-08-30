@@ -173,16 +173,25 @@ func (dao CreditDao) GetCreditOnChainActionTracking(currency string) (t Transfer
 	return
 }
 
-func (dao CreditDao) AddCreditOnChainActionTracking(tracking *bean.CreditOnChainActionTracking) (err error) {
+func (dao CreditDao) AddCreditOnChainActionTracking(item *bean.CreditItem, deposit *bean.CreditDeposit,
+	tracking *bean.CreditOnChainActionTracking) (err error) {
+
 	dbClient := firebase_service.FirestoreClient
 
 	docRef := dbClient.Collection(GetCreditOnChainActionLogPath(tracking.Currency)).NewDoc()
 	tracking.Id = docRef.ID
 	docTrackingRef := dbClient.Doc(GetCreditOnChainActionTrackingItemPath(tracking.Currency, tracking.Id))
 
+	itemDocRef := dbClient.Doc(GetCreditItemItemPath(deposit.UID, deposit.Currency))
+	depositDocRef := dbClient.Doc(GetCreditDepositItemPath(deposit.Currency, deposit.Id))
+	depositUserDocRef := dbClient.Doc(GetCreditDepositItemUserPath(deposit.UID, deposit.Currency, deposit.Id))
+
 	batch := dbClient.Batch()
 	batch.Set(docRef, tracking.GetAdd())
 	batch.Set(docTrackingRef, tracking.GetAdd())
+	batch.Set(itemDocRef, item.GetUpdateStatus(), firestore.MergeAll)
+	batch.Set(depositDocRef, deposit.GetUpdate(), firestore.MergeAll)
+	batch.Set(depositUserDocRef, deposit.GetUpdate(), firestore.MergeAll)
 	_, err = batch.Commit(context.Background())
 
 	return err

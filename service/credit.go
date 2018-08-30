@@ -114,8 +114,12 @@ func (s CreditService) AddDeposit(userId string, body bean.CreditDepositInput) (
 			}
 		} else {
 			creditItem = creditItemTO.Object.(bean.CreditItem)
+			if creditItem.Percentage != body.Percentage {
+				ce.SetStatusKey(api_error.InvalidRequestBody)
+				return
+			}
+			creditItem.UserAddress = body.UserAddress
 		}
-
 	}
 
 	deposit = bean.CreditDeposit{
@@ -150,6 +154,12 @@ func (s CreditService) AddTracking(userId string, body bean.CreditOnChainActionT
 	}
 	deposit := depositTO.Object.(bean.CreditDeposit)
 
+	itemTO := s.dao.GetCreditItem(userId, body.Currency)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, itemTO) {
+		return
+	}
+	item := depositTO.Object.(bean.CreditItem)
+
 	tracking = bean.CreditOnChainActionTracking{
 		UID:        userId,
 		ItemRef:    deposit.ItemRef,
@@ -159,7 +169,11 @@ func (s CreditService) AddTracking(userId string, body bean.CreditOnChainActionT
 		Reason:     body.Reason,
 		Currency:   body.Currency,
 	}
-	s.dao.AddCreditOnChainActionTracking(&tracking)
+
+	item.SubStatus = bean.CREDIT_ITEM_SUB_STATUS_TRANSFERRING
+	deposit.Status = bean.CREDIT_DEPOSIT_STATUS_TRANSFERRING
+
+	s.dao.AddCreditOnChainActionTracking(&item, &deposit, &tracking)
 
 	return
 }
@@ -197,6 +211,7 @@ func (s CreditService) FinishTracking() (ce SimpleContextError) {
 		confirmationRequired := s.getConfirmationRange(amount)
 		if errChain == nil {
 			if confirmation >= confirmationRequired && amount.GreaterThan(common.Zero) {
+				trackingItem.Amount = amount.String()
 				s.finishTrackingItem(trackingItem)
 			}
 		} else {
