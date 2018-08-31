@@ -317,10 +317,25 @@ func (s CreditService) SetupCreditPool() (ce SimpleContextError) {
 				Currency: currency,
 			}
 			err := s.dao.AddCreditPool(&pool)
+			s.dao.SetCreditPoolCache(pool)
 			if err != nil {
 				ce.SetError(api_error.AddDataFailed, err)
 			}
 			level += 1
+		}
+	}
+
+	return
+}
+
+func (s CreditService) SetupCreditPoolCache() (ce SimpleContextError) {
+	for _, currency := range []string{bean.BTC.Code, bean.ETH.Code, bean.BCH.Code} {
+		poolTO := s.dao.ListCreditPool(currency)
+		if !poolTO.HasError() {
+			for _, item := range poolTO.Objects {
+				creditPool := item.(bean.CreditPool)
+				s.dao.SetCreditPoolCache(creditPool)
+			}
 		}
 	}
 

@@ -452,3 +452,11 @@ func (api MiscApi) SetupCreditPool(context *gin.Context) {
 	}
 	bean.SuccessResponse(context, true)
 }
+
+func (api MiscApi) SetupCreditPoolCache(context *gin.Context) {
+	ce := service.CreditServiceInst.SetupCreditPoolCache()
+	if ce.ContextValidate(context) {
+		return
+	}
+	bean.SuccessResponse(context, true)
+}

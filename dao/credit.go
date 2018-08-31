@@ -3,10 +3,12 @@ package dao
 import (
 	"cloud.google.com/go/firestore"
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/ninjadotorg/handshake-exchange/bean"
 	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/integration/firebase_service"
+	"github.com/ninjadotorg/handshake-exchange/service/cache"
 )
 
 type CreditDao struct {
@@ -210,6 +212,10 @@ func (dao CreditDao) FinishDepositCreditItem(item *bean.CreditItem, deposit *bea
 		return txErr
 	})
 
+	if err != nil {
+		dao.SetCreditPoolCache(*pool)
+	}
+
 	return err
 }
 
@@ -234,6 +240,11 @@ func (dao CreditDao) FinishFailedDepositCreditItem(item *bean.CreditItem, deposi
 	_, err = batch.Commit(context.Background())
 
 	return err
+}
+
+func (dao CreditDao) ListCreditPool(currency string) (t TransferObject) {
+	ListObjects(GetCreditPoolPath(currency), &t, nil, snapshotToCreditPool)
+	return
 }
 
 func (dao CreditDao) GetCreditPool(currency string, percentage int) (t TransferObject) {
@@ -297,6 +308,24 @@ func (dao CreditDao) UpdateCreditOnChainActionTracking(tracking *bean.CreditOnCh
 	_, err = batch.Commit(context.Background())
 
 	return err
+}
+
+func (dao CreditDao) SetCreditPoolCache(pool bean.CreditPool) {
+	b, _ := json.Marshal(&pool)
+	key := GetCreditPoolCacheKey(pool.Currency, pool.Level)
+	cache.RedisClient.Set(key, string(b), 0)
+}
+
+func (dao CreditDao) GetCreditPoolCache(currency string, level string) TransferObject {
+	key := GetCreditPoolCacheKey(currency, level)
+	var to TransferObject
+	GetCacheObject(key, &to, func(val string) interface{} {
+		var creditPool bean.CreditPool
+		json.Unmarshal([]byte(val), &creditPool)
+		return creditPool
+	})
+
+	return to
 }
 
 func GetCreditUserPath(userId string) string {
@@ -409,6 +438,10 @@ func GetCreditOnChainActionLogPath(currency string) string {
 
 func GetCreditOnChainActionLogItemPath(currency string, id string) string {
 	return fmt.Sprintf("credit_on_chain_logs/%s/items/%s", currency, id)
+}
+
+func GetCreditPoolCacheKey(currency string, level string) string {
+	return fmt.Sprintf("credit_pools.%s.%s", currency, level)
 }
 
 func snapshotToCredit(snapshot *firestore.DocumentSnapshot) interface{} {
