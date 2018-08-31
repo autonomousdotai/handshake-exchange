@@ -132,7 +132,7 @@ func (s CreditService) AddDeposit(userId string, body bean.CreditDepositInput) (
 		Amount:   body.Amount,
 	}
 
-	if body.Currency != bean.ETH.Code {
+	if body.Currency != "" {
 		resp, errCoinbase := coinbase_service.GenerateAddress(body.Currency)
 		if errCoinbase != nil {
 			ce.SetError(api_error.ExternalApiFailed, errCoinbase)
