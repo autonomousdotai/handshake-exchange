@@ -257,18 +257,20 @@ func (b CreditOnChainActionTracking) GetUpdate() map[string]interface{} {
 }
 
 type CreditPool struct {
-	Level     string    `json:"level" firestore:"level"`
-	Balance   string    `json:"balance" firestore:"balance"`
-	Currency  string    `json:"currency" firestore:"currency"`
-	UpdatedAt time.Time `json:"updated_at" firestore:"updated_at"`
+	Level           string    `json:"level" firestore:"level"`
+	Balance         string    `json:"balance" firestore:"balance"`
+	CapturedBalance string    `json:"captured_balance" firestore:"captured_balance"`
+	Currency        string    `json:"currency" firestore:"currency"`
+	UpdatedAt       time.Time `json:"updated_at" firestore:"updated_at"`
 }
 
 func (b CreditPool) GetAdd() map[string]interface{} {
 	return map[string]interface{}{
-		"level":      b.Level,
-		"balance":    b.Balance,
-		"currency":   b.Currency,
-		"updated_at": firestore.ServerTimestamp,
+		"level":            b.Level,
+		"balance":          b.Balance,
+		"captured_balance": b.CapturedBalance,
+		"currency":         b.Currency,
+		"updated_at":       firestore.ServerTimestamp,
 	}
 }
 

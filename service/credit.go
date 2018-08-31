@@ -257,6 +257,65 @@ func (s CreditService) FinishTracking() (ce SimpleContextError) {
 	return
 }
 
+func (s CreditService) GetCreditPoolPercentageByCache(currency string, amount decimal.Decimal) (decimal.Decimal, error) {
+	percentage := 0
+	for percentage <= 100 {
+		level := fmt.Sprintf("%03d", percentage)
+
+		creditPoolTO := s.dao.GetCreditPoolCache(currency, level)
+		if creditPoolTO.HasError() {
+			return common.Zero, creditPoolTO.Error
+		}
+		if creditPoolTO.Found {
+			creditPool := creditPoolTO.Object.(bean.CreditPool)
+			return common.StringToDecimal(creditPool.Balance), nil
+		}
+
+		percentage += 1
+	}
+
+	return common.Zero, nil
+}
+
+func (s CreditService) CaptureOrder(currency string, level string, amount decimal.Decimal) error {
+	return nil
+}
+
+func (s CreditService) SetupCreditPool() (ce SimpleContextError) {
+	for _, currency := range []string{bean.BTC.Code, bean.ETH.Code, bean.BCH.Code} {
+		level := 0
+		for level <= 100 {
+			pool := bean.CreditPool{
+				Level:    fmt.Sprintf("%03d", level),
+				Balance:  common.Zero.String(),
+				Currency: currency,
+			}
+			err := s.dao.AddCreditPool(&pool)
+			s.dao.SetCreditPoolCache(pool)
+			if err != nil {
+				ce.SetError(api_error.AddDataFailed, err)
+			}
+			level += 1
+		}
+	}
+
+	return
+}
+
+func (s CreditService) SetupCreditPoolCache() (ce SimpleContextError) {
+	for _, currency := range []string{bean.BTC.Code, bean.ETH.Code, bean.BCH.Code} {
+		poolTO := s.dao.ListCreditPool(currency)
+		if !poolTO.HasError() {
+			for _, item := range poolTO.Objects {
+				creditPool := item.(bean.CreditPool)
+				s.dao.SetCreditPoolCache(creditPool)
+			}
+		}
+	}
+
+	return
+}
+
 func (s CreditService) finishTrackingItem(tracking bean.CreditOnChainActionTracking) error {
 	var err error
 
@@ -305,41 +364,6 @@ func (s CreditService) finishTrackingItem(tracking bean.CreditOnChainActionTrack
 	s.dao.FinishDepositCreditItem(&item, &deposit, &itemHistory, &pool, &poolOrder, &poolHistory, &tracking)
 
 	return err
-}
-
-func (s CreditService) SetupCreditPool() (ce SimpleContextError) {
-	for _, currency := range []string{bean.BTC.Code, bean.ETH.Code, bean.BCH.Code} {
-		level := 0
-		for level <= 100 {
-			pool := bean.CreditPool{
-				Level:    fmt.Sprintf("%03d", level),
-				Balance:  common.Zero.String(),
-				Currency: currency,
-			}
-			err := s.dao.AddCreditPool(&pool)
-			s.dao.SetCreditPoolCache(pool)
-			if err != nil {
-				ce.SetError(api_error.AddDataFailed, err)
-			}
-			level += 1
-		}
-	}
-
-	return
-}
-
-func (s CreditService) SetupCreditPoolCache() (ce SimpleContextError) {
-	for _, currency := range []string{bean.BTC.Code, bean.ETH.Code, bean.BCH.Code} {
-		poolTO := s.dao.ListCreditPool(currency)
-		if !poolTO.HasError() {
-			for _, item := range poolTO.Objects {
-				creditPool := item.(bean.CreditPool)
-				s.dao.SetCreditPoolCache(creditPool)
-			}
-		}
-	}
-
-	return
 }
 
 func (s CreditService) finishFailedTrackingItem(tracking bean.CreditOnChainActionTracking) error {
