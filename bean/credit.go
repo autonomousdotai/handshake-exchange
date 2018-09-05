@@ -35,6 +35,7 @@ type Credit struct {
 	ChainId   string                `json:"-" firestore:"chain_id"`
 	Status    string                `json:"status" firestore:"status"`
 	Items     map[string]CreditItem `json:"items"`
+	Revenue   string                `json:"revenue" firestore:"revenue"`
 	CreatedAt time.Time             `json:"created_at" firestore:"created_at"`
 	UpdatedAt time.Time             `json:"updated_at" firestore:"updated_at"`
 }
@@ -47,6 +48,7 @@ func (b Credit) GetAdd() map[string]interface{} {
 		"language":   b.Language,
 		"fcm":        b.FCM,
 		"chain_id":   b.ChainId,
+		"revenue":    common.Zero,
 		"status":     b.Status,
 		"created_at": firestore.ServerTimestamp,
 	}
@@ -68,6 +70,7 @@ type CreditItem struct {
 	LastActionData interface{} `json:"-" firestore:"last_action_data"`
 	Balance        string      `json:"balance" firestore:"balance"`
 	Sold           string      `json:"sold" firestore:"sold"`
+	CreditRevenue  string      `json:"-"`
 	Revenue        string      `json:"revenue" firestore:"revenue"`
 	Percentage     string      `json:"percentage" firestore:"percentage"`
 	UserAddress    string      `json:"user_address" firestore:"user_address"`

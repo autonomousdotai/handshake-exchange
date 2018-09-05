@@ -274,24 +274,26 @@ func (s CreditService) FinishTracking() (ce SimpleContextError) {
 	return
 }
 
-func (s CreditService) GetCreditPoolPercentageByCache(currency string, amount decimal.Decimal) (decimal.Decimal, error) {
+func (s CreditService) GetCreditPoolPercentageByCache(currency string, amount decimal.Decimal) (int, error) {
 	percentage := 0
 	for percentage <= 100 {
 		level := fmt.Sprintf("%03d", percentage)
 
 		creditPoolTO := s.dao.GetCreditPoolCache(currency, level)
 		if creditPoolTO.HasError() {
-			return common.Zero, creditPoolTO.Error
+			return 0, creditPoolTO.Error
 		}
 		if creditPoolTO.Found {
 			creditPool := creditPoolTO.Object.(bean.CreditPool)
-			return common.StringToDecimal(creditPool.Balance), nil
+			if common.StringToDecimal(creditPool.Balance).GreaterThanOrEqual(amount) {
+				return percentage, nil
+			}
 		}
 
 		percentage += 1
 	}
 
-	return common.Zero, nil
+	return 0, nil
 }
 
 func (s CreditService) AddCreditTransaction(trans *bean.CreditTransaction) (ce SimpleContextError) {

@@ -378,17 +378,20 @@ func (dao CreditDao) FinishCreditTransaction(pool *bean.CreditPool, poolHistory 
 	poolBalanceHistoryDocRef := dbClient.Collection(GetCreditPoolBalanceHistoryPath(pool.Currency, pool.Level)).NewDoc()
 	poolHistory.Id = poolBalanceHistoryDocRef.ID
 
+	creditDocRefs := make([]*firestore.DocumentRef, 0)
 	itemDocRefs := make([]*firestore.DocumentRef, 0)
 	itemHistoryDocRefs := make([]*firestore.DocumentRef, 0)
 
 	transDocRef := dbClient.Doc(GetCreditTransactionItemPath(trans.Currency, trans.Id))
 	transUserDocRefs := make([]*firestore.DocumentRef, 0)
 	for itemIndex, item := range items {
+		creditDocRef := dbClient.Doc(GetCreditItemPath(item.UID))
 		itemDocRef := dbClient.Doc(GetCreditItemItemPath(item.UID, item.Currency))
 		balanceHistoryDocRef := dbClient.Collection(GetCreditBalanceHistoryPath(item.UID, item.Currency)).NewDoc()
 
 		itemHistories[itemIndex].Id = balanceHistoryDocRef.ID
 
+		creditDocRefs = append(creditDocRefs, creditDocRef)
 		itemDocRefs = append(itemDocRefs, itemDocRef)
 		itemHistoryDocRefs = append(itemHistoryDocRefs, balanceHistoryDocRef)
 
@@ -451,6 +454,10 @@ func (dao CreditDao) FinishCreditTransaction(pool *bean.CreditPool, poolHistory 
 			if txErr != nil {
 				return txErr
 			}
+			creditRevenue, txErr := common.ConvertToDecimal(itemDoc, "revenue")
+			if txErr != nil {
+				return txErr
+			}
 			itemRevenue, txErr := common.ConvertToDecimal(itemDoc, "revenue")
 			if txErr != nil {
 				return txErr
@@ -463,7 +470,9 @@ func (dao CreditDao) FinishCreditTransaction(pool *bean.CreditPool, poolHistory 
 			items[itemIndex].Balance = itemBalance.String()
 			sold = sold.Sub(itemAmount)
 			items[itemIndex].Sold = sold.String()
-			itemRevenue = itemRevenue.Sub(revenue)
+			creditRevenue = creditRevenue.Add(revenue)
+			itemRevenue = itemRevenue.Add(revenue)
+			items[itemIndex].CreditRevenue = creditRevenue.String()
 			items[itemIndex].Revenue = revenue.String()
 
 			if itemBalance.LessThan(common.Zero) {
@@ -509,6 +518,12 @@ func (dao CreditDao) FinishCreditTransaction(pool *bean.CreditPool, poolHistory 
 		}
 
 		for itemIndex, itemDocRef := range itemDocRefs {
+			txErr = tx.Set(creditDocRefs[itemIndex], map[string]string{
+				"revenue": items[itemIndex].CreditRevenue,
+			}, firestore.MergeAll)
+			if txErr != nil {
+				return txErr
+			}
 			txErr = tx.Set(itemDocRef, items[itemIndex].GetUpdateBalance(), firestore.MergeAll)
 			if txErr != nil {
 				return txErr

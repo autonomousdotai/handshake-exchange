@@ -40,7 +40,8 @@ func (s CreditCardService) GetProposeInstantOffer(amountStr string, currency str
 	systemFee := systemFeeTO.Object.(bean.SystemFee)
 
 	amount, _ := decimal.NewFromString(amountStr)
-	externalFeePercentage, err := CreditServiceInst.GetCreditPoolPercentageByCache(currency, amount)
+	percentage, err := CreditServiceInst.GetCreditPoolPercentageByCache(currency, amount)
+	externalFeePercentage := decimal.NewFromFloat(float64(percentage)).Div(decimal.NewFromFloat(100))
 	if err != nil {
 		ce.SetError(api_error.GetDataFailed, err)
 	}
