@@ -7,6 +7,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/bean"
 	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/dao"
+	"github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/crypto_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/gdax_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/stripe_service"
@@ -16,7 +17,6 @@ import (
 	"os"
 	"strconv"
 	"time"
-	"github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
 )
 
 type CreditCardService struct {
