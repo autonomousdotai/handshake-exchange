@@ -45,6 +45,8 @@ const ChargeCCFailed = "ChargeCCFailed"
 const CCOverGlobalLimit = "CCOverGlobalLimit"
 
 const CreditExists = "CreditExists"
+const CreditPriceChanged = "CreditPriceChanged"
+const CreditOutOfStock = "CreditOutOfStock"
 
 var CodeMessage = map[string]struct {
 	StatusCode int
@@ -93,4 +95,6 @@ var CodeMessage = map[string]struct {
 	ChargeCCFailed:                 {http.StatusBadRequest, -322, "Charge CC failed"},
 	CCOverGlobalLimit:              {http.StatusBadRequest, -323, "CC over global limit"},
 	CreditExists:                   {http.StatusBadRequest, -324, "Credit exists"},
+	CreditPriceChanged:             {http.StatusBadRequest, -325, "Credit price changed"},
+	CreditOutOfStock:               {http.StatusBadRequest, -326, "Credit out of stock"},
 }

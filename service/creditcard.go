@@ -16,6 +16,7 @@ import (
 	"os"
 	"strconv"
 	"time"
+	"github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
 )
 
 type CreditCardService struct {
@@ -37,11 +38,20 @@ func (s CreditCardService) GetProposeInstantOffer(amountStr string, currency str
 	}
 	systemFee := systemFeeTO.Object.(bean.SystemFee)
 
-	price := decimal.NewFromFloat(cryptoRate.Buy).Round(2)
 	amount, _ := decimal.NewFromString(amountStr)
+	externalFeePercentage, err := CreditServiceInst.GetCreditPoolPercentageByCache(currency, amount)
+	if err != nil {
+		ce.SetError(api_error.GetDataFailed, err)
+	}
+
+	price := decimal.NewFromFloat(cryptoRate.Buy).Round(2)
+
 	totalWOFee := amount.Mul(price)
 	feePercentage := decimal.NewFromFloat(systemFee.Value).Round(10)
+	feePercentage = feePercentage.Add(externalFeePercentage)
+
 	total, fee := dao.AddFeePercentage(totalWOFee, feePercentage)
+	_, externalFee := dao.AddFeePercentage(totalWOFee, externalFeePercentage)
 
 	offer.FiatAmount = total.Round(2).String()
 	offer.FiatCurrency = bean.USD.Code
@@ -50,6 +60,8 @@ func (s CreditCardService) GetProposeInstantOffer(amountStr string, currency str
 	offer.Price = price.String()
 	offer.Fee = fee.Round(2).String()
 	offer.FeePercentage = feePercentage.String()
+	offer.ExternalFeePercentage = externalFeePercentage.String()
+	offer.ExternalFee = externalFee.String()
 
 	return
 }
@@ -234,6 +246,7 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 
 	var ccTran bean.CCTransaction
 	var gdaxResponse bean.GdaxOrderResponse
+	var creditTrans *bean.CreditTransaction
 
 	setupCCTransaction(&ccTran, offerBody, stripeCharge)
 	ccTran, err = s.dao.AddCCTransaction(ccTran)
@@ -259,6 +272,23 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 			} else {
 				isSuccess = true
 			}
+		} else if ccMode == bean.CC_MODE_CREDIT {
+			creditTrans = &bean.CreditTransaction{
+				ToUID:      userId,
+				Amount:     offerBody.Amount,
+				Currency:   offerBody.Currency,
+				Percentage: offerTest.ExternalFeePercentage,
+			}
+			transCE := CreditServiceInst.AddCreditTransaction(creditTrans)
+			if ce.SetError(api_error.ExternalApiFailed, transCE.CheckError()) {
+				isSuccess = false
+			} else {
+				if creditTrans.Id != "" {
+					isSuccess = true
+				} else {
+					isSuccess = false
+				}
+			}
 		} else {
 			// From inventory
 			isSuccess = true
@@ -278,7 +308,14 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 		ccTran.Status = bean.CC_TRANSACTION_STATUS_REFUNDED
 		s.dao.UpdateCCTransactionStatus(ccTran)
 	} else {
-		setupInstantOffer(&offerBody, offerTest, gdaxResponse)
+		if ccMode == bean.CC_MODE_GDAX {
+			setupInstantOffer(&offerBody, offerTest, gdaxResponse)
+		} else if ccMode == bean.CC_MODE_CREDIT {
+			setupInstantOfferCredit(&offerBody, offerTest, *creditTrans)
+		} else {
+			setupInstantOffer(&offerBody, offerTest, gdaxResponse) // gdax Response empty
+		}
+
 		offerBody.PaymentMethod = bean.INSTANT_OFFER_PAYMENT_METHOD_CC
 		offerBody.PaymentMethodRef = dao.GetUserCCTransactionItemPath(offerBody.UID, ccTran.Id)
 
@@ -340,6 +377,18 @@ func (s CreditCardService) FinishInstantOffers() (finishedInstantOffers []bean.I
 					}
 				}
 				// fmt.Println(gdaxResponse)
+			} else if ccMode == bean.CC_MODE_CREDIT {
+				// From inventory
+				offer := s.finishInstantOfferCredit(&pendingOffer, ccMode, nil, &ce)
+				if ce.CheckError() != nil {
+					s.cancelInstantOffer(&pendingOffer, &ce)
+
+					isDone = true
+					finishedInstantOffers = append(finishedInstantOffers, offer)
+				} else {
+					isDone = true
+					finishedInstantOffers = append(finishedInstantOffers, offer)
+				}
 			} else {
 				// From inventory
 				offer := s.finishInstantOffer(&pendingOffer, ccMode, nil, &ce)
@@ -462,6 +511,80 @@ func (s CreditCardService) finishInstantOffer(pendingOffer *bean.PendingInstantO
 	return
 }
 
+func (s CreditCardService) finishInstantOfferCredit(pendingOffer *bean.PendingInstantOffer, ccMode string,
+	gdaxResponse *bean.GdaxOrderResponse, ce *SimpleContextError) (offer bean.InstantOffer) {
+	offerTO := s.dao.GetInstantOffer(pendingOffer.UID, pendingOffer.InstantOffer)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, offerTO) {
+		return
+	}
+
+	offer = offerTO.Object.(bean.InstantOffer)
+	offer.Status = bean.INSTANT_OFFER_STATUS_SUCCESS
+
+	offerRef := dao.GetInstantOfferItemPath(pendingOffer.UID, pendingOffer.InstantOffer)
+	ccCE := CreditServiceInst.FinishCreditTransaction(offer.Currency, offer.ProviderData.(string), offerRef, offer.ExternalFee)
+	if ccCE.HasError() {
+		if ce.SetError(api_error.ExternalApiFailed, ccCE.CheckError()) {
+			return
+		}
+	}
+
+	ccTranTO := s.dao.GetCCTransactionByPath(offer.PaymentMethodRef)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, offerTO) {
+		return
+	}
+	ccTran := ccTranTO.Object.(bean.CCTransaction)
+	_, err := stripe_service.Capture(ccTran.ExternalId)
+	if ce.SetError(api_error.ExternalApiFailed, err) {
+		return
+	}
+	ccTran.Status = bean.CC_TRANSACTION_STATUS_CAPTURED
+
+	s.dao.UpdateCCTransactionStatus(ccTran)
+
+	transTO := s.transDao.GetTransactionByPath(offer.TransactionRef)
+	var trans bean.Transaction
+	if transTO.HasError() {
+		// Just one to make sure we don't lost anything
+		trans = bean.NewTransactionFromInstantOffer(offer)
+	} else {
+		trans = transTO.Object.(bean.Transaction)
+	}
+	trans.Status = bean.TRANSACTION_STATUS_SUCCESS
+
+	if ccMode == bean.CC_MODE_GDAX {
+		gdaxWithdrawResponse, errWithdraw := gdax_service.WithdrawCrypto(offer.Amount, offer.Currency, offer.Address)
+		if errWithdraw == nil {
+			offer.ProviderWithdrawData = gdaxWithdrawResponse
+		} else {
+			offer.ProviderWithdrawData = errWithdraw.Error()
+		}
+	} else {
+		// txHash, errWithdraw := crypto_service.SendTransaction(offer.Address, offer.Amount, offer.Currency)
+
+		if offer.Currency == bean.ETH.Code {
+
+		} else {
+			coinbaseTx, errWithdraw := coinbase_service.SendTransaction(offer.Address, offer.Amount, offer.Currency,
+				fmt.Sprintf("Withdraw tx = %s", offer.Id), offer.Id)
+			if errWithdraw == nil {
+				offer.ProviderWithdrawData = coinbaseTx.Id
+			} else {
+				offer.ProviderWithdrawData = errWithdraw.Error()
+			}
+		}
+	}
+
+	_, err = s.dao.UpdateInstantOffer(offer, trans)
+	if ce.SetError(api_error.UpdateDataFailed, err) {
+		return
+	}
+
+	notification.SendInstantOfferNotification(offer)
+
+	return
+}
+
 func (s CreditCardService) cancelInstantOffer(pendingOffer *bean.PendingInstantOffer, ce *SimpleContextError) {
 	offerTO := s.dao.GetInstantOffer(pendingOffer.UID, pendingOffer.InstantOffer)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, offerTO) {
@@ -550,6 +673,24 @@ func setupInstantOffer(offer *bean.InstantOffer, offerTest bean.InstantOffer, gd
 	offer.ProviderData = gdaxResponse
 	offer.Fee = offerTest.Fee
 	offer.FeePercentage = offerTest.FeePercentage
+	offer.Price = offerTest.Price
+	duration, _ := strconv.Atoi(os.Getenv("CC_LIMIT_DURATION"))
+	offer.Duration = int64(duration)
+}
+
+func setupInstantOfferCredit(offer *bean.InstantOffer, offerTest bean.InstantOffer, creditTrans bean.CreditTransaction) {
+	fiatAmount, _ := decimal.NewFromString(offer.FiatAmount)
+	fee, _ := decimal.NewFromString(offerTest.Fee)
+
+	offer.RawFiatAmount = fiatAmount.Sub(fee).String()
+	offer.Status = bean.INSTANT_OFFER_STATUS_PROCESSING
+	offer.Type = bean.INSTANT_OFFER_TYPE_BUY
+	offer.Provider = bean.INSTANT_OFFER_PROVIDER_CREDIT
+	offer.ProviderData = creditTrans.Id
+	offer.Fee = offerTest.Fee
+	offer.FeePercentage = offerTest.FeePercentage
+	offer.ExternalFee = offerTest.ExternalFee
+	offer.ExternalFeePercentage = offerTest.ExternalFeePercentage
 	offer.Price = offerTest.Price
 	duration, _ := strconv.Atoi(os.Getenv("CC_LIMIT_DURATION"))
 	offer.Duration = int64(duration)

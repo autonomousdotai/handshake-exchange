@@ -3,6 +3,7 @@ package bean
 import (
 	"cloud.google.com/go/firestore"
 	"github.com/ninjadotorg/handshake-exchange/common"
+	"github.com/shopspring/decimal"
 	"time"
 )
 
@@ -111,7 +112,8 @@ func (b CreditItem) GetUpdate() map[string]interface{} {
 func (b CreditItem) GetUpdateBalance() map[string]interface{} {
 	return map[string]interface{}{
 		"balance":    b.Balance,
-		"profit":     b.Revenue,
+		"sold":       b.Sold,
+		"revenue":    b.Revenue,
 		"updated_at": firestore.ServerTimestamp,
 	}
 }
@@ -274,10 +276,25 @@ func (b CreditPool) GetAdd() map[string]interface{} {
 	}
 }
 
-func (b CreditPool) GetUpdate() map[string]interface{} {
+func (b CreditPool) GetUpdateBalance() map[string]interface{} {
 	return map[string]interface{}{
 		"balance":    b.Balance,
 		"updated_at": firestore.ServerTimestamp,
+	}
+}
+
+func (b CreditPool) GetUpdateCapturedBalance() map[string]interface{} {
+	return map[string]interface{}{
+		"captured_balance": b.CapturedBalance,
+		"updated_at":       firestore.ServerTimestamp,
+	}
+}
+
+func (b CreditPool) GetUpdateAllBalance() map[string]interface{} {
+	return map[string]interface{}{
+		"balance":          b.Balance,
+		"captured_balance": b.CapturedBalance,
+		"updated_at":       firestore.ServerTimestamp,
 	}
 }
 
@@ -310,12 +327,15 @@ func (b CreditPoolBalanceHistory) GetAdd() map[string]interface{} {
 }
 
 type CreditPoolOrder struct {
-	Id         string    `json:"id" firestore:"id"`
-	UID        string    `json:"-" firestore:"uid"`
-	DepositRef string    `json:"deposit_ref" firestore:"deposit_ref"`
-	Amount     string    `json:"amount" firestore:"amount"`
-	Balance    string    `json:"balance" firestore:"balance"`
-	CreatedAt  time.Time `json:"created_at" firestore:"created_at"`
+	Id              string          `json:"id" firestore:"id"`
+	UID             string          `json:"-" firestore:"uid"`
+	DepositRef      string          `json:"deposit_ref" firestore:"deposit_ref"`
+	Amount          string          `json:"amount" firestore:"amount"`
+	Balance         string          `json:"balance" firestore:"balance"`
+	CapturedAmount  decimal.Decimal `json:"-"`
+	CapturedBalance string          `json:"captured_balance" firestore:"captured_balance"`
+	CapturedFull    bool            `json:"captured_full" firestore:"captured_full"`
+	CreatedAt       time.Time       `json:"created_at" firestore:"created_at"`
 }
 
 func (b CreditPoolOrder) GetAdd() map[string]interface{} {
@@ -336,28 +356,73 @@ func (b CreditPoolOrder) GetUpdate() map[string]interface{} {
 	}
 }
 
+func (b CreditPoolOrder) GetUpdateCapture() map[string]interface{} {
+	return map[string]interface{}{
+		"captured_balance": b.CapturedBalance,
+		"captured_full":    b.CapturedFull,
+		"updated_at":       firestore.ServerTimestamp,
+	}
+}
+
+func (b CreditPoolOrder) GetUpdateAllBalance() map[string]interface{} {
+	return map[string]interface{}{
+		"captured_balance": b.CapturedBalance,
+		"balance":          b.CapturedBalance,
+		"updated_at":       firestore.ServerTimestamp,
+	}
+}
+
+const CREDIT_TRANSACTION_STATUS_CREATE = "create"
+const CREDIT_TRANSACTION_STATUS_SUCCESS = "success"
+const CREDIT_TRANSACTION_STATUS_FAILED = "failed"
+
+const CREDIT_TRANSACTION_SUB_STATUS_REVENUE_PROCESSING = "create"
+const CREDIT_TRANSACTION_SUB_STATUS_REVENUE_PROCESSED = "success"
+
 type CreditTransaction struct {
-	Id         string    `json:"id" firestore:"id"`
-	UID        string    `json:"uid" firestore:"uid"`
-	Amount     string    `json:"amount" firestore:"amount"`
-	Currency   string    `json:"currency" firestore:"currency"`
-	Revenue    string    `json:"revenue" firestore:"revenue"`
-	Percentage string    `json:"percentage" firestore:"percentage"`
-	OfferRef   string    `json:"-" firestore:"offer_ref"`
-	DepositRef string    `json:"_" firestore:"deposit_ref"`
-	CreatedAt  time.Time `json:"created_at" firestore:"created_at"`
+	Id            string         `json:"id" firestore:"id"`
+	UID           string         `json:"-" firestore:"uid"`
+	UIDs          []string       `json:"-" firestore:"uids"`
+	ToUID         string         `json:"-" firestore:"to_uid"`
+	Amount        string         `json:"amount" firestore:"amount"`
+	Currency      string         `json:"currency" firestore:"currency"`
+	Status        string         `json:"status" firestore:"status"`
+	SubStatus     string         `json:"sub_status" firestore:"sub_status"`
+	Revenue       string         `json:"revenue" firestore:"revenue"`
+	Percentage    string         `json:"percentage" firestore:"percentage"`
+	OfferRef      string         `json:"-" firestore:"offer_ref"`
+	OrderInfoRefs []OrderInfoRef `json:"-" firestore:"order_info_refs"`
+	CreatedAt     time.Time      `json:"created_at" firestore:"created_at"`
+}
+
+type OrderInfoRef struct {
+	OrderRef string `json:"-" firestore:"order_ref"`
+	Amount   string `json:"-" firestore:"amount"`
 }
 
 func (b CreditTransaction) GetAdd() map[string]interface{} {
 	return map[string]interface{}{
-		"id":          b.Id,
-		"uid":         b.UID,
-		"amount":      b.Amount,
-		"currency":    b.Currency,
-		"revenue":     b.Revenue,
-		"percentage":  b.Percentage,
-		"offer_ref":   b.OfferRef,
-		"deposit_ref": b.DepositRef,
-		"created_at":  firestore.ServerTimestamp,
+		"id":              b.Id,
+		"uid":             b.UID,
+		"uids":            b.UIDs,
+		"to_uid":          b.ToUID,
+		"amount":          b.Amount,
+		"currency":        b.Currency,
+		"status":          b.Status,
+		"revenue":         b.Revenue,
+		"percentage":      b.Percentage,
+		"offer_ref":       b.OfferRef,
+		"order_info_refs": b.OrderInfoRefs,
+		"created_at":      firestore.ServerTimestamp,
+	}
+}
+
+func (b CreditTransaction) GetUpdate() map[string]interface{} {
+	return map[string]interface{}{
+		"status":     b.Status,
+		"sub_status": b.SubStatus,
+		"revenue":    b.Revenue,
+		"offer_ref":  b.OfferRef,
+		"updated_at": firestore.ServerTimestamp,
 	}
 }
