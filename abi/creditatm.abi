@@ -1,0 +1,165 @@
+[
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "ex",
+      "outputs": [
+        {
+          "name": "sender",
+          "type": "address"
+        },
+        {
+          "name": "percentage",
+          "type": "uint256"
+        },
+        {
+          "name": "escrow",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "offchain",
+          "type": "bytes32"
+        },
+        {
+          "name": "percentage",
+          "type": "uint256"
+        }
+      ],
+      "name": "deposit",
+      "outputs": [],
+      "payable": true,
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "hid",
+          "type": "uint256"
+        },
+        {
+          "name": "customer",
+          "type": "address"
+        },
+        {
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "name": "offchain",
+          "type": "bytes32"
+        }
+      ],
+      "name": "releasePartialFund",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "name": "hid",
+          "type": "uint256"
+        }
+      ],
+      "name": "getDepositList",
+      "outputs": [
+        {
+          "name": "",
+          "type": "address"
+        },
+        {
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "name": "hid",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "name": "stationOwner",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "name": "value",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "name": "percentage",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "name": "offchain",
+          "type": "bytes32"
+        }
+      ],
+      "name": "__deposit",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "name": "hid",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "name": "customer",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "name": "offchain",
+          "type": "bytes32"
+        }
+      ],
+      "name": "__releasePartialFund",
+      "type": "event"
+    }
+  ]

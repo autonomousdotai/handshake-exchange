@@ -6,3 +6,4 @@
 
 ```abigen --abi abi/exchangehandshake.abi --pkg abi --type ExchangeHandshake --out exchangehandshake.go```
 ```abigen --abi abi/exchangehandshakeshop.abi --pkg abi --type ExchangeHandshakeShop --out exchangehandshakeshop.go```
+```abigen --abi abi/creditatm.abi --pkg abi --type CreditATM --out creditatm.go```
