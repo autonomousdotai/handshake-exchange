@@ -279,7 +279,7 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 				ToUID:      userId,
 				Amount:     offerBody.Amount,
 				Currency:   offerBody.Currency,
-				Percentage: offerTest.ExternalFeePercentage,
+				Percentage: common.StringToDecimal(offerTest.ExternalFeePercentage).Mul(common.StringToDecimal("100")).String(), // Convert to 3%
 			}
 			transCE := CreditServiceInst.AddCreditTransaction(creditTrans)
 			if ce.SetError(api_error.ExternalApiFailed, transCE.CheckError()) {
