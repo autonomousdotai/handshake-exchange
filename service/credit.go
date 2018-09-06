@@ -461,14 +461,13 @@ func (s CreditService) FinishCreditTransaction(currency string, id string, offer
 			return
 		}
 		userTrans := userTransTO.Object.(bean.CreditTransaction)
-		transList = append(transList, userTrans)
-
 		userAmount := common.StringToDecimal(userTrans.Amount)
 
 		userTrans.OfferRef = offerRef
 		userTrans.Status = bean.CREDIT_TRANSACTION_STATUS_SUCCESS
 		userTrans.SubStatus = bean.CREDIT_TRANSACTION_SUB_STATUS_REVENUE_PROCESSED
 		userTrans.Revenue = userAmount.Div(amount).Mul(revenue).RoundBank(2).String()
+		transList = append(transList, userTrans)
 
 		itemHistory := bean.CreditBalanceHistory{
 			ItemRef:    dao.GetCreditItemItemPath(userId, trans.Currency),

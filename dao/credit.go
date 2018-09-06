@@ -251,7 +251,7 @@ func (dao CreditDao) AddCreditTransaction(pool *bean.CreditPool, trans *bean.Cre
 	poolDocRef := dbClient.Doc(GetCreditPoolItemPath(pool.Currency, pool.Level))
 	transDocRef := dbClient.Collection(GetCreditTransactionPath(pool.Currency)).NewDoc()
 	trans.Id = transDocRef.ID
-	pendingTransDocRef := dbClient.Doc(GetCreditPendingTransactionItemPath(pool.Currency, trans.Id))
+	//pendingTransDocRef := dbClient.Doc(GetCreditPendingTransactionItemPath(pool.Currency, trans.Id))
 
 	transUserDocRefs := make([]*firestore.DocumentRef, 0)
 	for userTransIndex, userTrans := range userTransList {
@@ -338,10 +338,10 @@ func (dao CreditDao) AddCreditTransaction(pool *bean.CreditPool, trans *bean.Cre
 		if txErr != nil {
 			return txErr
 		}
-		txErr = tx.Set(pendingTransDocRef, trans.GetAdd())
-		if txErr != nil {
-			return txErr
-		}
+		//txErr = tx.Set(pendingTransDocRef, trans.GetAdd())
+		//if txErr != nil {
+		//	return txErr
+		//}
 
 		for transIndex, userTransDocRef := range transUserDocRefs {
 			txErr = tx.Set(userTransDocRef, userTransList[transIndex].GetAdd())
@@ -385,7 +385,7 @@ func (dao CreditDao) FinishCreditTransaction(pool *bean.CreditPool, poolHistory 
 	transDocRef := dbClient.Doc(GetCreditTransactionItemPath(trans.Currency, trans.Id))
 	transUserDocRefs := make([]*firestore.DocumentRef, 0)
 	for itemIndex, item := range items {
-		creditDocRef := dbClient.Doc(GetCreditItemPath(item.UID))
+		creditDocRef := dbClient.Doc(GetCreditUserPath(item.UID))
 		itemDocRef := dbClient.Doc(GetCreditItemItemPath(item.UID, item.Currency))
 		balanceHistoryDocRef := dbClient.Collection(GetCreditBalanceHistoryPath(item.UID, item.Currency)).NewDoc()
 
@@ -415,6 +415,7 @@ func (dao CreditDao) FinishCreditTransaction(pool *bean.CreditPool, poolHistory 
 	err = dbClient.RunTransaction(context.Background(), func(ctx context.Context, tx *firestore.Transaction) error {
 		var txErr error
 
+		fmt.Println("Step 1")
 		poolDoc, txErr := tx.Get(poolDocRef)
 		if err != nil {
 			return txErr
@@ -431,6 +432,7 @@ func (dao CreditDao) FinishCreditTransaction(pool *bean.CreditPool, poolHistory 
 		}
 		poolHistory.New = pool.Balance
 
+		fmt.Println("Step 2")
 		poolCapturedBalance, txErr := common.ConvertToDecimal(poolDoc, "captured_balance")
 		if txErr != nil {
 			return txErr
@@ -441,6 +443,7 @@ func (dao CreditDao) FinishCreditTransaction(pool *bean.CreditPool, poolHistory 
 			return errors.New("invalid_balance")
 		}
 
+		fmt.Println("Step 3")
 		for itemIndex, itemDocRef := range itemDocRefs {
 			itemDoc, txErr := tx.Get(itemDocRef)
 			if err != nil {
@@ -468,7 +471,7 @@ func (dao CreditDao) FinishCreditTransaction(pool *bean.CreditPool, poolHistory 
 
 			itemBalance = itemBalance.Sub(itemAmount)
 			items[itemIndex].Balance = itemBalance.String()
-			sold = sold.Sub(itemAmount)
+			sold = sold.Add(itemAmount)
 			items[itemIndex].Sold = sold.String()
 			creditRevenue = creditRevenue.Add(revenue)
 			itemRevenue = itemRevenue.Add(revenue)
@@ -481,6 +484,7 @@ func (dao CreditDao) FinishCreditTransaction(pool *bean.CreditPool, poolHistory 
 			itemHistories[itemIndex].New = items[itemIndex].Balance
 		}
 
+		fmt.Println("Step 4")
 		for orderIndex, orderDocRef := range poolOrderDocRefs {
 			orderDoc, txErr := tx.Get(orderDocRef)
 			if err != nil {
@@ -508,6 +512,7 @@ func (dao CreditDao) FinishCreditTransaction(pool *bean.CreditPool, poolHistory 
 			}
 		}
 
+		fmt.Println("Step 5")
 		txErr = tx.Set(poolDocRef, pool.GetUpdateAllBalance(), firestore.MergeAll)
 		if txErr != nil {
 			return txErr
@@ -517,31 +522,38 @@ func (dao CreditDao) FinishCreditTransaction(pool *bean.CreditPool, poolHistory 
 			return txErr
 		}
 
+		fmt.Println("Step 6")
 		for itemIndex, itemDocRef := range itemDocRefs {
+			fmt.Println("Step 6.1")
 			txErr = tx.Set(creditDocRefs[itemIndex], map[string]string{
 				"revenue": items[itemIndex].CreditRevenue,
 			}, firestore.MergeAll)
 			if txErr != nil {
 				return txErr
 			}
+			fmt.Println("Step 6.2")
 			txErr = tx.Set(itemDocRef, items[itemIndex].GetUpdateBalance(), firestore.MergeAll)
 			if txErr != nil {
 				return txErr
 			}
+			fmt.Println("Step 6.3")
 			txErr = tx.Set(itemHistoryDocRefs[itemIndex], itemHistories[itemIndex].GetAdd())
 			if txErr != nil {
 				return txErr
 			}
+			fmt.Println("Step 6.4")
 			txErr = tx.Set(transUserDocRefs[itemIndex], transList[itemIndex].GetUpdate(), firestore.MergeAll)
 			if txErr != nil {
 				return txErr
 			}
 		}
+		fmt.Println("Step 7")
 		txErr = tx.Set(transDocRef, trans.GetUpdate(), firestore.MergeAll)
 		if txErr != nil {
 			return txErr
 		}
 
+		fmt.Println("Step 8")
 		for orderIndex, orderDocRef := range poolOrderDocRefs {
 			if common.StringToDecimal(poolOrders[orderIndex].Balance).Equal(common.Zero) {
 				txErr = tx.Delete(orderDocRef)

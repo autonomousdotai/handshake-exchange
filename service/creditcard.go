@@ -380,13 +380,15 @@ func (s CreditCardService) FinishInstantOffers() (finishedInstantOffers []bean.I
 				}
 				// fmt.Println(gdaxResponse)
 			} else if ccMode == bean.CC_MODE_CREDIT {
+				fmt.Println(pendingOffer.Id)
 				// From inventory
 				offer := s.finishInstantOfferCredit(&pendingOffer, ccMode, nil, &ce)
 				if ce.CheckError() != nil {
-					s.cancelInstantOffer(&pendingOffer, &ce)
-
-					isDone = true
-					finishedInstantOffers = append(finishedInstantOffers, offer)
+					fmt.Println(ce.CheckError())
+					//s.cancelInstantOffer(&pendingOffer, &ce)
+					//
+					//isDone = true
+					//finishedInstantOffers = append(finishedInstantOffers, offer)
 				} else {
 					isDone = true
 					finishedInstantOffers = append(finishedInstantOffers, offer)
@@ -404,12 +406,12 @@ func (s CreditCardService) FinishInstantOffers() (finishedInstantOffers []bean.I
 
 			if !isDone {
 				// Over duration
-				if time.Now().UTC().Sub(pendingOffer.CreatedAt).Seconds() > float64(pendingOffer.Duration) {
-					s.cancelInstantOffer(&pendingOffer, &ce)
-					if ce.CheckError() != nil {
-						// return
-					}
-				}
+				//if time.Now().UTC().Sub(pendingOffer.CreatedAt).Seconds() > float64(pendingOffer.Duration) {
+				//	s.cancelInstantOffer(&pendingOffer, &ce)
+				//	if ce.CheckError() != nil {
+				//		// return
+				//	}
+				//}
 			}
 		}
 	}
