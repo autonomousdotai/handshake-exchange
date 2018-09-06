@@ -22,6 +22,7 @@ const CREDIT_DEPOSIT_STATUS_TRANSFERRING = "transferring"
 const CREDIT_DEPOSIT_STATUS_FAILED = "failed"
 const CREDIT_DEPOSIT_STATUS_TRANSFERRED = "transferred"
 
+const CREDIT_WITHDRAW_STATUS_CREATED = "created"
 const CREDIT_WITHDRAW_STATUS_PROCESSING = "processing"
 const CREDIT_WITHDRAW_STATUS_FAILED = "failed"
 const CREDIT_WITHDRAW_STATUS_PROCESSED = "processed"
@@ -57,6 +58,13 @@ func (b Credit) GetAdd() map[string]interface{} {
 func (b Credit) GetUpdate() map[string]interface{} {
 	return map[string]interface{}{
 		"status":     b.Status,
+		"updated_at": firestore.ServerTimestamp,
+	}
+}
+
+func (b Credit) GetUpdateRevenue() map[string]interface{} {
+	return map[string]interface{}{
+		"revenue":    b.Revenue,
 		"updated_at": firestore.ServerTimestamp,
 	}
 }
@@ -161,22 +169,24 @@ func (b CreditDeposit) GetUpdate() map[string]interface{} {
 }
 
 type CreditWithdraw struct {
-	Id          string    `json:"id" firestore:"id"`
-	UID         string    `json:"-" firestore:"uid"`
-	Currency    string    `json:"currency" firestore:"currency"`
-	ItemRef     string    `json:"-" firestore:"item_ref"`
-	Status      string    `json:"status" firestore:"status"`
-	Amount      string    `json:"amount" firestore:"amount"`
-	Information string    `json:"information" firestore:"information"`
-	CreatedAt   time.Time `json:"created_at" firestore:"created_at"`
+	Id          string            `json:"id" firestore:"id"`
+	UID         string            `json:"-" firestore:"uid"`
+	Status      string            `json:"status" firestore:"status"`
+	Amount      string            `json:"amount" firestore:"amount"`
+	Information map[string]string `json:"information" firestore:"information"`
+	CreatedAt   time.Time         `json:"created_at" firestore:"created_at"`
+}
+
+func (b CreditWithdraw) GetPaypalInformation(email string) map[string]string {
+	return map[string]string{
+		"email": email,
+	}
 }
 
 func (b CreditWithdraw) GetAdd() map[string]interface{} {
 	return map[string]interface{}{
 		"id":          b.Id,
 		"uid":         b.UID,
-		"currency":    b.Currency,
-		"item_ref":    b.ItemRef,
 		"status":      b.Status,
 		"amount":      b.Amount,
 		"information": b.Information,

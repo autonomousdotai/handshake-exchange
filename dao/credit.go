@@ -415,7 +415,6 @@ func (dao CreditDao) FinishCreditTransaction(pool *bean.CreditPool, poolHistory 
 	err = dbClient.RunTransaction(context.Background(), func(ctx context.Context, tx *firestore.Transaction) error {
 		var txErr error
 
-		fmt.Println("Step 1")
 		poolDoc, txErr := tx.Get(poolDocRef)
 		if err != nil {
 			return txErr
@@ -432,7 +431,6 @@ func (dao CreditDao) FinishCreditTransaction(pool *bean.CreditPool, poolHistory 
 		}
 		poolHistory.New = pool.Balance
 
-		fmt.Println("Step 2")
 		poolCapturedBalance, txErr := common.ConvertToDecimal(poolDoc, "captured_balance")
 		if txErr != nil {
 			return txErr
@@ -443,7 +441,19 @@ func (dao CreditDao) FinishCreditTransaction(pool *bean.CreditPool, poolHistory 
 			return errors.New("invalid_balance")
 		}
 
-		fmt.Println("Step 3")
+		transDoc, txErr := tx.Get(transDocRef)
+		if err != nil {
+			return txErr
+		}
+		transStatus, txErr := transDoc.DataAt("status")
+		if err != nil {
+			return txErr
+		}
+		if transStatus.(string) == bean.CREDIT_TRANSACTION_STATUS_CREATE {
+			trans.Status = bean.CREDIT_TRANSACTION_STATUS_SUCCESS
+		} else {
+			return errors.New("invalid_status")
+		}
 		for itemIndex, itemDocRef := range itemDocRefs {
 			itemDoc, txErr := tx.Get(itemDocRef)
 			if err != nil {
@@ -484,7 +494,6 @@ func (dao CreditDao) FinishCreditTransaction(pool *bean.CreditPool, poolHistory 
 			itemHistories[itemIndex].New = items[itemIndex].Balance
 		}
 
-		fmt.Println("Step 4")
 		for orderIndex, orderDocRef := range poolOrderDocRefs {
 			orderDoc, txErr := tx.Get(orderDocRef)
 			if err != nil {
@@ -512,7 +521,6 @@ func (dao CreditDao) FinishCreditTransaction(pool *bean.CreditPool, poolHistory 
 			}
 		}
 
-		fmt.Println("Step 5")
 		txErr = tx.Set(poolDocRef, pool.GetUpdateAllBalance(), firestore.MergeAll)
 		if txErr != nil {
 			return txErr
@@ -522,38 +530,31 @@ func (dao CreditDao) FinishCreditTransaction(pool *bean.CreditPool, poolHistory 
 			return txErr
 		}
 
-		fmt.Println("Step 6")
 		for itemIndex, itemDocRef := range itemDocRefs {
-			fmt.Println("Step 6.1")
 			txErr = tx.Set(creditDocRefs[itemIndex], map[string]string{
 				"revenue": items[itemIndex].CreditRevenue,
 			}, firestore.MergeAll)
 			if txErr != nil {
 				return txErr
 			}
-			fmt.Println("Step 6.2")
 			txErr = tx.Set(itemDocRef, items[itemIndex].GetUpdateBalance(), firestore.MergeAll)
 			if txErr != nil {
 				return txErr
 			}
-			fmt.Println("Step 6.3")
 			txErr = tx.Set(itemHistoryDocRefs[itemIndex], itemHistories[itemIndex].GetAdd())
 			if txErr != nil {
 				return txErr
 			}
-			fmt.Println("Step 6.4")
 			txErr = tx.Set(transUserDocRefs[itemIndex], transList[itemIndex].GetUpdate(), firestore.MergeAll)
 			if txErr != nil {
 				return txErr
 			}
 		}
-		fmt.Println("Step 7")
 		txErr = tx.Set(transDocRef, trans.GetUpdate(), firestore.MergeAll)
 		if txErr != nil {
 			return txErr
 		}
 
-		fmt.Println("Step 8")
 		for orderIndex, orderDocRef := range poolOrderDocRefs {
 			if common.StringToDecimal(poolOrders[orderIndex].Balance).Equal(common.Zero) {
 				txErr = tx.Delete(orderDocRef)
@@ -675,6 +676,51 @@ func (dao CreditDao) UpdateCreditOnChainActionTracking(tracking *bean.CreditOnCh
 	batch.Delete(docTrackingRef)
 	batch.Set(docRef, tracking.GetUpdate(), firestore.MergeAll)
 	_, err = batch.Commit(context.Background())
+
+	return err
+}
+
+func (dao CreditDao) AddCreditWithdraw(credit *bean.Credit, creditWithdraw *bean.CreditWithdraw) (err error) {
+	dbClient := firebase_service.FirestoreClient
+
+	creditDocRef := dbClient.Doc(GetCreditUserPath(credit.UID))
+	creditWithdrawDocRef := dbClient.Collection(GetCreditWithdrawPath()).NewDoc()
+	creditWithdraw.Id = creditWithdrawDocRef.ID
+	creditWithdrawUserDocRef := dbClient.Doc(GetCreditWithdrawItemUserPath(credit.UID, creditWithdraw.Id))
+
+	amount := common.StringToDecimal(creditWithdraw.Amount)
+	err = dbClient.RunTransaction(context.Background(), func(ctx context.Context, tx *firestore.Transaction) error {
+		var txErr error
+
+		creditDoc, txErr := tx.Get(creditDocRef)
+		if err != nil {
+			return txErr
+		}
+		creditRevenue, txErr := common.ConvertToDecimal(creditDoc, "revenue")
+		if txErr != nil {
+			return txErr
+		}
+		creditRevenue = creditRevenue.Sub(amount)
+		if creditRevenue.LessThan(common.Zero) {
+			return errors.New("invalid amount")
+		}
+		credit.Revenue = creditRevenue.String()
+
+		txErr = tx.Set(creditDocRef, credit.GetUpdateRevenue(), firestore.MergeAll)
+		if txErr != nil {
+			return txErr
+		}
+		txErr = tx.Set(creditWithdrawDocRef, creditWithdraw.GetAdd(), firestore.MergeAll)
+		if txErr != nil {
+			return txErr
+		}
+		txErr = tx.Set(creditWithdrawUserDocRef, creditWithdraw.GetAdd(), firestore.MergeAll)
+		if txErr != nil {
+			return txErr
+		}
+
+		return txErr
+	})
 
 	return err
 }

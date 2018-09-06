@@ -496,6 +496,36 @@ func (s CreditService) FinishCreditTransaction(currency string, id string, offer
 	return
 }
 
+func (s CreditService) AddCreditWithdraw(userId string, body bean.CreditWithdraw) (withdraw bean.CreditWithdraw, ce SimpleContextError) {
+	creditTO := s.dao.GetCredit(userId)
+
+	if creditTO.Error != nil {
+		ce.FeedDaoTransfer(api_error.GetDataFailed, creditTO)
+		return
+	}
+	credit := creditTO.Object.(bean.Credit)
+	body.UID = userId
+
+	revenue := common.StringToDecimal(credit.Revenue)
+	withdrawAmount := common.StringToDecimal(body.Amount)
+	if withdrawAmount.GreaterThan(revenue) {
+		ce.SetStatusKey(api_error.InvalidAmount)
+		return
+	}
+
+	err := s.dao.AddCreditWithdraw(&credit, &body)
+	if err != nil {
+		if strings.Contains(err.Error(), "invalid amount") {
+			ce.SetStatusKey(api_error.InvalidAmount)
+			return
+		}
+		ce.SetError(api_error.UpdateDataFailed, err)
+	}
+
+	withdraw = body
+	return
+}
+
 func (s CreditService) SetupCreditPool() (ce SimpleContextError) {
 	for _, currency := range []string{bean.BTC.Code, bean.ETH.Code, bean.BCH.Code} {
 		level := 0

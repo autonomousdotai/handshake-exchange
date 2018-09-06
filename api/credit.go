@@ -99,7 +99,18 @@ func (api CreditApi) Deactivate(context *gin.Context) {
 }
 
 func (api CreditApi) Withdraw(context *gin.Context) {
-	bean.SuccessResponse(context, bean.CreditWithdraw{})
+	userId := common.GetUserId(context)
+
+	var body bean.CreditWithdraw
+	if common.ValidateBody(context, &body) != nil {
+		return
+	}
+	withdraw, ce := service.CreditServiceInst.AddCreditWithdraw(userId, body)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, withdraw)
 }
 
 func (api CreditApi) ListWithdraw(context *gin.Context) {
