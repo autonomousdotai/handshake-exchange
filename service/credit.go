@@ -418,7 +418,7 @@ func (s CreditService) ListPendingCreditTransaction(currency string) (trans []be
 	return
 }
 
-func (s CreditService) FinishCreditTransaction(currency string, id string, offerRef string, revenueStr string) (ce SimpleContextError) {
+func (s CreditService) FinishCreditTransaction(currency string, id string, offerRef string, revenue decimal.Decimal) (ce SimpleContextError) {
 	transTO := s.dao.GetCreditTransaction(currency, id)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, transTO) {
 		return
@@ -427,9 +427,8 @@ func (s CreditService) FinishCreditTransaction(currency string, id string, offer
 	trans.OfferRef = offerRef
 	trans.Status = bean.CREDIT_TRANSACTION_STATUS_SUCCESS
 	trans.SubStatus = bean.CREDIT_TRANSACTION_SUB_STATUS_REVENUE_PROCESSED
-	trans.Revenue = revenueStr
+	trans.Revenue = revenue.String()
 
-	revenue := common.StringToDecimal(revenueStr)
 	amount := common.StringToDecimal(trans.Amount)
 
 	poolTO := s.dao.GetCreditPool(trans.Currency, int(common.StringToDecimal(trans.Percentage).IntPart()))

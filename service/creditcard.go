@@ -385,10 +385,10 @@ func (s CreditCardService) FinishInstantOffers() (finishedInstantOffers []bean.I
 				offer := s.finishInstantOfferCredit(&pendingOffer, ccMode, nil, &ce)
 				if ce.CheckError() != nil {
 					fmt.Println(ce.CheckError())
-					//s.cancelInstantOffer(&pendingOffer, &ce)
-					//
-					//isDone = true
-					//finishedInstantOffers = append(finishedInstantOffers, offer)
+					s.cancelInstantOffer(&pendingOffer, &ce)
+
+					isDone = true
+					finishedInstantOffers = append(finishedInstantOffers, offer)
 				} else {
 					isDone = true
 					finishedInstantOffers = append(finishedInstantOffers, offer)
@@ -406,12 +406,12 @@ func (s CreditCardService) FinishInstantOffers() (finishedInstantOffers []bean.I
 
 			if !isDone {
 				// Over duration
-				//if time.Now().UTC().Sub(pendingOffer.CreatedAt).Seconds() > float64(pendingOffer.Duration) {
-				//	s.cancelInstantOffer(&pendingOffer, &ce)
-				//	if ce.CheckError() != nil {
-				//		// return
-				//	}
-				//}
+				if time.Now().UTC().Sub(pendingOffer.CreatedAt).Seconds() > float64(pendingOffer.Duration) {
+					s.cancelInstantOffer(&pendingOffer, &ce)
+					if ce.CheckError() != nil {
+						// return
+					}
+				}
 			}
 		}
 	}
@@ -526,7 +526,8 @@ func (s CreditCardService) finishInstantOfferCredit(pendingOffer *bean.PendingIn
 	offer.Status = bean.INSTANT_OFFER_STATUS_SUCCESS
 
 	offerRef := dao.GetInstantOfferItemPath(pendingOffer.UID, pendingOffer.InstantOffer)
-	ccCE := CreditServiceInst.FinishCreditTransaction(offer.Currency, offer.ProviderData.(string), offerRef, offer.ExternalFee)
+	revenue := common.StringToDecimal(offer.RawFiatAmount).Add(common.StringToDecimal(offer.ExternalFee))
+	ccCE := CreditServiceInst.FinishCreditTransaction(offer.Currency, offer.ProviderData.(string), offerRef, revenue)
 	if ccCE.HasError() {
 		if ce.SetError(api_error.ExternalApiFailed, ccCE.CheckError()) {
 			return
@@ -569,7 +570,7 @@ func (s CreditCardService) finishInstantOfferCredit(pendingOffer *bean.PendingIn
 		if offer.Currency == bean.ETH.Code {
 			client := exchangecreditatm_service.ExchangeCreditAtmClient{}
 			amount := common.StringToDecimal(offer.Amount)
-			txHash, onChainErr := client.ReleasePartialFund(offer.Id, 0, amount, offer.Address)
+			txHash, onChainErr := client.ReleasePartialFund(offer.Id, 1, amount, offer.Address)
 			if onChainErr != nil {
 				fmt.Println(onChainErr)
 				offer.ProviderWithdrawData = onChainErr.Error()

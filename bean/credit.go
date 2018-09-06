@@ -370,7 +370,7 @@ func (b CreditPoolOrder) GetUpdateCapture() map[string]interface{} {
 func (b CreditPoolOrder) GetUpdateAllBalance() map[string]interface{} {
 	return map[string]interface{}{
 		"captured_balance": b.CapturedBalance,
-		"balance":          b.CapturedBalance,
+		"balance":          b.Balance,
 		"updated_at":       firestore.ServerTimestamp,
 	}
 }

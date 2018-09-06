@@ -141,7 +141,7 @@ func (offer InstantOffer) GetAddInstantOffer() map[string]interface{} {
 		"fee":                     offer.Fee,
 		"external_fee":            offer.ExternalFee,
 		"fee_percentage":          offer.FeePercentage,
-		"external_fee_percentage": offer.ExternalFee,
+		"external_fee_percentage": offer.ExternalFeePercentage,
 		"duration":                offer.Duration,
 		"payment_method":          offer.PaymentMethod,
 		"payment_method_ref":      offer.PaymentMethodRef,
