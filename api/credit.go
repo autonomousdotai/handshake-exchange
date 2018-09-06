@@ -95,7 +95,15 @@ func (api CreditApi) Tracking(context *gin.Context) {
 }
 
 func (api CreditApi) Deactivate(context *gin.Context) {
-	bean.SuccessResponse(context, bean.Credit{})
+	userId := common.GetUserId(context)
+	currency := context.DefaultQuery("currency", "")
+
+	credit, ce := service.CreditServiceInst.DeactivateCredit(userId, currency)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, credit)
 }
 
 func (api CreditApi) Withdraw(context *gin.Context) {

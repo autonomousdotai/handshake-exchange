@@ -75,6 +75,7 @@ type CreditItem struct {
 	Currency       string      `json:"currency" firestore:"currency"`
 	Status         string      `json:"status" firestore:"status"`
 	SubStatus      string      `json:"sub_status" firestore:"sub_status"`
+	LockedSale     bool        `json:"locked_sale" firestore:"locked_sale"`
 	LastActionData interface{} `json:"-" firestore:"last_action_data"`
 	Balance        string      `json:"balance" firestore:"balance"`
 	Sold           string      `json:"sold" firestore:"sold"`
@@ -93,12 +94,22 @@ func (b CreditItem) GetAdd() map[string]interface{} {
 		"currency":     b.Currency,
 		"status":       b.Status,
 		"sub_status":   b.SubStatus,
+		"locked_sale":  false,
 		"balance":      common.Zero.String(),
 		"sold":         common.Zero.String(),
 		"revenue":      common.Zero.String(),
 		"percentage":   b.Percentage,
 		"user_address": b.UserAddress,
 		"created_at":   firestore.ServerTimestamp,
+	}
+}
+
+func (b CreditItem) GetUpdateReactivate() map[string]interface{} {
+	return map[string]interface{}{
+		"status":       b.Status,
+		"percentage":   b.Percentage,
+		"user_address": b.UserAddress,
+		"updated_at":   firestore.ServerTimestamp,
 	}
 }
 
@@ -120,12 +131,19 @@ func (b CreditItem) GetUpdate() map[string]interface{} {
 	}
 }
 
+func (b CreditItem) GetUpdateLockedSale() map[string]interface{} {
+	return map[string]interface{}{
+		"locked_sale": true,
+	}
+}
+
 func (b CreditItem) GetUpdateBalance() map[string]interface{} {
 	return map[string]interface{}{
-		"balance":    b.Balance,
-		"sold":       b.Sold,
-		"revenue":    b.Revenue,
-		"updated_at": firestore.ServerTimestamp,
+		"balance":     b.Balance,
+		"sold":        b.Sold,
+		"revenue":     b.Revenue,
+		"locked_sale": b.LockedSale,
+		"updated_at":  firestore.ServerTimestamp,
 	}
 }
 

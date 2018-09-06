@@ -9,7 +9,9 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/integration/chainso_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/crypto_service"
+	"github.com/ninjadotorg/handshake-exchange/integration/exchangecreditatm_service"
 	"github.com/shopspring/decimal"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -71,8 +73,71 @@ func (s CreditService) AddCredit(userId string, body bean.Credit) (credit bean.C
 	return
 }
 
+func (s CreditService) DeactivateCredit(userId string, currency string) (credit bean.Credit, ce SimpleContextError) {
+	creditTO := s.dao.GetCredit(userId)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, creditTO) {
+		return
+	}
+	credit = creditTO.Object.(bean.Credit)
+
+	creditItemTO := s.dao.GetCreditItem(userId, currency)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, creditItemTO) {
+		return
+	}
+	creditItem := creditItemTO.Object.(bean.CreditItem)
+
+	percentage, _ := strconv.Atoi(creditItem.Percentage)
+	poolTO := s.dao.GetCreditPool(userId, percentage)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, poolTO) {
+		return
+	}
+	pool := poolTO.Object.(bean.CreditPool)
+
+	if creditItem.Status == bean.CREDIT_ITEM_STATUS_ACTIVE && creditItem.SubStatus != bean.CREDIT_ITEM_SUB_STATUS_TRANSFERRING && creditItem.LockedSale == false {
+		creditItem.Status = bean.CREDIT_ITEM_STATUS_INACTIVE
+
+		itemHistory := bean.CreditBalanceHistory{}
+		itemHistory.ModifyType = bean.CREDIT_POOL_MODIFY_TYPE_CLOSE
+
+		poolHistory := bean.CreditPoolBalanceHistory{
+			ModifyType: bean.CREDIT_POOL_MODIFY_TYPE_CLOSE,
+		}
+
+		poolOrders := make([]bean.CreditPoolOrder, 0)
+		poolOrdersTO := s.dao.ListCreditPoolOrderUser(creditItem.Currency, userId)
+		if ce.FeedDaoTransfer(api_error.GetDataFailed, poolOrdersTO) {
+			return
+		}
+		for _, poolOrderItem := range poolOrdersTO.Objects {
+			poolOrders = append(poolOrders, poolOrderItem.(bean.CreditPoolOrder))
+		}
+		err := s.dao.RemoveCreditItem(&creditItem, &itemHistory, &pool, poolOrders, &poolHistory)
+		if err != nil {
+			ce.SetStatusKey(api_error.UpdateDataFailed)
+		}
+		client := exchangecreditatm_service.ExchangeCreditAtmClient{}
+		amount := common.StringToDecimal(itemHistory.Change)
+
+		txHash, onChainErr := client.ReleasePartialFund(userId, 2, amount, creditItem.UserAddress)
+		if onChainErr != nil {
+			fmt.Println(onChainErr)
+		} else {
+		}
+		fmt.Println(txHash)
+	} else {
+		ce.SetStatusKey(api_error.CreditItemStatusInvalid)
+	}
+
+	return
+}
+
 func (s CreditService) AddDeposit(userId string, body bean.CreditDepositInput) (deposit bean.CreditDeposit, ce SimpleContextError) {
 	var err error
+
+	creditTO := s.dao.GetCredit(userId)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, creditTO) {
+		return
+	}
 
 	// Minimum amount
 	amount, _ := decimal.NewFromString(body.Amount)
@@ -117,12 +182,26 @@ func (s CreditService) AddDeposit(userId string, body bean.CreditDepositInput) (
 			}
 		} else {
 			creditItem = creditItemTO.Object.(bean.CreditItem)
-			if creditItem.Percentage != body.Percentage {
-				ce.SetStatusKey(api_error.InvalidRequestBody)
-				return
+			if creditItem.Status == bean.CREDIT_ITEM_STATUS_INACTIVE {
+				//Reactivate
+				creditItem.Status = bean.CREDIT_ITEM_STATUS_ACTIVE
+				creditItem.Percentage = body.Percentage
+				creditItem.UserAddress = body.UserAddress
+
+				err = s.dao.UpdateCreditItem(&creditItem)
+				if err != nil {
+					ce.SetError(api_error.AddDataFailed, err)
+					return
+				}
+			} else {
+				if creditItem.Percentage != body.Percentage {
+					ce.SetStatusKey(api_error.InvalidRequestBody)
+					return
+				}
 			}
+
 			if creditItem.Status == bean.CREDIT_ITEM_STATUS_CREATE || creditItem.SubStatus == bean.CREDIT_ITEM_SUB_STATUS_TRANSFERRING {
-				ce.SetStatusKey(api_error.OfferStatusInvalid)
+				ce.SetStatusKey(api_error.CreditItemStatusInvalid)
 				return
 			}
 			creditItem.UserAddress = body.UserAddress
@@ -137,7 +216,7 @@ func (s CreditService) AddDeposit(userId string, body bean.CreditDepositInput) (
 		Amount:   body.Amount,
 	}
 
-	if body.Currency != "" {
+	if body.Currency != bean.ETH.Code {
 		resp, errCoinbase := coinbase_service.GenerateAddress(body.Currency)
 		if errCoinbase != nil {
 			ce.SetError(api_error.ExternalApiFailed, errCoinbase)
@@ -427,7 +506,7 @@ func (s CreditService) FinishCreditTransaction(currency string, id string, offer
 	trans.OfferRef = offerRef
 	trans.Status = bean.CREDIT_TRANSACTION_STATUS_SUCCESS
 	trans.SubStatus = bean.CREDIT_TRANSACTION_SUB_STATUS_REVENUE_PROCESSED
-	trans.Revenue = revenue.String()
+	trans.Revenue = revenue.RoundBank(2).String()
 
 	amount := common.StringToDecimal(trans.Amount)
 
@@ -505,6 +584,7 @@ func (s CreditService) AddCreditWithdraw(userId string, body bean.CreditWithdraw
 	}
 	credit := creditTO.Object.(bean.Credit)
 	body.UID = userId
+	body.Status = bean.CREDIT_WITHDRAW_STATUS_CREATED
 
 	revenue := common.StringToDecimal(credit.Revenue)
 	withdrawAmount := common.StringToDecimal(body.Amount)

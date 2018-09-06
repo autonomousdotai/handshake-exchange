@@ -1,6 +1,7 @@
 package exchangecreditatm_service
 
 import (
+	"fmt"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ninjadotorg/handshake-exchange/abi"
@@ -55,6 +56,7 @@ func (c *ExchangeCreditAtmClient) ReleasePartialFund(offerId string, hid int64, 
 	offChain := [32]byte{}
 	copy(offChain[:], []byte(offerId))
 
+	fmt.Println(fmt.Sprintf("%s %s %s %s", hid, address, amount, offerId))
 	toAddress := common.HexToAddress(address)
 	sendAmount := big.NewInt(amount.Mul(WeiDecimal).IntPart())
 

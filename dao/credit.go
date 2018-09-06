@@ -69,6 +69,15 @@ func (dao CreditDao) UpdateCreditItem(item *bean.CreditItem) error {
 	return err
 }
 
+func (dao CreditDao) UpdateCreditItemReactivate(item *bean.CreditItem) error {
+	dbClient := firebase_service.FirestoreClient
+
+	docRef := dbClient.Doc(GetCreditItemItemPath(item.UID, item.Currency))
+	_, err := docRef.Set(context.Background(), item.GetUpdateReactivate(), firestore.MergeAll)
+
+	return err
+}
+
 func (dao CreditDao) GetCreditDeposit(currency string, depositId string) (t TransferObject) {
 	t = dao.GetCreditDepositByPath(GetCreditDepositItemPath(currency, depositId))
 	return
@@ -106,7 +115,7 @@ func (dao CreditDao) FinishDepositCreditItem(item *bean.CreditItem, deposit *bea
 
 	poolDocRef := dbClient.Doc(GetCreditPoolItemPath(deposit.Currency, pool.Level))
 	poolOrderDocRef := dbClient.Doc(GetCreditPoolItemOrderItemPath(deposit.Currency, pool.Level, poolOrder.Id))
-	poolOrderUserDocRef := dbClient.Doc(GetCreditPoolItemOrderItemUserPath(deposit.Currency, poolOrder.Id))
+	poolOrderUserDocRef := dbClient.Doc(GetCreditPoolItemOrderItemUserPath(deposit.Currency, poolOrder.UID, poolOrder.Id))
 
 	balanceHistoryDocRef := dbClient.Collection(GetCreditBalanceHistoryPath(deposit.UID, deposit.Currency)).NewDoc()
 	itemHistory.Id = balanceHistoryDocRef.ID
@@ -210,6 +219,108 @@ func (dao CreditDao) FinishDepositCreditItem(item *bean.CreditItem, deposit *bea
 		// Update tracking
 		tx.Delete(docTrackingRef)
 		tx.Set(docLogRef, tracking.GetUpdate(), firestore.MergeAll)
+
+		return txErr
+	})
+
+	if err != nil {
+		dao.SetCreditPoolCache(*pool)
+	}
+
+	return err
+}
+
+func (dao CreditDao) RemoveCreditItem(item *bean.CreditItem, itemHistory *bean.CreditBalanceHistory,
+	pool *bean.CreditPool, poolOrders []bean.CreditPoolOrder, poolHistory *bean.CreditPoolBalanceHistory) (err error) {
+
+	dbClient := firebase_service.FirestoreClient
+	itemDocRef := dbClient.Doc(GetCreditItemItemPath(item.UID, item.Currency))
+
+	poolDocRef := dbClient.Doc(GetCreditPoolItemPath(item.Currency, pool.Level))
+
+	balanceHistoryDocRef := dbClient.Collection(GetCreditBalanceHistoryPath(item.UID, item.Currency)).NewDoc()
+	itemHistory.Id = balanceHistoryDocRef.ID
+	poolBalanceHistoryDocRef := dbClient.Collection(GetCreditPoolBalanceHistoryPath(item.Currency, pool.Level)).NewDoc()
+	poolHistory.Id = poolBalanceHistoryDocRef.ID
+
+	poolOrderDocRefs := make([]*firestore.DocumentRef, 0)
+	poolOrderUserDocRefs := make([]*firestore.DocumentRef, 0)
+
+	for _, order := range poolOrders {
+		poolOrderDocRef := dbClient.Doc(GetCreditPoolItemOrderItemPath(item.Currency, pool.Level, order.Id))
+		poolOrderUserDocRef := dbClient.Doc(GetCreditPoolItemOrderItemUserPath(item.Currency, order.UID, order.Id))
+
+		poolOrderDocRefs = append(poolOrderDocRefs, poolOrderDocRef)
+		poolOrderUserDocRefs = append(poolOrderUserDocRefs, poolOrderUserDocRef)
+	}
+
+	err = dbClient.RunTransaction(context.Background(), func(ctx context.Context, tx *firestore.Transaction) error {
+		var txErr error
+
+		zeroStr := common.Zero.String()
+
+		itemDoc, txErr := tx.Get(itemDocRef)
+		if txErr != nil {
+			return txErr
+		}
+		itemBalance, txErr := common.ConvertToDecimal(itemDoc, "balance")
+		if txErr != nil {
+			return txErr
+		}
+		itemHistory.Old = itemBalance.String()
+		itemHistory.Change = itemBalance.String()
+
+		poolDoc, txErr := tx.Get(poolDocRef)
+		if err != nil {
+			return txErr
+		}
+		poolBalance, txErr := common.ConvertToDecimal(poolDoc, "balance")
+		if txErr != nil {
+			return txErr
+		}
+		poolHistory.Old = poolBalance.String()
+		poolHistory.Change = itemBalance.String()
+
+		item.Balance = zeroStr
+		itemHistory.New = item.Balance
+
+		poolBalance = poolBalance.Add(itemBalance)
+		pool.Balance = poolBalance.String()
+		poolHistory.New = pool.Balance
+
+		// Update balance
+		txErr = tx.Set(itemDocRef, item.GetUpdate(), firestore.MergeAll)
+		if txErr != nil {
+			return txErr
+		}
+		txErr = tx.Set(poolDocRef, pool.GetUpdateBalance(), firestore.MergeAll)
+		if txErr != nil {
+			return txErr
+		}
+
+		// Remove all order of this user
+		for i, itemDocRef := range poolOrderUserDocRefs {
+			txErr = tx.Set(itemDocRef, map[string]interface{}{
+				"deleted": true,
+			}, firestore.MergeAll)
+			if txErr != nil {
+				return txErr
+			}
+			txErr = tx.Delete(poolOrderDocRefs[i])
+			if txErr != nil {
+				return txErr
+			}
+		}
+
+		// Insert history
+		txErr = tx.Set(balanceHistoryDocRef, itemHistory.GetAdd())
+		if txErr != nil {
+			return txErr
+		}
+		txErr = tx.Set(poolBalanceHistoryDocRef, poolHistory.GetAdd())
+		if txErr != nil {
+			return txErr
+		}
 
 		return txErr
 	})
@@ -404,7 +515,7 @@ func (dao CreditDao) FinishCreditTransaction(pool *bean.CreditPool, poolHistory 
 
 	for _, poolOrder := range poolOrders {
 		poolOrderDocRef := dbClient.Doc(GetCreditPoolItemOrderItemPath(pool.Currency, pool.Level, poolOrder.Id))
-		poolOrderUserDocRef := dbClient.Doc(GetCreditPoolItemOrderItemUserPath(pool.Currency, poolOrder.Id))
+		poolOrderUserDocRef := dbClient.Doc(GetCreditPoolItemOrderItemUserPath(pool.Currency, poolOrder.UID, poolOrder.Id))
 
 		poolOrderDocRefs = append(poolOrderDocRefs, poolOrderDocRef)
 		poolOrderUserDocRefs = append(poolOrderUserDocRefs, poolOrderUserDocRef)
@@ -725,6 +836,11 @@ func (dao CreditDao) AddCreditWithdraw(credit *bean.Credit, creditWithdraw *bean
 	return err
 }
 
+func (dao CreditDao) ListCreditPoolOrderUser(currency string, userId string) (t TransferObject) {
+	ListObjects(GetCreditPoolItemOrderUserPath(currency, userId), &t, nil, snapshotToCreditItem)
+	return
+}
+
 func (dao CreditDao) SetCreditPoolCache(pool bean.CreditPool) {
 	b, _ := json.Marshal(&pool)
 	key := GetCreditPoolCacheKey(pool.Currency, pool.Level)
@@ -848,8 +964,12 @@ func GetCreditPoolItemOrderItemPath(currency string, level string, order string)
 	return fmt.Sprintf("credit_pools/%s/items/%s/orders/%s", currency, level, order)
 }
 
-func GetCreditPoolItemOrderItemUserPath(currency string, order string) string {
-	return fmt.Sprintf("credit_pool_orders/%s/orders/%s", currency, order)
+func GetCreditPoolItemOrderUserPath(currency string, userId string) string {
+	return fmt.Sprintf("credit_pool_orders/%s/items/%s/orders", currency, userId)
+}
+
+func GetCreditPoolItemOrderItemUserPath(currency string, userId string, order string) string {
+	return fmt.Sprintf("credit_pool_orders/%s/items/%s/orders/%s", currency, userId, order)
 }
 
 func GetCreditPoolBalanceHistoryPath(currency string, level string) string {
