@@ -268,7 +268,7 @@ func (dao CreditDao) RemoveCreditItem(item *bean.CreditItem, itemHistory *bean.C
 			return txErr
 		}
 		itemHistory.Old = itemBalance.String()
-		itemHistory.Change = itemBalance.String()
+		itemHistory.Change = itemBalance.Neg().String()
 
 		poolDoc, txErr := tx.Get(poolDocRef)
 		if err != nil {
@@ -279,7 +279,7 @@ func (dao CreditDao) RemoveCreditItem(item *bean.CreditItem, itemHistory *bean.C
 			return txErr
 		}
 		poolHistory.Old = poolBalance.String()
-		poolHistory.Change = itemBalance.String()
+		poolHistory.Change = itemBalance.Neg().String()
 
 		item.Balance = zeroStr
 		itemHistory.New = item.Balance
@@ -355,7 +355,7 @@ func (dao CreditDao) GetCreditTransactionUser(userId string, currency string, id
 }
 
 func (dao CreditDao) AddCreditTransaction(pool *bean.CreditPool, trans *bean.CreditTransaction,
-	userTransList []bean.CreditTransaction, selectedOrders []bean.CreditPoolOrder) (err error) {
+	userTransList []*bean.CreditTransaction, selectedOrders []bean.CreditPoolOrder) (err error) {
 
 	dbClient := firebase_service.FirestoreClient
 
@@ -481,7 +481,7 @@ func (dao CreditDao) AddCreditTransaction(pool *bean.CreditPool, trans *bean.Cre
 
 func (dao CreditDao) FinishCreditTransaction(pool *bean.CreditPool, poolHistory bean.CreditPoolBalanceHistory,
 	items []bean.CreditItem, itemHistories []bean.CreditBalanceHistory, poolOrders []bean.CreditPoolOrder,
-	trans *bean.CreditTransaction, transList []bean.CreditTransaction) (err error) {
+	trans *bean.CreditTransaction, transList []*bean.CreditTransaction) (err error) {
 
 	dbClient := firebase_service.FirestoreClient
 
@@ -791,6 +791,11 @@ func (dao CreditDao) UpdateCreditOnChainActionTracking(tracking *bean.CreditOnCh
 	return err
 }
 
+func (dao CreditDao) GetCreditWithdraw(withdrawId string) (t TransferObject) {
+	GetObject(GetCreditWithdrawItemPath(withdrawId), &t, snapshotToCreditWithdraw)
+	return
+}
+
 func (dao CreditDao) AddCreditWithdraw(credit *bean.Credit, creditWithdraw *bean.CreditWithdraw) (err error) {
 	dbClient := firebase_service.FirestoreClient
 
@@ -862,6 +867,15 @@ func (dao CreditDao) GetCreditPoolCache(currency string, level string) TransferO
 func (dao CreditDao) GetCreditPoolOrderByPath(path string) (t TransferObject) {
 	GetObject(path, &t, snapshotToCreditPoolOrder)
 	return
+}
+
+func (dao CreditDao) UpdateNotificationCreditItem(creditItem bean.CreditItem) error {
+	dbClient := firebase_service.NotificationFirebaseClient
+
+	ref := dbClient.NewRef(GetNotificationCreditItemPath(creditItem.UID, creditItem.Currency))
+	err := ref.Set(context.Background(), creditItem.GetNotificationUpdate())
+
+	return err
 }
 
 func GetCreditUserPath(userId string) string {
@@ -998,6 +1012,10 @@ func GetCreditOnChainActionLogItemPath(currency string, id string) string {
 
 func GetCreditPoolCacheKey(currency string, level string) string {
 	return fmt.Sprintf("credit_pools.%s.%s", currency, level)
+}
+
+func GetNotificationCreditItemPath(userId string, currency string) string {
+	return fmt.Sprintf("users/%s/credits/credit_item_%s", userId, currency)
 }
 
 func snapshotToCredit(snapshot *firestore.DocumentSnapshot) interface{} {

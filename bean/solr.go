@@ -511,3 +511,147 @@ func NewSolrFromOfferStoreShake(offer OfferStoreShake, offerStore OfferStore) (s
 
 	return
 }
+
+type SolrCreditTransactionExtraData struct {
+	Id         string `json:"id"`
+	FeedType   string `json:"feed_type"`
+	Type       string `json:"type"`
+	Amount     string `json:"amount"`
+	Currency   string `json:"currency"`
+	Revenue    string `json:"revenue"`
+	Percentage string `json:"percentage"`
+	Status     string `json:"status"`
+	SubStatus  string `json:"sub_status"`
+}
+
+func NewSolrFromCreditTransaction(creditTx CreditTransaction, chainId int64) (solr SolrOfferObject) {
+	solr.Id = fmt.Sprintf("exchange_credit_transaction_%s", creditTx.Id)
+	solr.Type = 2
+	solr.State = 0
+	solr.IsPrivate = 1
+	solr.Status = 0
+	solr.Hid = 0
+	solr.ChainId = chainId
+	userId, _ := strconv.Atoi(creditTx.UID)
+	solr.InitUserId = userId
+	solr.ShakeUserIds = make([]int, 0)
+	solr.TextSearch = make([]string, 0)
+	solr.InitAt = creditTx.CreatedAt.Unix()
+	solr.LastUpdateAt = time.Now().UTC().Unix()
+
+	solr.OfferFeedType = "credit_transaction"
+	solr.OfferType = "buy"
+
+	extraData := SolrCreditTransactionExtraData{
+		Id:         creditTx.Id,
+		FeedType:   "credit_transaction",
+		Type:       "buy",
+		Amount:     creditTx.Amount,
+		Currency:   creditTx.Currency,
+		Revenue:    creditTx.Revenue,
+		Percentage: creditTx.Percentage,
+		Status:     creditTx.Status,
+		SubStatus:  creditTx.SubStatus,
+	}
+	b, _ := json.Marshal(&extraData)
+	solr.ExtraData = string(b)
+
+	return
+}
+
+type SolrCreditDepositExtraData struct {
+	Id         string `json:"id"`
+	FeedType   string `json:"feed_type"`
+	Type       string `json:"type"`
+	Amount     string `json:"amount"`
+	Currency   string `json:"currency"`
+	Percentage string `json:"percentage"`
+	Status     string `json:"status"`
+}
+
+var creditDepositStatusMap = map[string]int{
+	CREDIT_DEPOSIT_STATUS_CREATED:      0,
+	CREDIT_DEPOSIT_STATUS_TRANSFERRING: 1,
+	CREDIT_DEPOSIT_STATUS_TRANSFERRED:  2,
+}
+
+func NewSolrFromCreditDeposit(creditDeposit CreditDeposit, chainId int64) (solr SolrOfferObject) {
+	solr.Id = fmt.Sprintf("exchange_credit_deposit_%s", creditDeposit.Id)
+	solr.Type = 2
+	solr.State = 0
+	solr.IsPrivate = 1
+	solr.Status = creditDepositStatusMap[creditDeposit.Status]
+	solr.Hid = 0
+	solr.ChainId = chainId
+	userId, _ := strconv.Atoi(creditDeposit.UID)
+	solr.InitUserId = userId
+	solr.ShakeUserIds = make([]int, 0)
+	solr.TextSearch = make([]string, 0)
+	solr.InitAt = creditDeposit.CreatedAt.Unix()
+	solr.LastUpdateAt = time.Now().UTC().Unix()
+
+	solr.OfferFeedType = "credit_deposit"
+	solr.OfferType = "buy"
+
+	extraData := SolrCreditDepositExtraData{
+		Id:         creditDeposit.Id,
+		FeedType:   "credit_deposit",
+		Type:       "buy",
+		Amount:     creditDeposit.Amount,
+		Currency:   creditDeposit.Currency,
+		Percentage: creditDeposit.Percentage,
+		Status:     creditDeposit.Status,
+	}
+	b, _ := json.Marshal(&extraData)
+	solr.ExtraData = string(b)
+
+	return
+}
+
+type SolrCreditWithdrawExtraData struct {
+	Id          string            `json:"id"`
+	FeedType    string            `json:"feed_type"`
+	Type        string            `json:"type"`
+	Amount      string            `json:"amount"`
+	Status      string            `json:"status"`
+	Information map[string]string `json:"information"`
+}
+
+var creditWithdrawStatusMap = map[string]int{
+	CREDIT_WITHDRAW_STATUS_CREATED:    0,
+	CREDIT_WITHDRAW_STATUS_PROCESSING: 1,
+	CREDIT_WITHDRAW_STATUS_PROCESSED:  2,
+	CREDIT_WITHDRAW_STATUS_FAILED:     3,
+}
+
+func NewSolrFromCreditWithdraw(creditWithdraw CreditWithdraw, chainId int64) (solr SolrOfferObject) {
+	solr.Id = fmt.Sprintf("exchange_credit_withdraw_%s", creditWithdraw.Id)
+	solr.Type = 2
+	solr.State = 0
+	solr.IsPrivate = 1
+	solr.Status = creditWithdrawStatusMap[creditWithdraw.Status]
+	solr.Hid = 0
+	solr.ChainId = chainId
+	userId, _ := strconv.Atoi(creditWithdraw.UID)
+	solr.InitUserId = userId
+	solr.ShakeUserIds = make([]int, 0)
+	solr.TextSearch = make([]string, 0)
+	solr.InitAt = creditWithdraw.CreatedAt.Unix()
+	solr.LastUpdateAt = time.Now().UTC().Unix()
+
+	solr.OfferFeedType = "credit_withdraw"
+	solr.OfferType = "buy"
+
+	extraData := SolrCreditWithdrawExtraData{
+		Id:          creditWithdraw.Id,
+		FeedType:    "credit_withdraw",
+		Type:        "buy",
+		Amount:      creditWithdraw.Amount,
+		Status:      creditWithdraw.Status,
+		Information: creditWithdraw.Information,
+	}
+	b, _ := json.Marshal(&extraData)
+	solr.ExtraData = string(b)
+
+	return
+}

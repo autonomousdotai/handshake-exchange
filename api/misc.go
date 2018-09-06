@@ -460,3 +460,38 @@ func (api MiscApi) SetupCreditPoolCache(context *gin.Context) {
 	}
 	bean.SuccessResponse(context, true)
 }
+
+func (api MiscApi) SyncCreditTransactionToSolr(context *gin.Context) {
+	id := context.Param("id")
+	currency := context.Param("currency")
+
+	obj, ce := service.CreditServiceInst.SyncCreditTransactionToSolr(currency, id)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, obj)
+}
+
+func (api MiscApi) SyncCreditDepositToSolr(context *gin.Context) {
+	id := context.Param("id")
+	currency := context.Param("currency")
+
+	obj, ce := service.CreditServiceInst.SyncCreditDepositToSolr(currency, id)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, obj)
+}
+
+func (api MiscApi) SyncCreditWithdrawToSolr(context *gin.Context) {
+	id := context.Param("id")
+
+	obj, ce := service.CreditServiceInst.SyncCreditWithdrawToSolr(id)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, obj)
+}

@@ -10,6 +10,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/crypto_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/exchangecreditatm_service"
+	"github.com/ninjadotorg/handshake-exchange/integration/solr_service"
 	"github.com/shopspring/decimal"
 	"strconv"
 	"strings"
@@ -114,6 +115,7 @@ func (s CreditService) DeactivateCredit(userId string, currency string) (credit 
 		err := s.dao.RemoveCreditItem(&creditItem, &itemHistory, &pool, poolOrders, &poolHistory)
 		if err != nil {
 			ce.SetStatusKey(api_error.UpdateDataFailed)
+			return
 		}
 		client := exchangecreditatm_service.ExchangeCreditAtmClient{}
 		amount := common.StringToDecimal(itemHistory.Change)
@@ -138,6 +140,7 @@ func (s CreditService) AddDeposit(userId string, body bean.CreditDepositInput) (
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, creditTO) {
 		return
 	}
+	credit := creditTO.Object.(bean.Credit)
 
 	// Minimum amount
 	amount, _ := decimal.NewFromString(body.Amount)
@@ -209,17 +212,19 @@ func (s CreditService) AddDeposit(userId string, body bean.CreditDepositInput) (
 	}
 
 	deposit = bean.CreditDeposit{
-		UID:      userId,
-		ItemRef:  dao.GetCreditItemItemPath(userId, body.Currency),
-		Status:   bean.CREDIT_DEPOSIT_STATUS_CREATED,
-		Currency: body.Currency,
-		Amount:   body.Amount,
+		UID:        userId,
+		ItemRef:    dao.GetCreditItemItemPath(userId, body.Currency),
+		Status:     bean.CREDIT_DEPOSIT_STATUS_CREATED,
+		Currency:   body.Currency,
+		Amount:     body.Amount,
+		Percentage: body.Percentage,
 	}
 
 	if body.Currency != bean.ETH.Code {
 		resp, errCoinbase := coinbase_service.GenerateAddress(body.Currency)
 		if errCoinbase != nil {
 			ce.SetError(api_error.ExternalApiFailed, errCoinbase)
+			return
 		}
 		deposit.SystemAddress = resp.Data.Address
 	}
@@ -230,10 +235,20 @@ func (s CreditService) AddDeposit(userId string, body bean.CreditDepositInput) (
 		return
 	}
 
+	chainId, _ := strconv.Atoi(credit.ChainId)
+	solr_service.UpdateObject(bean.NewSolrFromCreditDeposit(deposit, int64(chainId)))
+	s.dao.UpdateNotificationCreditItem(creditItem)
+
 	return
 }
 
 func (s CreditService) AddTracking(userId string, body bean.CreditOnChainActionTrackingInput) (tracking bean.CreditOnChainActionTracking, ce SimpleContextError) {
+	creditTO := s.dao.GetCredit(userId)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, creditTO) {
+		return
+	}
+	credit := creditTO.Object.(bean.Credit)
+
 	depositTO := s.dao.GetCreditDeposit(body.Currency, body.Deposit)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, depositTO) {
 		return
@@ -260,6 +275,10 @@ func (s CreditService) AddTracking(userId string, body bean.CreditOnChainActionT
 	deposit.Status = bean.CREDIT_DEPOSIT_STATUS_TRANSFERRING
 
 	s.dao.AddCreditOnChainActionTracking(&item, &deposit, &tracking)
+
+	chainId, _ := strconv.Atoi(credit.ChainId)
+	solr_service.UpdateObject(bean.NewSolrFromCreditDeposit(deposit, int64(chainId)))
+	s.dao.UpdateNotificationCreditItem(item)
 
 	return
 }
@@ -376,6 +395,12 @@ func (s CreditService) GetCreditPoolPercentageByCache(currency string, amount de
 }
 
 func (s CreditService) AddCreditTransaction(trans *bean.CreditTransaction) (ce SimpleContextError) {
+	creditTO := s.dao.GetCredit(trans.UID)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, creditTO) {
+		return
+	}
+	credit := creditTO.Object.(bean.Credit)
+
 	poolTO := s.dao.GetCreditPool(trans.Currency, int(common.StringToDecimal(trans.Percentage).IntPart()))
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, poolTO) {
 		return
@@ -393,7 +418,7 @@ func (s CreditService) AddCreditTransaction(trans *bean.CreditTransaction) (ce S
 	selectedOrders := make([]bean.CreditPoolOrder, 0)
 
 	userTransMap := map[string]*bean.CreditTransaction{}
-	userTransList := make([]bean.CreditTransaction, 0)
+	userTransList := make([]*bean.CreditTransaction, 0)
 
 	needBreak := false
 	for _, item := range orderTO.Objects {
@@ -464,7 +489,7 @@ func (s CreditService) AddCreditTransaction(trans *bean.CreditTransaction) (ce S
 	trans.Status = bean.CREDIT_TRANSACTION_STATUS_CREATE
 	for k, v := range userTransMap {
 		trans.UIDs = append(trans.UIDs, k)
-		userTransList = append(userTransList, *v)
+		userTransList = append(userTransList, v)
 	}
 
 	if len(selectedOrders) == 0 {
@@ -478,7 +503,14 @@ func (s CreditService) AddCreditTransaction(trans *bean.CreditTransaction) (ce S
 			return
 		} else {
 			ce.SetError(api_error.AddDataFailed, err)
+			return
 		}
+	}
+
+	chainId, _ := strconv.Atoi(credit.ChainId)
+	for _, userTrans := range userTransList {
+		userTrans.CreatedAt = time.Now().UTC()
+		solr_service.UpdateObject(bean.NewSolrFromCreditTransaction(*userTrans, int64(chainId)))
 	}
 
 	return
@@ -520,12 +552,13 @@ func (s CreditService) FinishCreditTransaction(currency string, id string, offer
 		ItemRef:    "",
 		ModifyRef:  dao.GetCreditTransactionItemPath(currency, id),
 		ModifyType: bean.CREDIT_POOL_MODIFY_TYPE_PURCHASE,
-		Change:     trans.Amount,
+		Change:     amount.Neg().String(),
 	}
 
 	items := make([]bean.CreditItem, 0)
 	itemHistories := make([]bean.CreditBalanceHistory, 0)
-	transList := make([]bean.CreditTransaction, 0)
+	transList := make([]*bean.CreditTransaction, 0)
+	var transUID string
 	for _, userId := range trans.UIDs {
 		itemTO := s.dao.GetCreditItem(userId, trans.Currency)
 		if ce.FeedDaoTransfer(api_error.GetDataFailed, itemTO) {
@@ -545,15 +578,17 @@ func (s CreditService) FinishCreditTransaction(currency string, id string, offer
 		userTrans.Status = bean.CREDIT_TRANSACTION_STATUS_SUCCESS
 		userTrans.SubStatus = bean.CREDIT_TRANSACTION_SUB_STATUS_REVENUE_PROCESSED
 		userTrans.Revenue = userAmount.Div(amount).Mul(revenue).RoundBank(2).String()
-		transList = append(transList, userTrans)
+		transList = append(transList, &userTrans)
 
 		itemHistory := bean.CreditBalanceHistory{
 			ItemRef:    dao.GetCreditItemItemPath(userId, trans.Currency),
 			ModifyRef:  dao.GetCreditTransactionItemUserPath(userId, currency, userTrans.Id),
 			ModifyType: bean.CREDIT_POOL_MODIFY_TYPE_PURCHASE,
-			Change:     userTrans.Amount,
+			Change:     userAmount.Neg().String(),
 		}
 		itemHistories = append(itemHistories, itemHistory)
+
+		transUID = trans.UID
 	}
 
 	orders := make([]bean.CreditPoolOrder, 0)
@@ -570,6 +605,18 @@ func (s CreditService) FinishCreditTransaction(currency string, id string, offer
 	err := s.dao.FinishCreditTransaction(&pool, poolHistory, items, itemHistories, orders, &trans, transList)
 	if err != nil {
 		ce.SetError(api_error.UpdateDataFailed, err)
+		return
+	}
+
+	creditTO := s.dao.GetCredit(transUID)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, creditTO) {
+		return
+	}
+	credit := creditTO.Object.(bean.Credit)
+
+	chainId, _ := strconv.Atoi(credit.ChainId)
+	for _, userTrans := range transList {
+		solr_service.UpdateObject(bean.NewSolrFromCreditTransaction(*userTrans, int64(chainId)))
 	}
 
 	return
@@ -600,9 +647,14 @@ func (s CreditService) AddCreditWithdraw(userId string, body bean.CreditWithdraw
 			return
 		}
 		ce.SetError(api_error.UpdateDataFailed, err)
+		return
 	}
 
 	withdraw = body
+
+	chainId, _ := strconv.Atoi(credit.ChainId)
+	solr_service.UpdateObject(bean.NewSolrFromCreditWithdraw(withdraw, int64(chainId)))
+
 	return
 }
 
@@ -641,8 +693,62 @@ func (s CreditService) SetupCreditPoolCache() (ce SimpleContextError) {
 	return
 }
 
+func (s CreditService) SyncCreditTransactionToSolr(currency string, id string) (trans bean.CreditTransaction, ce SimpleContextError) {
+	transTO := s.dao.GetCreditTransaction(currency, id)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, transTO) {
+		return
+	}
+	trans = transTO.Object.(bean.CreditTransaction)
+	for _, userId := range trans.UIDs {
+		creditTO := s.dao.GetCredit(userId)
+		credit := creditTO.Object.(bean.Credit)
+
+		transUserTO := s.dao.GetCreditTransactionUser(userId, currency, id)
+		transUser := transUserTO.Object.(bean.CreditTransaction)
+
+		chainId, _ := strconv.Atoi(credit.ChainId)
+		solr_service.UpdateObject(bean.NewSolrFromCreditTransaction(transUser, int64(chainId)))
+	}
+
+	return
+}
+
+func (s CreditService) SyncCreditDepositToSolr(currency string, id string) (deposit bean.CreditDeposit, ce SimpleContextError) {
+	depositTO := s.dao.GetCreditDeposit(currency, id)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, depositTO) {
+		return
+	}
+	deposit = depositTO.Object.(bean.CreditDeposit)
+	creditTO := s.dao.GetCredit(deposit.UID)
+	credit := creditTO.Object.(bean.Credit)
+	chainId, _ := strconv.Atoi(credit.ChainId)
+	solr_service.UpdateObject(bean.NewSolrFromCreditDeposit(deposit, int64(chainId)))
+
+	return
+}
+
+func (s CreditService) SyncCreditWithdrawToSolr(id string) (withdraw bean.CreditWithdraw, ce SimpleContextError) {
+	withdrawTO := s.dao.GetCreditWithdraw(id)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, withdrawTO) {
+		return
+	}
+	withdraw = withdrawTO.Object.(bean.CreditWithdraw)
+	creditTO := s.dao.GetCredit(withdraw.UID)
+	credit := creditTO.Object.(bean.Credit)
+	chainId, _ := strconv.Atoi(credit.ChainId)
+	solr_service.UpdateObject(bean.NewSolrFromCreditWithdraw(withdraw, int64(chainId)))
+
+	return
+}
+
 func (s CreditService) finishTrackingItem(tracking bean.CreditOnChainActionTracking) error {
 	var err error
+
+	creditTO := s.dao.GetCredit(tracking.UID)
+	if creditTO.HasError() {
+		return creditTO.Error
+	}
+	credit := creditTO.Object.(bean.Credit)
 
 	depositTO := s.dao.GetCreditDepositByPath(tracking.DepositRef)
 	if depositTO.HasError() {
@@ -687,6 +793,10 @@ func (s CreditService) finishTrackingItem(tracking bean.CreditOnChainActionTrack
 	}
 
 	s.dao.FinishDepositCreditItem(&item, &deposit, &itemHistory, &pool, &poolOrder, &poolHistory, &tracking)
+
+	chainId, _ := strconv.Atoi(credit.ChainId)
+	solr_service.UpdateObject(bean.NewSolrFromCreditDeposit(deposit, int64(chainId)))
+	s.dao.UpdateNotificationCreditItem(item)
 
 	return err
 }

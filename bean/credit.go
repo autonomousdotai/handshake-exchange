@@ -49,7 +49,7 @@ func (b Credit) GetAdd() map[string]interface{} {
 		"language":   b.Language,
 		"fcm":        b.FCM,
 		"chain_id":   b.ChainId,
-		"revenue":    common.Zero,
+		"revenue":    common.Zero.String(),
 		"status":     b.Status,
 		"created_at": firestore.ServerTimestamp,
 	}
@@ -147,6 +147,15 @@ func (b CreditItem) GetUpdateBalance() map[string]interface{} {
 	}
 }
 
+func (b CreditItem) GetNotificationUpdate() map[string]interface{} {
+	return map[string]interface{}{
+		"balance":    b.Balance,
+		"status":     b.Status,
+		"sub_status": b.SubStatus,
+		"type":       "credit_item",
+	}
+}
+
 type CreditDepositInput struct {
 	Amount      string `json:"amount"`
 	Currency    string `json:"currency"`
@@ -161,6 +170,7 @@ type CreditDeposit struct {
 	Status        string    `json:"status" firestore:"status"`
 	Currency      string    `json:"currency" firestore:"currency" validator:"oneof=BTC ETH BCH"`
 	Amount        string    `json:"amount" firestore:"amount"`
+	Percentage    string    `json:"percentage"`
 	SystemAddress string    `json:"system_address" firestore:"system_address"`
 	CreatedAt     time.Time `json:"created_at" firestore:"created_at"`
 }
@@ -173,6 +183,7 @@ func (b CreditDeposit) GetAdd() map[string]interface{} {
 		"item_ref":       b.ItemRef,
 		"status":         b.Status,
 		"amount":         b.Amount,
+		"percentage":     b.Percentage,
 		"system_address": b.SystemAddress,
 		"created_at":     firestore.ServerTimestamp,
 	}
