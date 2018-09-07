@@ -842,7 +842,7 @@ func (dao CreditDao) AddCreditWithdraw(credit *bean.Credit, creditWithdraw *bean
 }
 
 func (dao CreditDao) ListCreditPoolOrderUser(currency string, userId string) (t TransferObject) {
-	ListObjects(GetCreditPoolItemOrderUserPath(currency, userId), &t, nil, snapshotToCreditItem)
+	ListObjects(GetCreditPoolItemOrderUserPath(currency, userId), &t, nil, snapshotToCreditPoolOrder)
 	return
 }
 
