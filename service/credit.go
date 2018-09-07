@@ -179,7 +179,11 @@ func (s CreditService) AddDeposit(userId string, body bean.CreditDepositInput) (
 		ce.FeedDaoTransfer(api_error.GetDataFailed, creditItemTO)
 		return
 	} else {
-
+		pNum, _ := strconv.Atoi(body.Percentage)
+		if pNum < 0 || pNum > 100 {
+			ce.SetStatusKey(api_error.InvalidRequestBody)
+			return
+		}
 		if !creditItemTO.Found {
 			creditItem = bean.CreditItem{
 				UID:         userId,

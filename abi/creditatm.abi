@@ -45,32 +45,6 @@
       "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [
-        {
-          "name": "hid",
-          "type": "uint256"
-        },
-        {
-          "name": "customer",
-          "type": "address"
-        },
-        {
-          "name": "amount",
-          "type": "uint256"
-        },
-        {
-          "name": "offchain",
-          "type": "bytes32"
-        }
-      ],
-      "name": "releasePartialFund",
-      "outputs": [],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
       "constant": true,
       "inputs": [
         {
@@ -95,6 +69,28 @@
       ],
       "payable": false,
       "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "customer",
+          "type": "address"
+        },
+        {
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "name": "offchain",
+          "type": "bytes32"
+        }
+      ],
+      "name": "releasePartialFund",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
@@ -138,11 +134,6 @@
     {
       "anonymous": false,
       "inputs": [
-        {
-          "indexed": false,
-          "name": "hid",
-          "type": "uint256"
-        },
         {
           "indexed": false,
           "name": "customer",

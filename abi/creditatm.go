@@ -16,7 +16,7 @@ import (
 )
 
 // CreditATMABI is the input ABI used to generate the binding from.
-const CreditATMABI = "[{\"constant\":true,\"inputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"ex\",\"outputs\":[{\"name\":\"sender\",\"type\":\"address\"},{\"name\":\"percentage\",\"type\":\"uint256\"},{\"name\":\"escrow\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"offchain\",\"type\":\"bytes32\"},{\"name\":\"percentage\",\"type\":\"uint256\"}],\"name\":\"deposit\",\"outputs\":[],\"payable\":true,\"stateMutability\":\"payable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"hid\",\"type\":\"uint256\"},{\"name\":\"customer\",\"type\":\"address\"},{\"name\":\"amount\",\"type\":\"uint256\"},{\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"releasePartialFund\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"hid\",\"type\":\"uint256\"}],\"name\":\"getDepositList\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"},{\"name\":\"\",\"type\":\"uint256\"},{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hid\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"stationOwner\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"value\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"percentage\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"__deposit\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hid\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"customer\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"__releasePartialFund\",\"type\":\"event\"}]"
+const CreditATMABI = "[{\"constant\":true,\"inputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"ex\",\"outputs\":[{\"name\":\"sender\",\"type\":\"address\"},{\"name\":\"percentage\",\"type\":\"uint256\"},{\"name\":\"escrow\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"offchain\",\"type\":\"bytes32\"},{\"name\":\"percentage\",\"type\":\"uint256\"}],\"name\":\"deposit\",\"outputs\":[],\"payable\":true,\"stateMutability\":\"payable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"hid\",\"type\":\"uint256\"}],\"name\":\"getDepositList\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"},{\"name\":\"\",\"type\":\"uint256\"},{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"customer\",\"type\":\"address\"},{\"name\":\"amount\",\"type\":\"uint256\"},{\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"releasePartialFund\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hid\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"stationOwner\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"value\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"percentage\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"__deposit\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"customer\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"__releasePartialFund\",\"type\":\"event\"}]"
 
 // CreditATM is an auto generated Go binding around an Ethereum contract.
 type CreditATM struct {
@@ -253,25 +253,25 @@ func (_CreditATM *CreditATMTransactorSession) Deposit(offchain [32]byte, percent
 	return _CreditATM.Contract.Deposit(&_CreditATM.TransactOpts, offchain, percentage)
 }
 
-// ReleasePartialFund is a paid mutator transaction binding the contract method 0x63d26f2f.
+// ReleasePartialFund is a paid mutator transaction binding the contract method 0xdcd58bdc.
 //
-// Solidity: function releasePartialFund(hid uint256, customer address, amount uint256, offchain bytes32) returns()
-func (_CreditATM *CreditATMTransactor) ReleasePartialFund(opts *bind.TransactOpts, hid *big.Int, customer common.Address, amount *big.Int, offchain [32]byte) (*types.Transaction, error) {
-	return _CreditATM.contract.Transact(opts, "releasePartialFund", hid, customer, amount, offchain)
+// Solidity: function releasePartialFund(customer address, amount uint256, offchain bytes32) returns()
+func (_CreditATM *CreditATMTransactor) ReleasePartialFund(opts *bind.TransactOpts, customer common.Address, amount *big.Int, offchain [32]byte) (*types.Transaction, error) {
+	return _CreditATM.contract.Transact(opts, "releasePartialFund", customer, amount, offchain)
 }
 
-// ReleasePartialFund is a paid mutator transaction binding the contract method 0x63d26f2f.
+// ReleasePartialFund is a paid mutator transaction binding the contract method 0xdcd58bdc.
 //
-// Solidity: function releasePartialFund(hid uint256, customer address, amount uint256, offchain bytes32) returns()
-func (_CreditATM *CreditATMSession) ReleasePartialFund(hid *big.Int, customer common.Address, amount *big.Int, offchain [32]byte) (*types.Transaction, error) {
-	return _CreditATM.Contract.ReleasePartialFund(&_CreditATM.TransactOpts, hid, customer, amount, offchain)
+// Solidity: function releasePartialFund(customer address, amount uint256, offchain bytes32) returns()
+func (_CreditATM *CreditATMSession) ReleasePartialFund(customer common.Address, amount *big.Int, offchain [32]byte) (*types.Transaction, error) {
+	return _CreditATM.Contract.ReleasePartialFund(&_CreditATM.TransactOpts, customer, amount, offchain)
 }
 
-// ReleasePartialFund is a paid mutator transaction binding the contract method 0x63d26f2f.
+// ReleasePartialFund is a paid mutator transaction binding the contract method 0xdcd58bdc.
 //
-// Solidity: function releasePartialFund(hid uint256, customer address, amount uint256, offchain bytes32) returns()
-func (_CreditATM *CreditATMTransactorSession) ReleasePartialFund(hid *big.Int, customer common.Address, amount *big.Int, offchain [32]byte) (*types.Transaction, error) {
-	return _CreditATM.Contract.ReleasePartialFund(&_CreditATM.TransactOpts, hid, customer, amount, offchain)
+// Solidity: function releasePartialFund(customer address, amount uint256, offchain bytes32) returns()
+func (_CreditATM *CreditATMTransactorSession) ReleasePartialFund(customer common.Address, amount *big.Int, offchain [32]byte) (*types.Transaction, error) {
+	return _CreditATM.Contract.ReleasePartialFund(&_CreditATM.TransactOpts, customer, amount, offchain)
 }
 
 // CreditATMDepositIterator is returned from FilterDeposit and is used to iterate over the raw logs and unpacked data for Deposit events raised by the CreditATM contract.
@@ -469,16 +469,15 @@ func (it *CreditATMReleasePartialFundIterator) Close() error {
 
 // CreditATMReleasePartialFund represents a ReleasePartialFund event raised by the CreditATM contract.
 type CreditATMReleasePartialFund struct {
-	Hid      *big.Int
 	Customer common.Address
 	Amount   *big.Int
 	Offchain [32]byte
 	Raw      types.Log // Blockchain specific contextual infos
 }
 
-// FilterReleasePartialFund is a free log retrieval operation binding the contract event 0xa8de681159300a7673a54446f9e99457e22b0ba45217abd287e6847a8e13eb3c.
+// FilterReleasePartialFund is a free log retrieval operation binding the contract event 0x5628d093e9805d060c2a815ede6b4de184b6beba9973578b0c81064c227a583a.
 //
-// Solidity: e __releasePartialFund(hid uint256, customer address, amount uint256, offchain bytes32)
+// Solidity: e __releasePartialFund(customer address, amount uint256, offchain bytes32)
 func (_CreditATM *CreditATMFilterer) FilterReleasePartialFund(opts *bind.FilterOpts) (*CreditATMReleasePartialFundIterator, error) {
 
 	logs, sub, err := _CreditATM.contract.FilterLogs(opts, "__releasePartialFund")
@@ -488,9 +487,9 @@ func (_CreditATM *CreditATMFilterer) FilterReleasePartialFund(opts *bind.FilterO
 	return &CreditATMReleasePartialFundIterator{contract: _CreditATM.contract, event: "__releasePartialFund", logs: logs, sub: sub}, nil
 }
 
-// WatchReleasePartialFund is a free log subscription operation binding the contract event 0xa8de681159300a7673a54446f9e99457e22b0ba45217abd287e6847a8e13eb3c.
+// WatchReleasePartialFund is a free log subscription operation binding the contract event 0x5628d093e9805d060c2a815ede6b4de184b6beba9973578b0c81064c227a583a.
 //
-// Solidity: e __releasePartialFund(hid uint256, customer address, amount uint256, offchain bytes32)
+// Solidity: e __releasePartialFund(customer address, amount uint256, offchain bytes32)
 func (_CreditATM *CreditATMFilterer) WatchReleasePartialFund(opts *bind.WatchOpts, sink chan<- *CreditATMReleasePartialFund) (event.Subscription, error) {
 
 	logs, sub, err := _CreditATM.contract.WatchLogs(opts, "__releasePartialFund")

@@ -58,7 +58,7 @@ func (c *ExchangeCreditAtmClient) ReleasePartialFund(offerId string, hid int64, 
 	toAddress := common.HexToAddress(address)
 	sendAmount := big.NewInt(amount.Mul(WeiDecimal).IntPart())
 
-	tx, err := c.creditAtm.ReleasePartialFund(auth, big.NewInt(hid), toAddress, sendAmount, offChain)
+	tx, err := c.creditAtm.ReleasePartialFund(auth, toAddress, sendAmount, offChain)
 	if err != nil {
 		return
 	}

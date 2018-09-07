@@ -259,7 +259,6 @@ func (dao CreditDao) RemoveCreditItem(item *bean.CreditItem, itemHistory *bean.C
 
 		zeroStr := common.Zero.String()
 
-		fmt.Println("Step 1")
 		itemDoc, txErr := tx.Get(itemDocRef)
 		if txErr != nil {
 			return txErr
@@ -271,7 +270,6 @@ func (dao CreditDao) RemoveCreditItem(item *bean.CreditItem, itemHistory *bean.C
 		itemHistory.Old = itemBalance.String()
 		itemHistory.Change = itemBalance.Neg().String()
 
-		fmt.Println("Step 2")
 		poolDoc, txErr := tx.Get(poolDocRef)
 		if err != nil {
 			return txErr
@@ -290,7 +288,6 @@ func (dao CreditDao) RemoveCreditItem(item *bean.CreditItem, itemHistory *bean.C
 		pool.Balance = poolBalance.String()
 		poolHistory.New = pool.Balance
 
-		fmt.Println("Step 3")
 		// Update balance
 		txErr = tx.Set(itemDocRef, item.GetUpdate(), firestore.MergeAll)
 		if txErr != nil {
@@ -301,7 +298,6 @@ func (dao CreditDao) RemoveCreditItem(item *bean.CreditItem, itemHistory *bean.C
 			return txErr
 		}
 
-		fmt.Println("Step 4")
 		// Remove all order of this user
 		for i, itemDocRef := range poolOrderUserDocRefs {
 			txErr = tx.Set(itemDocRef, map[string]interface{}{
@@ -316,7 +312,6 @@ func (dao CreditDao) RemoveCreditItem(item *bean.CreditItem, itemHistory *bean.C
 			}
 		}
 
-		fmt.Println("Step 5")
 		// Insert history
 		txErr = tx.Set(balanceHistoryDocRef, itemHistory.GetAdd())
 		if txErr != nil {
@@ -543,7 +538,7 @@ func (dao CreditDao) FinishCreditTransaction(pool *bean.CreditPool, poolHistory 
 		poolBalance = poolBalance.Sub(amount)
 		pool.Balance = poolBalance.String()
 		if poolBalance.LessThan(common.Zero) {
-			return errors.New("invalid_balance")
+			return errors.New("invalid balance")
 		}
 		poolHistory.New = pool.Balance
 
@@ -554,7 +549,7 @@ func (dao CreditDao) FinishCreditTransaction(pool *bean.CreditPool, poolHistory 
 		poolCapturedBalance = poolCapturedBalance.Sub(amount)
 		pool.CapturedBalance = poolCapturedBalance.String()
 		if poolCapturedBalance.LessThan(common.Zero) {
-			return errors.New("invalid_balance")
+			return errors.New("invalid balance")
 		}
 
 		transDoc, txErr := tx.Get(transDocRef)
@@ -568,7 +563,7 @@ func (dao CreditDao) FinishCreditTransaction(pool *bean.CreditPool, poolHistory 
 		if transStatus.(string) == bean.CREDIT_TRANSACTION_STATUS_CREATE {
 			trans.Status = bean.CREDIT_TRANSACTION_STATUS_SUCCESS
 		} else {
-			return errors.New("invalid_status")
+			return errors.New("invalid status")
 		}
 		for itemIndex, itemDocRef := range itemDocRefs {
 			itemDoc, txErr := tx.Get(itemDocRef)
@@ -605,7 +600,7 @@ func (dao CreditDao) FinishCreditTransaction(pool *bean.CreditPool, poolHistory 
 			items[itemIndex].Revenue = revenue.String()
 
 			if itemBalance.LessThan(common.Zero) {
-				return errors.New("invalid_balance")
+				return errors.New("invalid balance")
 			}
 			itemHistories[itemIndex].New = items[itemIndex].Balance
 		}
@@ -629,11 +624,11 @@ func (dao CreditDao) FinishCreditTransaction(pool *bean.CreditPool, poolHistory 
 
 			poolOrders[orderIndex].Balance = orderBalance.String()
 			if orderBalance.LessThan(common.Zero) {
-				return errors.New("invalid_balance")
+				return errors.New("invalid balance")
 			}
 			poolOrders[orderIndex].CapturedBalance = capturedBalance.String()
 			if capturedBalance.LessThan(common.Zero) {
-				return errors.New("invalid_balance")
+				return errors.New("invalid balance")
 			}
 		}
 
