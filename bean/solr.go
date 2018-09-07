@@ -526,7 +526,7 @@ type SolrCreditTransactionExtraData struct {
 
 func NewSolrFromCreditTransaction(creditTx CreditTransaction, chainId int64) (solr SolrOfferObject) {
 	solr.Id = fmt.Sprintf("exchange_credit_transaction_%s", creditTx.Id)
-	solr.Type = 2
+	solr.Type = 10
 	solr.State = 0
 	solr.IsPrivate = 1
 	solr.Status = 0
@@ -577,7 +577,7 @@ var creditDepositStatusMap = map[string]int{
 
 func NewSolrFromCreditDeposit(creditDeposit CreditDeposit, chainId int64) (solr SolrOfferObject) {
 	solr.Id = fmt.Sprintf("exchange_credit_deposit_%s", creditDeposit.Id)
-	solr.Type = 2
+	solr.Type = 10
 	solr.State = 0
 	solr.IsPrivate = 1
 	solr.Status = creditDepositStatusMap[creditDeposit.Status]
@@ -626,7 +626,7 @@ var creditWithdrawStatusMap = map[string]int{
 
 func NewSolrFromCreditWithdraw(creditWithdraw CreditWithdraw, chainId int64) (solr SolrOfferObject) {
 	solr.Id = fmt.Sprintf("exchange_credit_withdraw_%s", creditWithdraw.Id)
-	solr.Type = 2
+	solr.Type = 10
 	solr.State = 0
 	solr.IsPrivate = 1
 	solr.Status = creditWithdrawStatusMap[creditWithdraw.Status]
