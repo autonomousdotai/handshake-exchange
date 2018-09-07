@@ -88,7 +88,7 @@ func (s CreditService) DeactivateCredit(userId string, currency string) (credit 
 	creditItem := creditItemTO.Object.(bean.CreditItem)
 
 	percentage, _ := strconv.Atoi(creditItem.Percentage)
-	poolTO := s.dao.GetCreditPool(userId, percentage)
+	poolTO := s.dao.GetCreditPool(currency, percentage)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, poolTO) {
 		return
 	}
@@ -120,12 +120,22 @@ func (s CreditService) DeactivateCredit(userId string, currency string) (credit 
 		client := exchangecreditatm_service.ExchangeCreditAtmClient{}
 		amount := common.StringToDecimal(itemHistory.Change)
 
-		txHash, onChainErr := client.ReleasePartialFund(userId, 2, amount, creditItem.UserAddress)
-		if onChainErr != nil {
-			fmt.Println(onChainErr)
+		if currency == bean.ETH.Code {
+			txHash, onChainErr := client.ReleasePartialFund(userId, 2, amount, creditItem.UserAddress)
+			if onChainErr != nil {
+				fmt.Println(onChainErr)
+			} else {
+			}
+			fmt.Println(txHash)
 		} else {
+			coinbaseTx, errWithdraw := coinbase_service.SendTransaction(creditItem.UserAddress, amount.String(), currency,
+				fmt.Sprintf("Refund userId = %s", creditItem.UID), creditItem.UID)
+			if errWithdraw != nil {
+				fmt.Println(errWithdraw)
+			} else {
+			}
+			fmt.Println(coinbaseTx)
 		}
-		fmt.Println(txHash)
 	} else {
 		ce.SetStatusKey(api_error.CreditItemStatusInvalid)
 	}
