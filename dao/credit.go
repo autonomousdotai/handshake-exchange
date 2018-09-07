@@ -586,7 +586,8 @@ func (dao CreditDao) FinishCreditTransaction(pool *bean.CreditPool, poolHistory 
 			if txErr != nil {
 				return txErr
 			}
-			itemAmount := common.StringToDecimal(itemHistories[itemIndex].Change)
+			// Revert
+			itemAmount := common.StringToDecimal(itemHistories[itemIndex].Change).Neg()
 			revenue := common.StringToDecimal(transList[itemIndex].Revenue)
 			itemHistories[itemIndex].Old = itemBalance.String()
 
