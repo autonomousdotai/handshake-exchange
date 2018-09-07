@@ -605,7 +605,7 @@ func (s CreditService) FinishCreditTransaction(currency string, id string, offer
 		}
 		itemHistories = append(itemHistories, itemHistory)
 
-		transUID = trans.UID
+		transUID = userTrans.UID
 	}
 
 	orders := make([]bean.CreditPoolOrder, 0)
