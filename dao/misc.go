@@ -305,6 +305,67 @@ func (dao MiscDao) AddCryptoTransferLog(log bean.CryptoTransferLog) (bean.Crypto
 	return log, err
 }
 
+func (dao MiscDao) InstantOfferLockToCache() ([]bean.CCLimit, error) {
+	dbClient := firebase_service.FirestoreClient
+
+	ClearCache(GetCCLimitCacheKey("*"))
+
+	// cc_limits/
+	iter := dbClient.Collection(GetCCLimitPath()).Documents(context.Background())
+	objs := make([]bean.CCLimit, 0)
+
+	for {
+		var obj bean.CCLimit
+		doc, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return objs, err
+		}
+		doc.DataTo(&obj)
+		objs = append(objs, obj)
+
+		// To cache
+		b, _ := json.Marshal(&obj)
+		key := GetCCLimitCacheKey(fmt.Sprintf("%d", obj.Level))
+		cache.RedisClient.Set(key, string(b), 0)
+	}
+
+	return objs, nil
+}
+
+func (dao MiscDao) GetInstantOfferLockFromCache() (t TransferObject) {
+	keys, err := cache.RedisClient.Keys(GetCCLimitCacheKey("*")).Result()
+	if err != nil {
+		t.SetError(api_error.GetDataFailed, err)
+		return
+	}
+
+	t.Found = true
+	ccLimits := make([]bean.CCLimit, 0)
+	for _, key := range keys {
+		var tTemp TransferObject
+		GetCacheObject(key, &tTemp, func(val string) interface{} {
+			var obj bean.CCLimit
+			json.Unmarshal([]byte(val), &obj)
+			return obj
+		})
+		ccLimits = append(ccLimits, tTemp.Object.(bean.CCLimit))
+	}
+
+	sort.Slice(ccLimits[:], func(i, j int) bool {
+		return ccLimits[i].Level < ccLimits[j].Level
+	})
+
+	maxLimit, _ := strconv.Atoi(os.Getenv("MAX_CC_LIMIT_LEVEL"))
+	for _, value := range ccLimits[:maxLimit] {
+		t.Objects = append(t.Objects, value)
+	}
+
+	return
+}
+
 func GetCurrencyRateItemPath(currency string) string {
 	return fmt.Sprintf("currency_rates/%s", currency)
 }
@@ -359,4 +420,8 @@ func GetCryptoPendingTransferPath() string {
 
 func GetCryptoPendingTransferItemPath(id string) string {
 	return fmt.Sprintf("crypto_pending_transfers/%s", id)
+}
+
+func GetInstantOfferLockCacheKey() string {
+	return fmt.Sprintf("handshake_exchange.instant_offer_lock")
 }

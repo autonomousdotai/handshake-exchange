@@ -406,12 +406,12 @@ func (s CreditCardService) FinishInstantOffers() (finishedInstantOffers []bean.I
 
 			if !isDone {
 				// Over duration
-				if time.Now().UTC().Sub(pendingOffer.CreatedAt).Seconds() > float64(pendingOffer.Duration) {
-					s.cancelInstantOffer(&pendingOffer, &ce)
-					if ce.CheckError() != nil {
-						// return
-					}
-				}
+				//if time.Now().UTC().Sub(pendingOffer.CreatedAt).Seconds() > float64(pendingOffer.Duration) {
+				//	s.cancelInstantOffer(&pendingOffer, &ce)
+				//	if ce.CheckError() != nil {
+				//		// return
+				//	}
+				//}
 			}
 		}
 	}

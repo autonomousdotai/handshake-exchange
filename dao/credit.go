@@ -223,7 +223,7 @@ func (dao CreditDao) FinishDepositCreditItem(item *bean.CreditItem, deposit *bea
 		return txErr
 	})
 
-	if err != nil {
+	if err == nil {
 		dao.SetCreditPoolCache(*pool)
 	}
 
@@ -325,7 +325,7 @@ func (dao CreditDao) RemoveCreditItem(item *bean.CreditItem, itemHistory *bean.C
 		return txErr
 	})
 
-	if err != nil {
+	if err == nil {
 		dao.SetCreditPoolCache(*pool)
 	}
 
@@ -688,7 +688,7 @@ func (dao CreditDao) FinishCreditTransaction(pool *bean.CreditPool, poolHistory 
 		return txErr
 	})
 
-	if err != nil {
+	if err == nil {
 		dao.SetCreditPoolCache(*pool)
 	}
 
