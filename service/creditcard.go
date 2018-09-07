@@ -198,12 +198,12 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 		return
 	}
 
-	// Check CC limit
-	ccLimitCE := UserServiceInst.CheckCCLimit(offerBody.UID, offerBody.FiatAmount)
-	if ccLimitCE.HasError() {
-		ce.SetError(api_error.CCOverLimit, ccLimitCE.Error)
-		return
-	}
+	// Check CC limit - remove user limit
+	//ccLimitCE := UserServiceInst.CheckCCLimit(offerBody.UID, offerBody.FiatAmount)
+	//if ccLimitCE.HasError() {
+	//	ce.SetError(api_error.CCOverLimit, ccLimitCE.Error)
+	//	return
+	//}
 
 	if paymentMethodData.Token == "true" {
 		//token = ""
