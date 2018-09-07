@@ -626,14 +626,12 @@ func (s CreditService) FinishCreditTransaction(currency string, id string, offer
 	}
 
 	creditTO := s.dao.GetCredit(transUID)
-	if ce.FeedDaoTransfer(api_error.GetDataFailed, creditTO) {
-		return
-	}
-	credit := creditTO.Object.(bean.Credit)
-
-	chainId, _ := strconv.Atoi(credit.ChainId)
-	for _, userTrans := range transList {
-		solr_service.UpdateObject(bean.NewSolrFromCreditTransaction(*userTrans, int64(chainId)))
+	if !creditTO.HasError() {
+		credit := creditTO.Object.(bean.Credit)
+		chainId, _ := strconv.Atoi(credit.ChainId)
+		for _, userTrans := range transList {
+			solr_service.UpdateObject(bean.NewSolrFromCreditTransaction(*userTrans, int64(chainId)))
+		}
 	}
 
 	return
