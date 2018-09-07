@@ -114,7 +114,7 @@ func (s CreditService) DeactivateCredit(userId string, currency string) (credit 
 		}
 		err := s.dao.RemoveCreditItem(&creditItem, &itemHistory, &pool, poolOrders, &poolHistory)
 		if err != nil {
-			ce.SetStatusKey(api_error.UpdateDataFailed)
+			ce.SetError(api_error.UpdateDataFailed, err)
 			return
 		}
 		client := exchangecreditatm_service.ExchangeCreditAtmClient{}
@@ -405,12 +405,6 @@ func (s CreditService) GetCreditPoolPercentageByCache(currency string, amount de
 }
 
 func (s CreditService) AddCreditTransaction(trans *bean.CreditTransaction) (ce SimpleContextError) {
-	creditTO := s.dao.GetCredit(trans.UID)
-	if ce.FeedDaoTransfer(api_error.GetDataFailed, creditTO) {
-		return
-	}
-	credit := creditTO.Object.(bean.Credit)
-
 	poolTO := s.dao.GetCreditPool(trans.Currency, int(common.StringToDecimal(trans.Percentage).IntPart()))
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, poolTO) {
 		return
@@ -497,9 +491,12 @@ func (s CreditService) AddCreditTransaction(trans *bean.CreditTransaction) (ce S
 	}
 
 	trans.Status = bean.CREDIT_TRANSACTION_STATUS_CREATE
+	var transUserId string
 	for k, v := range userTransMap {
 		trans.UIDs = append(trans.UIDs, k)
 		userTransList = append(userTransList, v)
+
+		transUserId = k
 	}
 
 	if len(selectedOrders) == 0 {
@@ -516,6 +513,12 @@ func (s CreditService) AddCreditTransaction(trans *bean.CreditTransaction) (ce S
 			return
 		}
 	}
+
+	creditTO := s.dao.GetCredit(transUserId)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, creditTO) {
+		return
+	}
+	credit := creditTO.Object.(bean.Credit)
 
 	chainId, _ := strconv.Atoi(credit.ChainId)
 	for _, userTrans := range userTransList {

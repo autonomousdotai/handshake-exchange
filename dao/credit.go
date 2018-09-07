@@ -259,6 +259,7 @@ func (dao CreditDao) RemoveCreditItem(item *bean.CreditItem, itemHistory *bean.C
 
 		zeroStr := common.Zero.String()
 
+		fmt.Println("Step 1")
 		itemDoc, txErr := tx.Get(itemDocRef)
 		if txErr != nil {
 			return txErr
@@ -270,6 +271,7 @@ func (dao CreditDao) RemoveCreditItem(item *bean.CreditItem, itemHistory *bean.C
 		itemHistory.Old = itemBalance.String()
 		itemHistory.Change = itemBalance.Neg().String()
 
+		fmt.Println("Step 2")
 		poolDoc, txErr := tx.Get(poolDocRef)
 		if err != nil {
 			return txErr
@@ -288,6 +290,7 @@ func (dao CreditDao) RemoveCreditItem(item *bean.CreditItem, itemHistory *bean.C
 		pool.Balance = poolBalance.String()
 		poolHistory.New = pool.Balance
 
+		fmt.Println("Step 3")
 		// Update balance
 		txErr = tx.Set(itemDocRef, item.GetUpdate(), firestore.MergeAll)
 		if txErr != nil {
@@ -298,6 +301,7 @@ func (dao CreditDao) RemoveCreditItem(item *bean.CreditItem, itemHistory *bean.C
 			return txErr
 		}
 
+		fmt.Println("Step 4")
 		// Remove all order of this user
 		for i, itemDocRef := range poolOrderUserDocRefs {
 			txErr = tx.Set(itemDocRef, map[string]interface{}{
@@ -312,6 +316,7 @@ func (dao CreditDao) RemoveCreditItem(item *bean.CreditItem, itemHistory *bean.C
 			}
 		}
 
+		fmt.Println("Step 5")
 		// Insert history
 		txErr = tx.Set(balanceHistoryDocRef, itemHistory.GetAdd())
 		if txErr != nil {
