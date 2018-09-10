@@ -20,7 +20,8 @@ before_install:
 #- make install
 go_import_path: github.com/ninjadotorg/handshake-exchange
 script:
-- curl https://glide.sh/get | sh
+- add-apt-repository ppa:masterminds/glide && apt-get update
+- apt-get install glide
 - glide install
 - make vet
 - make fmt-check
