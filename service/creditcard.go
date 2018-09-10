@@ -53,7 +53,7 @@ func (s CreditCardService) GetProposeInstantOffer(amountStr string, currency str
 	feePercentage := decimal.NewFromFloat(systemFee.Value).Round(10)
 
 	_, internalFee1 := dao.AddFeePercentage(totalWOFee, feePercentage)
-	_, externalFee := dao.AddFeePercentage(totalWOFee, externalFeePercentage)
+	total, externalFee := dao.AddFeePercentage(totalWOFee, externalFeePercentage)
 	internalFee2 := externalFee.Mul(decimal.NewFromFloat(0.3))
 
 	internalFee := internalFee1
@@ -61,15 +61,12 @@ func (s CreditCardService) GetProposeInstantOffer(amountStr string, currency str
 		internalFee = internalFee2
 	}
 
-	fee := internalFee.Add(externalFee)
-	total := totalWOFee.Add(fee)
-
 	offer.FiatAmount = total.Round(2).String()
 	offer.FiatCurrency = bean.USD.Code
 	offer.Amount = amountStr
 	offer.Currency = currency
 	offer.Price = price.String()
-	offer.Fee = fee.Round(2).String()
+	offer.Fee = internalFee.Round(2).String()
 	offer.FeePercentage = feePercentage.String()
 	offer.ExternalFeePercentage = externalFeePercentage.String()
 	offer.ExternalFee = externalFee.String()
@@ -536,7 +533,9 @@ func (s CreditCardService) finishInstantOfferCredit(pendingOffer *bean.PendingIn
 
 	offerRef := dao.GetInstantOfferItemPath(pendingOffer.UID, pendingOffer.InstantOffer)
 	revenue := common.StringToDecimal(offer.RawFiatAmount).Add(common.StringToDecimal(offer.ExternalFee))
-	ccCE := CreditServiceInst.FinishCreditTransaction(offer.Currency, offer.ProviderData.(string), offerRef, revenue)
+	fee := common.StringToDecimal(offer.Fee)
+
+	ccCE := CreditServiceInst.FinishCreditTransaction(offer.Currency, offer.ProviderData.(string), offerRef, revenue, fee)
 	if ccCE.HasError() {
 		if ce.SetError(api_error.ExternalApiFailed, ccCE.CheckError()) {
 			return

@@ -442,6 +442,7 @@ type CreditTransaction struct {
 	Status        string         `json:"status" firestore:"status"`
 	SubStatus     string         `json:"sub_status" firestore:"sub_status"`
 	Revenue       string         `json:"revenue" firestore:"revenue"`
+	Fee           string         `json:"fee" firestore:"fee"`
 	Percentage    string         `json:"percentage" firestore:"percentage"`
 	OfferRef      string         `json:"-" firestore:"offer_ref"`
 	OrderInfoRefs []OrderInfoRef `json:"-" firestore:"order_info_refs"`
@@ -463,6 +464,7 @@ func (b CreditTransaction) GetAdd() map[string]interface{} {
 		"currency":        b.Currency,
 		"status":          b.Status,
 		"revenue":         b.Revenue,
+		"fee":             b.Fee,
 		"percentage":      b.Percentage,
 		"offer_ref":       b.OfferRef,
 		"order_info_refs": b.OrderInfoRefs,
@@ -475,6 +477,7 @@ func (b CreditTransaction) GetUpdate() map[string]interface{} {
 		"status":     b.Status,
 		"sub_status": b.SubStatus,
 		"revenue":    b.Revenue,
+		"fee":        b.Fee,
 		"offer_ref":  b.OfferRef,
 		"updated_at": firestore.ServerTimestamp,
 	}

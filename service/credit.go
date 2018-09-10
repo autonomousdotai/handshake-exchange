@@ -547,8 +547,10 @@ func (s CreditService) ListPendingCreditTransaction(currency string) (trans []be
 	return
 }
 
-func (s CreditService) FinishCreditTransaction(currency string, id string, offerRef string, revenue decimal.Decimal) (ce SimpleContextError) {
+func (s CreditService) FinishCreditTransaction(currency string, id string, offerRef string,
+	revenue decimal.Decimal, fee decimal.Decimal) (ce SimpleContextError) {
 	transTO := s.dao.GetCreditTransaction(currency, id)
+
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, transTO) {
 		return
 	}
@@ -592,10 +594,15 @@ func (s CreditService) FinishCreditTransaction(currency string, id string, offer
 		userTrans := userTransTO.Object.(bean.CreditTransaction)
 		userAmount := common.StringToDecimal(userTrans.Amount)
 
+		percentageAmount := userAmount.Div(amount)
+		userFee := percentageAmount.Mul(fee)
+		userRevenue := percentageAmount.Mul(revenue).Sub(userFee)
+
 		userTrans.OfferRef = offerRef
 		userTrans.Status = bean.CREDIT_TRANSACTION_STATUS_SUCCESS
 		userTrans.SubStatus = bean.CREDIT_TRANSACTION_SUB_STATUS_REVENUE_PROCESSED
-		userTrans.Revenue = userAmount.Div(amount).Mul(revenue).RoundBank(2).String()
+		userTrans.Fee = userFee.RoundBank(2).String()
+		userTrans.Revenue = userRevenue.RoundBank(2).String()
 		transList = append(transList, &userTrans)
 
 		itemHistory := bean.CreditBalanceHistory{

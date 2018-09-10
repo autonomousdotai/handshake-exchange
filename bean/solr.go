@@ -519,6 +519,7 @@ type SolrCreditTransactionExtraData struct {
 	Amount     string `json:"amount"`
 	Currency   string `json:"currency"`
 	Revenue    string `json:"revenue"`
+	Fee        string `json:"fee"`
 	Percentage string `json:"percentage"`
 	Status     string `json:"status"`
 	SubStatus  string `json:"sub_status"`
@@ -549,6 +550,7 @@ func NewSolrFromCreditTransaction(creditTx CreditTransaction, chainId int64) (so
 		Amount:     creditTx.Amount,
 		Currency:   creditTx.Currency,
 		Revenue:    creditTx.Revenue,
+		Fee:        creditTx.Fee,
 		Percentage: creditTx.Percentage,
 		Status:     creditTx.Status,
 		SubStatus:  creditTx.SubStatus,
