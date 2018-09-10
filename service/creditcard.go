@@ -17,6 +17,7 @@ import (
 	"github.com/stripe/stripe-go"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -41,10 +42,13 @@ func (s CreditCardService) GetProposeInstantOffer(amountStr string, currency str
 
 	amount, _ := decimal.NewFromString(amountStr)
 	percentage, err := CreditServiceInst.GetCreditPoolPercentageByCache(currency, amount)
-	externalFeePercentage := decimal.NewFromFloat(float64(percentage)).Div(decimal.NewFromFloat(100))
 	if err != nil {
+		if strings.Contains(err.Error(), "not enough") {
+			ce.SetStatusKey(api_error.CreditOutOfStock)
+		}
 		ce.SetError(api_error.GetDataFailed, err)
 	}
+	externalFeePercentage := decimal.NewFromFloat(float64(percentage)).Div(decimal.NewFromFloat(100))
 
 	price := decimal.NewFromFloat(cryptoRate.Buy).Round(2)
 
@@ -288,7 +292,7 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 				Percentage: common.StringToDecimal(offerTest.ExternalFeePercentage).Mul(common.StringToDecimal("100")).String(), // Convert to 3%
 			}
 			transCE := CreditServiceInst.AddCreditTransaction(creditTrans)
-			if ce.SetError(api_error.ExternalApiFailed, transCE.CheckError()) {
+			if ce.SetError(api_error.CreditOutOfStock, transCE.CheckError()) {
 				isSuccess = false
 			} else {
 				if creditTrans.Id != "" {

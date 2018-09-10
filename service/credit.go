@@ -11,6 +11,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/integration/crypto_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/exchangecreditatm_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/solr_service"
+	"github.com/pkg/errors"
 	"github.com/shopspring/decimal"
 	"strconv"
 	"strings"
@@ -406,7 +407,7 @@ func (s CreditService) GetCreditPoolPercentageByCache(currency string, amount de
 		percentage += 1
 	}
 
-	return 0, nil
+	return 0, errors.New("not enough")
 }
 
 func (s CreditService) AddCreditTransaction(trans *bean.CreditTransaction) (ce SimpleContextError) {
