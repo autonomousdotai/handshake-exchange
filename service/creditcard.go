@@ -52,8 +52,8 @@ func (s CreditCardService) GetProposeInstantOffer(amountStr string, currency str
 	totalWOFee := amount.Mul(price)
 	feePercentage := decimal.NewFromFloat(systemFee.Value).Round(10)
 
-	_, internalFee1 := dao.AddFeePercentage(totalWOFee, feePercentage)
 	total, externalFee := dao.AddFeePercentage(totalWOFee, externalFeePercentage)
+	_, internalFee1 := dao.AddFeePercentage(total, feePercentage)
 	internalFee2 := externalFee.Mul(decimal.NewFromFloat(0.3))
 
 	internalFee := internalFee1
