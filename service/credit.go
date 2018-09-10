@@ -677,7 +677,7 @@ func (s CreditService) AddCreditWithdraw(userId string, body bean.CreditWithdraw
 func (s CreditService) SetupCreditPool() (ce SimpleContextError) {
 	for _, currency := range []string{bean.BTC.Code, bean.ETH.Code, bean.BCH.Code} {
 		level := 0
-		for level <= 100 {
+		for level <= 200 {
 			pool := bean.CreditPool{
 				Level:    fmt.Sprintf("%03d", level),
 				Balance:  common.Zero.String(),
