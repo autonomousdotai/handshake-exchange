@@ -702,7 +702,7 @@ func setupInstantOffer(offer *bean.InstantOffer, offerTest bean.InstantOffer, gd
 
 func setupInstantOfferCredit(offer *bean.InstantOffer, offerTest bean.InstantOffer, creditTrans bean.CreditTransaction) {
 	fiatAmount, _ := decimal.NewFromString(offer.FiatAmount)
-	fee, _ := decimal.NewFromString(offerTest.Fee)
+	fee, _ := decimal.NewFromString(offerTest.ExternalFee)
 
 	offer.RawFiatAmount = fiatAmount.Sub(fee).String()
 	offer.Status = bean.INSTANT_OFFER_STATUS_PROCESSING
