@@ -16,12 +16,12 @@ before_install:
 - source /home/travis/google-cloud-sdk/path.bash.inc
 - gcloud version
 - gcloud components install kubectl || true
-#install:
+install:
 #- make install
+- sudo add-apt-repository ppa:masterminds/glide && sudo apt-get --assume-yes update
+- apt-get install glide
 go_import_path: github.com/ninjadotorg/handshake-exchange
 script:
-- sudo add-apt-repository ppa:masterminds/glide && sudo apt-get update
-- apt-get install glide
 - glide install
 - make vet
 - make fmt-check
