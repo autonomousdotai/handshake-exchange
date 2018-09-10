@@ -18,7 +18,7 @@ before_install:
 - gcloud components install kubectl || true
 install:
 #- make install
-- sudo add-apt-repository ppa:masterminds/glide && sudo apt-get --assume-yes update
+- sudo add-apt-repository --assume-yes ppa:masterminds/glide && sudo apt-get --assume-yes update
 - apt-get install glide
 go_import_path: github.com/ninjadotorg/handshake-exchange
 script:
