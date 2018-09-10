@@ -70,21 +70,22 @@ func (b Credit) GetUpdateRevenue() map[string]interface{} {
 }
 
 type CreditItem struct {
-	Hid            int64       `json:"hid" firestore:"hid"`
-	UID            string      `json:"-" firestore:"uid"`
-	Currency       string      `json:"currency" firestore:"currency"`
-	Status         string      `json:"status" firestore:"status"`
-	SubStatus      string      `json:"sub_status" firestore:"sub_status"`
-	LockedSale     bool        `json:"locked_sale" firestore:"locked_sale"`
-	LastActionData interface{} `json:"-" firestore:"last_action_data"`
-	Balance        string      `json:"balance" firestore:"balance"`
-	Sold           string      `json:"sold" firestore:"sold"`
-	CreditRevenue  string      `json:"-"`
-	Revenue        string      `json:"revenue" firestore:"revenue"`
-	Percentage     string      `json:"percentage" firestore:"percentage"`
-	UserAddress    string      `json:"user_address" firestore:"user_address"`
-	CreatedAt      time.Time   `json:"created_at" firestore:"created_at"`
-	UpdatedAt      time.Time   `json:"updated_at" firestore:"updated_at"`
+	Hid              int64       `json:"hid" firestore:"hid"`
+	UID              string      `json:"-" firestore:"uid"`
+	Currency         string      `json:"currency" firestore:"currency"`
+	Status           string      `json:"status" firestore:"status"`
+	SubStatus        string      `json:"sub_status" firestore:"sub_status"`
+	LockedSale       bool        `json:"locked_sale" firestore:"locked_sale"`
+	LastActionData   interface{} `json:"-" firestore:"last_action_data"`
+	Balance          string      `json:"balance" firestore:"balance"`
+	Sold             string      `json:"sold" firestore:"sold"`
+	CreditRevenue    string      `json:"-"`
+	Revenue          string      `json:"revenue" firestore:"revenue"`
+	ReactivateAmount string      `json:"reactivate_amount" firestore:"reactivate_amount"`
+	Percentage       string      `json:"percentage" firestore:"percentage"`
+	UserAddress      string      `json:"user_address" firestore:"user_address"`
+	CreatedAt        time.Time   `json:"created_at" firestore:"created_at"`
+	UpdatedAt        time.Time   `json:"updated_at" firestore:"updated_at"`
 }
 
 func (b CreditItem) GetAdd() map[string]interface{} {
@@ -128,6 +129,16 @@ func (b CreditItem) GetUpdate() map[string]interface{} {
 		"sub_status": b.SubStatus,
 		"balance":    b.Balance,
 		"updated_at": firestore.ServerTimestamp,
+	}
+}
+
+func (b CreditItem) GetUpdateDeactivate() map[string]interface{} {
+	return map[string]interface{}{
+		"status":            b.Status,
+		"sub_status":        b.SubStatus,
+		"balance":           b.Balance,
+		"reactivate_amount": b.ReactivateAmount,
+		"updated_at":        firestore.ServerTimestamp,
 	}
 }
 

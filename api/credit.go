@@ -129,20 +129,3 @@ func (api CreditApi) ListWithdraw(context *gin.Context) {
 		tx,
 	})
 }
-
-func (api CreditApi) AddCreditTransaction(context *gin.Context) {
-	trans := bean.CreditTransaction{}
-
-	trans.ToUID = "1001"
-	trans.OfferRef = "some_offer_ref"
-	trans.Percentage = "3"
-	trans.Currency = bean.ETH.Code
-	trans.Amount = "0.006"
-
-	ce := service.CreditServiceInst.AddCreditTransaction(&trans)
-	if ce.ContextValidate(context) {
-		return
-	}
-
-	bean.SuccessResponse(context, trans)
-}

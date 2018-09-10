@@ -281,6 +281,7 @@ func (dao CreditDao) RemoveCreditItem(item *bean.CreditItem, itemHistory *bean.C
 		poolHistory.Old = poolBalance.String()
 		poolHistory.Change = itemBalance.Neg().String()
 
+		item.ReactivateAmount = item.Balance
 		item.Balance = zeroStr
 		itemHistory.New = item.Balance
 
@@ -289,7 +290,7 @@ func (dao CreditDao) RemoveCreditItem(item *bean.CreditItem, itemHistory *bean.C
 		poolHistory.New = pool.Balance
 
 		// Update balance
-		txErr = tx.Set(itemDocRef, item.GetUpdate(), firestore.MergeAll)
+		txErr = tx.Set(itemDocRef, item.GetUpdateDeactivate(), firestore.MergeAll)
 		if txErr != nil {
 			return txErr
 		}

@@ -22,7 +22,5 @@ func (url CreditUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	group.POST("/withdraw", creditApi.Withdraw)
 	group.GET("/withdraw", creditApi.ListWithdraw)
 
-	group.POST("/add-transaction-123-abc", creditApi.AddCreditTransaction)
-
 	return group
 }
