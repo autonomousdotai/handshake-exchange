@@ -48,12 +48,20 @@ func (s CreditCardService) GetProposeInstantOffer(amountStr string, currency str
 
 	price := decimal.NewFromFloat(cryptoRate.Buy).Round(2)
 
+	// =max(system fee * tx value, tx revenue*30%)
 	totalWOFee := amount.Mul(price)
 	feePercentage := decimal.NewFromFloat(systemFee.Value).Round(10)
-	feePercentage = feePercentage.Add(externalFeePercentage)
 
-	total, fee := dao.AddFeePercentage(totalWOFee, feePercentage)
+	_, internalFee1 := dao.AddFeePercentage(totalWOFee, feePercentage)
 	_, externalFee := dao.AddFeePercentage(totalWOFee, externalFeePercentage)
+	internalFee2 := externalFee.Mul(decimal.NewFromFloat(60))
+
+	internalFee := internalFee1
+	if internalFee2.GreaterThan(internalFee1) {
+		internalFee = internalFee2
+	}
+	fee := internalFee.Add(externalFee)
+	total := totalWOFee.Add(fee)
 
 	offer.FiatAmount = total.Round(2).String()
 	offer.FiatCurrency = bean.USD.Code
