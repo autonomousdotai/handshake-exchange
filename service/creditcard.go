@@ -532,7 +532,7 @@ func (s CreditCardService) finishInstantOfferCredit(pendingOffer *bean.PendingIn
 	offer.Status = bean.INSTANT_OFFER_STATUS_SUCCESS
 
 	offerRef := dao.GetInstantOfferItemPath(pendingOffer.UID, pendingOffer.InstantOffer)
-	revenue := common.StringToDecimal(offer.RawFiatAmount).Add(common.StringToDecimal(offer.ExternalFee))
+	revenue := common.StringToDecimal(offer.FiatAmount)
 	fee := common.StringToDecimal(offer.Fee)
 
 	ccCE := CreditServiceInst.FinishCreditTransaction(offer.Currency, offer.ProviderData.(string), offerRef, revenue, fee)
@@ -686,7 +686,7 @@ func (s CreditCardService) updateGlobalLimit(fiatAmount decimal.Decimal) {
 
 func setupInstantOffer(offer *bean.InstantOffer, offerTest bean.InstantOffer, gdaxResponse bean.GdaxOrderResponse) {
 	fiatAmount, _ := decimal.NewFromString(offer.FiatAmount)
-	fee, _ := decimal.NewFromString(offerTest.Fee)
+	fee, _ := decimal.NewFromString(offerTest.ExternalFee)
 
 	offer.RawFiatAmount = fiatAmount.Sub(fee).String()
 	offer.Status = bean.INSTANT_OFFER_STATUS_PROCESSING
