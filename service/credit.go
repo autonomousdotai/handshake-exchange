@@ -180,7 +180,7 @@ func (s CreditService) AddDeposit(userId string, body bean.CreditDepositInput) (
 		return
 	} else {
 		pNum, _ := strconv.Atoi(body.Percentage)
-		if pNum < 0 || pNum > 100 {
+		if pNum < 0 || pNum > 200 {
 			ce.SetStatusKey(api_error.InvalidRequestBody)
 			return
 		}
