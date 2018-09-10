@@ -48,6 +48,7 @@ func (s CreditCardService) GetProposeInstantOffer(amountStr string, currency str
 			return
 		}
 		ce.SetError(api_error.GetDataFailed, err)
+		return
 	}
 	externalFeePercentage := decimal.NewFromFloat(float64(percentage)).Div(decimal.NewFromFloat(100))
 
