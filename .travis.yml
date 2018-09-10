@@ -20,10 +20,11 @@ before_install:
 #- make install
 go_import_path: github.com/ninjadotorg/handshake-exchange
 script:
-- make vet
+- glide install
+#- make vet
 - make fmt-check
 - make misspell-check
-- make test
+#- make test
 deploy:
 - provider: script
   skip_cleanup: true
