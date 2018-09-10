@@ -390,7 +390,7 @@ func (s CreditService) FinishTracking() (ce SimpleContextError) {
 
 func (s CreditService) GetCreditPoolPercentageByCache(currency string, amount decimal.Decimal) (int, error) {
 	percentage := 0
-	for percentage <= 100 {
+	for percentage <= 200 {
 		level := fmt.Sprintf("%03d", percentage)
 
 		creditPoolTO := s.dao.GetCreditPoolCache(currency, level)
