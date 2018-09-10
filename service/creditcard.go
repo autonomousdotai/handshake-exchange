@@ -45,6 +45,7 @@ func (s CreditCardService) GetProposeInstantOffer(amountStr string, currency str
 	if err != nil {
 		if strings.Contains(err.Error(), "not enough") {
 			ce.SetStatusKey(api_error.CreditOutOfStock)
+			return
 		}
 		ce.SetError(api_error.GetDataFailed, err)
 	}
