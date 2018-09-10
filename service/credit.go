@@ -250,6 +250,7 @@ func (s CreditService) AddDeposit(userId string, body bean.CreditDepositInput) (
 	}
 
 	chainId, _ := strconv.Atoi(credit.ChainId)
+	deposit.CreatedAt = time.Now().UTC()
 	solr_service.UpdateObject(bean.NewSolrFromCreditDeposit(deposit, int64(chainId)))
 	s.dao.UpdateNotificationCreditItem(creditItem)
 
@@ -666,7 +667,7 @@ func (s CreditService) AddCreditWithdraw(userId string, body bean.CreditWithdraw
 	}
 
 	withdraw = body
-
+	withdraw.CreatedAt = time.Now().UTC()
 	chainId, _ := strconv.Atoi(credit.ChainId)
 	solr_service.UpdateObject(bean.NewSolrFromCreditWithdraw(withdraw, int64(chainId)))
 
