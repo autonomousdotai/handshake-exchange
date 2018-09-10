@@ -285,7 +285,7 @@ func (dao CreditDao) RemoveCreditItem(item *bean.CreditItem, itemHistory *bean.C
 		item.Balance = zeroStr
 		itemHistory.New = item.Balance
 
-		poolBalance = poolBalance.Add(itemBalance)
+		poolBalance = poolBalance.Sub(itemBalance)
 		pool.Balance = poolBalance.String()
 		poolHistory.New = pool.Balance
 
