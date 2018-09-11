@@ -233,7 +233,7 @@ func (dao CreditCardDao) AddPendingInstantOfferTransfer(pendingTransfer *bean.Pe
 
 func (dao CreditCardDao) UpdatePendingInstantOfferTransfer(pendingTransfer *bean.PendingInstantOfferTransfer) (err error) {
 	dbClient := firebase_service.FirestoreClient
-	docRef := dbClient.Collection(GetPendingInstantOfferTransferPath()).NewDoc()
+	docRef := dbClient.Doc(GetPendingInstantOfferTransferPath())
 	pendingTransfer.Id = docRef.ID
 
 	_, err = docRef.Set(context.Background(), pendingTransfer.GetUpdate(), firestore.MergeAll)
@@ -247,7 +247,7 @@ func (dao CreditCardDao) RemovePendingInstantOfferTransfer(pendingTransfer *bean
 
 	batch := dbClient.Batch()
 
-	batch.Set(offerDocRef, offer.GetUpdate())
+	batch.Set(offerDocRef, offer.GetUpdate(), firestore.MergeAll)
 	batch.Delete(docRef)
 
 	_, err = batch.Commit(context.Background())

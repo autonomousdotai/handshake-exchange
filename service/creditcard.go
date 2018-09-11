@@ -54,13 +54,13 @@ func (s CreditCardService) GetProposeInstantOffer(amountStr string, currency str
 
 	price := decimal.NewFromFloat(cryptoRate.Buy).Round(2)
 
-	// =max(system fee * tx value, tx revenue*30%)
+	// =max(system fee * tx value, tx revenue*90%)
 	totalWOFee := amount.Mul(price)
 	feePercentage := decimal.NewFromFloat(systemFee.Value).Round(10)
 
 	total, externalFee := dao.AddFeePercentage(totalWOFee, externalFeePercentage)
 	_, internalFee1 := dao.AddFeePercentage(total, feePercentage)
-	internalFee2 := externalFee.Mul(decimal.NewFromFloat(0.3))
+	internalFee2 := externalFee.Mul(decimal.NewFromFloat(0.9))
 
 	internalFee := internalFee1
 	if internalFee2.GreaterThan(internalFee1) {
@@ -450,6 +450,7 @@ func (s CreditCardService) FinishInstantOfferTransfers() (finishedInstantOffers 
 		client := exchangecreditatm_service.ExchangeCreditAtmClient{}
 		amount := common.StringToDecimal(offer.Amount)
 		txHash, nonce, onChainErr := client.ReleasePartialFund(offer.Id, 1, amount, offer.Address, nonce)
+		fmt.Println(nonce)
 		if onChainErr != nil {
 			fmt.Println(onChainErr)
 			pendingOffer.Error = onChainErr.Error()

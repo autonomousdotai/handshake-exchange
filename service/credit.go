@@ -119,7 +119,8 @@ func (s CreditService) DeactivateCredit(userId string, currency string) (credit 
 			return
 		}
 		client := exchangecreditatm_service.ExchangeCreditAtmClient{}
-		amount := common.StringToDecimal(itemHistory.Change)
+		// Change is negative, so need to revert to Positive
+		amount := common.StringToDecimal(itemHistory.Change).Neg()
 
 		if currency == bean.ETH.Code {
 			txHash, _, onChainErr := client.ReleasePartialFund(userId, 2, amount, creditItem.UserAddress, 0)
@@ -817,7 +818,10 @@ func (s CreditService) finishTrackingItem(tracking bean.CreditOnChainActionTrack
 		Balance:    tracking.Amount,
 	}
 
-	s.dao.FinishDepositCreditItem(&item, &deposit, &itemHistory, &pool, &poolOrder, &poolHistory, &tracking)
+	err = s.dao.FinishDepositCreditItem(&item, &deposit, &itemHistory, &pool, &poolOrder, &poolHistory, &tracking)
+	if err != nil {
+		return err
+	}
 
 	chainId, _ := strconv.Atoi(credit.ChainId)
 	solr_service.UpdateObject(bean.NewSolrFromCreditDeposit(deposit, int64(chainId)))
