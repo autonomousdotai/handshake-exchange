@@ -122,7 +122,7 @@ func (s CreditService) DeactivateCredit(userId string, currency string) (credit 
 		amount := common.StringToDecimal(itemHistory.Change)
 
 		if currency == bean.ETH.Code {
-			txHash, onChainErr := client.ReleasePartialFund(userId, 2, amount, creditItem.UserAddress)
+			txHash, _, onChainErr := client.ReleasePartialFund(userId, 2, amount, creditItem.UserAddress, 0)
 			if onChainErr != nil {
 				fmt.Println(onChainErr)
 			} else {

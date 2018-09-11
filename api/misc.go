@@ -229,6 +229,16 @@ func (api MiscApi) FinishInstantOffers(context *gin.Context) {
 }
 
 // CRON JOB
+func (api MiscApi) FinishInstantOfferTransfers(context *gin.Context) {
+	_, ce := service.CreditCardServiceInst.FinishInstantOfferTransfers()
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, true)
+}
+
+// CRON JOB
 func (api MiscApi) FinishOfferConfirmingAddresses(context *gin.Context) {
 	_, ce := service.OfferServiceInst.FinishOfferConfirmingAddresses()
 	if ce.ContextValidate(context) {

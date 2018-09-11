@@ -95,6 +95,14 @@ func (c *EthereumClient) GetBalance() (balance decimal.Decimal, err error) {
 	return
 }
 
+func (c *EthereumClient) GetNonce() (nonce uint64, err error) {
+	nonce, err = c.client.PendingNonceAt(context.Background(), c.address)
+	if err != nil {
+		return
+	}
+	return
+}
+
 func (c *EthereumClient) GetAuth(amount decimal.Decimal) (auth *bind.TransactOpts, err error) {
 	nonce, err := c.client.PendingNonceAt(context.Background(), c.address)
 	if err != nil {

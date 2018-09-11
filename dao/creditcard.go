@@ -212,6 +212,49 @@ func (dao CreditCardDao) UpdateCCGlobalLimitAmount(amount decimal.Decimal) error
 	return err
 }
 
+func (dao CreditCardDao) GetPendingInstantOfferTransfer(id string) (t TransferObject) {
+	GetObject(GetPendingInstantOfferTransferItemPath(id), &t, snapshotToPendingInstantOfferTransfer)
+	return
+}
+
+func (dao CreditCardDao) ListPendingInstantOfferTransfer() (t TransferObject) {
+	ListObjects(GetPendingInstantOfferTransferPath(), &t, nil, snapshotToPendingInstantOfferTransfer)
+	return
+}
+
+func (dao CreditCardDao) AddPendingInstantOfferTransfer(pendingTransfer *bean.PendingInstantOfferTransfer) (err error) {
+	dbClient := firebase_service.FirestoreClient
+	docRef := dbClient.Collection(GetPendingInstantOfferTransferPath()).NewDoc()
+	pendingTransfer.Id = docRef.ID
+
+	_, err = docRef.Set(context.Background(), pendingTransfer.GetAdd())
+	return err
+}
+
+func (dao CreditCardDao) UpdatePendingInstantOfferTransfer(pendingTransfer *bean.PendingInstantOfferTransfer) (err error) {
+	dbClient := firebase_service.FirestoreClient
+	docRef := dbClient.Collection(GetPendingInstantOfferTransferPath()).NewDoc()
+	pendingTransfer.Id = docRef.ID
+
+	_, err = docRef.Set(context.Background(), pendingTransfer.GetUpdate(), firestore.MergeAll)
+	return err
+}
+
+func (dao CreditCardDao) RemovePendingInstantOfferTransfer(pendingTransfer *bean.PendingInstantOfferTransfer, offer *bean.InstantOffer) (err error) {
+	dbClient := firebase_service.FirestoreClient
+	docRef := dbClient.Doc(GetPendingInstantOfferTransferItemPath(pendingTransfer.Id))
+	offerDocRef := dbClient.Doc(GetInstantOfferItemPath(offer.UID, offer.Id))
+
+	batch := dbClient.Batch()
+
+	batch.Set(offerDocRef, offer.GetUpdate())
+	batch.Delete(docRef)
+
+	_, err = batch.Commit(context.Background())
+
+	return err
+}
+
 func GetUserCCTransactionPath(userId string) string {
 	return fmt.Sprintf("users/%s/cc_transactions", userId)
 }
@@ -238,6 +281,14 @@ func GetInstantOfferItemPath(userId string, id string) string {
 
 func GetPendingInstantOfferPath() string {
 	return fmt.Sprintf("pending_instant_offers")
+}
+
+func GetPendingInstantOfferTransferPath() string {
+	return fmt.Sprintf("pending_instant_offer_transfers")
+}
+
+func GetPendingInstantOfferTransferItemPath(id string) string {
+	return fmt.Sprintf("pending_instant_offer_transfers/%s", id)
 }
 
 func GetPendingInstantOfferItemPath(pendingOfferId string) string {
@@ -271,6 +322,13 @@ func snapshotToInstantOffer(snapshot *firestore.DocumentSnapshot) interface{} {
 
 func snapshotToGlobalCCLimit(snapshot *firestore.DocumentSnapshot) interface{} {
 	var obj bean.GlobalCCLimit
+	snapshot.DataTo(&obj)
+
+	return obj
+}
+
+func snapshotToPendingInstantOfferTransfer(snapshot *firestore.DocumentSnapshot) interface{} {
+	var obj bean.PendingInstantOfferTransfer
 	snapshot.DataTo(&obj)
 
 	return obj

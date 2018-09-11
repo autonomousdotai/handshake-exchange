@@ -68,6 +68,7 @@ func (cc CCTransaction) GetPageValue() interface{} {
 
 const INSTANT_OFFER_STATUS_PROCESSING = "processing"
 const INSTANT_OFFER_STATUS_SUCCESS = "success"
+const INSTANT_OFFER_STATUS_TRANSFERING = "transfering"
 const INSTANT_OFFER_STATUS_CANCELLED = "cancelled"
 
 const INSTANT_OFFER_TYPE_BUY = "buy"
@@ -213,6 +214,34 @@ type GlobalCCLimit struct {
 func (b GlobalCCLimit) GetUpdateUsage() map[string]interface{} {
 	return map[string]interface{}{
 		"usage":      b.Usage,
+		"updated_at": firestore.ServerTimestamp,
+	}
+}
+
+type PendingInstantOfferTransfer struct {
+	Id              string    `json:"id" firestore:"id"`
+	Amount          string    `json:"amount" firestore:"amount"`
+	Address         string    `json:"address" firestore:"address"`
+	InstantOffer    string    `json:"instant_offer" firestore:"instant_offer"`
+	InstantOfferRef string    `json:"instant_offer_ref" firestore:"instant_offer_ref"`
+	Error           string    `json:"error" firestore:"error"`
+	CreatedAt       time.Time `json:"created_at" firestore:"created_at"`
+}
+
+func (b PendingInstantOfferTransfer) GetAdd() map[string]interface{} {
+	return map[string]interface{}{
+		"id":                b.Id,
+		"amount":            b.Amount,
+		"address":           b.Address,
+		"instant_offer":     b.InstantOffer,
+		"instant_offer_ref": b.InstantOfferRef,
+		"created_at":        firestore.ServerTimestamp,
+	}
+}
+
+func (b PendingInstantOfferTransfer) GetUpdate() map[string]interface{} {
+	return map[string]interface{}{
+		"error":      b.Error,
 		"updated_at": firestore.ServerTimestamp,
 	}
 }

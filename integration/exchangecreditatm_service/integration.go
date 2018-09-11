@@ -46,11 +46,17 @@ func (c *ExchangeCreditAtmClient) closeWrite() {
 	c.writeClient.Close()
 }
 
-func (c *ExchangeCreditAtmClient) ReleasePartialFund(offerId string, hid int64, amount decimal.Decimal, address string) (txHash string, err error) {
+func (c *ExchangeCreditAtmClient) ReleasePartialFund(offerId string, hid int64, amount decimal.Decimal, address string, inNonce uint64) (txHash string, outNonce uint64, err error) {
 	c.initialize()
 	c.initializeWrite()
 
 	auth, err := c.writeClient.GetAuth(decimal.NewFromFloat(0))
+	if auth.Nonce.Uint64() < inNonce {
+		outNonce = inNonce
+		auth.Nonce = big.NewInt(int64(inNonce))
+	} else {
+		outNonce = auth.Nonce.Uint64()
+	}
 
 	offChain := [32]byte{}
 	copy(offChain[:], []byte(offerId))

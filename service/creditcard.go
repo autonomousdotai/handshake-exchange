@@ -431,6 +431,43 @@ func (s CreditCardService) FinishInstantOffers() (finishedInstantOffers []bean.I
 	return
 }
 
+func (s CreditCardService) FinishInstantOfferTransfers() (finishedInstantOffers []bean.InstantOffer, ce SimpleContextError) {
+	pendingOfferTO := s.dao.ListPendingInstantOfferTransfer()
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, pendingOfferTO) {
+		return
+	}
+
+	var nonce uint64
+	nonce = 0
+	for _, item := range pendingOfferTO.Objects {
+		pendingOffer := item.(bean.PendingInstantOfferTransfer)
+		offerTO := s.dao.GetInstantOfferByPath(pendingOffer.InstantOfferRef)
+		if ce.FeedDaoTransfer(api_error.GetDataFailed, offerTO) {
+			return
+		}
+		offer := offerTO.Object.(bean.InstantOffer)
+
+		client := exchangecreditatm_service.ExchangeCreditAtmClient{}
+		amount := common.StringToDecimal(offer.Amount)
+		txHash, nonce, onChainErr := client.ReleasePartialFund(offer.Id, 1, amount, offer.Address, nonce)
+		if onChainErr != nil {
+			fmt.Println(onChainErr)
+			pendingOffer.Error = onChainErr.Error()
+			s.dao.UpdatePendingInstantOfferTransfer(&pendingOffer)
+		} else {
+			offer.ProviderWithdrawData = txHash
+			offer.Status = bean.INSTANT_OFFER_STATUS_SUCCESS
+			s.dao.RemovePendingInstantOfferTransfer(&pendingOffer, &offer)
+			finishedInstantOffers = append(finishedInstantOffers, offer)
+
+			nonce += 1
+		}
+		fmt.Println(txHash)
+	}
+
+	return
+}
+
 func (s CreditCardService) saveCreditCard(userId string, token string, paymentMethodData bean.CreditCardInfo) (string, error) {
 	ccNum := paymentMethodData.CCNum
 	profileTO := s.userDao.GetProfile(userId)
@@ -582,16 +619,26 @@ func (s CreditCardService) finishInstantOfferCredit(pendingOffer *bean.PendingIn
 		// txHash, errWithdraw := crypto_service.SendTransaction(offer.Address, offer.Amount, offer.Currency)
 
 		if offer.Currency == bean.ETH.Code {
-			client := exchangecreditatm_service.ExchangeCreditAtmClient{}
-			amount := common.StringToDecimal(offer.Amount)
-			txHash, onChainErr := client.ReleasePartialFund(offer.Id, 1, amount, offer.Address)
-			if onChainErr != nil {
-				fmt.Println(onChainErr)
-				offer.ProviderWithdrawData = onChainErr.Error()
-			} else {
-				offer.ProviderWithdrawData = txHash
+			//client := exchangecreditatm_service.ExchangeCreditAtmClient{}
+			//amount := common.StringToDecimal(offer.Amount)
+			//txHash, onChainErr := client.ReleasePartialFund(offer.Id, 1, amount, offer.Address)
+			//if onChainErr != nil {
+			//	fmt.Println(onChainErr)
+			//	offer.ProviderWithdrawData = onChainErr.Error()
+			//} else {
+			//	offer.ProviderWithdrawData = txHash
+			//}
+			//fmt.Println(txHash)
+
+			offer.Status = bean.INSTANT_OFFER_STATUS_TRANSFERING
+			pendingTransfer := bean.PendingInstantOfferTransfer{
+				Amount:          offer.Amount,
+				Address:         offer.Address,
+				InstantOffer:    offer.Id,
+				InstantOfferRef: pendingOffer.InstantOfferRef,
 			}
-			fmt.Println(txHash)
+			s.dao.AddPendingInstantOfferTransfer(&pendingTransfer)
+
 		} else {
 			coinbaseTx, errWithdraw := coinbase_service.SendTransaction(offer.Address, offer.Amount, offer.Currency,
 				fmt.Sprintf("Withdraw tx = %s", offer.Id), offer.Id)
