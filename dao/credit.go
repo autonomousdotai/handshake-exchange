@@ -571,6 +571,10 @@ func (dao CreditDao) FinishCreditTransaction(pool *bean.CreditPool, poolHistory 
 			if err != nil {
 				return txErr
 			}
+			creditDoc, txErr := tx.Get(creditDocRefs[itemIndex])
+			if err != nil {
+				return txErr
+			}
 			itemBalance, txErr := common.ConvertToDecimal(itemDoc, "balance")
 			if txErr != nil {
 				return txErr
@@ -579,7 +583,7 @@ func (dao CreditDao) FinishCreditTransaction(pool *bean.CreditPool, poolHistory 
 			if txErr != nil {
 				return txErr
 			}
-			creditRevenue, txErr := common.ConvertToDecimal(itemDoc, "revenue")
+			creditRevenue, txErr := common.ConvertToDecimal(creditDoc, "revenue")
 			if txErr != nil {
 				return txErr
 			}
@@ -599,7 +603,7 @@ func (dao CreditDao) FinishCreditTransaction(pool *bean.CreditPool, poolHistory 
 			creditRevenue = creditRevenue.Add(revenue)
 			itemRevenue = itemRevenue.Add(revenue)
 			items[itemIndex].CreditRevenue = creditRevenue.String()
-			items[itemIndex].Revenue = revenue.String()
+			items[itemIndex].Revenue = itemRevenue.String()
 
 			if itemBalance.LessThan(common.Zero) {
 				return errors.New("invalid balance")
