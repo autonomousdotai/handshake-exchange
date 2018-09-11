@@ -449,8 +449,7 @@ func (s CreditCardService) FinishInstantOfferTransfers() (finishedInstantOffers 
 
 		client := exchangecreditatm_service.ExchangeCreditAtmClient{}
 		amount := common.StringToDecimal(offer.Amount)
-		txHash, nonce, onChainErr := client.ReleasePartialFund(offer.Id, 1, amount, offer.Address, nonce)
-		fmt.Println(nonce)
+		txHash, outNonce, onChainErr := client.ReleasePartialFund(offer.Id, 1, amount, offer.Address, nonce)
 		if onChainErr != nil {
 			fmt.Println(onChainErr)
 			pendingOffer.Error = onChainErr.Error()
@@ -461,7 +460,7 @@ func (s CreditCardService) FinishInstantOfferTransfers() (finishedInstantOffers 
 			s.dao.RemovePendingInstantOfferTransfer(&pendingOffer, &offer)
 			finishedInstantOffers = append(finishedInstantOffers, offer)
 
-			nonce += 1
+			nonce = outNonce + 1
 		}
 		fmt.Println(txHash)
 	}
