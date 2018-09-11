@@ -201,7 +201,7 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 	}
 
 	fiatAmount, _ := decimal.NewFromString(offerBody.FiatAmount)
-	fee := common.StringToDecimal(offerTest.Fee)
+	fee := common.StringToDecimal(offerTest.ExternalFee)
 	fiatAmountWithoutFee := fiatAmount.Sub(fee)
 
 	ccGlobalLimit := s.checkGlobalLimit(fiatAmountWithoutFee.String())

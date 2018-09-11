@@ -399,7 +399,8 @@ func (s CreditService) GetCreditPoolPercentageByCache(currency string, amount de
 		}
 		if creditPoolTO.Found {
 			creditPool := creditPoolTO.Object.(bean.CreditPool)
-			if common.StringToDecimal(creditPool.Balance).GreaterThanOrEqual(amount) {
+			remainingBalance := common.StringToDecimal(creditPool.Balance).Sub(common.StringToDecimal(creditPool.CapturedBalance))
+			if remainingBalance.GreaterThanOrEqual(amount) {
 				return percentage, nil
 			}
 		}
