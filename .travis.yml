@@ -17,6 +17,7 @@ before_install:
 - gcloud version
 - gcloud components install kubectl || true
 install:
+- git config --global http.sslVerify true
 - make install
 go_import_path: github.com/ninjadotorg/handshake-exchange
 script:
