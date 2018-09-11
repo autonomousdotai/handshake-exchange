@@ -8,7 +8,6 @@ import (
 	"github.com/shopspring/decimal"
 	"math/big"
 	"os"
-	"fmt"
 )
 
 var WeiDecimal = decimal.NewFromBigInt(big.NewInt(1000000000000000000), 0)
