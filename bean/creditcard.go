@@ -68,7 +68,7 @@ func (cc CCTransaction) GetPageValue() interface{} {
 
 const INSTANT_OFFER_STATUS_PROCESSING = "processing"
 const INSTANT_OFFER_STATUS_SUCCESS = "success"
-const INSTANT_OFFER_STATUS_TRANSFERING = "transfering"
+const INSTANT_OFFER_STATUS_TRANSFERRING = "transferring"
 const INSTANT_OFFER_STATUS_CANCELLED = "cancelled"
 
 const INSTANT_OFFER_TYPE_BUY = "buy"

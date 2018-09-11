@@ -630,7 +630,7 @@ func (s CreditCardService) finishInstantOfferCredit(pendingOffer *bean.PendingIn
 			//}
 			//fmt.Println(txHash)
 
-			offer.Status = bean.INSTANT_OFFER_STATUS_TRANSFERING
+			offer.Status = bean.INSTANT_OFFER_STATUS_TRANSFERRING
 			pendingTransfer := bean.PendingInstantOfferTransfer{
 				Amount:          offer.Amount,
 				Address:         offer.Address,
