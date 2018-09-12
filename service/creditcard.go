@@ -439,6 +439,18 @@ func (s CreditCardService) FinishInstantOfferTransfers() (finishedInstantOffers 
 
 	var nonce uint64
 	nonce = 0
+	cacheNonceTO := s.miscDao.GetInstantOfferNonceFromCache()
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, cacheNonceTO) {
+		return
+	}
+	cacheNonce := cacheNonceTO.Object.(string)
+	if cacheNonce == "" {
+		nonce = 0
+	} else {
+		nonceInt := common.StringToDecimal(cacheNonce)
+		nonce = uint64(nonceInt.IntPart())
+	}
+
 	for _, item := range pendingOfferTO.Objects {
 		pendingOffer := item.(bean.PendingInstantOfferTransfer)
 		offerTO := s.dao.GetInstantOfferByPath(pendingOffer.InstantOfferRef)
@@ -464,6 +476,8 @@ func (s CreditCardService) FinishInstantOfferTransfers() (finishedInstantOffers 
 		}
 		fmt.Println(txHash)
 	}
+
+	s.miscDao.InstantOfferNonceToCache(fmt.Sprintf("%d", nonce))
 
 	return
 }

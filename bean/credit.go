@@ -118,6 +118,7 @@ func (b CreditItem) GetUpdateStatus() map[string]interface{} {
 	return map[string]interface{}{
 		"status":           b.Status,
 		"sub_status":       b.SubStatus,
+		"percentage":       b.Percentage,
 		"last_action_data": b.LastActionData,
 		"updated_at":       firestore.ServerTimestamp,
 	}
