@@ -305,7 +305,7 @@ func (dao MiscDao) AddCryptoTransferLog(log bean.CryptoTransferLog) (bean.Crypto
 	return log, err
 }
 
-func (dao MiscDao) InstantOfferNonceToCache(nonce string) (error) {
+func (dao MiscDao) InstantOfferNonceToCache(nonce string) error {
 	cmd := cache.RedisClient.Set(GetInstantOfferNonceCacheKey(), nonce, 0)
 	return cmd.Err()
 }
