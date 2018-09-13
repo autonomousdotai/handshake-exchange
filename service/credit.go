@@ -123,7 +123,8 @@ func (s CreditService) DeactivateCredit(userId string, currency string) (credit 
 		amount := common.StringToDecimal(itemHistory.Change).Neg()
 
 		if currency == bean.ETH.Code {
-			txHash, _, onChainErr := client.ReleasePartialFund(userId, 2, amount, creditItem.UserAddress, 0)
+			nonce := CreditServiceInst.GetInstantTransferNonce(&ce)
+			txHash, _, onChainErr := client.ReleasePartialFund(userId, 2, amount, creditItem.UserAddress, nonce, false)
 			if onChainErr != nil {
 				fmt.Println(onChainErr)
 			} else {
@@ -717,6 +718,28 @@ func (s CreditService) SetupCreditPoolCache() (ce SimpleContextError) {
 	}
 
 	return
+}
+
+func (s CreditService) GetInstantTransferNonce(ce *SimpleContextError) uint64 {
+	var nonce uint64
+	nonce = 0
+	cacheNonceTO := s.miscDao.GetInstantOfferNonceFromCache()
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, cacheNonceTO) {
+		return 0
+	}
+	cacheNonce := cacheNonceTO.Object.(string)
+	if cacheNonce == "" {
+		nonce = 0
+	} else {
+		nonceInt := common.StringToDecimal(cacheNonce)
+		nonce = uint64(nonceInt.IntPart())
+	}
+
+	return nonce
+}
+
+func (s CreditService) SetNonceToCache(nonce uint64) {
+	s.miscDao.InstantOfferNonceToCache(fmt.Sprintf("%d", nonce))
 }
 
 func (s CreditService) SyncCreditTransactionToSolr(currency string, id string) (trans bean.CreditTransaction, ce SimpleContextError) {

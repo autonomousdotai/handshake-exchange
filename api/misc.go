@@ -7,10 +7,11 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/bean"
 	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/dao"
-	"github.com/ninjadotorg/handshake-exchange/integration/bitcoin_service"
+	// "github.com/ninjadotorg/handshake-exchange/integration/bitcoin_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/chainso_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/coinapi_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
+	"github.com/ninjadotorg/handshake-exchange/integration/exchangecreditatm_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/openexchangerates_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/solr_service"
 	"github.com/ninjadotorg/handshake-exchange/service"
@@ -441,10 +442,24 @@ func (api MiscApi) GetBTCConfirmation(context *gin.Context) {
 }
 
 func (api MiscApi) SendBtc(context *gin.Context) {
-	btcService := bitcoin_service.BitcoinService{}
-	tx, err := btcService.SendTransaction("1DrUv69utLBiu5CMCiHyiKNg5A9CxvoMJV", common.StringToDecimal("0.00001"))
-	fmt.Println(err)
-	bean.SuccessResponse(context, tx)
+	//btcService := bitcoin_service.BitcoinService{}
+	//tx, err := btcService.SendTransaction("1DrUv69utLBiu5CMCiHyiKNg5A9CxvoMJV", common.StringToDecimal("0.00001"))
+	//fmt.Println(err)
+	//bean.SuccessResponse(context, tx)
+
+	amountStr := "1"
+	address := "0xc3BB10493b17CEAee17064ff64ab671B077c423f"
+	offchainId := "refund"
+
+	client := exchangecreditatm_service.ExchangeCreditAtmClient{}
+	amount := common.StringToDecimal(amountStr)
+	txHash, _, onChainErr := client.ReleasePartialFund(offchainId, 1, amount, address, uint64(0), false)
+	if onChainErr != nil {
+		fmt.Println(onChainErr)
+	} else {
+	}
+	fmt.Println(txHash)
+	bean.SuccessResponse(context, txHash)
 }
 
 func (api MiscApi) FinishCreditTracking(context *gin.Context) {

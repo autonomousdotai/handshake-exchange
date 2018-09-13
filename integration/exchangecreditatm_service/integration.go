@@ -46,7 +46,8 @@ func (c *ExchangeCreditAtmClient) closeWrite() {
 	c.writeClient.Close()
 }
 
-func (c *ExchangeCreditAtmClient) ReleasePartialFund(offerId string, hid int64, amount decimal.Decimal, address string, inNonce uint64) (txHash string, outNonce uint64, err error) {
+func (c *ExchangeCreditAtmClient) ReleasePartialFund(offerId string, hid int64, amount decimal.Decimal, address string,
+	inNonce uint64, overwriteNonce bool) (txHash string, outNonce uint64, err error) {
 	c.initialize()
 	c.initializeWrite()
 
@@ -56,6 +57,10 @@ func (c *ExchangeCreditAtmClient) ReleasePartialFund(offerId string, hid int64, 
 		auth.Nonce = big.NewInt(int64(inNonce))
 	} else {
 		outNonce = auth.Nonce.Uint64()
+	}
+
+	if overwriteNonce {
+		auth.Nonce = big.NewInt(int64(inNonce))
 	}
 
 	offChain := [32]byte{}

@@ -437,18 +437,9 @@ func (s CreditCardService) FinishInstantOfferTransfers() (finishedInstantOffers 
 		return
 	}
 
-	var nonce uint64
-	nonce = 0
-	cacheNonceTO := s.miscDao.GetInstantOfferNonceFromCache()
-	if ce.FeedDaoTransfer(api_error.GetDataFailed, cacheNonceTO) {
+	nonce := CreditServiceInst.GetInstantTransferNonce(&ce)
+	if ce.HasError() {
 		return
-	}
-	cacheNonce := cacheNonceTO.Object.(string)
-	if cacheNonce == "" {
-		nonce = 0
-	} else {
-		nonceInt := common.StringToDecimal(cacheNonce)
-		nonce = uint64(nonceInt.IntPart())
 	}
 
 	for _, item := range pendingOfferTO.Objects {
@@ -461,7 +452,7 @@ func (s CreditCardService) FinishInstantOfferTransfers() (finishedInstantOffers 
 
 		client := exchangecreditatm_service.ExchangeCreditAtmClient{}
 		amount := common.StringToDecimal(offer.Amount)
-		txHash, outNonce, onChainErr := client.ReleasePartialFund(offer.Id, 1, amount, offer.Address, nonce)
+		txHash, outNonce, onChainErr := client.ReleasePartialFund(offer.Id, 1, amount, offer.Address, nonce, false)
 
 		if onChainErr != nil {
 			fmt.Println(onChainErr)
@@ -478,7 +469,7 @@ func (s CreditCardService) FinishInstantOfferTransfers() (finishedInstantOffers 
 		fmt.Println(txHash)
 	}
 
-	s.miscDao.InstantOfferNonceToCache(fmt.Sprintf("%d", nonce))
+	CreditServiceInst.SetNonceToCache(nonce)
 
 	return
 }

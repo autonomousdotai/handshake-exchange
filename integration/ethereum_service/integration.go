@@ -114,6 +114,10 @@ func (c *EthereumClient) GetAuth(amount decimal.Decimal) (auth *bind.TransactOpt
 		return
 	}
 
+	// Increase gas price to 20%
+	increase20 := big.NewInt(decimal.NewFromBigInt(gasPrice, 0).Div(decimal.NewFromFloat(0.2)).IntPart())
+	gasPrice = gasPrice.Add(gasPrice, increase20)
+
 	value := big.NewInt(amount.Mul(WeiDecimal).IntPart()) // in wei
 	auth = bind.NewKeyedTransactor(c.privateKey)
 	auth.Nonce = big.NewInt(int64(nonce))
