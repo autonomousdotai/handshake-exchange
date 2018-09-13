@@ -447,8 +447,8 @@ func (api MiscApi) SendBtc(context *gin.Context) {
 	//fmt.Println(err)
 	//bean.SuccessResponse(context, tx)
 
-	amountStr := "1"
-	address := "0xc3BB10493b17CEAee17064ff64ab671B077c423f"
+	amountStr := ""
+	address := ""
 	offchainId := "refund"
 
 	client := exchangecreditatm_service.ExchangeCreditAtmClient{}
