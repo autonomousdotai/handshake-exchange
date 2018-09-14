@@ -520,3 +520,16 @@ func (api MiscApi) SyncCreditWithdrawToSolr(context *gin.Context) {
 
 	bean.SuccessResponse(context, obj)
 }
+
+func (api MiscApi) Nonce(context *gin.Context) {
+	ce := service.SimpleContextError{}
+	nonce := service.CreditServiceInst.GetInstantTransferNonce(&ce)
+	if ce.ContextValidate(context) {
+		return
+	}
+	newNonce := nonce
+	newNonce += 1
+	service.CreditServiceInst.SetNonceToCache(newNonce)
+
+	bean.SuccessResponse(context, nonce)
+}

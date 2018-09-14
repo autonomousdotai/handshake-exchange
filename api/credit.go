@@ -129,16 +129,3 @@ func (api CreditApi) ListWithdraw(context *gin.Context) {
 		tx,
 	})
 }
-
-func (api CreditApi) Nonce(context *gin.Context) {
-	ce := service.SimpleContextError{}
-	nonce := service.CreditServiceInst.GetInstantTransferNonce(&ce)
-	if ce.ContextValidate(context) {
-		return
-	}
-	newNonce := nonce
-	newNonce += 1
-	service.CreditServiceInst.SetNonceToCache(newNonce)
-
-	bean.SuccessResponse(context, nonce)
-}
