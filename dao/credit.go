@@ -852,6 +852,41 @@ func (dao CreditDao) ListCreditPoolOrderUser(currency string, userId string) (t 
 	return
 }
 
+func (dao CreditDao) ListCreditWithdraw() (t TransferObject) {
+	ListObjects(GetCreditWithdrawPath(), &t, nil, snapshotToCreditWithdraw)
+	return
+}
+
+func (dao CreditDao) UpdateProcessingWithdraw(withdraw bean.CreditWithdraw) (err error) {
+	dbClient := firebase_service.FirestoreClient
+
+	docRef := dbClient.Doc(GetCreditWithdrawItemPath(withdraw.Id))
+	docUserRef := dbClient.Doc(GetCreditWithdrawItemUserPath(withdraw.UID, withdraw.Id))
+	docProcessedRef := dbClient.Doc(GetCreditProcessedWithdrawItemPath(withdraw.Id))
+
+	batch := dbClient.Batch()
+	batch.Delete(docRef)
+	batch.Set(docProcessedRef, withdraw.GetAdd())
+	batch.Set(docUserRef, withdraw.GetUpdateStatus(), firestore.MergeAll)
+	_, err = batch.Commit(context.Background())
+
+	return err
+}
+
+func (dao CreditDao) UpdateProcessedWithdraw(withdraw bean.CreditWithdraw) (err error) {
+	dbClient := firebase_service.FirestoreClient
+
+	docUserRef := dbClient.Doc(GetCreditWithdrawItemUserPath(withdraw.UID, withdraw.Id))
+	docProcessedRef := dbClient.Doc(GetCreditProcessedWithdrawItemPath(withdraw.Id))
+
+	batch := dbClient.Batch()
+	batch.Set(docProcessedRef, withdraw.GetUpdateStatus(), firestore.MergeAll)
+	batch.Set(docUserRef, withdraw.GetUpdateStatus(), firestore.MergeAll)
+	_, err = batch.Commit(context.Background())
+
+	return err
+}
+
 func (dao CreditDao) SetCreditPoolCache(pool bean.CreditPool) {
 	b, _ := json.Marshal(&pool)
 	key := GetCreditPoolCacheKey(pool.Currency, pool.Level)
@@ -920,10 +955,6 @@ func GetCreditDepositItemPath(currency string, id string) string {
 	return fmt.Sprintf("credit_deposits/%s/deposits/%s", currency, id)
 }
 
-func GetCreditWithdrawUserPath(userId string) string {
-	return fmt.Sprintf("credits/%s/withdraws", userId)
-}
-
 func GetCreditWithdrawItemUserPath(userId string, id string) string {
 	return fmt.Sprintf("credits/%s/withdraws/%s", userId, id)
 }
@@ -936,8 +967,8 @@ func GetCreditWithdrawItemPath(id string) string {
 	return fmt.Sprintf("credit_withdraws/%s", id)
 }
 
-func GetCreditTransactionUserPath(userId string, currency string) string {
-	return fmt.Sprintf("credits/%s/items/%s/transactions", userId, currency)
+func GetCreditProcessedWithdrawItemPath(id string) string {
+	return fmt.Sprintf("credit_processed_withdraws/%s", id)
 }
 
 func GetCreditTransactionItemUserPath(userId string, currency string, id string) string {
@@ -952,20 +983,8 @@ func GetCreditPendingTransactionPath(currency string) string {
 	return fmt.Sprintf("credit_transactions/%s/pending_transactions", currency)
 }
 
-func GetCreditPostTransactionPath(currency string) string {
-	return fmt.Sprintf("credit_transactions/%s/post_transactions", currency)
-}
-
 func GetCreditTransactionItemPath(currency string, id string) string {
 	return fmt.Sprintf("credit_transactions/%s/transactions/%s", currency, id)
-}
-
-func GetCreditPendingTransactionItemPath(currency string, id string) string {
-	return fmt.Sprintf("credit_transactions/%s/pending_transactions/%s", currency, id)
-}
-
-func GetCreditPostTransactionItemPath(currency string, id string) string {
-	return fmt.Sprintf("credit_transactions/%s/post_transactions/%s", currency, id)
 }
 
 func GetCreditPoolPath(currency string) string {
@@ -994,10 +1013,6 @@ func GetCreditPoolItemOrderItemUserPath(currency string, userId string, order st
 
 func GetCreditPoolBalanceHistoryPath(currency string, level string) string {
 	return fmt.Sprintf("credit_pools/%s/items/%s/history", currency, level)
-}
-
-func GetCreditPoolBalanceHistoryItemPath(currency string, level string, id string) string {
-	return fmt.Sprintf("credit_pools/%s/items/%s/history/%s", currency, level, id)
 }
 
 func GetCreditOnChainActionTrackingPath(currency string) string {
@@ -1033,13 +1048,6 @@ func snapshotToCredit(snapshot *firestore.DocumentSnapshot) interface{} {
 func snapshotToCreditItem(snapshot *firestore.DocumentSnapshot) interface{} {
 	var obj bean.CreditItem
 	snapshot.DataTo(&obj)
-	return obj
-}
-
-func snapshotToCreditBalanceHistory(snapshot *firestore.DocumentSnapshot) interface{} {
-	var obj bean.CreditBalanceHistory
-	snapshot.DataTo(&obj)
-	obj.Id = snapshot.Ref.ID
 	return obj
 }
 

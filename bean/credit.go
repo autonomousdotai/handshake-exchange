@@ -215,6 +215,7 @@ type CreditWithdraw struct {
 	Status      string            `json:"status" firestore:"status"`
 	Amount      string            `json:"amount" firestore:"amount"`
 	Information map[string]string `json:"information" firestore:"information"`
+	ProcessedId string            `json:"processed_id" firestore:"processed_id"`
 	CreatedAt   time.Time         `json:"created_at" firestore:"created_at"`
 }
 
@@ -232,6 +233,14 @@ func (b CreditWithdraw) GetAdd() map[string]interface{} {
 		"amount":      b.Amount,
 		"information": b.Information,
 		"created_at":  firestore.ServerTimestamp,
+	}
+}
+
+func (b CreditWithdraw) GetUpdateStatus() map[string]interface{} {
+	return map[string]interface{}{
+		"processed_id": b.ProcessedId,
+		"status":       b.Status,
+		"updated_at":   firestore.ServerTimestamp,
 	}
 }
 

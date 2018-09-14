@@ -687,6 +687,21 @@ func (s CreditService) AddCreditWithdraw(userId string, body bean.CreditWithdraw
 	return
 }
 
+func (s CreditService) ProcessCreditWithdraw() (ce SimpleContextError) {
+	withdrawTO := s.dao.ListCreditWithdraw()
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, withdrawTO) {
+		return
+	}
+
+	for _, item := range withdrawTO.Objects {
+		withdraw := item.(bean.CreditWithdraw)
+		withdraw.Status = bean.CREDIT_WITHDRAW_STATUS_PROCESSING
+		s.dao.UpdateProcessingWithdraw(withdraw)
+	}
+
+	return
+}
+
 func (s CreditService) SetupCreditPool() (ce SimpleContextError) {
 	for _, currency := range []string{bean.BTC.Code, bean.ETH.Code, bean.BCH.Code} {
 		level := 0
