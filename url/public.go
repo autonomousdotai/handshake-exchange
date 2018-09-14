@@ -84,6 +84,10 @@ func (url CronJobUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	group.POST("/finish-credit-tracking", func(context *gin.Context) {
 		miscApi.FinishCreditTracking(context)
 	})
+	//CRON JOB
+	group.POST("/process-credit-withdraw", func(context *gin.Context) {
+		miscApi.ProcessCreditWithdraw(context)
+	})
 	group.POST("/sync-to-credit-transaction-solr/:currency/:id", func(context *gin.Context) {
 		miscApi.SyncCreditTransactionToSolr(context)
 	})

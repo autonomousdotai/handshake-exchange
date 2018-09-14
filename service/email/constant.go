@@ -25,6 +25,7 @@ const OfferStoreMakerAccept = "OfferStoreMakerAccept"
 const OfferStoreTakerAccept = "OfferStoreTakerAccept"
 const OfferStoreMakerReject = "OfferStoreMakerReject"
 const OfferStoreTakerReject = "OfferStoreTakerReject"
+const CreditWithdraw = "CreditWithdraw"
 
 var TemplateName = map[string]string{
 	OfferBuyingActive:        "offer-buying-active-",
@@ -52,4 +53,5 @@ var TemplateName = map[string]string{
 	OfferStoreTakerAccept:    "offer-store-taker-accept-",
 	OfferStoreMakerReject:    "offer-store-maker-reject-",
 	OfferStoreTakerReject:    "offer-store-taker-reject-",
+	CreditWithdraw:           "credit-withdraw-",
 }

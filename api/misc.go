@@ -470,6 +470,14 @@ func (api MiscApi) FinishCreditTracking(context *gin.Context) {
 	bean.SuccessResponse(context, true)
 }
 
+func (api MiscApi) ProcessCreditWithdraw(context *gin.Context) {
+	ce := service.CreditServiceInst.ProcessCreditWithdraw()
+	if ce.ContextValidate(context) {
+		return
+	}
+	bean.SuccessResponse(context, true)
+}
+
 func (api MiscApi) SetupCreditPool(context *gin.Context) {
 	ce := service.CreditServiceInst.SetupCreditPool()
 	if ce.ContextValidate(context) {

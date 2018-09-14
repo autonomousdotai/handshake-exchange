@@ -1,0 +1,37 @@
+<html>
+<body>
+<p>
+    Hi,
+</p>
+<p>
+    Here are withdraw requests from ATM credit users.
+</p>
+<br>
+<table style="border: 1px solid black; border-collapse: collapse; padding: 15px;">
+    <thead>
+    <th style="border: 1px solid black; border-collapse: collapse; padding: 15px;">
+        Paypal ID
+    </th>
+    <th style="border: 1px solid black; border-collapse: collapse; padding: 15px;">
+        Amount
+    </th>
+    <th style="border: 1px solid black; border-collapse: collapse; padding: 15px;">
+        Withdraw ID
+    </th>
+    </thead>
+    <tbody>
+    {{range .}}
+    <tr>
+        <td style="border: 1px solid black; border-collapse: collapse; padding: 15px;">{{.Information.username}}</td>
+        <td style="border: 1px solid black; border-collapse: collapse; padding: 15px; text-align: right;">${{.Amount}}</td>
+        <td style="border: 1px solid black; border-collapse: collapse; padding: 15px;">{{.Id}}</td>
+    </tr>
+    {{end}}
+    </tbody>
+</table>
+<p>
+    Thanks,<br/>
+    Credit | Ninja
+</p>
+</body>
+</html>

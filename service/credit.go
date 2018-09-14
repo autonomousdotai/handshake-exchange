@@ -11,8 +11,10 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/integration/crypto_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/exchangecreditatm_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/solr_service"
+	"github.com/ninjadotorg/handshake-exchange/service/email"
 	"github.com/pkg/errors"
 	"github.com/shopspring/decimal"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -693,10 +695,32 @@ func (s CreditService) ProcessCreditWithdraw() (ce SimpleContextError) {
 		return
 	}
 
+	var credit bean.Credit
+	withdraws := make([]bean.CreditWithdraw, 0)
 	for _, item := range withdrawTO.Objects {
 		withdraw := item.(bean.CreditWithdraw)
 		withdraw.Status = bean.CREDIT_WITHDRAW_STATUS_PROCESSING
 		s.dao.UpdateProcessingWithdraw(withdraw)
+
+		if credit.UID == "" {
+			creditTO := s.dao.GetCredit(withdraw.UID)
+			if creditTO.Error != nil {
+				ce.FeedDaoTransfer(api_error.GetDataFailed, creditTO)
+				return
+			}
+			credit = creditTO.Object.(bean.Credit)
+		}
+
+		chainId, _ := strconv.Atoi(credit.ChainId)
+		solr_service.UpdateObject(bean.NewSolrFromCreditWithdraw(withdraw, int64(chainId)))
+
+		withdraws = append(withdraws, withdraw)
+	}
+
+	err := email.SendCreditWithdrawEmail(withdraws, os.Getenv("ATM_CREDIT_WITHDRAW_EMAIL"))
+	if err != nil {
+		ce.SetError(api_error.ExternalApiFailed, err)
+		return
 	}
 
 	return

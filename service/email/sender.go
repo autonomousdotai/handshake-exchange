@@ -3,6 +3,7 @@ package email
 import (
 	"fmt"
 	"github.com/nicksnyder/go-i18n/i18n"
+	"github.com/ninjadotorg/handshake-exchange/bean"
 	"os"
 )
 
@@ -630,4 +631,16 @@ func SendOfferStoreTakerRejectEmail(language string, emailAddress string, userna
 		subject,
 		OfferStoreTakerReject,
 		data)
+}
+
+func SendCreditWithdrawEmail(withdraws []bean.CreditWithdraw, emailAddress string) error {
+	subject := "[Credit ATM] Withdraw Requests"
+
+	return SendSystemEmailWithTemplate(
+		"",
+		emailAddress,
+		"en-US",
+		subject,
+		CreditWithdraw,
+		withdraws)
 }
