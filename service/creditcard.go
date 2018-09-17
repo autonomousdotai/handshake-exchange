@@ -137,7 +137,7 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 		return
 	}
 	if offerTest.Currency == bean.ETH.Code {
-		if ! common.CheckETHAddress(offerBody.Address) {
+		if !common.CheckETHAddress(offerBody.Address) {
 			ce.SetStatusKey(api_error.InvalidRequestBody)
 			return
 		}

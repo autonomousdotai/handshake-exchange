@@ -6,8 +6,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/ninjadotorg/handshake-exchange/api_error"
 	"github.com/shopspring/decimal"
-	"strings"
 	"regexp"
+	"strings"
 )
 
 func ValidateBody(context *gin.Context, body interface{}) error {
@@ -56,4 +56,3 @@ func CheckETHAddress(s string) bool {
 	re := regexp.MustCompile("^0x[0-9a-fA-F]{40}$")
 	return re.MatchString(s)
 }
-
