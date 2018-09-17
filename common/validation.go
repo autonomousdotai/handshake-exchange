@@ -7,6 +7,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/api_error"
 	"github.com/shopspring/decimal"
 	"strings"
+	"regexp"
 )
 
 func ValidateBody(context *gin.Context, body interface{}) error {
@@ -50,3 +51,9 @@ func ConvertToDecimal(doc *firestore.DocumentSnapshot, field string) (decimal.De
 
 	return realValue, nil
 }
+
+func CheckETHAddress(s string) bool {
+	re := regexp.MustCompile("^0x[0-9a-fA-F]{40}$")
+	return re.MatchString(s)
+}
+
