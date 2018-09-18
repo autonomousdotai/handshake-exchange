@@ -358,36 +358,36 @@ func (s CreditService) FinishTracking() (ce SimpleContextError) {
 		}
 	}
 
-	trackingTO = s.dao.ListCreditOnChainActionTracking(bean.BCH.Code)
-	if ce.FeedDaoTransfer(api_error.GetDataFailed, trackingTO) {
-		return
-	}
-	for _, item := range trackingTO.Objects {
-		trackingItem := item.(bean.CreditOnChainActionTracking)
-
-		if trackingItem.TxHash != "" {
-			confirmation, errChain := chainso_service.GetConfirmations(trackingItem.TxHash, bean.BCH.Code)
-			amount := decimal.Zero
-			if errChain == nil {
-				amount, errChain = chainso_service.GetAmount(trackingItem.TxHash)
-			} else {
-				ce.SetError(api_error.ExternalApiFailed, errChain)
-			}
-
-			fmt.Println(fmt.Sprintf("%s %s %s %s", trackingItem.Id, trackingItem.UID, trackingItem.TxHash, amount.String()))
-			confirmationRequired := s.getConfirmationRange(amount)
-			if errChain == nil {
-				if confirmation >= confirmationRequired && amount.GreaterThan(common.Zero) {
-					trackingItem.Amount = amount.String()
-					s.finishTrackingItem(trackingItem)
-				}
-			} else {
-				ce.SetError(api_error.ExternalApiFailed, errChain)
-			}
-		} else {
-			s.dao.RemoveCreditOnChainActionTracking(trackingItem)
-		}
-	}
+	//trackingTO = s.dao.ListCreditOnChainActionTracking(bean.BCH.Code)
+	//if ce.FeedDaoTransfer(api_error.GetDataFailed, trackingTO) {
+	//	return
+	//}
+	//for _, item := range trackingTO.Objects {
+	//	trackingItem := item.(bean.CreditOnChainActionTracking)
+	//
+	//	if trackingItem.TxHash != "" {
+	//		confirmation, errChain := chainso_service.GetConfirmations(trackingItem.TxHash, bean.BCH.Code)
+	//		amount := decimal.Zero
+	//		if errChain == nil {
+	//			amount, errChain = chainso_service.GetAmount(trackingItem.TxHash)
+	//		} else {
+	//			ce.SetError(api_error.ExternalApiFailed, errChain)
+	//		}
+	//
+	//		fmt.Println(fmt.Sprintf("%s %s %s %s", trackingItem.Id, trackingItem.UID, trackingItem.TxHash, amount.String()))
+	//		confirmationRequired := s.getConfirmationRange(amount)
+	//		if errChain == nil {
+	//			if confirmation >= confirmationRequired && amount.GreaterThan(common.Zero) {
+	//				trackingItem.Amount = amount.String()
+	//				s.finishTrackingItem(trackingItem)
+	//			}
+	//		} else {
+	//			ce.SetError(api_error.ExternalApiFailed, errChain)
+	//		}
+	//	} else {
+	//		s.dao.RemoveCreditOnChainActionTracking(trackingItem)
+	//	}
+	//}
 
 	return
 }
