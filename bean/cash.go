@@ -171,7 +171,7 @@ func (b CashItem) GetNotificationUpdate() map[string]interface{} {
 type Center struct {
 	Center       string            `json:"center" firestore:"center"`
 	Country      string            `json:"country" firestore:"country"`
-	FiatCurrency string            `json:"information" firestore:"information"`
+	FiatCurrency string            `json:"fiat_currency" firestore:"fiat_currency"`
 	Information  map[string]string `json:"information" firestore:"information"`
 }
 
