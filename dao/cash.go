@@ -13,85 +13,85 @@ import (
 	"strings"
 )
 
-type CreditDao struct {
+type CashDao struct {
 }
 
-func (dao CreditDao) GetCredit(userId string) (t TransferObject) {
-	GetObject(GetCreditUserPath(userId), &t, snapshotToCredit)
+func (dao CashDao) GetCashCredit(userId string) (t TransferObject) {
+	GetObject(GetCashCreditUserPath(userId), &t, snapshotToCashCredit)
 	return
 }
 
-func (dao CreditDao) GetCreditItem(userId string, currency string) (t TransferObject) {
-	GetObject(GetCreditItemItemPath(userId, currency), &t, snapshotToCreditItem)
+func (dao CashDao) GetCashCreditItem(userId string, currency string) (t TransferObject) {
+	GetObject(GetCashCreditItemItemPath(userId, currency), &t, snapshotToCashCreditItem)
 	return
 }
 
-func (dao CreditDao) ListCreditItem(userId string) (t TransferObject) {
-	ListObjects(GetCreditItemPath(userId), &t, nil, snapshotToCreditItem)
+func (dao CashDao) ListCashCreditItem(userId string) (t TransferObject) {
+	ListObjects(GetCashCreditItemPath(userId), &t, nil, snapshotToCashCreditItem)
 	return
 }
 
-func (dao CreditDao) AddCredit(credit *bean.Credit) error {
+func (dao CashDao) AddCashCredit(credit *bean.CashCredit) error {
 	dbClient := firebase_service.FirestoreClient
 
-	creditPath := GetCreditUserPath(credit.UID)
+	creditPath := GetCashCreditUserPath(credit.UID)
 	docRef := dbClient.Doc(creditPath)
 	_, err := docRef.Set(context.Background(), credit.GetAdd())
 
 	return err
 }
 
-func (dao CreditDao) UpdateCredit(credit *bean.Credit) error {
+func (dao CashDao) UpdateCashCredit(credit *bean.CashCredit) error {
 	dbClient := firebase_service.FirestoreClient
 
-	creditPath := GetCreditUserPath(credit.UID)
+	creditPath := GetCashCreditUserPath(credit.UID)
 	docRef := dbClient.Doc(creditPath)
 	_, err := docRef.Set(context.Background(), credit.GetUpdate(), firestore.MergeAll)
 
 	return err
 }
 
-func (dao CreditDao) AddCreditItem(item *bean.CreditItem) error {
+func (dao CashDao) AddCashCreditItem(item *bean.CashCreditItem) error {
 	dbClient := firebase_service.FirestoreClient
 
-	docRef := dbClient.Doc(GetCreditItemItemPath(item.UID, item.Currency))
+	docRef := dbClient.Doc(GetCashCreditItemItemPath(item.UID, item.Currency))
 	_, err := docRef.Set(context.Background(), item.GetAdd())
 
 	return err
 }
 
-func (dao CreditDao) UpdateCreditItem(item *bean.CreditItem) error {
+func (dao CashDao) UpdateCashCreditItem(item *bean.CashCreditItem) error {
 	dbClient := firebase_service.FirestoreClient
 
-	docRef := dbClient.Doc(GetCreditItemItemPath(item.UID, item.Currency))
+	docRef := dbClient.Doc(GetCashCreditItemItemPath(item.UID, item.Currency))
 	_, err := docRef.Set(context.Background(), item.GetUpdateStatus(), firestore.MergeAll)
 
 	return err
 }
 
-func (dao CreditDao) UpdateCreditItemReactivate(item *bean.CreditItem) error {
+func (dao CashDao) UpdateCashCreditItemReactivate(item *bean.CashCreditItem) error {
 	dbClient := firebase_service.FirestoreClient
 
-	docRef := dbClient.Doc(GetCreditItemItemPath(item.UID, item.Currency))
+	docRef := dbClient.Doc(GetCashCreditItemItemPath(item.UID, item.Currency))
 	_, err := docRef.Set(context.Background(), item.GetUpdateReactivate(), firestore.MergeAll)
 
 	return err
 }
 
-func (dao CreditDao) GetCreditDeposit(currency string, depositId string) (t TransferObject) {
-	t = dao.GetCreditDepositByPath(GetCreditDepositItemPath(currency, depositId))
+func (dao CashDao) GetCashCreditDeposit(currency string, depositId string) (t TransferObject) {
+	t = dao.GetCashCreditDepositByPath(GetCashCreditDepositItemPath(currency, depositId))
 	return
 }
 
-func (dao CreditDao) GetCreditDepositByPath(path string) (t TransferObject) {
-	GetObject(path, &t, snapshotToCreditDeposit)
+func (dao CashDao) GetCashCreditDepositByPath(path string) (t TransferObject) {
+	GetObject(path, &t, snapshotToCashCreditDeposit)
 	return
 }
 
-func (dao CreditDao) AddCreditDeposit(item *bean.CreditItem, deposit *bean.CreditDeposit) (err error) {
+func (dao CashDao) AddCashCreditDeposit(item *bean.CashCreditItem, deposit *bean.CashCreditDeposit) (err error) {
 	dbClient := firebase_service.FirestoreClient
 
-	docRef := dbClient.Collection(GetCreditDepositPath(deposit.Currency)).NewDoc()
+	docRef := dbClient.Collection(GetCashCreditDepositPath(deposit.Currency)).NewDoc()
 	deposit.Id = docRef.ID
 	docUserRef := dbClient.Doc(GetCreditDepositItemUserPath(deposit.UID, deposit.Currency, deposit.Id))
 
@@ -103,27 +103,27 @@ func (dao CreditDao) AddCreditDeposit(item *bean.CreditItem, deposit *bean.Credi
 	return err
 }
 
-func (dao CreditDao) FinishDepositCreditItem(item *bean.CreditItem, deposit *bean.CreditDeposit,
-	itemHistory *bean.CreditBalanceHistory,
-	pool *bean.CreditPool, poolOrder *bean.CreditPoolOrder, poolHistory *bean.CreditPoolBalanceHistory,
-	tracking *bean.CreditOnChainActionTracking) (err error) {
+func (dao CashDao) FinishDepositCashCreditItem(item *bean.CashCreditItem, deposit *bean.CashCreditDeposit,
+	itemHistory *bean.CashCreditBalanceHistory,
+	pool *bean.CashCreditPool, poolOrder *bean.CashCreditPoolOrder, poolHistory *bean.CashCreditPoolBalanceHistory,
+	tracking *bean.CashCreditOnChainActionTracking) (err error) {
 
 	dbClient := firebase_service.FirestoreClient
-	itemDocRef := dbClient.Doc(GetCreditItemItemPath(deposit.UID, deposit.Currency))
-	depositUserDocRef := dbClient.Doc(GetCreditDepositItemUserPath(deposit.UID, deposit.Currency, deposit.Id))
-	depositDocRef := dbClient.Doc(GetCreditDepositItemPath(deposit.Currency, deposit.Id))
+	itemDocRef := dbClient.Doc(GetCashCreditItemItemPath(deposit.UID, deposit.Currency))
+	depositUserDocRef := dbClient.Doc(GetCashCreditDepositItemUserPath(deposit.UID, deposit.Currency, deposit.Id))
+	depositDocRef := dbClient.Doc(GetCashCreditDepositItemPath(deposit.Currency, deposit.Id))
 
-	poolDocRef := dbClient.Doc(GetCreditPoolItemPath(deposit.Currency, pool.Level))
-	poolOrderDocRef := dbClient.Doc(GetCreditPoolItemOrderItemPath(deposit.Currency, pool.Level, poolOrder.Id))
-	poolOrderUserDocRef := dbClient.Doc(GetCreditPoolItemOrderItemUserPath(deposit.Currency, poolOrder.UID, poolOrder.Id))
+	poolDocRef := dbClient.Doc(GetCashCreditPoolItemPath(deposit.Currency, pool.Level))
+	poolOrderDocRef := dbClient.Doc(GetCashCreditPoolItemOrderItemPath(deposit.Currency, pool.Level, poolOrder.Id))
+	poolOrderUserDocRef := dbClient.Doc(GetCashCreditPoolItemOrderItemUserPath(deposit.Currency, poolOrder.UID, poolOrder.Id))
 
-	balanceHistoryDocRef := dbClient.Collection(GetCreditBalanceHistoryPath(deposit.UID, deposit.Currency)).NewDoc()
+	balanceHistoryDocRef := dbClient.Collection(GetCashCreditBalanceHistoryPath(deposit.UID, deposit.Currency)).NewDoc()
 	itemHistory.Id = balanceHistoryDocRef.ID
-	poolBalanceHistoryDocRef := dbClient.Collection(GetCreditPoolBalanceHistoryPath(deposit.Currency, pool.Level)).NewDoc()
+	poolBalanceHistoryDocRef := dbClient.Collection(GetCashCreditPoolBalanceHistoryPath(deposit.Currency, pool.Level)).NewDoc()
 	poolHistory.Id = poolBalanceHistoryDocRef.ID
 
-	docLogRef := dbClient.Doc(GetCreditOnChainActionLogItemPath(tracking.Currency, tracking.Id))
-	docTrackingRef := dbClient.Doc(GetCreditOnChainActionTrackingItemPath(tracking.Currency, tracking.Id))
+	docLogRef := dbClient.Doc(GetCashCreditOnChainActionLogItemPath(tracking.Currency, tracking.Id))
+	docTrackingRef := dbClient.Doc(GetCashCreditOnChainActionTrackingItemPath(tracking.Currency, tracking.Id))
 
 	amount := common.StringToDecimal(deposit.Amount)
 	poolOrderUserDocRefs := make([]*firestore.DocumentRef, 0)
@@ -224,31 +224,31 @@ func (dao CreditDao) FinishDepositCreditItem(item *bean.CreditItem, deposit *bea
 	})
 
 	if err == nil {
-		dao.SetCreditPoolCache(*pool)
+		dao.SetCashCreditPoolCache(*pool)
 	}
 
 	return err
 }
 
-func (dao CreditDao) RemoveCreditItem(item *bean.CreditItem, itemHistory *bean.CreditBalanceHistory,
-	pool *bean.CreditPool, poolOrders []bean.CreditPoolOrder, poolHistory *bean.CreditPoolBalanceHistory) (err error) {
+func (dao CashDao) RemoveCashCreditItem(item *bean.CashCreditItem, itemHistory *bean.CashCreditBalanceHistory,
+	pool *bean.CashCreditPool, poolOrders []bean.CashCreditPoolOrder, poolHistory *bean.CashCreditPoolBalanceHistory) (err error) {
 
 	dbClient := firebase_service.FirestoreClient
-	itemDocRef := dbClient.Doc(GetCreditItemItemPath(item.UID, item.Currency))
+	itemDocRef := dbClient.Doc(GetCashCreditItemItemPath(item.UID, item.Currency))
 
-	poolDocRef := dbClient.Doc(GetCreditPoolItemPath(item.Currency, pool.Level))
+	poolDocRef := dbClient.Doc(GetCashCreditPoolItemPath(item.Currency, pool.Level))
 
-	balanceHistoryDocRef := dbClient.Collection(GetCreditBalanceHistoryPath(item.UID, item.Currency)).NewDoc()
+	balanceHistoryDocRef := dbClient.Collection(GetCashCreditBalanceHistoryPath(item.UID, item.Currency)).NewDoc()
 	itemHistory.Id = balanceHistoryDocRef.ID
-	poolBalanceHistoryDocRef := dbClient.Collection(GetCreditPoolBalanceHistoryPath(item.Currency, pool.Level)).NewDoc()
+	poolBalanceHistoryDocRef := dbClient.Collection(GetCashCreditPoolBalanceHistoryPath(item.Currency, pool.Level)).NewDoc()
 	poolHistory.Id = poolBalanceHistoryDocRef.ID
 
 	poolOrderDocRefs := make([]*firestore.DocumentRef, 0)
 	poolOrderUserDocRefs := make([]*firestore.DocumentRef, 0)
 
 	for _, order := range poolOrders {
-		poolOrderDocRef := dbClient.Doc(GetCreditPoolItemOrderItemPath(item.Currency, pool.Level, order.Id))
-		poolOrderUserDocRef := dbClient.Doc(GetCreditPoolItemOrderItemUserPath(item.Currency, order.UID, order.Id))
+		poolOrderDocRef := dbClient.Doc(GetCashCreditPoolItemOrderItemPath(item.Currency, pool.Level, order.Id))
+		poolOrderUserDocRef := dbClient.Doc(GetCashCreditPoolItemOrderItemUserPath(item.Currency, order.UID, order.Id))
 
 		poolOrderDocRefs = append(poolOrderDocRefs, poolOrderDocRef)
 		poolOrderUserDocRefs = append(poolOrderUserDocRefs, poolOrderUserDocRef)
@@ -327,41 +327,41 @@ func (dao CreditDao) RemoveCreditItem(item *bean.CreditItem, itemHistory *bean.C
 	})
 
 	if err == nil {
-		dao.SetCreditPoolCache(*pool)
+		dao.SetCashCreditPoolCache(*pool)
 	}
 
 	return err
 }
 
-func (dao CreditDao) RemoveCreditOnChainActionTracking(tracking bean.CreditOnChainActionTracking) error {
+func (dao CashDao) RemoveCashCreditOnChainActionTracking(tracking bean.CashCreditOnChainActionTracking) error {
 	dbClient := firebase_service.FirestoreClient
-	docTrackingRef := dbClient.Doc(GetCreditOnChainActionTrackingItemPath(tracking.Currency, tracking.Id))
+	docTrackingRef := dbClient.Doc(GetCashCreditOnChainActionTrackingItemPath(tracking.Currency, tracking.Id))
 	_, err := docTrackingRef.Delete(context.Background())
 	return err
 }
 
-func (dao CreditDao) ListPendingCreditTransaction(currency string) (t TransferObject) {
-	ListObjects(GetCreditPendingTransactionPath(currency), &t, nil, snapshotToCreditTransaction)
+func (dao CashDao) ListPendingCashCreditTransaction(currency string) (t TransferObject) {
+	ListObjects(GetCashCreditPendingTransactionPath(currency), &t, nil, snapshotToCashCreditTransaction)
 	return
 }
 
-func (dao CreditDao) GetCreditTransaction(currency string, id string) (t TransferObject) {
-	GetObject(GetCreditTransactionItemPath(currency, id), &t, snapshotToCreditTransaction)
+func (dao CashDao) GetCashCreditTransaction(currency string, id string) (t TransferObject) {
+	GetObject(GetCashCreditTransactionItemPath(currency, id), &t, snapshotToCreditTransaction)
 	return
 }
 
-func (dao CreditDao) GetCreditTransactionUser(userId string, currency string, id string) (t TransferObject) {
-	GetObject(GetCreditTransactionItemUserPath(userId, currency, id), &t, snapshotToCreditTransaction)
+func (dao CashDao) GetCashCreditTransactionUser(userId string, currency string, id string) (t TransferObject) {
+	GetObject(GetCashCreditTransactionItemUserPath(userId, currency, id), &t, snapshotToCashCreditTransaction)
 	return
 }
 
-func (dao CreditDao) AddCreditTransaction(pool *bean.CreditPool, trans *bean.CreditTransaction,
-	userTransList []*bean.CreditTransaction, selectedOrders []bean.CreditPoolOrder) (err error) {
+func (dao CashDao) AddCashCreditTransaction(pool *bean.CashCreditPool, trans *bean.CashCreditTransaction,
+	userTransList []*bean.CashCreditTransaction, selectedOrders []bean.CashCreditPoolOrder) (err error) {
 
 	dbClient := firebase_service.FirestoreClient
 
-	poolDocRef := dbClient.Doc(GetCreditPoolItemPath(pool.Currency, pool.Level))
-	transDocRef := dbClient.Collection(GetCreditTransactionPath(pool.Currency)).NewDoc()
+	poolDocRef := dbClient.Doc(GetCashCreditPoolItemPath(pool.Currency, pool.Level))
+	transDocRef := dbClient.Collection(GetCashCreditTransactionPath(pool.Currency)).NewDoc()
 	trans.Id = transDocRef.ID
 	//pendingTransDocRef := dbClient.Doc(GetCreditPendingTransactionItemPath(pool.Currency, trans.Id))
 
@@ -374,7 +374,7 @@ func (dao CreditDao) AddCreditTransaction(pool *bean.CreditPool, trans *bean.Cre
 
 	poolOrderDocRefs := make([]*firestore.DocumentRef, 0)
 	for _, creditOrder := range selectedOrders {
-		orderPath := GetCreditPoolItemOrderItemPath(pool.Currency, pool.Level, creditOrder.Id)
+		orderPath := GetCashCreditPoolItemOrderItemPath(pool.Currency, pool.Level, creditOrder.Id)
 		poolOrderDocRef := dbClient.Doc(orderPath)
 		poolOrderDocRefs = append(poolOrderDocRefs, poolOrderDocRef)
 	}
@@ -480,26 +480,26 @@ func (dao CreditDao) AddCreditTransaction(pool *bean.CreditPool, trans *bean.Cre
 	return err
 }
 
-func (dao CreditDao) FinishCreditTransaction(pool *bean.CreditPool, poolHistory bean.CreditPoolBalanceHistory,
-	items []bean.CreditItem, itemHistories []bean.CreditBalanceHistory, poolOrders []bean.CreditPoolOrder,
-	trans *bean.CreditTransaction, transList []*bean.CreditTransaction) (err error) {
+func (dao CashDao) FinishCashCreditTransaction(pool *bean.CashCreditPool, poolHistory bean.CashCreditPoolBalanceHistory,
+	items []bean.CashCreditItem, itemHistories []bean.CashCreditBalanceHistory, poolOrders []bean.CashCreditPoolOrder,
+	trans *bean.CashCreditTransaction, transList []*bean.CashCreditTransaction) (err error) {
 
 	dbClient := firebase_service.FirestoreClient
 
-	poolDocRef := dbClient.Doc(GetCreditPoolItemPath(pool.Currency, pool.Level))
-	poolBalanceHistoryDocRef := dbClient.Collection(GetCreditPoolBalanceHistoryPath(pool.Currency, pool.Level)).NewDoc()
+	poolDocRef := dbClient.Doc(GetCashCreditPoolItemPath(pool.Currency, pool.Level))
+	poolBalanceHistoryDocRef := dbClient.Collection(GetCashCreditPoolBalanceHistoryPath(pool.Currency, pool.Level)).NewDoc()
 	poolHistory.Id = poolBalanceHistoryDocRef.ID
 
 	creditDocRefs := make([]*firestore.DocumentRef, 0)
 	itemDocRefs := make([]*firestore.DocumentRef, 0)
 	itemHistoryDocRefs := make([]*firestore.DocumentRef, 0)
 
-	transDocRef := dbClient.Doc(GetCreditTransactionItemPath(trans.Currency, trans.Id))
+	transDocRef := dbClient.Doc(GetCashCreditTransactionItemPath(trans.Currency, trans.Id))
 	transUserDocRefs := make([]*firestore.DocumentRef, 0)
 	for itemIndex, item := range items {
-		creditDocRef := dbClient.Doc(GetCreditUserPath(item.UID))
-		itemDocRef := dbClient.Doc(GetCreditItemItemPath(item.UID, item.Currency))
-		balanceHistoryDocRef := dbClient.Collection(GetCreditBalanceHistoryPath(item.UID, item.Currency)).NewDoc()
+		creditDocRef := dbClient.Doc(GetCashCreditUserPath(item.UID))
+		itemDocRef := dbClient.Doc(GetCashCreditItemItemPath(item.UID, item.Currency))
+		balanceHistoryDocRef := dbClient.Collection(GetCashCreditBalanceHistoryPath(item.UID, item.Currency)).NewDoc()
 
 		itemHistories[itemIndex].Id = balanceHistoryDocRef.ID
 
@@ -507,7 +507,7 @@ func (dao CreditDao) FinishCreditTransaction(pool *bean.CreditPool, poolHistory 
 		itemDocRefs = append(itemDocRefs, itemDocRef)
 		itemHistoryDocRefs = append(itemHistoryDocRefs, balanceHistoryDocRef)
 
-		transUserDocRef := dbClient.Doc(GetCreditTransactionItemUserPath(transList[itemIndex].UID, transList[itemIndex].Currency, transList[itemIndex].Id))
+		transUserDocRef := dbClient.Doc(GetCashCreditTransactionItemUserPath(transList[itemIndex].UID, transList[itemIndex].Currency, transList[itemIndex].Id))
 		transUserDocRefs = append(transUserDocRefs, transUserDocRef)
 	}
 
@@ -515,8 +515,8 @@ func (dao CreditDao) FinishCreditTransaction(pool *bean.CreditPool, poolHistory 
 	poolOrderUserDocRefs := make([]*firestore.DocumentRef, 0)
 
 	for _, poolOrder := range poolOrders {
-		poolOrderDocRef := dbClient.Doc(GetCreditPoolItemOrderItemPath(pool.Currency, pool.Level, poolOrder.Id))
-		poolOrderUserDocRef := dbClient.Doc(GetCreditPoolItemOrderItemUserPath(pool.Currency, poolOrder.UID, poolOrder.Id))
+		poolOrderDocRef := dbClient.Doc(GetCashCreditPoolItemOrderItemPath(pool.Currency, pool.Level, poolOrder.Id))
+		poolOrderUserDocRef := dbClient.Doc(GetCashCreditPoolItemOrderItemUserPath(pool.Currency, poolOrder.UID, poolOrder.Id))
 
 		poolOrderDocRefs = append(poolOrderDocRefs, poolOrderDocRef)
 		poolOrderUserDocRefs = append(poolOrderUserDocRefs, poolOrderUserDocRef)
@@ -695,24 +695,24 @@ func (dao CreditDao) FinishCreditTransaction(pool *bean.CreditPool, poolHistory 
 	})
 
 	if err == nil {
-		dao.SetCreditPoolCache(*pool)
+		dao.SetCashCreditPoolCache(*pool)
 	}
 
 	return err
 }
 
-func (dao CreditDao) FinishFailedDepositCreditItem(item *bean.CreditItem, deposit *bean.CreditDeposit,
-	tracking *bean.CreditOnChainActionTracking) (err error) {
+func (dao CashDao) FinishFailedDepositCashCreditItem(item *bean.CashCreditItem, deposit *bean.CashCreditDeposit,
+	tracking *bean.CashCreditOnChainActionTracking) (err error) {
 
 	dbClient := firebase_service.FirestoreClient
 	batch := dbClient.Batch()
 
-	itemDocRef := dbClient.Doc(GetCreditItemItemPath(deposit.UID, deposit.Currency))
-	depositUserDocRef := dbClient.Doc(GetCreditDepositItemUserPath(deposit.UID, deposit.Currency, deposit.Id))
-	depositDocRef := dbClient.Doc(GetCreditDepositItemPath(deposit.Currency, deposit.Id))
+	itemDocRef := dbClient.Doc(GetCashCreditItemItemPath(deposit.UID, deposit.Currency))
+	depositUserDocRef := dbClient.Doc(GetCashCreditDepositItemUserPath(deposit.UID, deposit.Currency, deposit.Id))
+	depositDocRef := dbClient.Doc(GetCashCreditDepositItemPath(deposit.Currency, deposit.Id))
 
-	docLogRef := dbClient.Doc(GetCreditOnChainActionLogItemPath(tracking.Currency, tracking.Id))
-	docTrackingRef := dbClient.Doc(GetCreditOnChainActionTrackingItemPath(tracking.Currency, tracking.Id))
+	docLogRef := dbClient.Doc(GetCashCreditOnChainActionLogItemPath(tracking.Currency, tracking.Id))
+	docTrackingRef := dbClient.Doc(GetCashCreditOnChainActionTrackingItemPath(tracking.Currency, tracking.Id))
 
 	batch.Set(itemDocRef, item.GetUpdate(), firestore.MergeAll)
 	batch.Set(depositUserDocRef, deposit.GetUpdate(), firestore.MergeAll)
@@ -724,53 +724,53 @@ func (dao CreditDao) FinishFailedDepositCreditItem(item *bean.CreditItem, deposi
 	return err
 }
 
-func (dao CreditDao) ListCreditPool(currency string) (t TransferObject) {
-	ListObjects(GetCreditPoolPath(currency), &t, nil, snapshotToCreditPool)
+func (dao CashDao) ListCashCreditPool(currency string) (t TransferObject) {
+	ListObjects(GetCashCreditPoolPath(currency), &t, nil, snapshotToCashCreditPool)
 	return
 }
 
-func (dao CreditDao) GetCreditPool(currency string, percentage int) (t TransferObject) {
+func (dao CashDao) GetCashCreditPool(currency string, percentage int) (t TransferObject) {
 	level := fmt.Sprintf("%03d", percentage)
-	GetObject(GetCreditPoolItemPath(currency, level), &t, snapshotToCreditPool)
+	GetObject(GetCashCreditPoolItemPath(currency, level), &t, snapshotToCashCreditPool)
 	return
 }
 
-func (dao CreditDao) AddCreditPool(pool *bean.CreditPool) error {
+func (dao CashDao) AddCashCreditPool(pool *bean.CashCreditPool) error {
 	dbClient := firebase_service.FirestoreClient
 
-	poolDocRef := dbClient.Doc(GetCreditPoolItemPath(pool.Currency, pool.Level))
+	poolDocRef := dbClient.Doc(GetCashCreditPoolItemPath(pool.Currency, pool.Level))
 	_, err := poolDocRef.Set(context.Background(), pool.GetAdd())
 
 	return err
 }
 
-func (dao CreditDao) ListCreditPoolOrder(currency string, level string) (t TransferObject) {
-	ListObjects(GetCreditPoolItemOrderPath(currency, level), &t, nil, snapshotToCreditPoolOrder)
+func (dao CashDao) ListCashCreditPoolOrder(currency string, level string) (t TransferObject) {
+	ListObjects(GetCashCreditPoolItemOrderPath(currency, level), &t, nil, snapshotToCashCreditPoolOrder)
 	return
 }
 
-func (dao CreditDao) ListCreditOnChainActionTracking(currency string) (t TransferObject) {
-	ListObjects(GetCreditOnChainActionTrackingPath(currency), &t, nil, snapshotToCreditOnChainTracking)
+func (dao CashDao) ListCashCreditOnChainActionTracking(currency string) (t TransferObject) {
+	ListObjects(GetCashCreditOnChainActionTrackingPath(currency), &t, nil, snapshotToCashCreditOnChainTracking)
 	return
 }
 
-func (dao CreditDao) GetCreditOnChainActionTracking(currency string) (t TransferObject) {
-	GetObject(GetCreditOnChainActionTrackingPath(currency), &t, snapshotToCreditOnChainTracking)
+func (dao CashDao) GetCashCreditOnChainActionTracking(currency string) (t TransferObject) {
+	GetObject(GetCashCreditOnChainActionTrackingPath(currency), &t, snapshotToCashCreditOnChainTracking)
 	return
 }
 
-func (dao CreditDao) AddCreditOnChainActionTracking(item *bean.CreditItem, deposit *bean.CreditDeposit,
-	tracking *bean.CreditOnChainActionTracking) (err error) {
+func (dao CashDao) AddCashCreditOnChainActionTracking(item *bean.CashCreditItem, deposit *bean.CashCreditDeposit,
+	tracking *bean.CashCreditOnChainActionTracking) (err error) {
 
 	dbClient := firebase_service.FirestoreClient
 
-	docRef := dbClient.Collection(GetCreditOnChainActionLogPath(tracking.Currency)).NewDoc()
+	docRef := dbClient.Collection(GetCashCreditOnChainActionLogPath(tracking.Currency)).NewDoc()
 	tracking.Id = docRef.ID
-	docTrackingRef := dbClient.Doc(GetCreditOnChainActionTrackingItemPath(tracking.Currency, tracking.Id))
+	docTrackingRef := dbClient.Doc(GetCashCreditOnChainActionTrackingItemPath(tracking.Currency, tracking.Id))
 
-	itemDocRef := dbClient.Doc(GetCreditItemItemPath(deposit.UID, deposit.Currency))
-	depositDocRef := dbClient.Doc(GetCreditDepositItemPath(deposit.Currency, deposit.Id))
-	depositUserDocRef := dbClient.Doc(GetCreditDepositItemUserPath(deposit.UID, deposit.Currency, deposit.Id))
+	itemDocRef := dbClient.Doc(GetCashCreditItemItemPath(deposit.UID, deposit.Currency))
+	depositDocRef := dbClient.Doc(GetCashCreditDepositItemPath(deposit.Currency, deposit.Id))
+	depositUserDocRef := dbClient.Doc(GetCashCreditDepositItemUserPath(deposit.UID, deposit.Currency, deposit.Id))
 
 	batch := dbClient.Batch()
 	batch.Set(docRef, tracking.GetAdd())
@@ -783,11 +783,11 @@ func (dao CreditDao) AddCreditOnChainActionTracking(item *bean.CreditItem, depos
 	return err
 }
 
-func (dao CreditDao) UpdateCreditOnChainActionTracking(tracking *bean.CreditOnChainActionTracking) (err error) {
+func (dao CashDao) UpdateCashCreditOnChainActionTracking(tracking *bean.CashCreditOnChainActionTracking) (err error) {
 	dbClient := firebase_service.FirestoreClient
 
-	docRef := dbClient.Doc(GetCreditOnChainActionLogItemPath(tracking.Currency, tracking.Id))
-	docTrackingRef := dbClient.Doc(GetCreditOnChainActionTrackingItemPath(tracking.Currency, tracking.Id))
+	docRef := dbClient.Doc(GetCashCreditOnChainActionLogItemPath(tracking.Currency, tracking.Id))
+	docTrackingRef := dbClient.Doc(GetCashCreditOnChainActionTrackingItemPath(tracking.Currency, tracking.Id))
 
 	batch := dbClient.Batch()
 	batch.Delete(docTrackingRef)
@@ -797,23 +797,18 @@ func (dao CreditDao) UpdateCreditOnChainActionTracking(tracking *bean.CreditOnCh
 	return err
 }
 
-func (dao CreditDao) GetCreditWithdraw(withdrawId string) (t TransferObject) {
-	GetObject(GetCreditWithdrawItemPath(withdrawId), &t, snapshotToCreditWithdraw)
+func (dao CashDao) GetCashCreditWithdraw(withdrawId string) (t TransferObject) {
+	GetObject(GetCashCreditWithdrawItemPath(withdrawId), &t, snapshotToCashCreditWithdraw)
 	return
 }
 
-func (dao CreditDao) GetCreditProcessingWithdraw(withdrawId string) (t TransferObject) {
-	GetObject(GetCreditProcessingWithdrawItemPath(withdrawId), &t, snapshotToCreditWithdraw)
-	return
-}
-
-func (dao CreditDao) AddCreditWithdraw(credit *bean.Credit, creditWithdraw *bean.CreditWithdraw) (err error) {
+func (dao CashDao) AddCashCreditWithdraw(credit *bean.CashCredit, creditWithdraw *bean.CashCreditWithdraw) (err error) {
 	dbClient := firebase_service.FirestoreClient
 
-	creditDocRef := dbClient.Doc(GetCreditUserPath(credit.UID))
-	creditWithdrawDocRef := dbClient.Collection(GetCreditWithdrawPath()).NewDoc()
+	creditDocRef := dbClient.Doc(GetCashCreditUserPath(credit.UID))
+	creditWithdrawDocRef := dbClient.Collection(GetCashCreditWithdrawPath()).NewDoc()
 	creditWithdraw.Id = creditWithdrawDocRef.ID
-	creditWithdrawUserDocRef := dbClient.Doc(GetCreditWithdrawItemUserPath(credit.UID, creditWithdraw.Id))
+	creditWithdrawUserDocRef := dbClient.Doc(GetCashCreditWithdrawItemUserPath(credit.UID, creditWithdraw.Id))
 
 	amount := common.StringToDecimal(creditWithdraw.Amount)
 	err = dbClient.RunTransaction(context.Background(), func(ctx context.Context, tx *firestore.Transaction) error {
@@ -852,51 +847,25 @@ func (dao CreditDao) AddCreditWithdraw(credit *bean.Credit, creditWithdraw *bean
 	return err
 }
 
-func (dao CreditDao) ListCreditPoolOrderUser(currency string, userId string) (t TransferObject) {
-	ListObjects(GetCreditPoolItemOrderUserPath(currency, userId), &t, nil, snapshotToCreditPoolOrder)
+func (dao CashDao) ListCashCreditPoolOrderUser(currency string, userId string) (t TransferObject) {
+	ListObjects(GetCashCreditPoolItemOrderUserPath(currency, userId), &t, nil, snapshotToCashCreditPoolOrder)
 	return
 }
 
-func (dao CreditDao) ListCreditWithdraw() (t TransferObject) {
-	ListObjects(GetCreditWithdrawPath(), &t, nil, snapshotToCreditWithdraw)
+func (dao CashDao) ListCashCreditWithdraw() (t TransferObject) {
+	ListObjects(GetCashCreditWithdrawPath(), &t, nil, snapshotToCreditWithdraw)
 	return
 }
 
-func (dao CreditDao) ListCreditProcessingWithdraw() (t TransferObject) {
-	ListObjects(GetCreditProcessingWithdrawPath(), &t, nil, snapshotToCreditWithdraw)
-	return
-}
-
-func (dao CreditDao) ListCreditProcessedWithdraw() (t TransferObject) {
-	ListObjects(GetCreditProcessedWithdrawPath(), &t, nil, snapshotToCreditWithdraw)
-	return
-}
-
-func (dao CreditDao) UpdateProcessingWithdraw(withdraw bean.CreditWithdraw) (err error) {
+func (dao CashDao) UpdateProcessingCashWithdraw(withdraw bean.CashCreditWithdraw) (err error) {
 	dbClient := firebase_service.FirestoreClient
 
-	docRef := dbClient.Doc(GetCreditWithdrawItemPath(withdraw.Id))
-	docUserRef := dbClient.Doc(GetCreditWithdrawItemUserPath(withdraw.UID, withdraw.Id))
-	docProcessingRef := dbClient.Doc(GetCreditProcessingWithdrawItemPath(withdraw.Id))
+	docRef := dbClient.Doc(GetCashCreditWithdrawItemPath(withdraw.Id))
+	docUserRef := dbClient.Doc(GetCashCreditWithdrawItemUserPath(withdraw.UID, withdraw.Id))
+	docProcessedRef := dbClient.Doc(GetCashCreditProcessedWithdrawItemPath(withdraw.Id))
 
 	batch := dbClient.Batch()
 	batch.Delete(docRef)
-	batch.Set(docProcessingRef, withdraw.GetAdd())
-	batch.Set(docUserRef, withdraw.GetUpdateStatus(), firestore.MergeAll)
-	_, err = batch.Commit(context.Background())
-
-	return err
-}
-
-func (dao CreditDao) UpdateProcessedWithdraw(withdraw bean.CreditWithdraw) (err error) {
-	dbClient := firebase_service.FirestoreClient
-
-	docUserRef := dbClient.Doc(GetCreditWithdrawItemUserPath(withdraw.UID, withdraw.Id))
-	docProcessingRef := dbClient.Doc(GetCreditProcessingWithdrawItemPath(withdraw.Id))
-	docProcessedRef := dbClient.Doc(GetCreditProcessedWithdrawItemPath(withdraw.Id))
-
-	batch := dbClient.Batch()
-	batch.Delete(docProcessingRef)
 	batch.Set(docProcessedRef, withdraw.GetAdd())
 	batch.Set(docUserRef, withdraw.GetUpdateStatus(), firestore.MergeAll)
 	_, err = batch.Commit(context.Background())
@@ -904,17 +873,31 @@ func (dao CreditDao) UpdateProcessedWithdraw(withdraw bean.CreditWithdraw) (err 
 	return err
 }
 
-func (dao CreditDao) SetCreditPoolCache(pool bean.CreditPool) {
+func (dao CashDao) UpdateProcessedCashWithdraw(withdraw bean.CashCreditWithdraw) (err error) {
+	dbClient := firebase_service.FirestoreClient
+
+	docUserRef := dbClient.Doc(GetCashCreditWithdrawItemUserPath(withdraw.UID, withdraw.Id))
+	docProcessedRef := dbClient.Doc(GetCashCreditProcessedWithdrawItemPath(withdraw.Id))
+
+	batch := dbClient.Batch()
+	batch.Set(docProcessedRef, withdraw.GetUpdateStatus(), firestore.MergeAll)
+	batch.Set(docUserRef, withdraw.GetUpdateStatus(), firestore.MergeAll)
+	_, err = batch.Commit(context.Background())
+
+	return err
+}
+
+func (dao CashDao) SetCashCreditPoolCache(pool bean.CashCreditPool) {
 	b, _ := json.Marshal(&pool)
-	key := GetCreditPoolCacheKey(pool.Currency, pool.Level)
+	key := GetCashCreditPoolCacheKey(pool.Currency, pool.Level)
 	cache.RedisClient.Set(key, string(b), 0)
 }
 
-func (dao CreditDao) GetCreditPoolCache(currency string, level string) TransferObject {
-	key := GetCreditPoolCacheKey(currency, level)
+func (dao CashDao) GetCashCreditPoolCache(currency string, level string) TransferObject {
+	key := GetCashCreditPoolCacheKey(currency, level)
 	var to TransferObject
 	GetCacheObject(key, &to, func(val string) interface{} {
-		var creditPool bean.CreditPool
+		var creditPool bean.CashCreditPool
 		json.Unmarshal([]byte(val), &creditPool)
 		return creditPool
 	})
@@ -922,208 +905,196 @@ func (dao CreditDao) GetCreditPoolCache(currency string, level string) TransferO
 	return to
 }
 
-func (dao CreditDao) GetCreditPoolOrderByPath(path string) (t TransferObject) {
-	GetObject(path, &t, snapshotToCreditPoolOrder)
+func (dao CashDao) GetCashCreditPoolOrderByPath(path string) (t TransferObject) {
+	GetObject(path, &t, snapshotToCashCreditPoolOrder)
 	return
 }
 
-func (dao CreditDao) UpdateNotificationCreditItem(creditItem bean.CreditItem) error {
+func (dao CashDao) UpdateNotificationCashCreditItem(creditItem bean.CashCreditItem) error {
 	dbClient := firebase_service.NotificationFirebaseClient
 
-	ref := dbClient.NewRef(GetNotificationCreditItemPath(creditItem.UID, creditItem.Currency))
+	ref := dbClient.NewRef(GetNotificationCashCreditItemPath(creditItem.UID, creditItem.Currency))
 	err := ref.Set(context.Background(), creditItem.GetNotificationUpdate())
 
 	return err
 }
 
-func GetCreditUserPath(userId string) string {
+func GetCashCreditUserPath(userId string) string {
 	return fmt.Sprintf("credits/%s", userId)
 }
 
-func GetCreditItemPath(userId string) string {
+func GetCashCreditItemPath(userId string) string {
 	return fmt.Sprintf("credits/%s/items", userId)
 }
 
-func GetCreditItemItemPath(userId string, currency string) string {
+func GetCashCreditItemItemPath(userId string, currency string) string {
 	return fmt.Sprintf("credits/%s/items/%s", userId, currency)
 }
 
-func GetCreditBalanceHistoryPath(userId string, currency string) string {
+func GetCashCreditBalanceHistoryPath(userId string, currency string) string {
 	return fmt.Sprintf("credits/%s/items/%s/history", userId, currency)
 }
 
-func GetCreditBalanceHistoryItemPath(userId string, currency string, id string) string {
+func GetCashCreditBalanceHistoryItemPath(userId string, currency string, id string) string {
 	return fmt.Sprintf("credits/%s/items/%s/history/%s", userId, currency, id)
 }
 
-func GetCreditDepositUserPath(userId string, currency string) string {
+func GetCashCreditDepositUserPath(userId string, currency string) string {
 	return fmt.Sprintf("credits/%s/items/%s/deposits", userId, currency)
 }
 
-func GetCreditDepositItemUserPath(userId string, currency string, id string) string {
+func GetCashCreditDepositItemUserPath(userId string, currency string, id string) string {
 	return fmt.Sprintf("credits/%s/items/%s/deposits/%s", userId, currency, id)
 }
 
-func GetCreditDepositPath(currency string) string {
+func GetCashCreditDepositPath(currency string) string {
 	return fmt.Sprintf("credit_deposits/%s/deposits", currency)
 }
 
-func GetCreditDepositItemPath(currency string, id string) string {
+func GetCashCreditDepositItemPath(currency string, id string) string {
 	return fmt.Sprintf("credit_deposits/%s/deposits/%s", currency, id)
 }
 
-func GetCreditWithdrawItemUserPath(userId string, id string) string {
+func GetCashCreditWithdrawItemUserPath(userId string, id string) string {
 	return fmt.Sprintf("credits/%s/withdraws/%s", userId, id)
 }
 
-func GetCreditWithdrawPath() string {
+func GetCashCreditWithdrawPath() string {
 	return fmt.Sprintf("credit_withdraws")
 }
 
-func GetCreditWithdrawItemPath(id string) string {
+func GetCashCreditWithdrawItemPath(id string) string {
 	return fmt.Sprintf("credit_withdraws/%s", id)
 }
 
-func GetCreditProcessingWithdrawPath() string {
-	return fmt.Sprintf("credit_processing_withdraws")
-}
-
-func GetCreditProcessingWithdrawItemPath(id string) string {
-	return fmt.Sprintf("credit_processing_withdraws/%s", id)
-}
-
-func GetCreditProcessedWithdrawPath() string {
-	return fmt.Sprintf("credit_processed_withdraws")
-}
-
-func GetCreditProcessedWithdrawItemPath(id string) string {
+func GetCashCreditProcessedWithdrawItemPath(id string) string {
 	return fmt.Sprintf("credit_processed_withdraws/%s", id)
 }
 
-func GetCreditTransactionItemUserPath(userId string, currency string, id string) string {
+func GetCashCreditTransactionItemUserPath(userId string, currency string, id string) string {
 	return fmt.Sprintf("credits/%s/items/%s/transactions/%s", userId, currency, id)
 }
 
-func GetCreditTransactionPath(currency string) string {
+func GetCashCreditTransactionPath(currency string) string {
 	return fmt.Sprintf("credit_transactions/%s/transactions", currency)
 }
 
-func GetCreditPendingTransactionPath(currency string) string {
+func GetCashCreditPendingTransactionPath(currency string) string {
 	return fmt.Sprintf("credit_transactions/%s/pending_transactions", currency)
 }
 
-func GetCreditTransactionItemPath(currency string, id string) string {
+func GetCashCreditTransactionItemPath(currency string, id string) string {
 	return fmt.Sprintf("credit_transactions/%s/transactions/%s", currency, id)
 }
 
-func GetCreditPoolPath(currency string) string {
+func GetCashCreditPoolPath(currency string) string {
 	return fmt.Sprintf("credit_pools/%s/items", currency)
 }
 
-func GetCreditPoolItemPath(currency string, level string) string {
+func GetCashCreditPoolItemPath(currency string, level string) string {
 	return fmt.Sprintf("credit_pools/%s/items/%s", currency, level)
 }
 
-func GetCreditPoolItemOrderPath(currency string, level string) string {
+func GetCashCreditPoolItemOrderPath(currency string, level string) string {
 	return fmt.Sprintf("credit_pools/%s/items/%s/orders", currency, level)
 }
 
-func GetCreditPoolItemOrderItemPath(currency string, level string, order string) string {
+func GetCashCreditPoolItemOrderItemPath(currency string, level string, order string) string {
 	return fmt.Sprintf("credit_pools/%s/items/%s/orders/%s", currency, level, order)
 }
 
-func GetCreditPoolItemOrderUserPath(currency string, userId string) string {
+func GetCashCreditPoolItemOrderUserPath(currency string, userId string) string {
 	return fmt.Sprintf("credit_pool_orders/%s/items/%s/orders", currency, userId)
 }
 
-func GetCreditPoolItemOrderItemUserPath(currency string, userId string, order string) string {
+func GetCashCreditPoolItemOrderItemUserPath(currency string, userId string, order string) string {
 	return fmt.Sprintf("credit_pool_orders/%s/items/%s/orders/%s", currency, userId, order)
 }
 
-func GetCreditPoolBalanceHistoryPath(currency string, level string) string {
+func GetCashCreditPoolBalanceHistoryPath(currency string, level string) string {
 	return fmt.Sprintf("credit_pools/%s/items/%s/history", currency, level)
 }
 
-func GetCreditOnChainActionTrackingPath(currency string) string {
+func GetCashCreditOnChainActionTrackingPath(currency string) string {
 	return fmt.Sprintf("credit_on_chain_trackings/%s/items", currency)
 }
 
-func GetCreditOnChainActionTrackingItemPath(currency string, id string) string {
+func GetCashCreditOnChainActionTrackingItemPath(currency string, id string) string {
 	return fmt.Sprintf("credit_on_chain_trackings/%s/items/%s", currency, id)
 }
 
-func GetCreditOnChainActionLogPath(currency string) string {
+func GetCashCreditOnChainActionLogPath(currency string) string {
 	return fmt.Sprintf("credit_on_chain_logs/%s/items", currency)
 }
 
-func GetCreditOnChainActionLogItemPath(currency string, id string) string {
+func GetCashCreditOnChainActionLogItemPath(currency string, id string) string {
 	return fmt.Sprintf("credit_on_chain_logs/%s/items/%s", currency, id)
 }
 
-func GetCreditPoolCacheKey(currency string, level string) string {
+func GetCashCreditPoolCacheKey(currency string, level string) string {
 	return fmt.Sprintf("credit_pools.%s.%s", currency, level)
 }
 
-func GetNotificationCreditItemPath(userId string, currency string) string {
+func GetNotificationCashCreditItemPath(userId string, currency string) string {
 	return fmt.Sprintf("users/%s/credits/credit_item_%s", userId, currency)
 }
 
-func snapshotToCredit(snapshot *firestore.DocumentSnapshot) interface{} {
-	var obj bean.Credit
+func snapshotToCashCredit(snapshot *firestore.DocumentSnapshot) interface{} {
+	var obj bean.CashCredit
 	snapshot.DataTo(&obj)
 	return obj
 }
 
-func snapshotToCreditItem(snapshot *firestore.DocumentSnapshot) interface{} {
-	var obj bean.CreditItem
+func snapshotToCashCreditItem(snapshot *firestore.DocumentSnapshot) interface{} {
+	var obj bean.CashCreditItem
 	snapshot.DataTo(&obj)
 	return obj
 }
 
-func snapshotToCreditDeposit(snapshot *firestore.DocumentSnapshot) interface{} {
-	var obj bean.CreditDeposit
-	snapshot.DataTo(&obj)
-	obj.Id = snapshot.Ref.ID
-	return obj
-}
-
-func snapshotToCreditWithdraw(snapshot *firestore.DocumentSnapshot) interface{} {
-	var obj bean.CreditWithdraw
+func snapshotToCashCreditDeposit(snapshot *firestore.DocumentSnapshot) interface{} {
+	var obj bean.CashCreditDeposit
 	snapshot.DataTo(&obj)
 	obj.Id = snapshot.Ref.ID
 	return obj
 }
 
-func snapshotToCreditPool(snapshot *firestore.DocumentSnapshot) interface{} {
-	var obj bean.CreditPool
-	snapshot.DataTo(&obj)
-
-	return obj
-}
-
-func snapshotToCreditTransaction(snapshot *firestore.DocumentSnapshot) interface{} {
-	var obj bean.CreditTransaction
-	snapshot.DataTo(&obj)
-
-	return obj
-}
-
-func snapshotToCreditPoolOrder(snapshot *firestore.DocumentSnapshot) interface{} {
-	var obj bean.CreditPoolOrder
-	snapshot.DataTo(&obj)
-
-	return obj
-}
-
-func snapshotToCreditPoolBalanceHistory(snapshot *firestore.DocumentSnapshot) interface{} {
-	var obj bean.CreditPoolBalanceHistory
+func snapshotToCashCreditWithdraw(snapshot *firestore.DocumentSnapshot) interface{} {
+	var obj bean.CashCreditWithdraw
 	snapshot.DataTo(&obj)
 	obj.Id = snapshot.Ref.ID
 	return obj
 }
 
-func snapshotToCreditOnChainTracking(snapshot *firestore.DocumentSnapshot) interface{} {
-	var obj bean.CreditOnChainActionTracking
+func snapshotToCashCreditPool(snapshot *firestore.DocumentSnapshot) interface{} {
+	var obj bean.CashCreditPool
+	snapshot.DataTo(&obj)
+
+	return obj
+}
+
+func snapshotToCashCreditTransaction(snapshot *firestore.DocumentSnapshot) interface{} {
+	var obj bean.CashCreditTransaction
+	snapshot.DataTo(&obj)
+
+	return obj
+}
+
+func snapshotToCashCreditPoolOrder(snapshot *firestore.DocumentSnapshot) interface{} {
+	var obj bean.CashCreditPoolOrder
+	snapshot.DataTo(&obj)
+
+	return obj
+}
+
+func snapshotToCashCreditPoolBalanceHistory(snapshot *firestore.DocumentSnapshot) interface{} {
+	var obj bean.CashCreditPoolBalanceHistory
+	snapshot.DataTo(&obj)
+	obj.Id = snapshot.Ref.ID
+	return obj
+}
+
+func snapshotToCashCreditOnChainTracking(snapshot *firestore.DocumentSnapshot) interface{} {
+	var obj bean.CashCreditOnChainActionTracking
 	snapshot.DataTo(&obj)
 	obj.Id = snapshot.Ref.ID
 	return obj

@@ -9,3 +9,4 @@ var OfferStoreDaoInst = OfferStoreDao{}
 var OnChainDaoInst = OnChainDao{}
 var ReferralDaoInst = ReferralDao{}
 var CreditDaoInst = CreditDao{}
+var CashDaoInst = CashDao{}

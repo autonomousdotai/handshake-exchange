@@ -17,7 +17,7 @@ func (api CashApi) Dashboard(context *gin.Context) {
 	//	return
 	//}
 
-	bean.SuccessResponse(context, bean.Cash{})
+	bean.SuccessResponse(context, bean.CashCredit{})
 }
 
 func (api CashApi) Create(context *gin.Context) {
@@ -40,13 +40,13 @@ func (api CashApi) Create(context *gin.Context) {
 	//	return
 	//}
 
-	bean.SuccessResponse(context, bean.Cash{})
+	bean.SuccessResponse(context, bean.CashCredit{})
 }
 
 func (api CashApi) Deposit(context *gin.Context) {
 	//userId := common.GetUserId(context)
 	//
-	var body bean.CashDepositInput
+	var body bean.CashCreditDepositInput
 	if common.ValidateBody(context, &body) != nil {
 		return
 	}
@@ -56,13 +56,13 @@ func (api CashApi) Deposit(context *gin.Context) {
 	//	return
 	//}
 
-	bean.SuccessResponse(context, bean.CashDeposit{})
+	bean.SuccessResponse(context, bean.CashCreditDeposit{})
 }
 
 func (api CashApi) Tracking(context *gin.Context) {
 	//userId := common.GetUserId(context)
 	//
-	var body bean.CashOnChainActionTrackingInput
+	var body bean.CashCreditOnChainActionTrackingInput
 	if common.ValidateBody(context, &body) != nil {
 		return
 	}
@@ -72,7 +72,7 @@ func (api CashApi) Tracking(context *gin.Context) {
 	//	return
 	//}
 
-	bean.SuccessResponse(context, bean.CashOnChainActionTracking{})
+	bean.SuccessResponse(context, bean.CashCreditOnChainActionTracking{})
 }
 
 func (api CashApi) Deactivate(context *gin.Context) {
@@ -84,13 +84,13 @@ func (api CashApi) Deactivate(context *gin.Context) {
 	//	return
 	//}
 
-	bean.SuccessResponse(context, bean.Cash{})
+	bean.SuccessResponse(context, bean.CashCredit{})
 }
 
 func (api CashApi) Withdraw(context *gin.Context) {
 	//userId := common.GetUserId(context)
 	//
-	var body bean.CashWithdraw
+	var body bean.CashCreditWithdraw
 	if common.ValidateBody(context, &body) != nil {
 		return
 	}
@@ -99,7 +99,7 @@ func (api CashApi) Withdraw(context *gin.Context) {
 	//	return
 	//}
 
-	bean.SuccessResponse(context, bean.CashWithdraw{})
+	bean.SuccessResponse(context, bean.CashCreditWithdraw{})
 }
 
 func (api CashApi) CashStore(context *gin.Context) {

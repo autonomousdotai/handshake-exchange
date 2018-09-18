@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/ninjadotorg/handshake-exchange/bean"
 	"github.com/ninjadotorg/handshake-exchange/common"
@@ -122,10 +123,41 @@ func (api CreditApi) Withdraw(context *gin.Context) {
 }
 
 func (api CreditApi) ListWithdraw(context *gin.Context) {
-	tx := bean.CreditWithdraw{}
-	bean.SuccessResponse(context, []bean.CreditWithdraw{
-		tx,
-		tx,
-		tx,
-	})
+	status := context.DefaultQuery("status", "processing")
+
+	fmt.Println(status)
+	if status == "processing" {
+		withdraws, ce := service.CreditServiceInst.ListCreditProcessingWithdraw()
+		if ce.ContextValidate(context) {
+			return
+		}
+		fmt.Println(withdraws)
+		bean.SuccessResponse(context, withdraws)
+		return
+	} else if status == "processed" {
+		withdraws, ce := service.CreditServiceInst.ListCreditProcessedWithdraw()
+		if ce.ContextValidate(context) {
+			return
+		}
+		bean.SuccessResponse(context, withdraws)
+		return
+	}
+
+	withdraws := make([]bean.CreditWithdraw, 0)
+	bean.SuccessResponse(context, withdraws)
+}
+
+func (api CreditApi) UpdateProcessedWithdraw(context *gin.Context) {
+	withdrawId := context.Param("id")
+
+	var body bean.CreditWithdraw
+	if common.ValidateBody(context, &body) != nil {
+		return
+	}
+	withdraw, ce := service.CreditServiceInst.FinishCreditWithdraw(withdrawId, body)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, withdraw)
 }

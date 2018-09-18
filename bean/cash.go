@@ -7,27 +7,27 @@ import (
 	"time"
 )
 
-const CASH_STATUS_ACTIVE = "active"
-const CASH_STATUS_INACTIVE = "inactive"
+const CASH_CREDIT_STATUS_ACTIVE = "active"
+const CASH_CREDIT_STATUS_INACTIVE = "inactive"
 
-const CASH_ITEM_STATUS_CREATE = "create"
-const CASH_ITEM_STATUS_ACTIVE = "active"
-const CASH_ITEM_STATUS_INACTIVE = "inactive"
+const CASH_CREDIT_ITEM_STATUS_CREATE = "create"
+const CASH_CREDIT_ITEM_STATUS_ACTIVE = "active"
+const CASH_CREDIT_ITEM_STATUS_INACTIVE = "inactive"
 
-const CASH_ITEM_SUB_STATUS_TRANSFERRING = "transferring"
-const CASH_ITEM_SUB_STATUS_TRANSFERRED = "transferred"
+const CASH_CREDIT_ITEM_SUB_STATUS_TRANSFERRING = "transferring"
+const CASH_CREDIT_ITEM_SUB_STATUS_TRANSFERRED = "transferred"
 
-const CASH_DEPOSIT_STATUS_CREATED = "created"
-const CASH_DEPOSIT_STATUS_TRANSFERRING = "transferring"
-const CASH_DEPOSIT_STATUS_FAILED = "failed"
-const CASH_DEPOSIT_STATUS_TRANSFERRED = "transferred"
+const CASH_CREDIT_DEPOSIT_STATUS_CREATED = "created"
+const CASH_CREDIT_DEPOSIT_STATUS_TRANSFERRING = "transferring"
+const CASH_CREDIT_DEPOSIT_STATUS_FAILED = "failed"
+const CASH_CREDIT_DEPOSIT_STATUS_TRANSFERRED = "transferred"
 
-const CASH_WITHDRAW_STATUS_CREATED = "created"
-const CASH_WITHDRAW_STATUS_PROCESSING = "processing"
-const CASH_WITHDRAW_STATUS_FAILED = "failed"
-const CASH_WITHDRAW_STATUS_PROCESSED = "processed"
+const CASH_CREDIT_WITHDRAW_STATUS_CREATED = "created"
+const CASH_CREDIT_WITHDRAW_STATUS_PROCESSING = "processing"
+const CASH_CREDIT_WITHDRAW_STATUS_FAILED = "failed"
+const CASH_CREDIT_WITHDRAW_STATUS_PROCESSED = "processed"
 
-type Cash struct {
+type CashCredit struct {
 	UID       string                `json:"-" firestore:"uid"`
 	Username  string                `json:"username" firestore:"username"`
 	Email     string                `json:"email" firestore:"email"`
@@ -41,7 +41,7 @@ type Cash struct {
 	UpdatedAt time.Time             `json:"updated_at" firestore:"updated_at"`
 }
 
-func (b Cash) GetAdd() map[string]interface{} {
+func (b CashCredit) GetAdd() map[string]interface{} {
 	return map[string]interface{}{
 		"uid":        b.UID,
 		"username":   b.Username,
@@ -55,21 +55,21 @@ func (b Cash) GetAdd() map[string]interface{} {
 	}
 }
 
-func (b Cash) GetUpdate() map[string]interface{} {
+func (b CashCredit) GetUpdate() map[string]interface{} {
 	return map[string]interface{}{
 		"status":     b.Status,
 		"updated_at": firestore.ServerTimestamp,
 	}
 }
 
-func (b Cash) GetUpdateRevenue() map[string]interface{} {
+func (b CashCredit) GetUpdateRevenue() map[string]interface{} {
 	return map[string]interface{}{
 		"revenue":    b.Revenue,
 		"updated_at": firestore.ServerTimestamp,
 	}
 }
 
-type CashItem struct {
+type CashCreditItem struct {
 	Hid              int64       `json:"hid" firestore:"hid"`
 	UID              string      `json:"-" firestore:"uid"`
 	Currency         string      `json:"currency" firestore:"currency"`
@@ -88,7 +88,7 @@ type CashItem struct {
 	UpdatedAt        time.Time   `json:"updated_at" firestore:"updated_at"`
 }
 
-func (b CashItem) GetAdd() map[string]interface{} {
+func (b CashCreditItem) GetAdd() map[string]interface{} {
 	return map[string]interface{}{
 		"uid":          b.UID,
 		"hid":          b.Hid,
@@ -105,7 +105,7 @@ func (b CashItem) GetAdd() map[string]interface{} {
 	}
 }
 
-func (b CashItem) GetUpdateReactivate() map[string]interface{} {
+func (b CashCreditItem) GetUpdateReactivate() map[string]interface{} {
 	return map[string]interface{}{
 		"status":       b.Status,
 		"percentage":   b.Percentage,
@@ -114,7 +114,7 @@ func (b CashItem) GetUpdateReactivate() map[string]interface{} {
 	}
 }
 
-func (b CashItem) GetUpdateStatus() map[string]interface{} {
+func (b CashCreditItem) GetUpdateStatus() map[string]interface{} {
 	return map[string]interface{}{
 		"status":           b.Status,
 		"sub_status":       b.SubStatus,
@@ -124,7 +124,7 @@ func (b CashItem) GetUpdateStatus() map[string]interface{} {
 	}
 }
 
-func (b CashItem) GetUpdate() map[string]interface{} {
+func (b CashCreditItem) GetUpdate() map[string]interface{} {
 	return map[string]interface{}{
 		"status":     b.Status,
 		"sub_status": b.SubStatus,
@@ -133,7 +133,7 @@ func (b CashItem) GetUpdate() map[string]interface{} {
 	}
 }
 
-func (b CashItem) GetUpdateDeactivate() map[string]interface{} {
+func (b CashCreditItem) GetUpdateDeactivate() map[string]interface{} {
 	return map[string]interface{}{
 		"status":            b.Status,
 		"sub_status":        b.SubStatus,
@@ -143,13 +143,13 @@ func (b CashItem) GetUpdateDeactivate() map[string]interface{} {
 	}
 }
 
-func (b CashItem) GetUpdateLockedSale() map[string]interface{} {
+func (b CashCreditItem) GetUpdateLockedSale() map[string]interface{} {
 	return map[string]interface{}{
 		"locked_sale": true,
 	}
 }
 
-func (b CashItem) GetUpdateBalance() map[string]interface{} {
+func (b CashCreditItem) GetUpdateBalance() map[string]interface{} {
 	return map[string]interface{}{
 		"balance":     b.Balance,
 		"sold":        b.Sold,
@@ -159,7 +159,7 @@ func (b CashItem) GetUpdateBalance() map[string]interface{} {
 	}
 }
 
-func (b CashItem) GetNotificationUpdate() map[string]interface{} {
+func (b CashCreditItem) GetNotificationUpdate() map[string]interface{} {
 	return map[string]interface{}{
 		"balance":    b.Balance,
 		"status":     b.Status,
@@ -210,14 +210,14 @@ func (b CashStore) GetAdd() map[string]interface{} {
 	}
 }
 
-type CashDepositInput struct {
+type CashCreditDepositInput struct {
 	Amount      string `json:"amount"`
 	Currency    string `json:"currency"`
 	UserAddress string `json:"user_address"`
 	Percentage  string `json:"percentage"`
 }
 
-type CashDeposit struct {
+type CashCreditDeposit struct {
 	Id            string    `json:"id" firestore:"id"`
 	UID           string    `json:"-" firestore:"uid"`
 	ItemRef       string    `json:"-" firestore:"item_ref"`
@@ -229,7 +229,7 @@ type CashDeposit struct {
 	CreatedAt     time.Time `json:"created_at" firestore:"created_at"`
 }
 
-func (b CashDeposit) GetAdd() map[string]interface{} {
+func (b CashCreditDeposit) GetAdd() map[string]interface{} {
 	return map[string]interface{}{
 		"id":             b.Id,
 		"uid":            b.UID,
@@ -243,7 +243,7 @@ func (b CashDeposit) GetAdd() map[string]interface{} {
 	}
 }
 
-func (b CashDeposit) GetUpdate() map[string]interface{} {
+func (b CashCreditDeposit) GetUpdate() map[string]interface{} {
 	return map[string]interface{}{
 		"status":     b.Status,
 		"amount":     b.Amount,
@@ -251,7 +251,7 @@ func (b CashDeposit) GetUpdate() map[string]interface{} {
 	}
 }
 
-type CashWithdraw struct {
+type CashCreditWithdraw struct {
 	Id          string            `json:"id" firestore:"id"`
 	UID         string            `json:"-" firestore:"uid"`
 	Status      string            `json:"status" firestore:"status"`
@@ -261,13 +261,13 @@ type CashWithdraw struct {
 	CreatedAt   time.Time         `json:"created_at" firestore:"created_at"`
 }
 
-func (b CashWithdraw) GetPaypalInformation(email string) map[string]string {
+func (b CashCreditWithdraw) GetPaypalInformation(email string) map[string]string {
 	return map[string]string{
 		"email": email,
 	}
 }
 
-func (b CashWithdraw) GetAdd() map[string]interface{} {
+func (b CashCreditWithdraw) GetAdd() map[string]interface{} {
 	return map[string]interface{}{
 		"id":          b.Id,
 		"uid":         b.UID,
@@ -278,7 +278,7 @@ func (b CashWithdraw) GetAdd() map[string]interface{} {
 	}
 }
 
-func (b CashWithdraw) GetUpdateStatus() map[string]interface{} {
+func (b CashCreditWithdraw) GetUpdateStatus() map[string]interface{} {
 	return map[string]interface{}{
 		"processed_id": b.ProcessedId,
 		"status":       b.Status,
@@ -286,7 +286,7 @@ func (b CashWithdraw) GetUpdateStatus() map[string]interface{} {
 	}
 }
 
-type CashBalanceHistory struct {
+type CashCreditBalanceHistory struct {
 	Id         string    `json:"id" firestore:"id"`
 	ItemRef    string    `json:"-" firestore:"item_ref"`
 	ModifyRef  string    `json:"-" firestore:"modify_ref"`
@@ -297,7 +297,7 @@ type CashBalanceHistory struct {
 	CreatedAt  time.Time `json:"created_at" firestore:"created_at"`
 }
 
-func (b CashBalanceHistory) GetAdd() map[string]interface{} {
+func (b CashCreditBalanceHistory) GetAdd() map[string]interface{} {
 	return map[string]interface{}{
 		"id":          b.Id,
 		"item_ref":    b.ItemRef,
@@ -310,13 +310,13 @@ func (b CashBalanceHistory) GetAdd() map[string]interface{} {
 	}
 }
 
-type CashOnchain struct {
+type CashCreditOnchain struct {
 	Hid      int64
 	UID      string
 	Currency string
 }
 
-type CashOnChainActionTrackingInput struct {
+type CashCreditOnChainActionTrackingInput struct {
 	Deposit  string `json:"deposit"`
 	TxHash   string `json:"tx_hash"`
 	Action   string `json:"action" validate:"oneof=deposit close"`
@@ -324,10 +324,10 @@ type CashOnChainActionTrackingInput struct {
 	Currency string `json:"currency"`
 }
 
-const CASH_ON_CHAIN_ACTION_DEPOSIT = "deposit"
-const CASH_ON_CHAIN_ACTION_CLOSE = "close"
+const CASH_CREDIT_ON_CHAIN_ACTION_DEPOSIT = "deposit"
+const CASH_CREDIT_ON_CHAIN_ACTION_CLOSE = "close"
 
-type CashOnChainActionTracking struct {
+type CashCreditOnChainActionTracking struct {
 	Id         string    `json:"id" firestore:"id"`
 	UID        string    `json:"uid" firestore:"uid"`
 	ItemRef    string    `json:"-" firestore:"item_ref"`
@@ -340,7 +340,7 @@ type CashOnChainActionTracking struct {
 	CreatedAt  time.Time `json:"created_at" firestore:"created_at"`
 }
 
-func (b CashOnChainActionTracking) GetAdd() map[string]interface{} {
+func (b CashCreditOnChainActionTracking) GetAdd() map[string]interface{} {
 	return map[string]interface{}{
 		"id":          b.Id,
 		"uid":         b.UID,
@@ -355,7 +355,7 @@ func (b CashOnChainActionTracking) GetAdd() map[string]interface{} {
 	}
 }
 
-func (b CashOnChainActionTracking) GetUpdate() map[string]interface{} {
+func (b CashCreditOnChainActionTracking) GetUpdate() map[string]interface{} {
 	return map[string]interface{}{
 		"amount":     b.Amount,
 		"reason":     b.Reason,
@@ -363,7 +363,7 @@ func (b CashOnChainActionTracking) GetUpdate() map[string]interface{} {
 	}
 }
 
-type CashPool struct {
+type CashCreditPool struct {
 	Level           string    `json:"level" firestore:"level"`
 	Balance         string    `json:"balance" firestore:"balance"`
 	CapturedBalance string    `json:"captured_balance" firestore:"captured_balance"`
@@ -371,7 +371,7 @@ type CashPool struct {
 	UpdatedAt       time.Time `json:"updated_at" firestore:"updated_at"`
 }
 
-func (b CashPool) GetAdd() map[string]interface{} {
+func (b CashCreditPool) GetAdd() map[string]interface{} {
 	return map[string]interface{}{
 		"level":            b.Level,
 		"balance":          b.Balance,
@@ -381,21 +381,21 @@ func (b CashPool) GetAdd() map[string]interface{} {
 	}
 }
 
-func (b CashPool) GetUpdateBalance() map[string]interface{} {
+func (b CashCreditPool) GetUpdateBalance() map[string]interface{} {
 	return map[string]interface{}{
 		"balance":    b.Balance,
 		"updated_at": firestore.ServerTimestamp,
 	}
 }
 
-func (b CashPool) GetUpdateCapturedBalance() map[string]interface{} {
+func (b CashCreditPool) GetUpdateCapturedBalance() map[string]interface{} {
 	return map[string]interface{}{
 		"captured_balance": b.CapturedBalance,
 		"updated_at":       firestore.ServerTimestamp,
 	}
 }
 
-func (b CashPool) GetUpdateAllBalance() map[string]interface{} {
+func (b CashCreditPool) GetUpdateAllBalance() map[string]interface{} {
 	return map[string]interface{}{
 		"balance":          b.Balance,
 		"captured_balance": b.CapturedBalance,
@@ -403,11 +403,11 @@ func (b CashPool) GetUpdateAllBalance() map[string]interface{} {
 	}
 }
 
-const CASH_POOL_MODIFY_TYPE_DEPOSIT = "deposit"
-const CASH_POOL_MODIFY_TYPE_CLOSE = "close"
-const CASH_POOL_MODIFY_TYPE_PURCHASE = "purchase"
+const CASH_CREDIT_POOL_MODIFY_TYPE_DEPOSIT = "deposit"
+const CASH_CREDIT_POOL_MODIFY_TYPE_CLOSE = "close"
+const CASH_CREDIT_POOL_MODIFY_TYPE_PURCHASE = "purchase"
 
-type CashPoolBalanceHistory struct {
+type CashCreditPoolBalanceHistory struct {
 	Id         string    `json:"id" firestore:"id"`
 	ItemRef    string    `json:"-" firestore:"item_ref"`
 	ModifyRef  string    `json:"-" firestore:"modify_ref"`
@@ -418,7 +418,7 @@ type CashPoolBalanceHistory struct {
 	CreatedAt  time.Time `json:"created_at" firestore:"created_at"`
 }
 
-func (b CashPoolBalanceHistory) GetAdd() map[string]interface{} {
+func (b CashCreditPoolBalanceHistory) GetAdd() map[string]interface{} {
 	return map[string]interface{}{
 		"id":          b.Id,
 		"item_ref":    b.ItemRef,
@@ -431,7 +431,7 @@ func (b CashPoolBalanceHistory) GetAdd() map[string]interface{} {
 	}
 }
 
-type CashPoolOrder struct {
+type CashCreditPoolOrder struct {
 	Id              string          `json:"id" firestore:"id"`
 	UID             string          `json:"-" firestore:"uid"`
 	DepositRef      string          `json:"deposit_ref" firestore:"deposit_ref"`
@@ -443,7 +443,7 @@ type CashPoolOrder struct {
 	CreatedAt       time.Time       `json:"created_at" firestore:"created_at"`
 }
 
-func (b CashPoolOrder) GetAdd() map[string]interface{} {
+func (b CashCreditPoolOrder) GetAdd() map[string]interface{} {
 	return map[string]interface{}{
 		"id":          b.Id,
 		"uid":         b.UID,
@@ -454,14 +454,14 @@ func (b CashPoolOrder) GetAdd() map[string]interface{} {
 	}
 }
 
-func (b CashPoolOrder) GetUpdate() map[string]interface{} {
+func (b CashCreditPoolOrder) GetUpdate() map[string]interface{} {
 	return map[string]interface{}{
 		"balance":    b.Balance,
 		"updated_at": firestore.ServerTimestamp,
 	}
 }
 
-func (b CashPoolOrder) GetUpdateCapture() map[string]interface{} {
+func (b CashCreditPoolOrder) GetUpdateCapture() map[string]interface{} {
 	return map[string]interface{}{
 		"captured_balance": b.CapturedBalance,
 		"captured_full":    b.CapturedFull,
@@ -469,7 +469,7 @@ func (b CashPoolOrder) GetUpdateCapture() map[string]interface{} {
 	}
 }
 
-func (b CashPoolOrder) GetUpdateAllBalance() map[string]interface{} {
+func (b CashCreditPoolOrder) GetUpdateAllBalance() map[string]interface{} {
 	return map[string]interface{}{
 		"captured_balance": b.CapturedBalance,
 		"balance":          b.Balance,
@@ -477,36 +477,36 @@ func (b CashPoolOrder) GetUpdateAllBalance() map[string]interface{} {
 	}
 }
 
-const CASH_TRANSACTION_STATUS_CREATE = "create"
-const CASH_TRANSACTION_STATUS_SUCCESS = "success"
-const CASH_TRANSACTION_STATUS_FAILED = "failed"
+const CASH_CREDIT_TRANSACTION_STATUS_CREATE = "create"
+const CASH_CREDIT_TRANSACTION_STATUS_SUCCESS = "success"
+const CASH_CREDIT_TRANSACTION_STATUS_FAILED = "failed"
 
-const CASH_TRANSACTION_SUB_STATUS_REVENUE_PROCESSING = "create"
-const CASH_TRANSACTION_SUB_STATUS_REVENUE_PROCESSED = "success"
+const CASH_CREDIT_TRANSACTION_SUB_STATUS_REVENUE_PROCESSING = "create"
+const CASH_CREDIT_TRANSACTION_SUB_STATUS_REVENUE_PROCESSED = "success"
 
-type CashTransaction struct {
-	Id            string             `json:"id" firestore:"id"`
-	UID           string             `json:"-" firestore:"uid"`
-	UIDs          []string           `json:"-" firestore:"uids"`
-	ToUID         string             `json:"-" firestore:"to_uid"`
-	Amount        string             `json:"amount" firestore:"amount"`
-	Currency      string             `json:"currency" firestore:"currency"`
-	Status        string             `json:"status" firestore:"status"`
-	SubStatus     string             `json:"sub_status" firestore:"sub_status"`
-	Revenue       string             `json:"revenue" firestore:"revenue"`
-	Fee           string             `json:"fee" firestore:"fee"`
-	Percentage    string             `json:"percentage" firestore:"percentage"`
-	OfferRef      string             `json:"-" firestore:"offer_ref"`
-	OrderInfoRefs []CashOrderInfoRef `json:"-" firestore:"order_info_refs"`
-	CreatedAt     time.Time          `json:"created_at" firestore:"created_at"`
+type CashCreditTransaction struct {
+	Id            string                   `json:"id" firestore:"id"`
+	UID           string                   `json:"-" firestore:"uid"`
+	UIDs          []string                 `json:"-" firestore:"uids"`
+	ToUID         string                   `json:"-" firestore:"to_uid"`
+	Amount        string                   `json:"amount" firestore:"amount"`
+	Currency      string                   `json:"currency" firestore:"currency"`
+	Status        string                   `json:"status" firestore:"status"`
+	SubStatus     string                   `json:"sub_status" firestore:"sub_status"`
+	Revenue       string                   `json:"revenue" firestore:"revenue"`
+	Fee           string                   `json:"fee" firestore:"fee"`
+	Percentage    string                   `json:"percentage" firestore:"percentage"`
+	OfferRef      string                   `json:"-" firestore:"offer_ref"`
+	OrderInfoRefs []CashCreditOrderInfoRef `json:"-" firestore:"order_info_refs"`
+	CreatedAt     time.Time                `json:"created_at" firestore:"created_at"`
 }
 
-type CashOrderInfoRef struct {
+type CashCreditOrderInfoRef struct {
 	OrderRef string `json:"-" firestore:"order_ref"`
 	Amount   string `json:"-" firestore:"amount"`
 }
 
-func (b CashTransaction) GetAdd() map[string]interface{} {
+func (b CashCreditTransaction) GetAdd() map[string]interface{} {
 	return map[string]interface{}{
 		"id":              b.Id,
 		"uid":             b.UID,
@@ -524,7 +524,7 @@ func (b CashTransaction) GetAdd() map[string]interface{} {
 	}
 }
 
-func (b CashTransaction) GetUpdate() map[string]interface{} {
+func (b CashCreditTransaction) GetUpdate() map[string]interface{} {
 	return map[string]interface{}{
 		"status":     b.Status,
 		"sub_status": b.SubStatus,
@@ -564,4 +564,46 @@ type CashStoreOrder struct {
 	ChainId               int64       `json:"chain_id" firestore:"chain_id"`
 	CreatedAt             time.Time   `json:"created_at" firestore:"created_at"`
 	UpdatedAt             time.Time   `json:"updated_at" firestore:"updated_at"`
+}
+
+func (offer CashStoreOrder) GetAddInstantOffer() map[string]interface{} {
+	return map[string]interface{}{
+		"id":                      offer.Id,
+		"uid":                     offer.UID,
+		"amount":                  offer.Amount,
+		"currency":                offer.Currency,
+		"fiat_amount":             offer.FiatAmount,
+		"raw_fiat_amount":         offer.RawFiatAmount,
+		"fiat_currency":           offer.FiatCurrency,
+		"price":                   offer.Price,
+		"status":                  offer.Status,
+		"type":                    offer.Type,
+		"fee":                     offer.Fee,
+		"external_fee":            offer.ExternalFee,
+		"fee_percentage":          offer.FeePercentage,
+		"external_fee_percentage": offer.ExternalFeePercentage,
+		"duration":                offer.Duration,
+		"payment_method":          offer.PaymentMethod,
+		"payment_method_ref":      offer.PaymentMethodRef,
+		"language":                offer.Language,
+		"fcm":                     offer.FCM,
+		"chain_id":                offer.ChainId,
+		"created_at":              firestore.ServerTimestamp,
+	}
+}
+
+func (offer CashStoreOrder) GetUpdate() map[string]interface{} {
+	return map[string]interface{}{
+		"provider_withdraw_data": offer.ProviderWithdrawData,
+		"status":                 offer.Status,
+		"updated_at":             firestore.ServerTimestamp,
+	}
+}
+
+func (offer CashStoreOrder) GetNotificationUpdate() map[string]interface{} {
+	return map[string]interface{}{
+		"id":     offer.Id,
+		"status": offer.Status,
+		"type":   "instant",
+	}
 }

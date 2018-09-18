@@ -95,6 +95,8 @@ func main() {
 		})
 	}
 
+	internalUrl := url.InternalUrl{}
+	internalUrl.Create(router)
 	userUrl := url.UserUrl{}
 	userUrl.Create(router)
 	infoUrl := url.InfoUrl{}
