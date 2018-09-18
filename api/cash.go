@@ -105,6 +105,17 @@ func (api CashApi) Withdraw(context *gin.Context) {
 func (api CashApi) CashStore(context *gin.Context) {
 	//userId := common.GetUserId(context)
 	//
+	//withdraw, ce := service.CreditServiceInst.AddCreditWithdraw(userId, body)
+	//if ce.ContextValidate(context) {
+	//	return
+	//}
+
+	bean.SuccessResponse(context, bean.CashStore{})
+}
+
+func (api CashApi) CashStoreCreate(context *gin.Context) {
+	//userId := common.GetUserId(context)
+	//
 	var body bean.CashStore
 	if common.ValidateBody(context, &body) != nil {
 		return
