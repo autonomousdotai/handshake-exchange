@@ -6,6 +6,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/bean"
 	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/dao"
+	"github.com/ninjadotorg/handshake-exchange/integration/bitpay_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/chainso_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/crypto_service"
@@ -333,20 +334,24 @@ func (s CashService) FinishCashTracking() (ce SimpleContextError) {
 	}
 	for _, item := range trackingTO.Objects {
 		trackingItem := item.(bean.CashCreditOnChainActionTracking)
+		depositTO := s.dao.GetCashCreditDepositByPath(trackingItem.DepositRef)
+		if depositTO.HasError() {
+			continue
+		}
+		deposit := depositTO.Object.(bean.CreditDeposit)
 
 		if trackingItem.TxHash != "" {
-			confirmation, errChain := chainso_service.GetConfirmations(trackingItem.TxHash, bean.BTC.Code)
-			amount := decimal.Zero
-			if errChain == nil {
-				amount, errChain = chainso_service.GetAmount(trackingItem.TxHash)
-			} else {
+			amount, address, confirmation, errChain := bitpay_service.GetBCHTransaction(trackingItem.TxHash)
+
+			if errChain != nil {
 				ce.SetError(api_error.ExternalApiFailed, errChain)
+				continue
 			}
 
 			fmt.Println(fmt.Sprintf("%s %s %s %s", trackingItem.Id, trackingItem.UID, trackingItem.TxHash, amount.String()))
 			confirmationRequired := s.getConfirmationRange(amount)
 			if errChain == nil {
-				if confirmation >= confirmationRequired && amount.GreaterThan(common.Zero) {
+				if confirmation >= confirmationRequired && amount.GreaterThan(common.Zero) && address == deposit.SystemAddress {
 					trackingItem.Amount = amount.String()
 					s.finishTrackingCashItem(trackingItem)
 				}
@@ -363,13 +368,19 @@ func (s CashService) FinishCashTracking() (ce SimpleContextError) {
 		return
 	}
 	for _, item := range trackingTO.Objects {
+		address := ""
 		trackingItem := item.(bean.CashCreditOnChainActionTracking)
+		depositTO := s.dao.GetCashCreditDepositByPath(trackingItem.DepositRef)
+		if depositTO.HasError() {
+			continue
+		}
+		deposit := depositTO.Object.(bean.CreditDeposit)
 
 		if trackingItem.TxHash != "" {
 			confirmation, errChain := chainso_service.GetConfirmations(trackingItem.TxHash, bean.BCH.Code)
 			amount := decimal.Zero
 			if errChain == nil {
-				amount, errChain = chainso_service.GetAmount(trackingItem.TxHash)
+				amount, address, errChain = chainso_service.GetAmount(trackingItem.TxHash)
 			} else {
 				ce.SetError(api_error.ExternalApiFailed, errChain)
 			}
@@ -377,7 +388,7 @@ func (s CashService) FinishCashTracking() (ce SimpleContextError) {
 			fmt.Println(fmt.Sprintf("%s %s %s %s", trackingItem.Id, trackingItem.UID, trackingItem.TxHash, amount.String()))
 			confirmationRequired := s.getConfirmationRange(amount)
 			if errChain == nil {
-				if confirmation >= confirmationRequired && amount.GreaterThan(common.Zero) {
+				if confirmation >= confirmationRequired && amount.GreaterThan(common.Zero) && address == deposit.SystemAddress {
 					trackingItem.Amount = amount.String()
 					s.finishTrackingCashItem(trackingItem)
 				}

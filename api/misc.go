@@ -7,8 +7,8 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/bean"
 	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/dao"
-	// "github.com/ninjadotorg/handshake-exchange/integration/bitcoin_service"
-	"github.com/ninjadotorg/handshake-exchange/integration/chainso_service"
+
+	"github.com/ninjadotorg/handshake-exchange/integration/bitpay_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/coinapi_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/exchangecreditatm_service"
@@ -436,9 +436,13 @@ func (api MiscApi) ScriptCheckFailedTransfer(context *gin.Context) {
 
 func (api MiscApi) GetBTCConfirmation(context *gin.Context) {
 	txId := context.Param("txId")
-	confirmations, _ := chainso_service.GetConfirmations(txId, "BTC")
+	amount, address, confirmations, err := bitpay_service.GetBCHTransaction(txId)
+	fmt.Println(err)
+	fmt.Println(amount)
+	fmt.Println(address)
+	fmt.Println(confirmations)
 
-	bean.SuccessResponse(context, confirmations)
+	bean.SuccessResponse(context, amount)
 }
 
 func (api MiscApi) SendBtc(context *gin.Context) {

@@ -31,7 +31,7 @@ func GetConfirmations(txId string, currency string) (int, error) {
 	return result, err
 }
 
-func GetAmount(txId string) (decimal.Decimal, error) {
+func GetAmount(txId string) (decimal.Decimal, string, error) {
 	url := fmt.Sprintf("https://chain.so/api/v2/get_tx_outputs/BTC/%s/0", txId)
 	headers := map[string]string{
 		"Accept": "application/json",
@@ -39,18 +39,20 @@ func GetAmount(txId string) (decimal.Decimal, error) {
 	ro := &grequests.RequestOptions{Headers: headers}
 	resp, err := grequests.Get(url, ro)
 	if resp.Ok != true {
-		return common.Zero, api_error.NewErrorCustom(api_error.ExternalApiFailed, resp.String(), nil)
+		return common.Zero, "", api_error.NewErrorCustom(api_error.ExternalApiFailed, resp.String(), nil)
 	}
 
 	var data map[string]interface{}
 	result := common.Zero
+	address := ""
 	if err == nil {
 		resp.JSON(&data)
 		dataNode := data["data"]
 		outputsNode := dataNode.(map[string]interface{})["outputs"]
 		value := outputsNode.(map[string]interface{})["value"].(string)
+		address = outputsNode.(map[string]interface{})["address"].(string)
 		result = common.StringToDecimal(value)
 	}
 
-	return result, err
+	return result, address, err
 }

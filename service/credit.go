@@ -6,6 +6,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/bean"
 	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/dao"
+	"github.com/ninjadotorg/handshake-exchange/integration/bitpay_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/chainso_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/crypto_service"
@@ -333,20 +334,27 @@ func (s CreditService) FinishTracking() (ce SimpleContextError) {
 	}
 	for _, item := range trackingTO.Objects {
 		trackingItem := item.(bean.CreditOnChainActionTracking)
+		depositTO := s.dao.GetCreditDepositByPath(trackingItem.DepositRef)
+		if depositTO.HasError() {
+			continue
+		}
+		deposit := depositTO.Object.(bean.CreditDeposit)
 
 		if trackingItem.TxHash != "" {
+			address := ""
 			confirmation, errChain := chainso_service.GetConfirmations(trackingItem.TxHash, bean.BTC.Code)
 			amount := decimal.Zero
 			if errChain == nil {
-				amount, errChain = chainso_service.GetAmount(trackingItem.TxHash)
+				amount, address, errChain = chainso_service.GetAmount(trackingItem.TxHash)
 			} else {
 				ce.SetError(api_error.ExternalApiFailed, errChain)
+				continue
 			}
 
 			fmt.Println(fmt.Sprintf("%s %s %s %s", trackingItem.Id, trackingItem.UID, trackingItem.TxHash, amount.String()))
 			confirmationRequired := s.getConfirmationRange(amount)
 			if errChain == nil {
-				if confirmation >= confirmationRequired && amount.GreaterThan(common.Zero) {
+				if confirmation >= confirmationRequired && amount.GreaterThan(common.Zero) && address == deposit.SystemAddress {
 					trackingItem.Amount = amount.String()
 					s.finishTrackingItem(trackingItem)
 				}
@@ -358,36 +366,40 @@ func (s CreditService) FinishTracking() (ce SimpleContextError) {
 		}
 	}
 
-	//trackingTO = s.dao.ListCreditOnChainActionTracking(bean.BCH.Code)
-	//if ce.FeedDaoTransfer(api_error.GetDataFailed, trackingTO) {
-	//	return
-	//}
-	//for _, item := range trackingTO.Objects {
-	//	trackingItem := item.(bean.CreditOnChainActionTracking)
-	//
-	//	if trackingItem.TxHash != "" {
-	//		confirmation, errChain := chainso_service.GetConfirmations(trackingItem.TxHash, bean.BCH.Code)
-	//		amount := decimal.Zero
-	//		if errChain == nil {
-	//			amount, errChain = chainso_service.GetAmount(trackingItem.TxHash)
-	//		} else {
-	//			ce.SetError(api_error.ExternalApiFailed, errChain)
-	//		}
-	//
-	//		fmt.Println(fmt.Sprintf("%s %s %s %s", trackingItem.Id, trackingItem.UID, trackingItem.TxHash, amount.String()))
-	//		confirmationRequired := s.getConfirmationRange(amount)
-	//		if errChain == nil {
-	//			if confirmation >= confirmationRequired && amount.GreaterThan(common.Zero) {
-	//				trackingItem.Amount = amount.String()
-	//				s.finishTrackingItem(trackingItem)
-	//			}
-	//		} else {
-	//			ce.SetError(api_error.ExternalApiFailed, errChain)
-	//		}
-	//	} else {
-	//		s.dao.RemoveCreditOnChainActionTracking(trackingItem)
-	//	}
-	//}
+	trackingTO = s.dao.ListCreditOnChainActionTracking(bean.BCH.Code)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, trackingTO) {
+		return
+	}
+	for _, item := range trackingTO.Objects {
+		trackingItem := item.(bean.CreditOnChainActionTracking)
+		depositTO := s.dao.GetCreditDepositByPath(trackingItem.DepositRef)
+		if depositTO.HasError() {
+			continue
+		}
+		deposit := depositTO.Object.(bean.CreditDeposit)
+
+		if trackingItem.TxHash != "" {
+			amount, address, confirmation, errChain := bitpay_service.GetBCHTransaction(trackingItem.TxHash)
+
+			if errChain != nil {
+				ce.SetError(api_error.ExternalApiFailed, errChain)
+				continue
+			}
+
+			fmt.Println(fmt.Sprintf("%s %s %s %s", trackingItem.Id, trackingItem.UID, trackingItem.TxHash, amount.String()))
+			confirmationRequired := 3
+			if errChain == nil {
+				if confirmation >= confirmationRequired && amount.GreaterThan(common.Zero) && address == deposit.SystemAddress {
+					trackingItem.Amount = amount.String()
+					s.finishTrackingItem(trackingItem)
+				}
+			} else {
+				ce.SetError(api_error.ExternalApiFailed, errChain)
+			}
+		} else {
+			s.dao.RemoveCreditOnChainActionTracking(trackingItem)
+		}
+	}
 
 	return
 }
