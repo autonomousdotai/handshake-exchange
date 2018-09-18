@@ -436,7 +436,7 @@ func (api MiscApi) ScriptCheckFailedTransfer(context *gin.Context) {
 
 func (api MiscApi) GetBTCConfirmation(context *gin.Context) {
 	txId := context.Param("txId")
-	confirmations, _ := chainso_service.GetConfirmations(txId)
+	confirmations, _ := chainso_service.GetConfirmations(txId, "BTC")
 
 	bean.SuccessResponse(context, confirmations)
 }

@@ -335,7 +335,7 @@ func (s CreditService) FinishTracking() (ce SimpleContextError) {
 		trackingItem := item.(bean.CreditOnChainActionTracking)
 
 		if trackingItem.TxHash != "" {
-			confirmation, errChain := chainso_service.GetConfirmations(trackingItem.TxHash)
+			confirmation, errChain := chainso_service.GetConfirmations(trackingItem.TxHash, bean.BTC.Code)
 			amount := decimal.Zero
 			if errChain == nil {
 				amount, errChain = chainso_service.GetAmount(trackingItem.TxHash)
@@ -366,7 +366,7 @@ func (s CreditService) FinishTracking() (ce SimpleContextError) {
 		trackingItem := item.(bean.CreditOnChainActionTracking)
 
 		if trackingItem.TxHash != "" {
-			confirmation, errChain := chainso_service.GetConfirmations(trackingItem.TxHash)
+			confirmation, errChain := chainso_service.GetConfirmations(trackingItem.TxHash, bean.BCH.Code)
 			amount := decimal.Zero
 			if errChain == nil {
 				amount, errChain = chainso_service.GetAmount(trackingItem.TxHash)

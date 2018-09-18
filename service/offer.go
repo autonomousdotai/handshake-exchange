@@ -861,7 +861,7 @@ func (s OfferService) FinishOfferConfirmingAddresses() (finishedInstantOffers []
 			fiatAmount := common.StringToDecimal(pendingOffer.FiatAmount)
 			confirmationRequired := s.getConfirmationRange(fiatAmount)
 			// bodyTransaction, err := coinbase_service.GetTransaction(pendingOffer.ExternalId, pendingOffer.Currency)
-			confirmation, err := chainso_service.GetConfirmations(pendingOffer.TxHash)
+			confirmation, err := chainso_service.GetConfirmations(pendingOffer.TxHash, pendingOffer.Currency)
 			// if err == nil && bodyTransaction.Status == "completed" {
 			if err == nil && confirmation >= confirmationRequired {
 				completed := false
@@ -914,7 +914,7 @@ func (s OfferService) FinishCryptoTransfer() (finishedInstantOffers []bean.Offer
 				fiatAmountUSD := common.StringToDecimal(pendingOffer.FiatAmountUSD)
 				confirmationRequired := s.getConfirmationRange(fiatAmountUSD)
 				// bodyTransaction, err := coinbase_service.GetTransaction(pendingOffer.ExternalId, pendingOffer.Currency)
-				confirmation, errChain := chainso_service.GetConfirmations(pendingOffer.TxHash)
+				confirmation, errChain := chainso_service.GetConfirmations(pendingOffer.TxHash, pendingOffer.Currency)
 				if errChain == nil {
 					if confirmation >= confirmationRequired {
 						onchainCompleted = true

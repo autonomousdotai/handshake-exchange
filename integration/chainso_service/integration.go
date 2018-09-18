@@ -8,8 +8,8 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-func GetConfirmations(txId string) (int, error) {
-	url := fmt.Sprintf("https://chain.so/api/v2/is_tx_confirmed/BTC/%s", txId)
+func GetConfirmations(txId string, currency string) (int, error) {
+	url := fmt.Sprintf("https://chain.so/api/v2/is_tx_confirmed/%s/%s", currency, txId)
 	headers := map[string]string{
 		"Accept": "application/json",
 	}
