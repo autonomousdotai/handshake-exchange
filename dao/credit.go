@@ -881,7 +881,7 @@ func (dao CreditDao) UpdateProcessingWithdraw(withdraw bean.CreditWithdraw) (err
 
 	batch := dbClient.Batch()
 	batch.Delete(docRef)
-	batch.Set(docProcessingRef, withdraw.GetAdd())
+	batch.Set(docProcessingRef, withdraw.GetCopyAdd())
 	batch.Set(docUserRef, withdraw.GetUpdateStatus(), firestore.MergeAll)
 	_, err = batch.Commit(context.Background())
 
@@ -897,7 +897,7 @@ func (dao CreditDao) UpdateProcessedWithdraw(withdraw bean.CreditWithdraw) (err 
 
 	batch := dbClient.Batch()
 	batch.Delete(docProcessingRef)
-	batch.Set(docProcessedRef, withdraw.GetAdd())
+	batch.Set(docProcessedRef, withdraw.GetCopyAdd())
 	batch.Set(docUserRef, withdraw.GetUpdateStatus(), firestore.MergeAll)
 	_, err = batch.Commit(context.Background())
 

@@ -227,13 +227,25 @@ func (b CreditWithdraw) GetPaypalInformation(email string) map[string]string {
 
 func (b CreditWithdraw) GetAdd() map[string]interface{} {
 	return map[string]interface{}{
+		"id":          b.Id,
+		"uid":         b.UID,
+		"status":      b.Status,
+		"amount":      b.Amount,
+		"information": b.Information,
+		"created_at":  firestore.ServerTimestamp,
+	}
+}
+
+func (b CreditWithdraw) GetCopyAdd() map[string]interface{} {
+	return map[string]interface{}{
 		"id":           b.Id,
 		"uid":          b.UID,
 		"status":       b.Status,
 		"amount":       b.Amount,
 		"information":  b.Information,
 		"processed_id": b.ProcessedId,
-		"created_at":   firestore.ServerTimestamp,
+		"created_at":   b.CreatedAt,
+		"updated_at":   firestore.ServerTimestamp,
 	}
 }
 
