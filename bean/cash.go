@@ -182,6 +182,7 @@ const CASH_STORE_STATUS_OPEN = "open"
 const CASH_STORE_STATUS_CLOSE = "close"
 
 type CashStore struct {
+	UID          string            `json:"uid" firestore:"uid"`
 	Name         string            `json:"name" firestore:"name"`
 	Address      string            `json:"address" firestore:"address"`
 	Phone        string            `json:"phone" firestore:"phone"`
@@ -192,6 +193,8 @@ type CashStore struct {
 	Longitude    float64           `json:"longitude" firestore:"longitude"`
 	Latitude     float64           `json:"latitude" firestore:"latitude"`
 	ChainId      int64             `json:"chain_id" firestore:"chain_id"`
+	Language     string            `json:"-" firestore:"language"`
+	FCM          string            `json:"-" firestore:"fcm"`
 	CreatedAt    time.Time         `json:"created_at" firestore:"created_at"`
 }
 
@@ -207,6 +210,20 @@ func (b CashStore) GetAdd() map[string]interface{} {
 		"latitude":      b.Latitude,
 		"chain_id":      b.ChainId,
 		"created_at":    firestore.ServerTimestamp,
+	}
+}
+
+func (b CashStore) GetUpdate() map[string]interface{} {
+	return map[string]interface{}{
+		"name":          b.Name,
+		"address":       b.Address,
+		"phone":         b.Phone,
+		"business_type": b.BusinessType,
+		"status":        b.Status,
+		"center":        b.Center,
+		"longitude":     b.Longitude,
+		"latitude":      b.Latitude,
+		"updated_at":    firestore.ServerTimestamp,
 	}
 }
 
