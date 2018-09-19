@@ -111,7 +111,7 @@ func (s CashService) GetProposeCashOrder(amountStr string, currency string, fiat
 	storeFeePercentage := decimal.NewFromFloat(storeFee.Value).Round(10)
 	externalFeePercentage := decimal.NewFromFloat(float64(percentage)).Div(decimal.NewFromFloat(100))
 
-	total, internalFee := dao.AddFeePercentage(totalWOFee, externalFeePercentage)
+	total, internalFee := dao.AddFeePercentage(totalWOFee, feePercentage)
 	_, cashFee := dao.AddFeePercentage(totalWOFee, storeFeePercentage)
 	_, externalFee := dao.AddFeePercentage(totalWOFee, externalFeePercentage)
 
@@ -130,6 +130,17 @@ func (s CashService) GetProposeCashOrder(amountStr string, currency string, fiat
 	offer.StoreFeePercentage = storeFeePercentage.String()
 	offer.ExternalFee = externalFee.Round(2).String()
 	offer.ExternalFeePercentage = externalFeePercentage.String()
+
+	if fiatCurrency != "" {
+		rateTO := dao.MiscDaoInst.GetCurrencyRateFromCache(bean.USD.Code, fiatCurrency)
+		if !rateTO.HasError() {
+			rate := rateTO.Object.(bean.CurrencyRate)
+			rateNumber := decimal.NewFromFloat(rate.Rate)
+			tmpAmount := total.Mul(rateNumber)
+			offer.FiatLocalAmount = tmpAmount.Round(2).String()
+			offer.FiatLocalCurrency = fiatCurrency
+		}
+	}
 
 	return
 }

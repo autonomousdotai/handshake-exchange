@@ -62,7 +62,16 @@ func (api CashApi) CashStoreUpdate(context *gin.Context) {
 }
 
 func (api CashApi) CashStorePrice(context *gin.Context) {
-	bean.SuccessResponse(context, bean.CashStoreOrder{})
+	amount := context.DefaultQuery("amount", "")
+	currency := context.DefaultQuery("currency", "")
+	fiat_currency := context.DefaultQuery("fiat_currency", "")
+
+	order, ce := service.CashServiceInst.GetProposeCashOrder(amount, currency, fiat_currency)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, order)
 }
 
 func (api CashApi) CashStoreOrder(context *gin.Context) {

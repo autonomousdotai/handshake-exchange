@@ -67,8 +67,10 @@ type CashStoreOrder struct {
 	Amount                string      `json:"amount" firestore:"amount" validate:"required"`
 	Currency              string      `json:"currency" firestore:"currency" validate:"required"`
 	FiatAmount            string      `json:"fiat_amount" firestore:"fiat_amount" validate:"required"`
-	RawFiatAmount         string      `json:"-" firestore:"raw_fiat_amount"`
 	FiatCurrency          string      `json:"fiat_currency" firestore:"fiat_currency" validate:"required"`
+	FiatLocalAmount       string      `json:"fiat_local_amount" firestore:"fiat_local_amount" validate:"required"`
+	FiatLocalCurrency     string      `json:"fiat_local_currency" firestore:"fiat_local_currency" validate:"required"`
+	RawFiatAmount         string      `json:"-" firestore:"raw_fiat_amount"`
 	Price                 string      `json:"price" firestore:"price"`
 	Status                string      `json:"status" firestore:"status"`
 	Type                  string      `json:"type" firestore:"type"`
