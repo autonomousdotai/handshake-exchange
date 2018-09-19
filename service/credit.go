@@ -773,7 +773,7 @@ func (s CreditService) FinishCreditWithdraw(withdrawId string, body bean.CreditW
 		return
 	}
 	withdraw = withdrawTO.Object.(bean.CreditWithdraw)
-	withdraw.Status = bean.CASH_CREDIT_WITHDRAW_STATUS_PROCESSED
+	withdraw.Status = bean.CREDIT_WITHDRAW_STATUS_PROCESSED
 	withdraw.ProcessedId = body.ProcessedId
 	err := s.dao.UpdateProcessedWithdraw(withdraw)
 	if ce.SetError(api_error.UpdateDataFailed, err) {

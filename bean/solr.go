@@ -658,145 +658,54 @@ func NewSolrFromCreditWithdraw(creditWithdraw CreditWithdraw, chainId int64) (so
 	return
 }
 
-type SolrCashCreditTransactionExtraData struct {
-	Id         string `json:"id"`
-	FeedType   string `json:"feed_type"`
-	Type       string `json:"type"`
-	Amount     string `json:"amount"`
-	Currency   string `json:"currency"`
-	Revenue    string `json:"revenue"`
-	Fee        string `json:"fee"`
-	Percentage string `json:"percentage"`
-	Status     string `json:"status"`
-	SubStatus  string `json:"sub_status"`
+var cashStoreStatusMap = map[string]int{
+	CASH_STORE_STATUS_OPEN:  0,
+	CASH_STORE_STATUS_CLOSE: 1,
 }
 
-func NewSolrFromCashCreditTransaction(creditTx CashCreditTransaction, chainId int64) (solr SolrOfferObject) {
-	solr.Id = fmt.Sprintf("exchange_credit_transaction_%s", creditTx.Id)
-	solr.Type = 11
-	solr.State = 0
-	solr.IsPrivate = 1
-	solr.Status = 0
+type SolrCashStoreExtraData struct {
+	Id           string            `json:"id"`
+	FeedType     string            `json:"feed_type"`
+	Address      string            `json:"address"`
+	Phone        string            `json:"phone"`
+	BusinessType string            `json:"business_type"`
+	Status       string            `json:"status"`
+	Center       string            `json:"center"`
+	Information  map[string]string `json:"information"`
+}
+
+func NewSolrFromCashStore(cash CashStore) (solr SolrOfferObject) {
+	solr.Id = fmt.Sprintf("exchange_%s", cash.UID)
+	solr.Type = 2
+	solr.Status = cashStoreStatusMap[cash.Status]
 	solr.Hid = 0
-	solr.ChainId = chainId
-	userId, _ := strconv.Atoi(creditTx.UID)
+	solr.ChainId = cash.ChainId
+	userId, _ := strconv.Atoi(cash.UID)
 	solr.InitUserId = userId
 	solr.ShakeUserIds = make([]int, 0)
 	solr.TextSearch = make([]string, 0)
-	solr.InitAt = creditTx.CreatedAt.Unix()
+
+	solr.Location = fmt.Sprintf("%f,%f", cash.Latitude, cash.Longitude)
+	solr.InitAt = cash.CreatedAt.Unix()
 	solr.LastUpdateAt = time.Now().UTC().Unix()
 
-	solr.OfferFeedType = "credit_transaction"
-	solr.OfferType = "buy"
+	solr.OfferFeedType = "cash_store"
+	// Nothing now
+	solr.OfferType = ""
+	solr.FiatCurrency = USD.Code
+	solr.Offline = 0
+	solr.Review = 0
+	solr.ReviewCount = 0
 
-	extraData := SolrCreditTransactionExtraData{
-		Id:         creditTx.Id,
-		FeedType:   "credit_transaction",
-		Type:       "buy",
-		Amount:     creditTx.Amount,
-		Currency:   creditTx.Currency,
-		Revenue:    creditTx.Revenue,
-		Fee:        creditTx.Fee,
-		Percentage: creditTx.Percentage,
-		Status:     creditTx.Status,
-		SubStatus:  creditTx.SubStatus,
-	}
-	b, _ := json.Marshal(&extraData)
-	solr.ExtraData = string(b)
-
-	return
-}
-
-type SolrCashCreditDepositExtraData struct {
-	Id         string `json:"id"`
-	FeedType   string `json:"feed_type"`
-	Type       string `json:"type"`
-	Amount     string `json:"amount"`
-	Currency   string `json:"currency"`
-	Percentage string `json:"percentage"`
-	Status     string `json:"status"`
-}
-
-var cashCreditDepositStatusMap = map[string]int{
-	CREDIT_DEPOSIT_STATUS_CREATED:      0,
-	CREDIT_DEPOSIT_STATUS_TRANSFERRING: 1,
-	CREDIT_DEPOSIT_STATUS_TRANSFERRED:  2,
-}
-
-func NewSolrFromCashCreditDeposit(creditDeposit CashCreditDeposit, chainId int64) (solr SolrOfferObject) {
-	solr.Id = fmt.Sprintf("exchange_credit_deposit_%s", creditDeposit.Id)
-	solr.Type = 10
-	solr.State = 0
-	solr.IsPrivate = 1
-	solr.Status = cashCreditDepositStatusMap[creditDeposit.Status]
-	solr.Hid = 0
-	solr.ChainId = chainId
-	userId, _ := strconv.Atoi(creditDeposit.UID)
-	solr.InitUserId = userId
-	solr.ShakeUserIds = make([]int, 0)
-	solr.TextSearch = make([]string, 0)
-	solr.InitAt = creditDeposit.CreatedAt.Unix()
-	solr.LastUpdateAt = time.Now().UTC().Unix()
-
-	solr.OfferFeedType = "credit_deposit"
-	solr.OfferType = "buy"
-
-	extraData := SolrCreditDepositExtraData{
-		Id:         creditDeposit.Id,
-		FeedType:   "credit_deposit",
-		Type:       "buy",
-		Amount:     creditDeposit.Amount,
-		Currency:   creditDeposit.Currency,
-		Percentage: creditDeposit.Percentage,
-		Status:     creditDeposit.Status,
-	}
-	b, _ := json.Marshal(&extraData)
-	solr.ExtraData = string(b)
-
-	return
-}
-
-type SolrCashCreditWithdrawExtraData struct {
-	Id          string            `json:"id"`
-	FeedType    string            `json:"feed_type"`
-	Type        string            `json:"type"`
-	Amount      string            `json:"amount"`
-	Status      string            `json:"status"`
-	Information map[string]string `json:"information"`
-}
-
-var cashCreditWithdrawStatusMap = map[string]int{
-	CREDIT_WITHDRAW_STATUS_CREATED:    0,
-	CREDIT_WITHDRAW_STATUS_PROCESSING: 1,
-	CREDIT_WITHDRAW_STATUS_PROCESSED:  2,
-	CREDIT_WITHDRAW_STATUS_FAILED:     3,
-}
-
-func NewSolrFromCashCreditWithdraw(creditWithdraw CashCreditWithdraw, chainId int64) (solr SolrOfferObject) {
-	solr.Id = fmt.Sprintf("exchange_credit_withdraw_%s", creditWithdraw.Id)
-	solr.Type = 10
-	solr.State = 0
-	solr.IsPrivate = 1
-	solr.Status = cashCreditWithdrawStatusMap[creditWithdraw.Status]
-	solr.Hid = 0
-	solr.ChainId = chainId
-	userId, _ := strconv.Atoi(creditWithdraw.UID)
-	solr.InitUserId = userId
-	solr.ShakeUserIds = make([]int, 0)
-	solr.TextSearch = make([]string, 0)
-	solr.InitAt = creditWithdraw.CreatedAt.Unix()
-	solr.LastUpdateAt = time.Now().UTC().Unix()
-
-	solr.OfferFeedType = "credit_withdraw"
-	solr.OfferType = "buy"
-
-	extraData := SolrCreditWithdrawExtraData{
-		Id:          creditWithdraw.Id,
-		FeedType:    "credit_withdraw",
-		Type:        "buy",
-		Amount:      creditWithdraw.Amount,
-		Status:      creditWithdraw.Status,
-		Information: creditWithdraw.Information,
+	extraData := SolrCashStoreExtraData{
+		Id:           cash.UID,
+		FeedType:     "cash_store",
+		Address:      cash.Address,
+		Phone:        cash.Phone,
+		BusinessType: cash.BusinessType,
+		Status:       cash.Status,
+		Center:       cash.Center,
+		Information:  cash.Information,
 	}
 	b, _ := json.Marshal(&extraData)
 	solr.ExtraData = string(b)
