@@ -60,7 +60,12 @@ func (b CashStore) GetUpdate() map[string]interface{} {
 	}
 }
 
-type CashStoreOrder struct {
+const CASH_ORDER_STATUS_PROCESSING = "processing"
+const CASH_ORDER_STATUS_SUCCESS = "success"
+const CASH_ORDER_STATUS_TRANSFERRING = "transferring"
+const CASH_ORDER_STATUS_CANCELLED = "cancelled"
+
+type CashOrder struct {
 	Id                    string      `json:"id" firestore:"id"`
 	UID                   string      `json:"uid" firestore:"uid"`
 	Username              string      `json:"username" firestore:"username"`
@@ -84,7 +89,10 @@ type CashStoreOrder struct {
 	PaymentMethod         string      `json:"-" firestore:"payment_method"`
 	PaymentMethodRef      string      `json:"-" firestore:"payment_method_ref"`
 	PaymentMethodData     interface{} `json:"payment_method_data" validate:"required"`
+	Provider              string      `json:"-" firestore:"provider"`
+	ProviderData          interface{} `json:"-" firestore:"provider_data"`
 	Center                string      `json:"center" firestore:"center"`
+	Address               string      `json:"address" firestore:"address" validate:"required"`
 	ProviderWithdrawData  interface{} `json:"-" firestore:"provider_withdraw_data"`
 	FCM                   string      `json:"fcm" firestore:"fcm"`
 	Language              string      `json:"language" firestore:"language"`
@@ -93,44 +101,48 @@ type CashStoreOrder struct {
 	UpdatedAt             time.Time   `json:"updated_at" firestore:"updated_at"`
 }
 
-func (offer CashStoreOrder) GetAddInstantOffer() map[string]interface{} {
+func (b CashOrder) GetAdd() map[string]interface{} {
 	return map[string]interface{}{
-		"id":                      offer.Id,
-		"uid":                     offer.UID,
-		"amount":                  offer.Amount,
-		"currency":                offer.Currency,
-		"fiat_amount":             offer.FiatAmount,
-		"raw_fiat_amount":         offer.RawFiatAmount,
-		"fiat_currency":           offer.FiatCurrency,
-		"price":                   offer.Price,
-		"status":                  offer.Status,
-		"type":                    offer.Type,
-		"fee":                     offer.Fee,
-		"external_fee":            offer.ExternalFee,
-		"fee_percentage":          offer.FeePercentage,
-		"external_fee_percentage": offer.ExternalFeePercentage,
-		"duration":                offer.Duration,
-		"payment_method":          offer.PaymentMethod,
-		"payment_method_ref":      offer.PaymentMethodRef,
-		"language":                offer.Language,
-		"fcm":                     offer.FCM,
-		"chain_id":                offer.ChainId,
+		"id":                      b.Id,
+		"uid":                     b.UID,
+		"amount":                  b.Amount,
+		"currency":                b.Currency,
+		"fiat_amount":             b.FiatAmount,
+		"raw_fiat_amount":         b.RawFiatAmount,
+		"fiat_currency":           b.FiatCurrency,
+		"price":                   b.Price,
+		"status":                  b.Status,
+		"type":                    b.Type,
+		"fee":                     b.Fee,
+		"fee_percentage":          b.FeePercentage,
+		"store_fee":               b.StoreFee,
+		"store_fee_percentage":    b.StoreFeePercentage,
+		"external_fee":            b.ExternalFee,
+		"external_fee_percentage": b.ExternalFeePercentage,
+		"duration":                b.Duration,
+		"payment_method":          b.PaymentMethod,
+		"payment_method_ref":      b.PaymentMethodRef,
+		"provider":                b.Provider,
+		"provider_data":           b.ProviderData,
+		"language":                b.Language,
+		"fcm":                     b.FCM,
+		"chain_id":                b.ChainId,
 		"created_at":              firestore.ServerTimestamp,
 	}
 }
 
-func (offer CashStoreOrder) GetUpdate() map[string]interface{} {
+func (b CashOrder) GetUpdate() map[string]interface{} {
 	return map[string]interface{}{
-		"provider_withdraw_data": offer.ProviderWithdrawData,
-		"status":                 offer.Status,
+		"provider_withdraw_data": b.ProviderWithdrawData,
+		"status":                 b.Status,
 		"updated_at":             firestore.ServerTimestamp,
 	}
 }
 
-func (offer CashStoreOrder) GetNotificationUpdate() map[string]interface{} {
+func (b CashOrder) GetNotificationUpdate() map[string]interface{} {
 	return map[string]interface{}{
-		"id":     offer.Id,
-		"status": offer.Status,
+		"id":     b.Id,
+		"status": b.Status,
 		"type":   "instant",
 	}
 }

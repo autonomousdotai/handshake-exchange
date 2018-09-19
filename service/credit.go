@@ -186,7 +186,7 @@ func (s CreditService) AddDeposit(userId string, body bean.CreditDepositInput) (
 		return
 	} else {
 		pNum, _ := strconv.Atoi(body.Percentage)
-		if pNum < 0 || pNum > 200 {
+		if pNum < 0 || pNum > 15 {
 			ce.SetStatusKey(api_error.InvalidRequestBody)
 			return
 		}
@@ -406,7 +406,7 @@ func (s CreditService) FinishTracking() (ce SimpleContextError) {
 
 func (s CreditService) GetCreditPoolPercentageByCache(currency string, amount decimal.Decimal) (int, error) {
 	percentage := 0
-	for percentage <= 200 {
+	for percentage <= 15 {
 		level := fmt.Sprintf("%03d", percentage)
 
 		creditPoolTO := s.dao.GetCreditPoolCache(currency, level)
@@ -793,7 +793,7 @@ func (s CreditService) FinishCreditWithdraw(withdrawId string, body bean.CreditW
 func (s CreditService) SetupCreditPool() (ce SimpleContextError) {
 	for _, currency := range []string{bean.BTC.Code, bean.ETH.Code, bean.BCH.Code} {
 		level := 0
-		for level <= 200 {
+		for level <= 15 {
 			pool := bean.CreditPool{
 				Level:    fmt.Sprintf("%03d", level),
 				Balance:  common.Zero.String(),

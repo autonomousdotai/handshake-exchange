@@ -86,7 +86,7 @@ func (api CashApi) CashStoreOrder(context *gin.Context) {
 	//	return
 	//}
 
-	bean.SuccessResponse(context, bean.CashStoreOrder{})
+	bean.SuccessResponse(context, bean.CashOrder{})
 }
 
 func (api CashApi) CashStoreRemoveOrder(context *gin.Context) {

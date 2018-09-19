@@ -141,6 +141,11 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 			ce.SetStatusKey(api_error.InvalidRequestBody)
 			return
 		}
+	} else {
+		if common.CheckETHAddress(offerBody.Address) {
+			ce.SetStatusKey(api_error.InvalidRequestBody)
+			return
+		}
 	}
 
 	profileTO := s.userDao.GetProfile(userId)

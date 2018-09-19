@@ -36,12 +36,50 @@ func (dao CashDao) UpdateCashStore(cash *bean.CashStore) error {
 	return err
 }
 
+func (dao CashDao) GetCashOrder(id string) (t TransferObject) {
+	GetObject(GetCashOrderItemPath(id), &t, snapshotToCashStore)
+	return
+}
+
+func (dao CashDao) AddCashOrder(order *bean.CashOrder) error {
+	dbClient := firebase_service.FirestoreClient
+
+	docRef := dbClient.Collection(GetCashOrderPath()).NewDoc()
+	order.Id = docRef.ID
+	docUserRef := dbClient.Doc(GetCashOrderUserItemPath(order.UID, order.Id))
+
+	batch := dbClient.Batch()
+	batch.Set(docRef, order.GetAdd())
+	batch.Set(docUserRef, order.GetAdd())
+	_, err := batch.Commit(context.Background())
+
+	return err
+}
+
 func GetCashStorePath(userId string) string {
 	return fmt.Sprintf("cash/%s", userId)
 }
 
+func GetCashOrderPath() string {
+	return fmt.Sprintf("cash_orders")
+}
+
+func GetCashOrderItemPath(userId string) string {
+	return fmt.Sprintf("cash_orders/%s", userId)
+}
+
+func GetCashOrderUserItemPath(userId string, id string) string {
+	return fmt.Sprintf("cash/%s/orders/%s", userId, id)
+}
+
 func snapshotToCashStore(snapshot *firestore.DocumentSnapshot) interface{} {
 	var obj bean.CashStore
+	snapshot.DataTo(&obj)
+	return obj
+}
+
+func snapshotToCashOrder(snapshot *firestore.DocumentSnapshot) interface{} {
+	var obj bean.CashOrder
 	snapshot.DataTo(&obj)
 	return obj
 }
