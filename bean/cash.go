@@ -200,12 +200,14 @@ type CashStore struct {
 
 func (b CashStore) GetAdd() map[string]interface{} {
 	return map[string]interface{}{
+		"uid":           b.UID,
 		"name":          b.Name,
 		"address":       b.Address,
 		"phone":         b.Phone,
 		"business_type": b.BusinessType,
 		"status":        b.Status,
 		"center":        b.Center,
+		"information":   b.Information,
 		"longitude":     b.Longitude,
 		"latitude":      b.Latitude,
 		"chain_id":      b.ChainId,
@@ -220,6 +222,7 @@ func (b CashStore) GetUpdate() map[string]interface{} {
 		"phone":         b.Phone,
 		"business_type": b.BusinessType,
 		"status":        b.Status,
+		"information":   b.Information,
 		"center":        b.Center,
 		"longitude":     b.Longitude,
 		"latitude":      b.Latitude,

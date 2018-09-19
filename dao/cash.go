@@ -19,8 +19,8 @@ func (dao CashDao) GetCashStore(userId string) (t TransferObject) {
 func (dao CashDao) AddCashStore(cash *bean.CashStore) error {
 	dbClient := firebase_service.FirestoreClient
 
-	creditPath := GetCreditUserPath(cash.UID)
-	docRef := dbClient.Doc(creditPath)
+	cashPath := GetCashStorePath(cash.UID)
+	docRef := dbClient.Doc(cashPath)
 	_, err := docRef.Set(context.Background(), cash.GetAdd())
 
 	return err
@@ -29,8 +29,8 @@ func (dao CashDao) AddCashStore(cash *bean.CashStore) error {
 func (dao CashDao) UpdateCashStore(cash *bean.CashStore) error {
 	dbClient := firebase_service.FirestoreClient
 
-	creditPath := GetCreditUserPath(cash.UID)
-	docRef := dbClient.Doc(creditPath)
+	cashPath := GetCashStorePath(cash.UID)
+	docRef := dbClient.Doc(cashPath)
 	_, err := docRef.Set(context.Background(), cash.GetUpdate(), firestore.MergeAll)
 
 	return err

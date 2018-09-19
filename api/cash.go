@@ -38,27 +38,27 @@ func (api CashApi) CashStoreCreate(context *gin.Context) {
 	body.Language = language
 	body.FCM = fcm
 
-	credit, ce := service.CashServiceInst.AddCashStore(userId, body)
+	cash, ce := service.CashServiceInst.AddCashStore(userId, body)
 	if ce.ContextValidate(context) {
 		return
 	}
 
-	bean.SuccessResponse(context, credit)
+	bean.SuccessResponse(context, cash)
 }
 
 func (api CashApi) CashStoreUpdate(context *gin.Context) {
-	//userId := common.GetUserId(context)
-	//
+	userId := common.GetUserId(context)
+
 	var body bean.CashStore
 	if common.ValidateBody(context, &body) != nil {
 		return
 	}
-	//withdraw, ce := service.CreditServiceInst.AddCreditWithdraw(userId, body)
-	//if ce.ContextValidate(context) {
-	//	return
-	//}
+	cash, ce := service.CashServiceInst.UpdateCashStore(userId, body)
+	if ce.ContextValidate(context) {
+		return
+	}
 
-	bean.SuccessResponse(context, bean.CashStore{})
+	bean.SuccessResponse(context, cash)
 }
 
 func (api CashApi) CashStorePrice(context *gin.Context) {
