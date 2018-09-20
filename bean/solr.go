@@ -773,7 +773,7 @@ func NewSolrFromCashOrder(order CashOrder, cash CashStore) (solr SolrOfferObject
 		Status:            order.Status,
 		Center:            order.Center,
 		Address:           order.Address,
-		TxHash:            order.ProviderWithdrawData.(string),
+		TxHash:            order.ProviderWithdrawData,
 	}
 	b, _ := json.Marshal(&extraData)
 	solr.ExtraData = string(b)
