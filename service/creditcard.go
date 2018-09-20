@@ -50,22 +50,16 @@ func (s CreditCardService) GetProposeInstantOffer(amountStr string, currency str
 		ce.SetError(api_error.GetDataFailed, err)
 		return
 	}
-	externalFeePercentage := decimal.NewFromFloat(float64(percentage)).Div(decimal.NewFromFloat(100))
 
 	price := decimal.NewFromFloat(cryptoRate.Buy).Round(2)
-
-	// =max(system fee * tx value, tx revenue*90%)
 	totalWOFee := amount.Mul(price)
+
 	feePercentage := decimal.NewFromFloat(systemFee.Value).Round(10)
+	externalFeePercentage := decimal.NewFromFloat(float64(percentage)).Div(decimal.NewFromFloat(100))
 
-	total, externalFee := dao.AddFeePercentage(totalWOFee, externalFeePercentage)
-	_, internalFee1 := dao.AddFeePercentage(total, feePercentage)
-	internalFee2 := externalFee.Mul(decimal.NewFromFloat(0.9))
-
-	internalFee := internalFee1
-	if internalFee2.GreaterThan(internalFee1) {
-		internalFee = internalFee2
-	}
+	total, internalFee := dao.AddFeePercentage(totalWOFee, feePercentage)
+	_, externalFee := dao.AddFeePercentage(totalWOFee, externalFeePercentage)
+	total = total.Add(externalFee)
 
 	offer.FiatAmount = total.Round(2).String()
 	offer.FiatCurrency = bean.USD.Code
@@ -213,8 +207,9 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 	}
 
 	fiatAmount, _ := decimal.NewFromString(offerBody.FiatAmount)
-	fee := common.StringToDecimal(offerTest.ExternalFee)
-	fiatAmountWithoutFee := fiatAmount.Sub(fee)
+	fee := common.StringToDecimal(offerTest.Fee)
+	externalFee := common.StringToDecimal(offerTest.ExternalFee)
+	fiatAmountWithoutFee := fiatAmount.Sub(fee).Sub(externalFee)
 
 	ccGlobalLimit := s.checkGlobalLimit(fiatAmountWithoutFee.String())
 	if ccGlobalLimit {
@@ -593,8 +588,8 @@ func (s CreditCardService) finishInstantOfferCredit(pendingOffer *bean.PendingIn
 	offer.Status = bean.INSTANT_OFFER_STATUS_SUCCESS
 
 	offerRef := dao.GetInstantOfferItemPath(pendingOffer.UID, pendingOffer.InstantOffer)
-	revenue := common.StringToDecimal(offer.FiatAmount)
-	fee := common.StringToDecimal(offer.Fee)
+	revenue := common.StringToDecimal(offer.ExternalFee)
+	fee := common.Zero
 
 	ccCE := CreditServiceInst.FinishCreditTransaction(offer.Currency, offer.ProviderData.(string), offerRef, revenue, fee)
 	if ccCE.HasError() {
