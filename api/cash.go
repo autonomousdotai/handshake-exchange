@@ -92,7 +92,8 @@ func (api CashApi) CashStoreOrder(context *gin.Context) {
 
 func (api CashApi) FinishCashOrder(context *gin.Context) {
 	id := context.Param("id")
-	order, overSpent, ce := service.CashServiceInst.FinishOrder(id, "3.17", "USD")
+	amount := context.Param("amount")
+	order, overSpent, ce := service.CashServiceInst.FinishOrder(id, amount, "USD")
 	if ce.ContextValidate(context) {
 		return
 	}
