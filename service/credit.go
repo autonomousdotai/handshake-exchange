@@ -579,7 +579,6 @@ func (s CreditService) FinishCreditTransaction(currency string, id string, offer
 	trans.Revenue = revenue.RoundBank(2).String()
 
 	amount := common.StringToDecimal(trans.Amount)
-
 	poolTO := s.dao.GetCreditPool(trans.Currency, int(common.StringToDecimal(trans.Percentage).IntPart()))
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, transTO) {
 		return

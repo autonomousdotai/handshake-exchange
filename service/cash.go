@@ -1,10 +1,13 @@
 package service
 
 import (
+	"fmt"
 	"github.com/ninjadotorg/handshake-exchange/api_error"
 	"github.com/ninjadotorg/handshake-exchange/bean"
 	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/dao"
+	"github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
+	"github.com/ninjadotorg/handshake-exchange/integration/exchangecreditatm_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/solr_service"
 	"github.com/shopspring/decimal"
 	"strings"
@@ -152,6 +155,7 @@ func (s CashService) AddOrder(userId string, orderBody bean.CashOrder) (order be
 		return
 	}
 
+	orderBody.UID = userId
 	if orderTest.FiatAmount != orderBody.FiatAmount {
 		notOk := true
 		testFiatAmount := common.StringToDecimal(orderTest.FiatAmount)
@@ -236,19 +240,100 @@ func (s CashService) AddOrder(userId string, orderBody bean.CashOrder) (order be
 	}
 
 	if isSuccess {
-		setupStoreOrder(&orderBody, orderTest, *creditTrans)
-		// order, err = s.dao.AddStoreOrder(orderBody)
+		setupCashOrder(&orderBody, orderTest, *creditTrans)
+		err := s.dao.AddCashOrder(&orderBody)
+		order = orderBody
+		if ce.SetError(api_error.AddDataFailed, err) {
+			return
+		}
 	}
 
 	return
 }
 
-func setupStoreOrder(order *bean.CashOrder, orderTest bean.CashOrder, creditTrans bean.CreditTransaction) {
-	fiatAmount, _ := decimal.NewFromString(order.FiatAmount)
-	fee, _ := decimal.NewFromString(orderTest.ExternalFee)
+func (s CashService) FinishOrder(orderId string, amount string, fiatCurrency string) (order bean.CashOrder, overSpent string, ce SimpleContextError) {
+	cashOrderTO := s.dao.GetCashOrder(orderId)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, cashOrderTO) {
+		return
+	}
+	order = cashOrderTO.Object.(bean.CashOrder)
+	cashTO := s.dao.GetCashStore(order.UID)
+	if cashTO.Error != nil {
+		ce.FeedDaoTransfer(api_error.GetDataFailed, cashTO)
+		return
+	}
+	cash := cashTO.Object.(bean.CashStore)
 
-	order.RawFiatAmount = fiatAmount.Sub(fee).String()
-	order.Status = bean.INSTANT_OFFER_STATUS_PROCESSING
+	inputAmount := common.StringToDecimal(amount)
+	if fiatCurrency == order.FiatCurrency {
+		checkAmount := common.StringToDecimal(order.FiatAmount)
+		if inputAmount.LessThan(checkAmount) {
+			ce.SetStatusKey(api_error.InvalidAmount)
+			return
+		}
+		if inputAmount.GreaterThan(checkAmount) {
+			overSpent = inputAmount.Sub(checkAmount).String()
+		}
+	} else if fiatCurrency == order.FiatLocalCurrency {
+		checkAmount := common.StringToDecimal(order.FiatLocalAmount)
+		if inputAmount.LessThan(checkAmount) {
+			ce.SetStatusKey(api_error.InvalidAmount)
+			return
+		}
+		if inputAmount.GreaterThan(checkAmount) {
+			overSpent = inputAmount.Sub(checkAmount).String()
+		}
+	}
+
+	orderRef := dao.GetCashOrderItemPath(order.Id)
+	fiatAmount := common.StringToDecimal(order.RawFiatAmount)
+	revenue := common.StringToDecimal(order.ExternalFee).Add(fiatAmount)
+	fee := common.Zero
+
+	ccCE := CreditServiceInst.FinishCreditTransaction(order.Currency, order.ProviderData.(string), orderRef, revenue, fee)
+	if ccCE.HasError() {
+		if ce.SetError(api_error.ExternalApiFailed, ccCE.CheckError()) {
+			return
+		}
+	}
+
+	if order.Currency == bean.ETH.Code {
+		client := exchangecreditatm_service.ExchangeCreditAtmClient{}
+		amount := common.StringToDecimal(order.Amount)
+
+		txHash, outNonce, onChainErr := client.ReleasePartialFund(order.Id, 1, amount, order.Address, 0, false)
+		order.ProviderWithdrawData = txHash
+		if onChainErr != nil {
+			order.ProviderWithdrawData = onChainErr.Error()
+		}
+		order.ProviderWithdrawDataExtra = fmt.Sprintf("%d", outNonce)
+	} else {
+		coinbaseTx, errWithdraw := coinbase_service.SendTransaction(order.Address, order.Amount, order.Currency,
+			fmt.Sprintf("Withdraw tx = %s", order.Id), order.Id)
+		if errWithdraw == nil {
+			order.ProviderWithdrawData = coinbaseTx.Id
+		} else {
+			order.ProviderWithdrawData = errWithdraw.Error()
+		}
+	}
+
+	order.Status = bean.CASH_ORDER_STATUS_SUCCESS
+	err := s.dao.FinishCashOrder(&order, &cash)
+	if ce.SetError(api_error.AddDataFailed, err) {
+		return
+	}
+
+	return
+}
+
+func setupCashOrder(order *bean.CashOrder, orderTest bean.CashOrder, creditTrans bean.CreditTransaction) {
+	fiatAmount := common.StringToDecimal(order.FiatAmount)
+	fee := common.StringToDecimal(orderTest.Fee)
+	externalFee := common.StringToDecimal(orderTest.ExternalFee)
+	storeFee := common.StringToDecimal(orderTest.StoreFee)
+
+	order.RawFiatAmount = fiatAmount.Sub(fee).Sub(storeFee).Sub(externalFee).String()
+	order.Status = bean.CASH_ORDER_STATUS_PROCESSING
 	order.Type = bean.INSTANT_OFFER_TYPE_BUY
 	order.Provider = bean.INSTANT_OFFER_PROVIDER_CREDIT
 	order.ProviderData = creditTrans.Id
@@ -260,7 +345,7 @@ func setupStoreOrder(order *bean.CashOrder, orderTest bean.CashOrder, creditTran
 	order.ExternalFeePercentage = orderTest.ExternalFeePercentage
 	order.Price = orderTest.Price
 	order.FiatLocalCurrency = orderTest.FiatLocalCurrency
-	order.FiatLocalAmount = orderTest.FiatAmount
+	order.FiatLocalAmount = orderTest.FiatLocalAmount
 
 	// duration, _ := strconv.Atoi(os.Getenv("CC_LIMIT_DURATION"))
 	order.Duration = int64(24 * 3600) // 24 hours

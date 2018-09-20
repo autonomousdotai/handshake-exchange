@@ -5,7 +5,9 @@ import (
 	"context"
 	"fmt"
 	"github.com/ninjadotorg/handshake-exchange/bean"
+	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/integration/firebase_service"
+	"strings"
 )
 
 type CashDao struct {
@@ -37,7 +39,7 @@ func (dao CashDao) UpdateCashStore(cash *bean.CashStore) error {
 }
 
 func (dao CashDao) GetCashOrder(id string) (t TransferObject) {
-	GetObject(GetCashOrderItemPath(id), &t, snapshotToCashStore)
+	GetObject(GetCashOrderItemPath(id), &t, snapshotToCashOrder)
 	return
 }
 
@@ -56,6 +58,51 @@ func (dao CashDao) AddCashOrder(order *bean.CashOrder) error {
 	return err
 }
 
+func (dao CashDao) FinishCashOrder(order *bean.CashOrder, cash *bean.CashStore) error {
+	dbClient := firebase_service.FirestoreClient
+
+	docRef := dbClient.Doc(GetCashOrderItemPath(order.Id))
+	docUserRef := dbClient.Doc(GetCashOrderUserItemPath(order.UID, order.Id))
+	cashRef := dbClient.Doc(GetCashStorePath(order.UID))
+
+	err := dbClient.RunTransaction(context.Background(), func(ctx context.Context, tx *firestore.Transaction) error {
+		var txErr error
+
+		cashDoc, txErr := tx.Get(cashRef)
+		if txErr != nil {
+			return txErr
+		}
+		profit, txErr := common.ConvertToDecimal(cashDoc, "profit")
+		if txErr != nil {
+			if strings.Contains(txErr.Error(), "no field") {
+				profit = common.Zero
+			} else {
+				return txErr
+			}
+		}
+		storeProfit := common.StringToDecimal(order.StoreFee)
+		profit = profit.Add(storeProfit)
+		cash.Profit = profit.String()
+
+		txErr = tx.Set(docRef, order.GetUpdate(), firestore.MergeAll)
+		if txErr != nil {
+			return txErr
+		}
+		txErr = tx.Set(docUserRef, order.GetUpdate(), firestore.MergeAll)
+		if txErr != nil {
+			return txErr
+		}
+		txErr = tx.Set(cashRef, cash.GetUpdateProfit(), firestore.MergeAll)
+		if txErr != nil {
+			return txErr
+		}
+
+		return txErr
+	})
+
+	return err
+}
+
 func GetCashStorePath(userId string) string {
 	return fmt.Sprintf("cash/%s", userId)
 }
@@ -64,8 +111,8 @@ func GetCashOrderPath() string {
 	return fmt.Sprintf("cash_orders")
 }
 
-func GetCashOrderItemPath(userId string) string {
-	return fmt.Sprintf("cash_orders/%s", userId)
+func GetCashOrderItemPath(id string) string {
+	return fmt.Sprintf("cash_orders/%s", id)
 }
 
 func GetCashOrderUserItemPath(userId string, id string) string {
