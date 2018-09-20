@@ -157,6 +157,6 @@ func (b CashOrder) GetNotificationUpdate() map[string]interface{} {
 	return map[string]interface{}{
 		"id":     b.Id,
 		"status": b.Status,
-		"type":   "instant",
+		"type":   "cash_order",
 	}
 }

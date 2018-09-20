@@ -150,6 +150,13 @@ func (s CashService) GetProposeCashOrder(amountStr string, currency string, fiat
 }
 
 func (s CashService) AddOrder(userId string, orderBody bean.CashOrder) (order bean.CashOrder, ce SimpleContextError) {
+	cashTO := s.dao.GetCashStore(userId)
+	if cashTO.Error != nil {
+		ce.FeedDaoTransfer(api_error.GetDataFailed, cashTO)
+		return
+	}
+	cash := cashTO.Object.(bean.CashStore)
+
 	orderTest, testOfferCE := s.GetProposeCashOrder(orderBody.Amount, orderBody.Currency, orderBody.FiatLocalCurrency)
 	if ce.FeedContextError(api_error.GetDataFailed, testOfferCE) {
 		return
@@ -246,6 +253,10 @@ func (s CashService) AddOrder(userId string, orderBody bean.CashOrder) (order be
 		if ce.SetError(api_error.AddDataFailed, err) {
 			return
 		}
+
+		e := s.dao.UpdateNotificationCashOrder(order)
+		fmt.Println(e)
+		solr_service.UpdateObject(bean.NewSolrFromCashOrder(order, cash))
 	}
 
 	return
@@ -322,6 +333,7 @@ func (s CashService) FinishOrder(orderId string, amount string, fiatCurrency str
 	if ce.SetError(api_error.AddDataFailed, err) {
 		return
 	}
+	solr_service.UpdateObject(bean.NewSolrFromCashOrder(order, cash))
 
 	return
 }

@@ -103,6 +103,19 @@ func (dao CashDao) FinishCashOrder(order *bean.CashOrder, cash *bean.CashStore) 
 	return err
 }
 
+func (dao CashDao) UpdateNotificationCashOrder(order bean.CashOrder) error {
+	dbClient := firebase_service.NotificationFirebaseClient
+
+	ref := dbClient.NewRef(GetNotificationCashOrderPath(order.UID, order.Id))
+	err := ref.Set(context.Background(), order.GetNotificationUpdate())
+	if order.ToUID != "" && err == nil {
+		ref = dbClient.NewRef(GetNotificationCashOrderPath(order.ToUID, order.Id))
+		err = ref.Set(context.Background(), order.GetNotificationUpdate())
+	}
+
+	return err
+}
+
 func GetCashStorePath(userId string) string {
 	return fmt.Sprintf("cash/%s", userId)
 }
@@ -117,6 +130,10 @@ func GetCashOrderItemPath(id string) string {
 
 func GetCashOrderUserItemPath(userId string, id string) string {
 	return fmt.Sprintf("cash/%s/orders/%s", userId, id)
+}
+
+func GetNotificationCashOrderPath(userId string, id string) string {
+	return fmt.Sprintf("users/%s/credits/cash_order_%s", userId, id)
 }
 
 func snapshotToCashStore(snapshot *firestore.DocumentSnapshot) interface{} {

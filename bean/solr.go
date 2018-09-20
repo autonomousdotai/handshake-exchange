@@ -712,3 +712,71 @@ func NewSolrFromCashStore(cash CashStore) (solr SolrOfferObject) {
 
 	return
 }
+
+var cashOrderStatusMap = map[string]int{
+	CASH_ORDER_STATUS_PROCESSING:   0,
+	CASH_ORDER_STATUS_SUCCESS:      1,
+	CASH_ORDER_STATUS_TRANSFERRING: 2,
+	CASH_ORDER_STATUS_CANCELLED:    3,
+}
+
+type SolrCashOrderExtraData struct {
+	Id                string      `json:"id" firestore:"id"`
+	UID               string      `json:"-" firestore:"uid"`
+	ToUID             string      `json:"-" firestore:"to_uid"`
+	Amount            string      `json:"amount" firestore:"amount" validate:"required"`
+	Currency          string      `json:"currency" firestore:"currency" validate:"required"`
+	FiatAmount        string      `json:"fiat_amount" firestore:"fiat_amount" validate:"required"`
+	FiatCurrency      string      `json:"fiat_currency" firestore:"fiat_currency" validate:"required"`
+	FiatLocalAmount   string      `json:"fiat_local_amount" firestore:"fiat_local_amount"`
+	FiatLocalCurrency string      `json:"fiat_local_currency" firestore:"fiat_local_currency"`
+	StoreFee          string      `json:"store_fee" firestore:"store_fee"`
+	Status            string      `json:"status" firestore:"status"`
+	Center            string      `json:"center" firestore:"center"`
+	Address           string      `json:"address" firestore:"address" validate:"required"`
+	TxHash            interface{} `json:"tx_hash" firestore:"tx_hash"`
+}
+
+func NewSolrFromCashOrder(order CashOrder, cash CashStore) (solr SolrOfferObject) {
+	solr.Id = fmt.Sprintf("exchange_cash_%s", order.Id)
+	solr.Type = 2
+	solr.State = 0
+	solr.IsPrivate = 1
+	solr.Status = cashOrderStatusMap[order.Status]
+	solr.Hid = 0
+	solr.ChainId = cash.ChainId
+	storeUID, _ := strconv.Atoi(cash.UID)
+	solr.InitUserId = storeUID
+	userId, _ := strconv.Atoi(order.ToUID)
+	solr.ShakeUserIds = []int{userId}
+	solr.TextSearch = make([]string, 0)
+	solr.Location = fmt.Sprintf("%f,%f", cash.Latitude, cash.Longitude)
+	solr.InitAt = order.CreatedAt.Unix()
+	solr.LastUpdateAt = time.Now().UTC().Unix()
+
+	solr.OfferFeedType = "cash_order"
+	// Nothing now
+	solr.OfferType = ""
+	solr.FiatCurrency = order.FiatCurrency
+
+	extraData := SolrCashOrderExtraData{
+		Id:                order.Id,
+		UID:               order.UID,
+		ToUID:             order.ToUID,
+		Amount:            order.Amount,
+		Currency:          order.Currency,
+		FiatAmount:        order.FiatAmount,
+		FiatCurrency:      order.FiatCurrency,
+		FiatLocalAmount:   order.FiatLocalAmount,
+		FiatLocalCurrency: order.FiatLocalCurrency,
+		StoreFee:          order.StoreFee,
+		Status:            order.Status,
+		Center:            order.Center,
+		Address:           order.Address,
+		TxHash:            order.ProviderWithdrawData.(string),
+	}
+	b, _ := json.Marshal(&extraData)
+	solr.ExtraData = string(b)
+
+	return
+}
