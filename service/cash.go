@@ -70,7 +70,7 @@ func (s CashService) UpdateCashStore(userId string, body bean.CashStore) (cash b
 	cash = cashTO.Object.(bean.CashStore)
 
 	err := s.dao.UpdateCashStore(&cash)
-	if ce.SetError(api_error.AddDataFailed, err) {
+	if ce.SetError(api_error.UpdateDataFailed, err) {
 		return
 	}
 	solr_service.UpdateObject(bean.NewSolrFromCashStore(cash))
