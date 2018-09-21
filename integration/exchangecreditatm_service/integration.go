@@ -38,6 +38,11 @@ func (c *ExchangeCreditAtmClient) initializeWrite() {
 	c.writeClient.Initialize()
 }
 
+func (c *ExchangeCreditAtmClient) initializeWriteWithKey(key string) {
+	c.writeClient = ethereum_service.EthereumClient{}
+	c.writeClient.InitializeWithKey(key)
+}
+
 func (c *ExchangeCreditAtmClient) close() {
 	c.client.Close()
 }
@@ -47,9 +52,13 @@ func (c *ExchangeCreditAtmClient) closeWrite() {
 }
 
 func (c *ExchangeCreditAtmClient) ReleasePartialFund(offerId string, hid int64, amount decimal.Decimal, address string,
-	inNonce uint64, overwriteNonce bool) (txHash string, outNonce uint64, err error) {
+	inNonce uint64, overwriteNonce bool, key string) (txHash string, outNonce uint64, err error) {
 	c.initialize()
-	c.initializeWrite()
+	if key != "" {
+		c.initializeWriteWithKey(key)
+	} else {
+		c.initializeWrite()
+	}
 
 	auth, err := c.writeClient.GetAuth(decimal.NewFromFloat(0))
 	if auth.Nonce.Uint64() < inNonce {
@@ -79,6 +88,25 @@ func (c *ExchangeCreditAtmClient) ReleasePartialFund(offerId string, hid int64, 
 	sendAmount := intWeiAmount.Add(intWeiAmount, decimalBigAmount)
 
 	tx, err := c.creditAtm.ReleasePartialFund(auth, toAddress, sendAmount, offChain)
+	if err != nil {
+		return
+	}
+	txHash = tx.Hash().Hex()
+
+	c.closeWrite()
+	c.close()
+
+	return
+}
+
+func (c *ExchangeCreditAtmClient) AddAdmin(address string) (txHash string, err error) {
+	c.initialize()
+	c.initializeWrite()
+
+	auth, err := c.writeClient.GetAuth(decimal.NewFromFloat(0))
+
+	toAddress := common.HexToAddress(address)
+	tx, err := c.creditAtm.AddAdmin(auth, toAddress)
 	if err != nil {
 		return
 	}

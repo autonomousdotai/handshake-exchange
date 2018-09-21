@@ -7,7 +7,6 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/dao"
 	"github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
-	"github.com/ninjadotorg/handshake-exchange/integration/exchangecreditatm_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/solr_service"
 	"github.com/shopspring/decimal"
 	"strings"
@@ -309,15 +308,16 @@ func (s CashService) FinishOrder(orderId string, amount string, fiatCurrency str
 	}
 
 	if order.Currency == bean.ETH.Code {
-		client := exchangecreditatm_service.ExchangeCreditAtmClient{}
-		amount := common.StringToDecimal(order.Amount)
+		txHash, outNonce, outAddress, onChainErr := ReleaseContractFund(*s.miscDao, order.Address, order.Amount, order.Id, 1, "ETH_LOW_ADMIN_KEYS")
 
-		txHash, outNonce, onChainErr := client.ReleasePartialFund(order.Id, 1, amount, order.Address, 0, false)
 		order.ProviderWithdrawData = txHash
 		if onChainErr != nil {
 			order.ProviderWithdrawData = onChainErr.Error()
 		}
-		order.ProviderWithdrawDataExtra = fmt.Sprintf("%d", outNonce)
+		order.ProviderWithdrawDataExtra = map[string]interface{}{
+			"nonce":   fmt.Sprintf("%d", outNonce),
+			"address": outAddress,
+		}
 	} else {
 		coinbaseTx, errWithdraw := coinbase_service.SendTransaction(order.Address, order.Amount, order.Currency,
 			fmt.Sprintf("Withdraw tx = %s", order.Id), order.Id)
@@ -334,6 +334,35 @@ func (s CashService) FinishOrder(orderId string, amount string, fiatCurrency str
 		return
 	}
 	solr_service.UpdateObject(bean.NewSolrFromCashOrder(order, cash))
+
+	return
+}
+
+func (s CashService) SyncCashStoreToSolr(id string) (cash bean.CashStore, ce SimpleContextError) {
+	cashTO := s.dao.GetCashStore(id)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, cashTO) {
+		return
+	}
+	cash = cashTO.Object.(bean.CashStore)
+
+	solr_service.UpdateObject(bean.NewSolrFromCashStore(cash))
+
+	return
+}
+
+func (s CashService) SyncCashOrderToSolr(id string) (cashOrder bean.CashOrder, ce SimpleContextError) {
+	cashOrderTO := s.dao.GetCashOrder(id)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, cashOrderTO) {
+		return
+	}
+	cashOrder = cashOrderTO.Object.(bean.CashOrder)
+	cashTO := s.dao.GetCashStore(id)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, cashTO) {
+		return
+	}
+	cash := cashTO.Object.(bean.CashStore)
+
+	solr_service.UpdateObject(bean.NewSolrFromCashOrder(cashOrder, cash))
 
 	return
 }

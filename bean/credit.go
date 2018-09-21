@@ -258,14 +258,15 @@ func (b CreditWithdraw) GetUpdateStatus() map[string]interface{} {
 }
 
 type CreditBalanceHistory struct {
-	Id         string    `json:"id" firestore:"id"`
-	ItemRef    string    `json:"-" firestore:"item_ref"`
-	ModifyRef  string    `json:"-" firestore:"modify_ref"`
-	ModifyType string    `json:"-" firestore:"modify_type"`
-	Old        string    `json:"old" firestore:"old"`
-	Change     string    `json:"change" firestore:"change"`
-	New        string    `json:"new" firestore:"new"`
-	CreatedAt  time.Time `json:"created_at" firestore:"created_at"`
+	Id           string      `json:"id" firestore:"id"`
+	ItemRef      string      `json:"-" firestore:"item_ref"`
+	ModifyRef    string      `json:"-" firestore:"modify_ref"`
+	ModifyType   string      `json:"-" firestore:"modify_type"`
+	Old          string      `json:"old" firestore:"old"`
+	Change       string      `json:"change" firestore:"change"`
+	New          string      `json:"new" firestore:"new"`
+	WithdrawData interface{} `json:"withdraw_data" firestore:"withdraw_data"`
+	CreatedAt    time.Time   `json:"created_at" firestore:"created_at"`
 }
 
 func (b CreditBalanceHistory) GetAdd() map[string]interface{} {
@@ -278,6 +279,13 @@ func (b CreditBalanceHistory) GetAdd() map[string]interface{} {
 		"change":      b.Change,
 		"new":         b.New,
 		"created_at":  firestore.ServerTimestamp,
+	}
+}
+
+func (b CreditBalanceHistory) GetUpdateWithdraw() map[string]interface{} {
+	return map[string]interface{}{
+		"withdraw_data": b.WithdrawData,
+		"updated_at":    firestore.ServerTimestamp,
 	}
 }
 

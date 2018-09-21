@@ -138,3 +138,9 @@ func (transfer CryptoPendingTransfer) GetAddCryptoPendingTransfer() map[string]i
 		"created_at":      firestore.ServerTimestamp,
 	}
 }
+
+type CreditContractKeyData struct {
+	Index   int64  `json:"index"`
+	Address string `json:"address"`
+	Nonce   int64  `json:"nonce"`
+}

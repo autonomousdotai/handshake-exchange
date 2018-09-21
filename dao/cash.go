@@ -133,7 +133,7 @@ func GetCashOrderUserItemPath(userId string, id string) string {
 }
 
 func GetNotificationCashOrderPath(userId string, id string) string {
-	return fmt.Sprintf("users/%s/credits/cash_order_%s", userId, id)
+	return fmt.Sprintf("users/%s/cash/cash_order_%s", userId, id)
 }
 
 func snapshotToCashStore(snapshot *firestore.DocumentSnapshot) interface{} {

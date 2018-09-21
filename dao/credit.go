@@ -78,6 +78,15 @@ func (dao CreditDao) UpdateCreditItemReactivate(item *bean.CreditItem) error {
 	return err
 }
 
+func (dao CreditDao) UpdateCreditBalanceHistory(userId string, currency string, item *bean.CreditBalanceHistory) error {
+	dbClient := firebase_service.FirestoreClient
+
+	docRef := dbClient.Doc(GetCreditBalanceHistoryItemPath(userId, currency, item.Id))
+	_, err := docRef.Set(context.Background(), item.GetUpdateWithdraw(), firestore.MergeAll)
+
+	return err
+}
+
 func (dao CreditDao) GetCreditDeposit(currency string, depositId string) (t TransferObject) {
 	t = dao.GetCreditDepositByPath(GetCreditDepositItemPath(currency, depositId))
 	return

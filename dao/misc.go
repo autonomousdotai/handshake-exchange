@@ -318,6 +318,37 @@ func (dao MiscDao) GetInstantOfferNonceFromCache() (t TransferObject) {
 	return
 }
 
+func (dao MiscDao) CreditKeyIndexToCache(keySet string, index string) error {
+	cmd := cache.RedisClient.Set(GetCreditContractKeyIndexCacheKey(keySet), index, 0)
+	return cmd.Err()
+}
+
+func (dao MiscDao) GetCreditKeyIndexFromCache(keySet string) (t TransferObject) {
+	GetCacheObject(GetCreditContractKeyIndexCacheKey(keySet), &t, func(val string) interface{} {
+		return val
+	})
+
+	return
+}
+
+func (dao MiscDao) CreditContractKeyDataToCache(keyData bean.CreditContractKeyData) error {
+	b, _ := json.Marshal(&keyData)
+	key := GetCreditContractKeyDataCacheKey(keyData.Address)
+	cmd := cache.RedisClient.Set(key, string(b), 0)
+
+	return cmd.Err()
+}
+
+func (dao MiscDao) GetCreditContractKeyDataFromCache(address string) (t TransferObject) {
+	GetCacheObject(GetCreditContractKeyDataCacheKey(address), &t, func(val string) interface{} {
+		var obj bean.CreditContractKeyData
+		json.Unmarshal([]byte(val), &obj)
+		return obj
+	})
+
+	return
+}
+
 func GetCurrencyRateItemPath(currency string) string {
 	return fmt.Sprintf("currency_rates/%s", currency)
 }
@@ -380,4 +411,12 @@ func GetInstantOfferLockCacheKey() string {
 
 func GetInstantOfferNonceCacheKey() string {
 	return fmt.Sprintf("handshake_exchange.credit_atm.nonce")
+}
+
+func GetCreditContractKeyIndexCacheKey(keySet string) string {
+	return fmt.Sprintf("handshake_exchange.credit_atm.key_index.%s", keySet)
+}
+
+func GetCreditContractKeyDataCacheKey(address string) string {
+	return fmt.Sprintf("handshake_exchange.credit_atm.key_data.%s", address)
 }

@@ -11,6 +11,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/integration/bitpay_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/coinapi_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
+	"github.com/ninjadotorg/handshake-exchange/integration/ethereum_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/exchangecreditatm_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/openexchangerates_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/solr_service"
@@ -457,7 +458,7 @@ func (api MiscApi) SendBtc(context *gin.Context) {
 
 	client := exchangecreditatm_service.ExchangeCreditAtmClient{}
 	amount := common.StringToDecimal(amountStr)
-	txHash, _, onChainErr := client.ReleasePartialFund(offchainId, 1, amount, address, uint64(0), false)
+	txHash, _, onChainErr := client.ReleasePartialFund(offchainId, 1, amount, address, uint64(0), false, "")
 	if onChainErr != nil {
 		fmt.Println(onChainErr)
 	} else {
@@ -533,15 +534,18 @@ func (api MiscApi) SyncCreditWithdrawToSolr(context *gin.Context) {
 	bean.SuccessResponse(context, obj)
 }
 
-func (api MiscApi) Nonce(context *gin.Context) {
-	ce := service.SimpleContextError{}
-	nonce := service.CreditServiceInst.GetInstantTransferNonce(&ce)
-	if ce.ContextValidate(context) {
-		return
-	}
-	newNonce := nonce
-	newNonce += 1
-	service.CreditServiceInst.SetNonceToCache(newNonce)
+func (api MiscApi) GenerateAddress(context *gin.Context) {
+	address, key := ethereum_service.GenerateAddress()
 
-	bean.SuccessResponse(context, nonce)
+	bean.SuccessResponse(context, map[string]string{
+		"address": address,
+		"key":     key,
+	})
+}
+
+func (api MiscApi) SetupContractKeys(context *gin.Context) {
+	service.CreditServiceInst.SetupContractKey("ETH_HIGH_ADMIN_KEYS")
+	service.CreditServiceInst.SetupContractKey("ETH_LOW_ADMIN_KEYS")
+
+	bean.SuccessResponse(context, true)
 }

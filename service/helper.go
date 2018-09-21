@@ -1,9 +1,17 @@
 package service
 
 import (
+	"fmt"
 	"github.com/ninjadotorg/handshake-exchange/api_error"
 	"github.com/ninjadotorg/handshake-exchange/bean"
+	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/dao"
+	"github.com/ninjadotorg/handshake-exchange/integration/ethereum_service"
+	"github.com/ninjadotorg/handshake-exchange/integration/exchangecreditatm_service"
+	"github.com/pkg/errors"
+	"os"
+	"strconv"
+	"strings"
 )
 
 func GetProfile(dao dao.UserDaoInterface, userId string, ce *SimpleContextError) (profile *bean.Profile) {
@@ -77,6 +85,55 @@ func GetOfferStoreShake(dao dao.OfferStoreDao, offerId string, offerShakeId stri
 	} else {
 		ce.SetStatusKey(api_error.ResourceNotFound)
 	}
+
+	return
+}
+
+func ReleaseContractFund(dao dao.MiscDao, address string, amountStr string, refId string, hid int64, keySet string) (txHash string, outNonce uint64, outAddress string, err error) {
+	indexTO := dao.GetCreditKeyIndexFromCache(keySet)
+	if indexTO.HasError() {
+		err = errors.New("cache error")
+		return
+	}
+
+	keyStr := os.Getenv(keySet)
+	keys := strings.Split(keyStr, ";")
+
+	valStr := indexTO.Object.(string)
+	index, _ := strconv.Atoi(valStr)
+	index += 1
+	if index >= len(keys) {
+		index = 0
+	}
+	dao.CreditKeyIndexToCache(keySet, fmt.Sprintf("%d", index))
+
+	writeClient := ethereum_service.EthereumClient{}
+	writeClient.InitializeWithKey(keys[index])
+	nonce, clientErr := writeClient.GetNonce()
+	if clientErr != nil {
+		err = errors.New("network error")
+		return
+	}
+
+	keyDataTO := dao.GetCreditContractKeyDataFromCache(writeClient.GetAddress())
+	if keyDataTO.HasError() {
+		err = errors.New("cache error")
+		return
+	}
+	keyData := keyDataTO.Object.(bean.CreditContractKeyData)
+	outAddress = keyData.Address
+
+	if int64(nonce) <= keyData.Nonce {
+		// need to retry
+		err = errors.New("retry later")
+		return
+	}
+
+	client := exchangecreditatm_service.ExchangeCreditAtmClient{}
+	amount := common.StringToDecimal(amountStr)
+	txHash, outNonce, err = client.ReleasePartialFund(refId, hid, amount, address, 0, false, "")
+
+	keyData.Nonce = int64(outNonce)
 
 	return
 }

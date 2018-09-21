@@ -9,7 +9,6 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/dao"
 	"github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/crypto_service"
-	"github.com/ninjadotorg/handshake-exchange/integration/exchangecreditatm_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/gdax_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/stripe_service"
 	"github.com/ninjadotorg/handshake-exchange/service/notification"
@@ -457,9 +456,19 @@ func (s CreditCardService) FinishInstantOfferTransfers() (finishedInstantOffers 
 		}
 		offer := offerTO.Object.(bean.InstantOffer)
 
-		client := exchangecreditatm_service.ExchangeCreditAtmClient{}
-		amount := common.StringToDecimal(offer.Amount)
-		txHash, outNonce, onChainErr := client.ReleasePartialFund(offer.Id, 1, amount, offer.Address, nonce, false)
+		txHash, outNonce, outAddress, onChainErr := ReleaseContractFund(*s.miscDao, offer.Address, offer.Amount, offer.Id, 1, "ETH_HIGH_ADMIN_KEYS")
+		if onChainErr != nil {
+			continue
+		}
+
+		offer.ProviderWithdrawData = txHash
+		if onChainErr != nil {
+			offer.ProviderWithdrawData = onChainErr.Error()
+		}
+		offer.ProviderWithdrawDataExtra = map[string]interface{}{
+			"nonce":   fmt.Sprintf("%d", outNonce),
+			"address": outAddress,
+		}
 
 		if onChainErr != nil {
 			fmt.Println(onChainErr)
@@ -630,29 +639,27 @@ func (s CreditCardService) finishInstantOfferCredit(pendingOffer *bean.PendingIn
 			offer.ProviderWithdrawData = errWithdraw.Error()
 		}
 	} else {
-		// txHash, errWithdraw := crypto_service.SendTransaction(offer.Address, offer.Amount, offer.Currency)
-
 		if offer.Currency == bean.ETH.Code {
-			//client := exchangecreditatm_service.ExchangeCreditAtmClient{}
-			//amount := common.StringToDecimal(offer.Amount)
-			//txHash, onChainErr := client.ReleasePartialFund(offer.Id, 1, amount, offer.Address)
-			//if onChainErr != nil {
-			//	fmt.Println(onChainErr)
-			//	offer.ProviderWithdrawData = onChainErr.Error()
-			//} else {
-			//	offer.ProviderWithdrawData = txHash
-			//}
-			//fmt.Println(txHash)
-
-			offer.Status = bean.INSTANT_OFFER_STATUS_TRANSFERRING
-			pendingTransfer := bean.PendingInstantOfferTransfer{
-				Amount:          offer.Amount,
-				Address:         offer.Address,
-				InstantOffer:    offer.Id,
-				InstantOfferRef: pendingOffer.InstantOfferRef,
+			txHash, outNonce, outAddress, onChainErr := ReleaseContractFund(*s.miscDao, offer.Address, offer.Amount, offer.Id, 1, "ETH_HIGH_ADMIN_KEYS")
+			if onChainErr == nil {
+				offer.ProviderWithdrawData = txHash
+				if onChainErr != nil {
+					offer.ProviderWithdrawData = onChainErr.Error()
+				}
+				offer.ProviderWithdrawDataExtra = map[string]interface{}{
+					"nonce":   fmt.Sprintf("%d", outNonce),
+					"address": outAddress,
+				}
+			} else {
+				offer.Status = bean.INSTANT_OFFER_STATUS_TRANSFERRING
+				pendingTransfer := bean.PendingInstantOfferTransfer{
+					Amount:          offer.Amount,
+					Address:         offer.Address,
+					InstantOffer:    offer.Id,
+					InstantOfferRef: pendingOffer.InstantOfferRef,
+				}
+				s.dao.AddPendingInstantOfferTransfer(&pendingTransfer)
 			}
-			s.dao.AddPendingInstantOfferTransfer(&pendingTransfer)
-
 		} else {
 			coinbaseTx, errWithdraw := coinbase_service.SendTransaction(offer.Address, offer.Amount, offer.Currency,
 				fmt.Sprintf("Withdraw tx = %s", offer.Id), offer.Id)

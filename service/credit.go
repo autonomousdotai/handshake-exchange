@@ -10,13 +10,14 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/integration/chainso_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/crypto_service"
-	"github.com/ninjadotorg/handshake-exchange/integration/exchangecreditatm_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/solr_service"
 	"github.com/pkg/errors"
 	"github.com/shopspring/decimal"
 	"strconv"
 	"strings"
 	"time"
+	"os"
+	"github.com/ninjadotorg/handshake-exchange/integration/ethereum_service"
 )
 
 type CreditService struct {
@@ -119,29 +120,32 @@ func (s CreditService) DeactivateCredit(userId string, currency string) (credit 
 			ce.SetError(api_error.UpdateDataFailed, err)
 			return
 		}
-		client := exchangecreditatm_service.ExchangeCreditAtmClient{}
+
 		// Change is negative, so need to revert to Positive
 		amount := common.StringToDecimal(itemHistory.Change).Neg()
 
 		if currency == bean.ETH.Code {
-			nonce := CreditServiceInst.GetInstantTransferNonce(&ce)
-			txHash, _, onChainErr := client.ReleasePartialFund(userId, 2, amount, creditItem.UserAddress, nonce, false)
+			txHash, outNonce, outAddress, onChainErr := ReleaseContractFund(*s.miscDao, creditItem.UserAddress, amount.String(), userId, 2, "ETH_LOW_ADMIN_KEYS")
 			if onChainErr != nil {
-				fmt.Println(onChainErr)
-			} else {
+				txHash = onChainErr.Error()
 			}
-			fmt.Println(txHash)
-			nonce += 1
-			s.SetNonceToCache(nonce)
+			itemHistory.WithdrawData = map[string]interface{}{
+				"hash":    txHash,
+				"nonce":   fmt.Sprintf("%s", outNonce),
+				"address": outAddress,
+			}
 		} else {
 			coinbaseTx, errWithdraw := coinbase_service.SendTransaction(creditItem.UserAddress, amount.String(), currency,
 				fmt.Sprintf("Refund userId = %s", creditItem.UID), creditItem.UID)
+			hash := coinbaseTx.Id
 			if errWithdraw != nil {
-				fmt.Println(errWithdraw)
-			} else {
+				hash = errWithdraw.Error()
 			}
-			fmt.Println(coinbaseTx)
+			itemHistory.WithdrawData = map[string]interface{}{
+				"hash": hash,
+			}
 		}
+		s.dao.UpdateCreditBalanceHistory(userId, currency, &itemHistory)
 	} else {
 		ce.SetStatusKey(api_error.CreditItemStatusInvalid)
 	}
@@ -893,6 +897,34 @@ func (s CreditService) SyncCreditWithdrawToSolr(id string) (withdraw bean.Credit
 	solr_service.UpdateObject(bean.NewSolrFromCreditWithdraw(withdraw, int64(chainId)))
 
 	return
+}
+
+func (s CreditService) SetupContractKey(keySet string) error {
+	keyStr := os.Getenv(keySet)
+	keys := strings.Split(keyStr, ";")
+
+	index := 0
+	s.miscDao.CreditKeyIndexToCache(keySet, fmt.Sprintf("%d", 0))
+	for index < len(keys) {
+		writeClient := ethereum_service.EthereumClient{}
+		writeClient.InitializeWithKey(keys[index])
+		nonce, clientErr := writeClient.GetNonce()
+		if clientErr != nil {
+			return errors.New("network error")
+		}
+
+		data := bean.CreditContractKeyData{
+			Index:   int64(index),
+			Nonce:   int64(nonce),
+			Address: writeClient.GetAddress(),
+		}
+
+		s.miscDao.CreditContractKeyDataToCache(data)
+
+		index += 1
+	}
+
+	return nil
 }
 
 func (s CreditService) finishTrackingItem(tracking bean.CreditOnChainActionTracking) error {

@@ -16,7 +16,7 @@ import (
 )
 
 // CreditATMABI is the input ABI used to generate the binding from.
-const CreditATMABI = "[{\"constant\":true,\"inputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"ex\",\"outputs\":[{\"name\":\"sender\",\"type\":\"address\"},{\"name\":\"percentage\",\"type\":\"uint256\"},{\"name\":\"escrow\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"offchain\",\"type\":\"bytes32\"},{\"name\":\"percentage\",\"type\":\"uint256\"}],\"name\":\"deposit\",\"outputs\":[],\"payable\":true,\"stateMutability\":\"payable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"hid\",\"type\":\"uint256\"}],\"name\":\"getDepositList\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"},{\"name\":\"\",\"type\":\"uint256\"},{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"customer\",\"type\":\"address\"},{\"name\":\"amount\",\"type\":\"uint256\"},{\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"releasePartialFund\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hid\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"stationOwner\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"value\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"percentage\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"__deposit\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"customer\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"__releasePartialFund\",\"type\":\"event\"}]"
+const CreditATMABI = "[{\"constant\":true,\"inputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"ex\",\"outputs\":[{\"name\":\"sender\",\"type\":\"address\"},{\"name\":\"percentage\",\"type\":\"uint256\"},{\"name\":\"escrow\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"offchain\",\"type\":\"bytes32\"},{\"name\":\"percentage\",\"type\":\"uint256\"}],\"name\":\"deposit\",\"outputs\":[],\"payable\":true,\"stateMutability\":\"payable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"a\",\"type\":\"address\"}],\"name\":\"addAdmin\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"ad\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"hid\",\"type\":\"uint256\"}],\"name\":\"getDepositList\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"},{\"name\":\"\",\"type\":\"uint256\"},{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"customer\",\"type\":\"address\"},{\"name\":\"amount\",\"type\":\"uint256\"},{\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"releasePartialFund\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"aId\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"ad\",\"type\":\"address\"}],\"name\":\"__addAdmin\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"hid\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"stationOwner\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"value\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"percentage\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"__deposit\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"customer\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"offchain\",\"type\":\"bytes32\"}],\"name\":\"__releasePartialFund\",\"type\":\"event\"}]"
 
 // CreditATM is an auto generated Go binding around an Ethereum contract.
 type CreditATM struct {
@@ -160,6 +160,32 @@ func (_CreditATM *CreditATMTransactorRaw) Transact(opts *bind.TransactOpts, meth
 	return _CreditATM.Contract.contract.Transact(opts, method, params...)
 }
 
+// Ad is a free data retrieval call binding the contract method 0x737e3c57.
+//
+// Solidity: function ad( uint256) constant returns(address)
+func (_CreditATM *CreditATMCaller) Ad(opts *bind.CallOpts, arg0 *big.Int) (common.Address, error) {
+	var (
+		ret0 = new(common.Address)
+	)
+	out := ret0
+	err := _CreditATM.contract.Call(opts, out, "ad", arg0)
+	return *ret0, err
+}
+
+// Ad is a free data retrieval call binding the contract method 0x737e3c57.
+//
+// Solidity: function ad( uint256) constant returns(address)
+func (_CreditATM *CreditATMSession) Ad(arg0 *big.Int) (common.Address, error) {
+	return _CreditATM.Contract.Ad(&_CreditATM.CallOpts, arg0)
+}
+
+// Ad is a free data retrieval call binding the contract method 0x737e3c57.
+//
+// Solidity: function ad( uint256) constant returns(address)
+func (_CreditATM *CreditATMCallerSession) Ad(arg0 *big.Int) (common.Address, error) {
+	return _CreditATM.Contract.Ad(&_CreditATM.CallOpts, arg0)
+}
+
 // Ex is a free data retrieval call binding the contract method 0x1089f215.
 //
 // Solidity: function ex( uint256) constant returns(sender address, percentage uint256, escrow uint256)
@@ -232,6 +258,27 @@ func (_CreditATM *CreditATMCallerSession) GetDepositList(hid *big.Int) (common.A
 	return _CreditATM.Contract.GetDepositList(&_CreditATM.CallOpts, hid)
 }
 
+// AddAdmin is a paid mutator transaction binding the contract method 0x70480275.
+//
+// Solidity: function addAdmin(a address) returns()
+func (_CreditATM *CreditATMTransactor) AddAdmin(opts *bind.TransactOpts, a common.Address) (*types.Transaction, error) {
+	return _CreditATM.contract.Transact(opts, "addAdmin", a)
+}
+
+// AddAdmin is a paid mutator transaction binding the contract method 0x70480275.
+//
+// Solidity: function addAdmin(a address) returns()
+func (_CreditATM *CreditATMSession) AddAdmin(a common.Address) (*types.Transaction, error) {
+	return _CreditATM.Contract.AddAdmin(&_CreditATM.TransactOpts, a)
+}
+
+// AddAdmin is a paid mutator transaction binding the contract method 0x70480275.
+//
+// Solidity: function addAdmin(a address) returns()
+func (_CreditATM *CreditATMTransactorSession) AddAdmin(a common.Address) (*types.Transaction, error) {
+	return _CreditATM.Contract.AddAdmin(&_CreditATM.TransactOpts, a)
+}
+
 // Deposit is a paid mutator transaction binding the contract method 0x1de26e16.
 //
 // Solidity: function deposit(offchain bytes32, percentage uint256) returns()
@@ -272,6 +319,129 @@ func (_CreditATM *CreditATMSession) ReleasePartialFund(customer common.Address, 
 // Solidity: function releasePartialFund(customer address, amount uint256, offchain bytes32) returns()
 func (_CreditATM *CreditATMTransactorSession) ReleasePartialFund(customer common.Address, amount *big.Int, offchain [32]byte) (*types.Transaction, error) {
 	return _CreditATM.Contract.ReleasePartialFund(&_CreditATM.TransactOpts, customer, amount, offchain)
+}
+
+// CreditATMAddAdminIterator is returned from FilterAddAdmin and is used to iterate over the raw logs and unpacked data for AddAdmin events raised by the CreditATM contract.
+type CreditATMAddAdminIterator struct {
+	Event *CreditATMAddAdmin // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *CreditATMAddAdminIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(CreditATMAddAdmin)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(CreditATMAddAdmin)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *CreditATMAddAdminIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *CreditATMAddAdminIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// CreditATMAddAdmin represents a AddAdmin event raised by the CreditATM contract.
+type CreditATMAddAdmin struct {
+	AId *big.Int
+	Ad  common.Address
+	Raw types.Log // Blockchain specific contextual infos
+}
+
+// FilterAddAdmin is a free log retrieval operation binding the contract event 0x8cf21b49f444c7bc55719f081681c6c24bd9cd3a6880eb31ca8e6771d5ea4ae0.
+//
+// Solidity: e __addAdmin(aId uint256, ad address)
+func (_CreditATM *CreditATMFilterer) FilterAddAdmin(opts *bind.FilterOpts) (*CreditATMAddAdminIterator, error) {
+
+	logs, sub, err := _CreditATM.contract.FilterLogs(opts, "__addAdmin")
+	if err != nil {
+		return nil, err
+	}
+	return &CreditATMAddAdminIterator{contract: _CreditATM.contract, event: "__addAdmin", logs: logs, sub: sub}, nil
+}
+
+// WatchAddAdmin is a free log subscription operation binding the contract event 0x8cf21b49f444c7bc55719f081681c6c24bd9cd3a6880eb31ca8e6771d5ea4ae0.
+//
+// Solidity: e __addAdmin(aId uint256, ad address)
+func (_CreditATM *CreditATMFilterer) WatchAddAdmin(opts *bind.WatchOpts, sink chan<- *CreditATMAddAdmin) (event.Subscription, error) {
+
+	logs, sub, err := _CreditATM.contract.WatchLogs(opts, "__addAdmin")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(CreditATMAddAdmin)
+				if err := _CreditATM.contract.UnpackLog(event, "__addAdmin", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
 }
 
 // CreditATMDepositIterator is returned from FilterDeposit and is used to iterate over the raw logs and unpacked data for Deposit events raised by the CreditATM contract.
