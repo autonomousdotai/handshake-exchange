@@ -132,7 +132,7 @@ func (s CreditService) DeactivateCredit(userId string, currency string) (credit 
 			}
 			itemHistory.WithdrawData = map[string]interface{}{
 				"hash":    txHash,
-				"nonce":   fmt.Sprintf("%s", outNonce),
+				"nonce":   fmt.Sprintf("%d", outNonce),
 				"address": outAddress,
 			}
 		} else {
