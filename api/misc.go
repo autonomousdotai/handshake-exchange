@@ -12,7 +12,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/integration/coinapi_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/ethereum_service"
-	"github.com/ninjadotorg/handshake-exchange/integration/exchangecreditatm_service"
+	// "github.com/ninjadotorg/handshake-exchange/integration/exchangecreditatm_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/openexchangerates_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/solr_service"
 	"github.com/ninjadotorg/handshake-exchange/service"
@@ -452,19 +452,31 @@ func (api MiscApi) SendBtc(context *gin.Context) {
 	//fmt.Println(err)
 	//bean.SuccessResponse(context, tx)
 
-	amountStr := ""
-	address := ""
-	offchainId := "refund"
+	//amountStr := ""
+	//address := ""
+	//offchainId := "refund"
+	////
+	//client := exchangecreditatm_service.ExchangeCreditAtmClient{}
+	//amount := common.StringToDecimal(amountStr)
+	//txHash, _, onChainErr := client.ReleasePartialFund(offchainId, 1, amount, address, uint64(0), false, "")
+	//if onChainErr != nil {
+	//	fmt.Println(onChainErr)
+	//} else {
+	//}
+	//fmt.Println(txHash)
+	//bean.SuccessResponse(context, txHash)
 
-	client := exchangecreditatm_service.ExchangeCreditAtmClient{}
-	amount := common.StringToDecimal(amountStr)
-	txHash, _, onChainErr := client.ReleasePartialFund(offchainId, 1, amount, address, uint64(0), false, "")
-	if onChainErr != nil {
-		fmt.Println(onChainErr)
-	} else {
-	}
-	fmt.Println(txHash)
-	bean.SuccessResponse(context, txHash)
+	//coinbaseTx, errWithdraw := coinbase_service.SendTransaction(address, amountStr, "BTC",
+	//	fmt.Sprintf("Withdraw tx = %s", "6044"), "i55dcuEH20bketepu37k")
+	//if errWithdraw != nil {
+	//	fmt.Println(errWithdraw)
+	//}
+	//fmt.Println(coinbaseTx.Id)
+
+	//coinbaseTx, _ := coinbase_service.GetTransaction("59baebcb-ad50-5508-a729-4422c8a31ddc", "BTC")
+	//fmt.Println(coinbaseTx.Id, coinbaseTx.Status, coinbaseTx.Amount, coinbaseTx.Description, coinbaseTx.CreatedAt)
+
+	//bean.SuccessResponse(context, coinbaseTx.Id)
 }
 
 func (api MiscApi) FinishCreditTracking(context *gin.Context) {
