@@ -10,14 +10,15 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/integration/chainso_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/crypto_service"
+	"github.com/ninjadotorg/handshake-exchange/integration/ethereum_service"
+	"github.com/ninjadotorg/handshake-exchange/integration/exchangecreditatm_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/solr_service"
 	"github.com/pkg/errors"
 	"github.com/shopspring/decimal"
+	"os"
 	"strconv"
 	"strings"
 	"time"
-	"os"
-	"github.com/ninjadotorg/handshake-exchange/integration/ethereum_service"
 )
 
 type CreditService struct {
@@ -925,6 +926,12 @@ func (s CreditService) SetupContractKey(keySet string) error {
 	}
 
 	return nil
+}
+
+func (s CreditService) AddAdminAddressToContract(address string) {
+	client := exchangecreditatm_service.ExchangeCreditAtmClient{}
+	txHash, err := client.AddAdmin(address)
+	fmt.Println(txHash, err)
 }
 
 func (s CreditService) finishTrackingItem(tracking bean.CreditOnChainActionTracking) error {

@@ -123,7 +123,9 @@ func ReleaseContractFund(dao dao.MiscDao, address string, amountStr string, refI
 	keyData := keyDataTO.Object.(bean.CreditContractKeyData)
 	outAddress = keyData.Address
 
-	if int64(nonce) <= keyData.Nonce {
+	fmt.Println(nonce)
+	fmt.Println(outAddress)
+	if int64(nonce) <= keyData.Nonce && nonce > 0 {
 		// need to retry
 		err = errors.New("retry later")
 		return
@@ -131,9 +133,11 @@ func ReleaseContractFund(dao dao.MiscDao, address string, amountStr string, refI
 
 	client := exchangecreditatm_service.ExchangeCreditAtmClient{}
 	amount := common.StringToDecimal(amountStr)
-	txHash, outNonce, err = client.ReleasePartialFund(refId, hid, amount, address, 0, false, "")
+	fmt.Println(refId, hid, amount, address)
+	txHash, outNonce, err = client.ReleasePartialFund(refId, hid, amount, address, 0, false, keys[index])
 
 	keyData.Nonce = int64(outNonce)
+	dao.CreditContractKeyDataToCache(keyData)
 
 	return
 }

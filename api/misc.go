@@ -549,3 +549,10 @@ func (api MiscApi) SetupContractKeys(context *gin.Context) {
 
 	bean.SuccessResponse(context, true)
 }
+
+func (api MiscApi) AddAdminAddress(context *gin.Context) {
+	address := context.Param("address")
+	service.CreditServiceInst.AddAdminAddressToContract(address)
+
+	bean.SuccessResponse(context, "ok")
+}
