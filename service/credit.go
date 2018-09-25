@@ -135,7 +135,7 @@ func (s CreditService) DeactivateCredit(userId string, currency string) (credit 
 			s.SetNonceToCache(nonce)
 		} else {
 			coinbaseTx, errWithdraw := coinbase_service.SendTransaction(creditItem.UserAddress, amount.String(), currency,
-				fmt.Sprintf("Refund userId = %s", creditItem.UID), creditItem.UID)
+				fmt.Sprintf("Refund userId = %s", creditItem.UID), itemHistory.Id)
 			if errWithdraw != nil {
 				fmt.Println(errWithdraw)
 			} else {
