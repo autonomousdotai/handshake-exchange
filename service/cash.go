@@ -142,6 +142,7 @@ func (s CashService) GetProposeCashOrder(amountStr string, currency string, fiat
 			tmpAmount := total.Mul(rateNumber)
 			offer.FiatLocalAmount = tmpAmount.Round(2).String()
 			offer.FiatLocalCurrency = fiatCurrency
+			offer.LocalStoreFee = cashFee.Mul(rateNumber).Round(2).String()
 		}
 	}
 
@@ -274,25 +275,67 @@ func (s CashService) FinishOrder(orderId string, amount string, fiatCurrency str
 	}
 	cash := cashTO.Object.(bean.CashStore)
 
+	storePaymentTO := s.dao.GetCashStorePayment(orderId)
+	if storePaymentTO.Error != nil {
+		ce.FeedDaoTransfer(api_error.GetDataFailed, cashTO)
+		return
+	}
 	inputAmount := common.StringToDecimal(amount)
-	if fiatCurrency == order.FiatCurrency {
-		checkAmount := common.StringToDecimal(order.FiatAmount)
-		if inputAmount.LessThan(checkAmount) {
-			ce.SetStatusKey(api_error.InvalidAmount)
-			return
+	totalInputAmount := inputAmount
+	var storePayment bean.CashStorePayment
+	if storePaymentTO.Found {
+		storePayment = storePaymentTO.Object.(bean.CashStorePayment)
+		paymentAmount := common.StringToDecimal(storePayment.FiatAmount)
+		totalInputAmount = totalInputAmount.Add(paymentAmount)
+	} else {
+		storePayment = bean.CashStorePayment{
+			Order:        orderId,
+			FiatAmount:   amount,
+			FiatCurrency: fiatCurrency,
 		}
-		if inputAmount.GreaterThan(checkAmount) {
-			overSpent = inputAmount.Sub(checkAmount).String()
+	}
+
+	if fiatCurrency == order.FiatCurrency {
+		storeFeeAmount := common.StringToDecimal(order.StoreFee)
+		orderAmount := common.StringToDecimal(order.FiatAmount)
+		checkAmount := orderAmount.Sub(storeFeeAmount)
+		if totalInputAmount.LessThan(checkAmount) {
+			storePayment.Status = bean.CASH_STORE_PAYMENT_STATUS_UNDER
+		} else if totalInputAmount.GreaterThan(checkAmount) {
+			overSpent = totalInputAmount.Sub(checkAmount).String()
+			storePayment.Status = bean.CASH_STORE_PAYMENT_STATUS_OVER
+			storePayment.OverSpent = overSpent
+		} else {
+			storePayment.Status = bean.CASH_STORE_PAYMENT_STATUS_MATCHED
 		}
 	} else if fiatCurrency == order.FiatLocalCurrency {
-		checkAmount := common.StringToDecimal(order.FiatLocalAmount)
-		if inputAmount.LessThan(checkAmount) {
-			ce.SetStatusKey(api_error.InvalidAmount)
-			return
+		storeFeeAmount := common.StringToDecimal(order.LocalStoreFee)
+		orderAmount := common.StringToDecimal(order.FiatLocalAmount)
+		checkAmount := orderAmount.Sub(storeFeeAmount)
+		if totalInputAmount.LessThan(checkAmount) {
+			storePayment.Status = bean.CASH_STORE_PAYMENT_STATUS_UNDER
+		} else if totalInputAmount.GreaterThan(checkAmount) {
+			overSpent = totalInputAmount.Sub(checkAmount).String()
+			storePayment.Status = bean.CASH_STORE_PAYMENT_STATUS_OVER
+			storePayment.OverSpent = overSpent
+		} else {
+			storePayment.Status = bean.CASH_STORE_PAYMENT_STATUS_MATCHED
 		}
-		if inputAmount.GreaterThan(checkAmount) {
-			overSpent = inputAmount.Sub(checkAmount).String()
-		}
+	}
+
+	if storePaymentTO.Found {
+		s.dao.UpdateCashStorePayment(&storePayment, inputAmount)
+	} else {
+		s.dao.AddCashStorePayment(&storePayment)
+	}
+	if storePayment.Status == "" || storePayment.Status == bean.CASH_STORE_PAYMENT_STATUS_UNDER {
+		ce.SetStatusKey(api_error.InvalidAmount)
+		return
+	}
+
+	if order.Status != bean.CASH_ORDER_STATUS_PROCESSING {
+		ce.SetStatusKey(api_error.CashOrderStatusInvalid)
+		return
 	}
 
 	orderRef := dao.GetCashOrderItemPath(order.Id)
@@ -402,6 +445,7 @@ func setupCashOrder(order *bean.CashOrder, orderTest bean.CashOrder, creditTrans
 	order.Price = orderTest.Price
 	order.FiatLocalCurrency = orderTest.FiatLocalCurrency
 	order.FiatLocalAmount = orderTest.FiatLocalAmount
+	order.LocalStoreFee = orderTest.LocalStoreFee
 
 	// duration, _ := strconv.Atoi(os.Getenv("CC_LIMIT_DURATION"))
 	order.Duration = int64(24 * 3600) // 24 hours

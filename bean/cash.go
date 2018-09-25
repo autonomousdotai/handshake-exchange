@@ -85,6 +85,7 @@ type CashOrder struct {
 	FiatCurrency              string      `json:"fiat_currency" firestore:"fiat_currency" validate:"required"`
 	FiatLocalAmount           string      `json:"fiat_local_amount" firestore:"fiat_local_amount"`
 	FiatLocalCurrency         string      `json:"fiat_local_currency" firestore:"fiat_local_currency"`
+	LocalStoreFee             string      `json:"local_store_fee" firestore:"local_store_fee"`
 	RawFiatAmount             string      `json:"-" firestore:"raw_fiat_amount"`
 	Price                     string      `json:"price" firestore:"price"`
 	Status                    string      `json:"status" firestore:"status"`
@@ -121,6 +122,9 @@ func (b CashOrder) GetAdd() map[string]interface{} {
 		"fiat_amount":             b.FiatAmount,
 		"raw_fiat_amount":         b.RawFiatAmount,
 		"fiat_currency":           b.FiatCurrency,
+		"fiat_local_amount":       b.FiatLocalAmount,
+		"fiat_local_currency":     b.FiatLocalCurrency,
+		"local_store_fee":         b.LocalStoreFee,
 		"price":                   b.Price,
 		"status":                  b.Status,
 		"type":                    b.Type,
@@ -165,4 +169,37 @@ type CashCenter struct {
 	Id          string                 `json:"id" firestore:"id"`
 	Country     string                 `json:"country" firestore:"country"`
 	Information map[string]interface{} `json:"information" firestore:"information"`
+}
+
+const CASH_STORE_PAYMENT_STATUS_MATCHED = "matched"
+const CASH_STORE_PAYMENT_STATUS_UNDER = "under"
+const CASH_STORE_PAYMENT_STATUS_OVER = "over"
+
+type CashStorePayment struct {
+	Order        string    `json:"order" firestore:"order"`
+	FiatAmount   string    `json:"fiat_amount" firestore:"fiat_amount"`
+	FiatCurrency string    `json:"fiat_currency" firestore:"fiat_currency"`
+	OverSpent    string    `json:"over_spent" firestore:"over_spent"`
+	Status       string    `json:"status" firestore:"status"`
+	CreatedAt    time.Time `json:"created_at" firestore:"created_at"`
+}
+
+func (b CashStorePayment) GetAdd() map[string]interface{} {
+	return map[string]interface{}{
+		"order":         b.Order,
+		"fiat_amount":   b.FiatAmount,
+		"fiat_currency": b.FiatCurrency,
+		"over_spent":    b.OverSpent,
+		"status":        b.Status,
+		"created_at":    firestore.ServerTimestamp,
+	}
+}
+
+func (b CashStorePayment) GetUpdate() map[string]interface{} {
+	return map[string]interface{}{
+		"fiat_amount": b.FiatAmount,
+		"over_spent":  b.OverSpent,
+		"status":      b.Status,
+		"updated_at":  firestore.ServerTimestamp,
+	}
 }

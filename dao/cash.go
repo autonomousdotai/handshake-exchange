@@ -7,6 +7,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/bean"
 	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/integration/firebase_service"
+	"github.com/shopspring/decimal"
 	"strings"
 )
 
@@ -121,6 +122,49 @@ func (dao CashDao) ListCashCenter(country string) (t TransferObject) {
 	return
 }
 
+func (dao CashDao) GetCashStorePayment(orderId string) (t TransferObject) {
+	GetObject(GetCashStorePaymentItemPath(orderId), &t, snapshotToCashStorePayment)
+	return
+}
+
+func (dao CashDao) AddCashStorePayment(payment *bean.CashStorePayment) error {
+	dbClient := firebase_service.FirestoreClient
+
+	docRef := dbClient.Doc(GetCashStorePaymentItemPath(payment.Order))
+	_, err := docRef.Set(context.Background(), payment.GetAdd())
+
+	return err
+}
+
+func (dao CashDao) UpdateCashStorePayment(payment *bean.CashStorePayment, addAmount decimal.Decimal) error {
+	dbClient := firebase_service.FirestoreClient
+
+	docRef := dbClient.Doc(GetCashStorePaymentItemPath(payment.Order))
+	err := dbClient.RunTransaction(context.Background(), func(ctx context.Context, tx *firestore.Transaction) error {
+		var txErr error
+
+		paymentDoc, txErr := tx.Get(docRef)
+		if txErr != nil {
+			return txErr
+		}
+		amount, txErr := common.ConvertToDecimal(paymentDoc, "fiat_amount")
+		if txErr != nil {
+			return txErr
+		}
+		amount = amount.Add(addAmount)
+		payment.FiatAmount = amount.String()
+
+		txErr = tx.Set(docRef, payment.GetUpdate(), firestore.MergeAll)
+		if txErr != nil {
+			return txErr
+		}
+
+		return txErr
+	})
+
+	return err
+}
+
 func GetCashStorePath(userId string) string {
 	return fmt.Sprintf("cash/%s", userId)
 }
@@ -145,6 +189,10 @@ func GetCashCenterCountryPath(country string) string {
 	return fmt.Sprintf("cash_centers/%s/items", country)
 }
 
+func GetCashStorePaymentItemPath(orderId string) string {
+	return fmt.Sprintf("cash_payments/%s", orderId)
+}
+
 func snapshotToCashStore(snapshot *firestore.DocumentSnapshot) interface{} {
 	var obj bean.CashStore
 	snapshot.DataTo(&obj)
@@ -159,6 +207,12 @@ func snapshotToCashOrder(snapshot *firestore.DocumentSnapshot) interface{} {
 
 func snapshotToCashCenter(snapshot *firestore.DocumentSnapshot) interface{} {
 	var obj bean.CashCenter
+	snapshot.DataTo(&obj)
+	return obj
+}
+
+func snapshotToCashStorePayment(snapshot *firestore.DocumentSnapshot) interface{} {
+	var obj bean.CashStorePayment
 	snapshot.DataTo(&obj)
 	return obj
 }
