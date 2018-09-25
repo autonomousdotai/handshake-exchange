@@ -338,6 +338,21 @@ func (s CashService) FinishOrder(orderId string, amount string, fiatCurrency str
 	return
 }
 
+func (s CashService) ListCashCenter(country string) (cashCenters []bean.CashCenter, ce SimpleContextError) {
+	cashCenterTO := s.dao.ListCashCenter(country)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, cashCenterTO) {
+		return
+	}
+
+	cashCenters = make([]bean.CashCenter, 0)
+	for _, item := range cashCenterTO.Objects {
+		cashCenter := item.(bean.CashCenter)
+		cashCenters = append(cashCenters, cashCenter)
+	}
+
+	return
+}
+
 func (s CashService) SyncCashStoreToSolr(id string) (cash bean.CashStore, ce SimpleContextError) {
 	cashTO := s.dao.GetCashStore(id)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, cashTO) {

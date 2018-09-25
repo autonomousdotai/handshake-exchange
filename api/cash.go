@@ -116,3 +116,13 @@ func (api CashApi) CashStoreRemoveOrder(context *gin.Context) {
 
 	bean.SuccessResponse(context, true)
 }
+
+func (api CashApi) ListCashCenter(context *gin.Context) {
+	country := context.Param("country")
+	cashCenters, ce := service.CashServiceInst.ListCashCenter(country)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, cashCenters)
+}

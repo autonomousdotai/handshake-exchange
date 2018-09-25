@@ -546,6 +546,28 @@ func (api MiscApi) SyncCreditWithdrawToSolr(context *gin.Context) {
 	bean.SuccessResponse(context, obj)
 }
 
+func (api MiscApi) SyncCashStoreToSolr(context *gin.Context) {
+	id := context.Param("id")
+
+	obj, ce := service.CashServiceInst.SyncCashStoreToSolr(id)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, obj)
+}
+
+func (api MiscApi) SyncCashOrderToSolr(context *gin.Context) {
+	id := context.Param("id")
+
+	obj, ce := service.CashServiceInst.SyncCashOrderToSolr(id)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, obj)
+}
+
 func (api MiscApi) GenerateAddress(context *gin.Context) {
 	address, key := ethereum_service.GenerateAddress()
 

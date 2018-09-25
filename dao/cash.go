@@ -116,6 +116,11 @@ func (dao CashDao) UpdateNotificationCashOrder(order bean.CashOrder) error {
 	return err
 }
 
+func (dao CashDao) ListCashCenter(country string) (t TransferObject) {
+	ListObjects(GetCashCenterCountryPath(country), &t, nil, snapshotToCashCenter)
+	return
+}
+
 func GetCashStorePath(userId string) string {
 	return fmt.Sprintf("cash/%s", userId)
 }
@@ -136,6 +141,10 @@ func GetNotificationCashOrderPath(userId string, id string) string {
 	return fmt.Sprintf("users/%s/cash/cash_order_%s", userId, id)
 }
 
+func GetCashCenterCountryPath(country string) string {
+	return fmt.Sprintf("cash_centers/%s/items", country)
+}
+
 func snapshotToCashStore(snapshot *firestore.DocumentSnapshot) interface{} {
 	var obj bean.CashStore
 	snapshot.DataTo(&obj)
@@ -144,6 +153,12 @@ func snapshotToCashStore(snapshot *firestore.DocumentSnapshot) interface{} {
 
 func snapshotToCashOrder(snapshot *firestore.DocumentSnapshot) interface{} {
 	var obj bean.CashOrder
+	snapshot.DataTo(&obj)
+	return obj
+}
+
+func snapshotToCashCenter(snapshot *firestore.DocumentSnapshot) interface{} {
+	var obj bean.CashCenter
 	snapshot.DataTo(&obj)
 	return obj
 }
