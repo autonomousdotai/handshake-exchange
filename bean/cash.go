@@ -162,7 +162,7 @@ func (b CashOrder) GetNotificationUpdate() map[string]interface{} {
 }
 
 type CashCenter struct {
-	Id          string                 `json:"country" firestore:"id"`
+	Id          string                 `json:"id" firestore:"id"`
 	Country     string                 `json:"country" firestore:"country"`
 	Information map[string]interface{} `json:"information" firestore:"information"`
 }
