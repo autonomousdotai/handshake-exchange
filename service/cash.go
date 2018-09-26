@@ -67,6 +67,15 @@ func (s CashService) UpdateCashStore(userId string, body bean.CashStore) (cash b
 		return
 	}
 	cash = cashTO.Object.(bean.CashStore)
+	cash.Status = body.Status
+	cash.Address = body.Address
+	cash.BusinessType = body.BusinessType
+	cash.Center = body.Center
+	cash.Information = body.Information
+	cash.Latitude = body.Latitude
+	cash.Longitude = body.Longitude
+	cash.Name = body.Name
+	cash.Phone = body.Phone
 
 	err := s.dao.UpdateCashStore(&cash)
 	if ce.SetError(api_error.UpdateDataFailed, err) {
