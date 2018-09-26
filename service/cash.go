@@ -24,6 +24,8 @@ func (s CashService) GetCashStore(userId string) (cash bean.CashStore, ce Simple
 		return
 	}
 
+	fmt.Println(userId)
+	fmt.Println(cashTO)
 	if cashTO.Found {
 		cash = cashTO.Object.(bean.CashStore)
 	} else {

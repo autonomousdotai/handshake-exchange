@@ -7,6 +7,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/bean"
 	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/dao"
+	"github.com/ninjadotorg/handshake-exchange/integration/adyen_service"
 
 	"github.com/ninjadotorg/handshake-exchange/integration/bitpay_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/coinapi_service"
@@ -589,4 +590,23 @@ func (api MiscApi) AddAdminAddress(context *gin.Context) {
 	service.CreditServiceInst.AddAdminAddressToContract(address)
 
 	bean.SuccessResponse(context, "ok")
+}
+
+func (api MiscApi) TestAnything(context *gin.Context) {
+	resp, err := adyen_service.Authorise(adyen_service.AdyenAuthorise{
+		Card: map[string]string{
+			"number":      "5212345678901234",
+			"expiryMonth": "8",
+			"expiryYear":  "2018",
+			"cvc":         "737",
+		},
+		Amount: adyen_service.AdyenAmount{
+			Value:    1500,
+			Currency: "USD",
+		},
+		Reference:      "abc123",
+		AdditionalData: map[string]interface{}{},
+	})
+	fmt.Print(err)
+	bean.SuccessResponse(context, resp)
 }

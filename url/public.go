@@ -121,5 +121,9 @@ func (url CronJobUrl) Create(router *gin.Engine) *gin.RouterGroup {
 		miscApi.GetBTCConfirmation(context)
 	})
 
+	group.POST("/test-anything", func(context *gin.Context) {
+		miscApi.TestAnything(context)
+	})
+
 	return group
 }

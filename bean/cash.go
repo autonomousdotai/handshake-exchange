@@ -40,7 +40,7 @@ func (b CashStore) GetAdd() map[string]interface{} {
 		"status":        b.Status,
 		"center":        b.Center,
 		"information":   b.Information,
-		"profit":        common.Zero,
+		"profit":        common.Zero.String(),
 		"longitude":     b.Longitude,
 		"latitude":      b.Latitude,
 		"chain_id":      b.ChainId,
