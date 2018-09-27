@@ -10,6 +10,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/integration/solr_service"
 	"github.com/shopspring/decimal"
 	"strings"
+	"time"
 )
 
 type CashService struct {
@@ -263,8 +264,8 @@ func (s CashService) AddOrder(userId string, orderBody bean.CashOrder) (order be
 			return
 		}
 
-		e := s.dao.UpdateNotificationCashOrder(order)
-		fmt.Println(e)
+		s.dao.UpdateNotificationCashOrder(order)
+		order.CreatedAt = time.Now().UTC()
 		solr_service.UpdateObject(bean.NewSolrFromCashOrder(order, cash))
 	}
 
