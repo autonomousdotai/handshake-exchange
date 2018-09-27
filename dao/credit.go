@@ -710,6 +710,126 @@ func (dao CreditDao) FinishCreditTransaction(pool *bean.CreditPool, poolHistory 
 	return err
 }
 
+func (dao CreditDao) RevertCreditTransaction(pool *bean.CreditPool, poolOrders []bean.CreditPoolOrder,
+	trans *bean.CreditTransaction, transList []*bean.CreditTransaction) (err error) {
+
+	dbClient := firebase_service.FirestoreClient
+
+	poolDocRef := dbClient.Doc(GetCreditPoolItemPath(pool.Currency, pool.Level))
+
+	transDocRef := dbClient.Doc(GetCreditTransactionItemPath(trans.Currency, trans.Id))
+	transUserDocRefs := make([]*firestore.DocumentRef, 0)
+	for _, item := range transList {
+		transUserDocRef := dbClient.Doc(GetCreditTransactionItemUserPath(item.UID, item.Currency, item.Id))
+		transUserDocRefs = append(transUserDocRefs, transUserDocRef)
+	}
+
+	poolOrderDocRefs := make([]*firestore.DocumentRef, 0)
+	poolOrderUserDocRefs := make([]*firestore.DocumentRef, 0)
+
+	for _, poolOrder := range poolOrders {
+		poolOrderDocRef := dbClient.Doc(GetCreditPoolItemOrderItemPath(pool.Currency, pool.Level, poolOrder.Id))
+		poolOrderUserDocRef := dbClient.Doc(GetCreditPoolItemOrderItemUserPath(pool.Currency, poolOrder.UID, poolOrder.Id))
+
+		poolOrderDocRefs = append(poolOrderDocRefs, poolOrderDocRef)
+		poolOrderUserDocRefs = append(poolOrderUserDocRefs, poolOrderUserDocRef)
+	}
+
+	amount := common.StringToDecimal(trans.Amount)
+
+	err = dbClient.RunTransaction(context.Background(), func(ctx context.Context, tx *firestore.Transaction) error {
+		var txErr error
+
+		poolDoc, txErr := tx.Get(poolDocRef)
+		if err != nil {
+			return txErr
+		}
+		poolCapturedBalance, txErr := common.ConvertToDecimal(poolDoc, "captured_balance")
+		if txErr != nil {
+			return txErr
+		}
+		poolCapturedBalance = poolCapturedBalance.Sub(amount)
+		pool.CapturedBalance = poolCapturedBalance.String()
+		if poolCapturedBalance.LessThan(common.Zero) {
+			return errors.New("invalid balance")
+		}
+
+		transDoc, txErr := tx.Get(transDocRef)
+		if err != nil {
+			return txErr
+		}
+		transStatus, txErr := transDoc.DataAt("status")
+		if err != nil {
+			return txErr
+		}
+		if transStatus.(string) == bean.CREDIT_TRANSACTION_STATUS_CREATE {
+			trans.Status = bean.CREDIT_TRANSACTION_STATUS_FAILED
+		} else {
+			return errors.New("invalid status")
+		}
+
+		for orderIndex, orderDocRef := range poolOrderDocRefs {
+			orderDoc, txErr := tx.Get(orderDocRef)
+			if err != nil {
+				return txErr
+			}
+			capturedBalance, txErr := common.ConvertToDecimal(orderDoc, "captured_balance")
+			if txErr != nil {
+				return txErr
+			}
+			capturedAmount := poolOrders[orderIndex].CapturedAmount
+			capturedBalance = capturedBalance.Sub(capturedAmount)
+
+			poolOrders[orderIndex].CapturedBalance = capturedBalance.String()
+			if capturedBalance.LessThan(common.Zero) {
+				return errors.New("invalid balance")
+			}
+		}
+
+		txErr = tx.Set(poolDocRef, pool.GetUpdateCapturedBalance(), firestore.MergeAll)
+		if txErr != nil {
+			return txErr
+		}
+
+		for itemIndex, transUserDocRef := range transUserDocRefs {
+			txErr = tx.Set(transUserDocRef, transList[itemIndex].GetUpdate(), firestore.MergeAll)
+			if txErr != nil {
+				return txErr
+			}
+		}
+		txErr = tx.Set(transDocRef, trans.GetUpdate(), firestore.MergeAll)
+		if txErr != nil {
+			return txErr
+		}
+
+		for orderIndex, orderDocRef := range poolOrderDocRefs {
+			if common.StringToDecimal(poolOrders[orderIndex].Balance).Equal(common.Zero) {
+				txErr = tx.Delete(orderDocRef)
+				if txErr != nil {
+					return txErr
+				}
+			} else {
+				txErr = tx.Set(orderDocRef, poolOrders[orderIndex].GetUpdateAllBalance(), firestore.MergeAll)
+				if txErr != nil {
+					return txErr
+				}
+				txErr = tx.Set(poolOrderUserDocRefs[orderIndex], poolOrders[orderIndex].GetUpdateAllBalance(), firestore.MergeAll)
+				if txErr != nil {
+					return txErr
+				}
+			}
+		}
+
+		return txErr
+	})
+
+	if err == nil {
+		dao.SetCreditPoolCache(*pool)
+	}
+
+	return err
+}
+
 func (dao CreditDao) FinishFailedDepositCreditItem(item *bean.CreditItem, deposit *bean.CreditDeposit,
 	tracking *bean.CreditOnChainActionTracking) (err error) {
 

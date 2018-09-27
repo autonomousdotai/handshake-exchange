@@ -595,10 +595,10 @@ func (api MiscApi) AddAdminAddress(context *gin.Context) {
 func (api MiscApi) TestAnything(context *gin.Context) {
 	resp, err := adyen_service.Authorise(adyen_service.AdyenAuthorise{
 		Card: map[string]string{
-			"number":      "5212345678901234",
-			"expiryMonth": "8",
-			"expiryYear":  "2018",
-			"cvc":         "737",
+			"number":      "5432123412341234",
+			"expiryMonth": "12",
+			"expiryYear":  "2020",
+			"cvc":         "123",
 		},
 		Amount: adyen_service.AdyenAmount{
 			Value:    1500,

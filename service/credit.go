@@ -668,6 +668,74 @@ func (s CreditService) FinishCreditTransaction(currency string, id string, offer
 	return
 }
 
+func (s CreditService) RevertCreditTransaction(currency string, id string, offerRef string) (ce SimpleContextError) {
+	transTO := s.dao.GetCreditTransaction(currency, id)
+
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, transTO) {
+		return
+	}
+	trans := transTO.Object.(bean.CreditTransaction)
+	trans.OfferRef = offerRef
+	trans.Status = bean.CREDIT_TRANSACTION_STATUS_FAILED
+	trans.SubStatus = bean.CREDIT_TRANSACTION_SUB_STATUS_REVENUE_PROCESSED
+	trans.Revenue = common.Zero.String()
+
+	poolTO := s.dao.GetCreditPool(trans.Currency, int(common.StringToDecimal(trans.Percentage).IntPart()))
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, transTO) {
+		return
+	}
+
+	pool := poolTO.Object.(bean.CreditPool)
+
+	transList := make([]*bean.CreditTransaction, 0)
+	var transUID string
+	for _, userId := range trans.UIDs {
+
+		userTransTO := s.dao.GetCreditTransactionUser(userId, trans.Currency, trans.Id)
+		if ce.FeedDaoTransfer(api_error.GetDataFailed, userTransTO) {
+			return
+		}
+		userTrans := userTransTO.Object.(bean.CreditTransaction)
+
+		userTrans.OfferRef = offerRef
+		userTrans.Status = bean.CREDIT_TRANSACTION_STATUS_FAILED
+		userTrans.SubStatus = bean.CREDIT_TRANSACTION_SUB_STATUS_REVENUE_PROCESSED
+		userTrans.Fee = common.Zero.String()
+		userTrans.Revenue = common.Zero.String()
+		transList = append(transList, &userTrans)
+
+		transUID = userTrans.UID
+	}
+
+	orders := make([]bean.CreditPoolOrder, 0)
+	for _, orderInfo := range trans.OrderInfoRefs {
+		orderTO := s.dao.GetCreditPoolOrderByPath(orderInfo.OrderRef)
+		if ce.FeedDaoTransfer(api_error.GetDataFailed, orderTO) {
+			return
+		}
+		order := orderTO.Object.(bean.CreditPoolOrder)
+		order.CapturedAmount = common.StringToDecimal(orderInfo.Amount)
+		orders = append(orders, order)
+	}
+
+	err := s.dao.RevertCreditTransaction(&pool, orders, &trans, transList)
+	if err != nil {
+		ce.SetError(api_error.UpdateDataFailed, err)
+		return
+	}
+
+	creditTO := s.dao.GetCredit(transUID)
+	if !creditTO.HasError() {
+		credit := creditTO.Object.(bean.Credit)
+		chainId, _ := strconv.Atoi(credit.ChainId)
+		for _, userTrans := range transList {
+			solr_service.UpdateObject(bean.NewSolrFromCreditTransaction(*userTrans, int64(chainId)))
+		}
+	}
+
+	return
+}
+
 func (s CreditService) AddCreditWithdraw(userId string, body bean.CreditWithdraw) (withdraw bean.CreditWithdraw, ce SimpleContextError) {
 	creditTO := s.dao.GetCredit(userId)
 

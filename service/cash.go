@@ -24,8 +24,6 @@ func (s CashService) GetCashStore(userId string) (cash bean.CashStore, ce Simple
 		return
 	}
 
-	fmt.Println(userId)
-	fmt.Println(cashTO)
 	if cashTO.Found {
 		cash = cashTO.Object.(bean.CashStore)
 	} else {
@@ -383,6 +381,48 @@ func (s CashService) FinishOrder(orderId string, amount string, fiatCurrency str
 	}
 
 	order.Status = bean.CASH_ORDER_STATUS_SUCCESS
+	err := s.dao.FinishCashOrder(&order, &cash)
+	if ce.SetError(api_error.AddDataFailed, err) {
+		return
+	}
+	solr_service.UpdateObject(bean.NewSolrFromCashOrder(order, cash))
+
+	return
+}
+
+func (s CashService) RejectOrder(orderId string) (order bean.CashOrder, overSpent string, ce SimpleContextError) {
+	cashOrderTO := s.dao.GetCashOrder(orderId)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, cashOrderTO) {
+		return
+	}
+	order = cashOrderTO.Object.(bean.CashOrder)
+	cashTO := s.dao.GetCashStore(order.UID)
+	if cashTO.Error != nil {
+		ce.FeedDaoTransfer(api_error.GetDataFailed, cashTO)
+		return
+	}
+	cash := cashTO.Object.(bean.CashStore)
+
+	storePaymentTO := s.dao.GetCashStorePayment(orderId)
+	if storePaymentTO.Error != nil {
+		ce.FeedDaoTransfer(api_error.GetDataFailed, cashTO)
+		return
+	}
+
+	if order.Status != bean.CASH_ORDER_STATUS_PROCESSING {
+		ce.SetStatusKey(api_error.CashOrderStatusInvalid)
+		return
+	}
+
+	orderRef := dao.GetCashOrderItemPath(order.Id)
+	ccCE := CreditServiceInst.RevertCreditTransaction(order.Currency, order.ProviderData.(string), orderRef)
+	if ccCE.HasError() {
+		if ce.SetError(api_error.ExternalApiFailed, ccCE.CheckError()) {
+			return
+		}
+	}
+
+	order.Status = bean.CASH_ORDER_STATUS_CANCELLED
 	err := s.dao.FinishCashOrder(&order, &cash)
 	if ce.SetError(api_error.AddDataFailed, err) {
 		return
