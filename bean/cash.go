@@ -94,7 +94,7 @@ type CashOrder struct {
 	FeePercentage             string      `json:"-" firestore:"fee_percentage"`
 	Fee                       string      `json:"-" firestore:"fee"`
 	StoreFeePercentage        string      `json:"-" firestore:"store_fee_percentage"`
-	StoreFee                  string      `json:"-" firestore:"store_fee"`
+	StoreFee                  string      `json:"store_fee" firestore:"store_fee"`
 	ExternalFeePercentage     string      `json:"-" firestore:"external_fee_percentage"`
 	ExternalFee               string      `json:"-" firestore:"external_fee"`
 	PaymentMethod             string      `json:"-" firestore:"payment_method"`
