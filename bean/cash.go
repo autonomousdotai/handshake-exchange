@@ -106,6 +106,7 @@ type CashOrder struct {
 	Address                   string      `json:"address" firestore:"address" validate:"required"`
 	ProviderWithdrawData      interface{} `json:"provider_withdraw_data" firestore:"provider_withdraw_data"`
 	ProviderWithdrawDataExtra interface{} `json:"-" firestore:"provider_withdraw_data_extra"`
+	ReceiptURL                string      `json:"receipt_url" firestore:"receipt_url"`
 	FCM                       string      `json:"fcm" firestore:"fcm"`
 	Language                  string      `json:"language" firestore:"language"`
 	ChainId                   int64       `json:"chain_id" firestore:"chain_id"`
@@ -154,6 +155,13 @@ func (b CashOrder) GetUpdate() map[string]interface{} {
 		"provider_withdraw_data_extra": b.ProviderWithdrawDataExtra,
 		"status":                       b.Status,
 		"updated_at":                   firestore.ServerTimestamp,
+	}
+}
+
+func (b CashOrder) GetReceiptUpdate() map[string]interface{} {
+	return map[string]interface{}{
+		"receipt_url": b.ReceiptURL,
+		"updated_at":  firestore.ServerTimestamp,
 	}
 }
 

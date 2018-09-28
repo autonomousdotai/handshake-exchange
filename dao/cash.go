@@ -104,6 +104,15 @@ func (dao CashDao) FinishCashOrder(order *bean.CashOrder, cash *bean.CashStore) 
 	return err
 }
 
+func (dao CashDao) UpdateCashStoreReceipt(order *bean.CashOrder) error {
+	dbClient := firebase_service.FirestoreClient
+
+	docRef := dbClient.Doc(GetCashOrderItemPath(order.Id))
+	_, err := docRef.Set(context.Background(), order.GetReceiptUpdate(), firestore.MergeAll)
+
+	return err
+}
+
 func (dao CashDao) UpdateNotificationCashOrder(order bean.CashOrder) error {
 	dbClient := firebase_service.NotificationFirebaseClient
 

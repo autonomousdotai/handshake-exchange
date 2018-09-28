@@ -102,19 +102,30 @@ func (api CashApi) FinishCashOrder(context *gin.Context) {
 	bean.SuccessResponse(context, order)
 }
 
-func (api CashApi) CashStoreRemoveOrder(context *gin.Context) {
-	//userId := common.GetUserId(context)
-	//
-	var body bean.CashStore
+func (api CashApi) RejectCashOrder(context *gin.Context) {
+	id := context.Param("id")
+
+	order, ce := service.CashServiceInst.RejectOrder(id)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, order)
+}
+
+func (api CashApi) UpdateCashOrder(context *gin.Context) {
+	id := context.Param("id")
+
+	var body bean.CashOrder
 	if common.ValidateBody(context, &body) != nil {
 		return
 	}
-	//withdraw, ce := service.CreditServiceInst.AddCreditWithdraw(userId, body)
-	//if ce.ContextValidate(context) {
-	//	return
-	//}
+	order, ce := service.CashServiceInst.UpdateOrderReceipt(id, body)
+	if ce.ContextValidate(context) {
+		return
+	}
 
-	bean.SuccessResponse(context, true)
+	bean.SuccessResponse(context, order)
 }
 
 func (api CashApi) ListCashCenter(context *gin.Context) {

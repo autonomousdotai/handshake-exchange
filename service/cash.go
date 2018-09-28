@@ -391,7 +391,23 @@ func (s CashService) FinishOrder(orderId string, amount string, fiatCurrency str
 	return
 }
 
-func (s CashService) RejectOrder(orderId string) (order bean.CashOrder, overSpent string, ce SimpleContextError) {
+func (s CashService) UpdateOrderReceipt(orderId string, cashOrder bean.CashOrder) (order bean.CashOrder, ce SimpleContextError) {
+	cashOrderTO := s.dao.GetCashOrder(orderId)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, cashOrderTO) {
+		return
+	}
+	order = cashOrderTO.Object.(bean.CashOrder)
+	order.ReceiptURL = cashOrder.ReceiptURL
+
+	err := s.dao.UpdateCashStoreReceipt(&order)
+	if ce.SetError(api_error.AddDataFailed, err) {
+		return
+	}
+
+	return
+}
+
+func (s CashService) RejectOrder(orderId string) (order bean.CashOrder, ce SimpleContextError) {
 	cashOrderTO := s.dao.GetCashOrder(orderId)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, cashOrderTO) {
 		return
