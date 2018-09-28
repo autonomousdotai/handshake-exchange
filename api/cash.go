@@ -116,7 +116,7 @@ func (api CashApi) RejectCashOrder(context *gin.Context) {
 func (api CashApi) UpdateCashOrder(context *gin.Context) {
 	id := context.Param("id")
 
-	var body bean.CashOrder
+	var body bean.CashOrderUpdateInput
 	if common.ValidateBody(context, &body) != nil {
 		return
 	}

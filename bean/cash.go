@@ -75,6 +75,10 @@ const CASH_ORDER_STATUS_SUCCESS = "success"
 const CASH_ORDER_STATUS_TRANSFERRING = "transferring"
 const CASH_ORDER_STATUS_CANCELLED = "cancelled"
 
+type CashOrderUpdateInput struct {
+	ReceiptURL string `json:"receipt_url" firestore:"receipt_url"`
+}
+
 type CashOrder struct {
 	Id                        string      `json:"id" firestore:"id"`
 	UID                       string      `json:"-" firestore:"uid"`

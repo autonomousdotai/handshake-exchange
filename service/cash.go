@@ -391,7 +391,7 @@ func (s CashService) FinishOrder(orderId string, amount string, fiatCurrency str
 	return
 }
 
-func (s CashService) UpdateOrderReceipt(orderId string, cashOrder bean.CashOrder) (order bean.CashOrder, ce SimpleContextError) {
+func (s CashService) UpdateOrderReceipt(orderId string, cashOrder bean.CashOrderUpdateInput) (order bean.CashOrder, ce SimpleContextError) {
 	cashOrderTO := s.dao.GetCashOrder(orderId)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, cashOrderTO) {
 		return
