@@ -21,7 +21,7 @@ func (url CashUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	group.POST("/order/:id/:amount", cashApi.FinishCashOrder)
 	group.DELETE("/order/:id", cashApi.RejectCashOrder)
 	group.PUT("/order/:id", cashApi.UpdateCashOrder)
-	group.GET("/center", cashApi.ListCashCenter)
+	group.GET("/center/:country", cashApi.ListCashCenter)
 
 	return group
 }
