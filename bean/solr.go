@@ -666,6 +666,7 @@ var cashStoreStatusMap = map[string]int{
 type SolrCashStoreExtraData struct {
 	Id           string            `json:"id"`
 	FeedType     string            `json:"feed_type"`
+	Name         string            `json:"name"`
 	Address      string            `json:"address"`
 	Phone        string            `json:"phone"`
 	BusinessType string            `json:"business_type"`
@@ -700,6 +701,7 @@ func NewSolrFromCashStore(cash CashStore) (solr SolrOfferObject) {
 	extraData := SolrCashStoreExtraData{
 		Id:           cash.UID,
 		FeedType:     "cash_store",
+		Name:         cash.Name,
 		Address:      cash.Address,
 		Phone:        cash.Phone,
 		BusinessType: cash.BusinessType,
