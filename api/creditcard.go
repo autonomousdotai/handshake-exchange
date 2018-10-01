@@ -9,6 +9,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/integration/adyen_service"
 	"github.com/ninjadotorg/handshake-exchange/service"
 	"strconv"
+	"time"
 )
 
 type CreditCardApi struct {
@@ -82,6 +83,7 @@ func (api CreditCardApi) InitAdyenPayment(context *gin.Context) {
 	if common.ValidateBody(context, &body) != nil {
 		return
 	}
+	body.Reference = fmt.Sprintf("%d", time.Now().UTC().Unix())
 	resp, err := adyen_service.Authorise(body)
 	fmt.Print(err)
 	bean.SuccessResponse(context, resp)

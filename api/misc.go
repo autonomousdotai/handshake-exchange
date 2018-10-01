@@ -605,13 +605,14 @@ func (api MiscApi) TestAnything(context *gin.Context) {
 		//	"expiryYear":  "2020",
 		//	"cvc":         "123",
 		//},
+
 		Amount: adyen_service.AdyenAmount{
 			Value:    1500,
 			Currency: "USD",
 		},
 		Reference: "abc123",
 		AdditionalData: map[string]interface{}{
-			"card.encrypted.json": "adyenjs_0_1_18$SOTyLxBNGh2rv6HDREkYHfjd/sFefPGVrx8mUlB9Vvi7W+M/bnmDCdH4bksJN9+yNZaGy3f3Gv44pdM5eezHM6/+OT7MIIRlqQMyvX1fW6yBa6fJMX4MQH6JsbvSCAeeDDfz+uQB5UKNU8UAGgXQWCyzkV8rvbJoBYEZniKpbk7GsMtkLe7fuuPBAQvMcs3gzJyPXXouhK/DKBUYvbGMdt8mTiqzGp55FajXPznMjS4Knp2VqJcROdtQT/FBUhpAWX1/VDwAA44AN/6xoBEeFkDfSB1ZFML3psmMXCvF/eyRxdepIX/dRnQzoLsmRUFswPCETWJ+foL2JupcmHSwag==$SmiOzwhH66FfvYDY5k1vuLsKqQHtVvkVmo3ZOa3yaOHbhbIVSWBWHz827+21Vj99Ayrh0eb3C5xhy3saJ6rTqw26AJtnBj63cvKb3GckUUDbDHm2LhQM/qjtJ7vCzN5460pX7txF2AxkS6OgRQG4yNyIq0JXA8Mh2lr/dYDuTl9CEqBt4XywTYnEveQ7BguCff46X2gUMdUM513XwoW8ZOqdpkKSZ+VaO1jPtgohJdS9CU3BLGCBY+PPksgOpBZ2xqHjj16HVGPPD9grd0FLPfAYYnPJDCnH0SI3uyFuNOf9CTDbeCtaGrBu9epUXqsRkNw14eKTjXHszWty69xwlqXPHceMWoTX2g7hs0hhmllwl3J12EoEsUMDKIj4KoEehOVCtZX/3r9dhjKGhERLFZ0=",
+			"card.encrypted.json": "adyenjs_0_1_22$e1AviVdDImBzMpmnzNGZVpLXPKY9Kbj1tBPNs3MtuKDMYmOrHgGqFfPPkFogfu80p+NXcMsI/vSei2pnSAqjf0PiqSk14b6VGRJW/jJgp9N+d4Tb8u7R0diPCmoYE6XI8iu6XV+7Wgn3j7XTu6NfittLKuDVUMbmWhNjchwdNJQAowBdvak9KCCfl2P8pn6v+jsz4A6J5bd3nYPm8jh2Jr+1Hetf+9bPJkBzE4fIEUZtRi9XLO/HfQ/kQGXrcC5Xu2SGoIkYtZLTVk2Q0ZcaE0dw5APxrNEmZZUmmOKd1+M7l97hFrc2q16F+4pXUiLcJVfomQuY1iV4a7/fJlZGhQ==$kqZVSQ0IB8QfY0181+nt3Rx6PCeeIR7E9aJubZ74rog2cYqZ8eCGjos1czkl7UOBECeTmAdGUIzIr+n05uTwza/O0k0KbPG829eTXe1DSEVZFJx5ieT5Q92KNEWxZDmKPexEgMnLTW3Y1STiUXESJ4oc6twI1d1W/pEX8F5f0X4YTeeJ7Q1GeC9p6QC4jU+l2/6ts9se4UYSCzx57qkBW3QSft9euSQtLhel4HEh1tb+uhyvODW8FtNHNWs/2tNvZaYhU5/HZUL88fhhm60RwmXwAuGmce7NxGz5SJmrKPmvaWYnDEm11VP4whd8pQ3CLlJAQUTBm2ePamrDnWJxzB3eD5qgc3Cf5cMfOFJmdAmggBeuxaXP5UMw8NuovuJ/5eLThfo0Glxg6SXEIPiixvENtZXooxxyEH2I+s5YIaci3ppI3tfupuFM/BMGyNQiEP38pVrdyQtc8JuXXvypSQrpsjKNFKQ68Z4Ax+oBWXjJil7oIuoMtw==",
 		},
 	})
 	fmt.Print(err)
