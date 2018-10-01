@@ -15,7 +15,7 @@ type AdyenAmount struct {
 }
 
 type AdyenAuthorise struct {
-	Card              map[string]string      `json:"card"`
+	// Card              map[string]string      `json:"card"`
 	Amount            AdyenAmount            `json:"amount"`
 	Reference         string                 `json:"reference"`
 	MerchantAccount   string                 `json:"merchantAccount"`

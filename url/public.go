@@ -107,6 +107,9 @@ func (url CronJobUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	group.POST("/sync-to-cash-order-solr/:id", func(context *gin.Context) {
 		miscApi.SyncCashOrderToSolr(context)
 	})
+	group.GET("/server-time", func(context *gin.Context) {
+		miscApi.ServerTime(context)
+	})
 
 	group.POST("/script-update-xyz-123", func(context *gin.Context) {
 		miscApi.ScriptUpdateAllOfferStoreSolr(context)

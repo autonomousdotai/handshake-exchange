@@ -8,6 +8,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/dao"
 	"github.com/ninjadotorg/handshake-exchange/integration/adyen_service"
+	"time"
 
 	"github.com/ninjadotorg/handshake-exchange/integration/bitpay_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/coinapi_service"
@@ -592,20 +593,26 @@ func (api MiscApi) AddAdminAddress(context *gin.Context) {
 	bean.SuccessResponse(context, "ok")
 }
 
+func (api MiscApi) ServerTime(context *gin.Context) {
+	bean.SuccessResponse(context, time.Now().UTC().Format("2006-01-02T15:04:05.000+00:00"))
+}
+
 func (api MiscApi) TestAnything(context *gin.Context) {
 	resp, err := adyen_service.Authorise(adyen_service.AdyenAuthorise{
-		Card: map[string]string{
-			"number":      "5432123412341234",
-			"expiryMonth": "12",
-			"expiryYear":  "2020",
-			"cvc":         "123",
-		},
+		//Card: map[string]string{
+		//	"number":      "5432123412341234",
+		//	"expiryMonth": "12",
+		//	"expiryYear":  "2020",
+		//	"cvc":         "123",
+		//},
 		Amount: adyen_service.AdyenAmount{
 			Value:    1500,
 			Currency: "USD",
 		},
-		Reference:      "abc123",
-		AdditionalData: map[string]interface{}{},
+		Reference: "abc123",
+		AdditionalData: map[string]interface{}{
+			"card.encrypted.json": "adyenjs_0_1_18$SOTyLxBNGh2rv6HDREkYHfjd/sFefPGVrx8mUlB9Vvi7W+M/bnmDCdH4bksJN9+yNZaGy3f3Gv44pdM5eezHM6/+OT7MIIRlqQMyvX1fW6yBa6fJMX4MQH6JsbvSCAeeDDfz+uQB5UKNU8UAGgXQWCyzkV8rvbJoBYEZniKpbk7GsMtkLe7fuuPBAQvMcs3gzJyPXXouhK/DKBUYvbGMdt8mTiqzGp55FajXPznMjS4Knp2VqJcROdtQT/FBUhpAWX1/VDwAA44AN/6xoBEeFkDfSB1ZFML3psmMXCvF/eyRxdepIX/dRnQzoLsmRUFswPCETWJ+foL2JupcmHSwag==$SmiOzwhH66FfvYDY5k1vuLsKqQHtVvkVmo3ZOa3yaOHbhbIVSWBWHz827+21Vj99Ayrh0eb3C5xhy3saJ6rTqw26AJtnBj63cvKb3GckUUDbDHm2LhQM/qjtJ7vCzN5460pX7txF2AxkS6OgRQG4yNyIq0JXA8Mh2lr/dYDuTl9CEqBt4XywTYnEveQ7BguCff46X2gUMdUM513XwoW8ZOqdpkKSZ+VaO1jPtgohJdS9CU3BLGCBY+PPksgOpBZ2xqHjj16HVGPPD9grd0FLPfAYYnPJDCnH0SI3uyFuNOf9CTDbeCtaGrBu9epUXqsRkNw14eKTjXHszWty69xwlqXPHceMWoTX2g7hs0hhmllwl3J12EoEsUMDKIj4KoEehOVCtZX/3r9dhjKGhERLFZ0=",
+		},
 	})
 	fmt.Print(err)
 	bean.SuccessResponse(context, resp)
