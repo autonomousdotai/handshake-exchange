@@ -61,7 +61,7 @@ func (dao CashDao) AddCashOrder(order *bean.CashOrder) error {
 		OrderRef: GetCashOrderItemPath(order.Id),
 	}
 	docOrderRefRef := dbClient.Doc(GetCashOrderRefCodeItemPath(orderRefCode.RefCode))
-	order.RefCode = orderRefCode.OrderRef
+	order.RefCode = orderRefCode.RefCode
 
 	batch := dbClient.Batch()
 	batch.Set(docRef, order.GetAdd())
