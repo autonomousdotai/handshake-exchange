@@ -27,7 +27,7 @@ type CCTransaction struct {
 	Type         string      `json:"-" firestore:"type"`
 	DataRef      string      `json:"-" firestore:"data_ref"`
 	Email        string      `json:"email" firestore:"email"`
-	CreatedAt    time.Time   `json:"created_at" firestor			e:"created_at"`
+	CreatedAt    time.Time   `json:"created_at" firestore:"created_at"`
 	UpdatedAt    time.Time   `json:"updated_at" firestore:"updated_at"`
 }
 
