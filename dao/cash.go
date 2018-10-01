@@ -44,6 +44,11 @@ func (dao CashDao) GetCashOrder(id string) (t TransferObject) {
 	return
 }
 
+func (dao CashDao) GetCashOrderByPath(path string) (t TransferObject) {
+	GetObject(path, &t, snapshotToCashOrder)
+	return
+}
+
 func (dao CashDao) AddCashOrder(order *bean.CashOrder) error {
 	dbClient := firebase_service.FirestoreClient
 
@@ -51,9 +56,17 @@ func (dao CashDao) AddCashOrder(order *bean.CashOrder) error {
 	order.Id = docRef.ID
 	docUserRef := dbClient.Doc(GetCashOrderUserItemPath(order.UID, order.Id))
 
+	orderRefCode := bean.CashOrderRefCode{
+		RefCode:  order.Id[:6],
+		OrderRef: GetCashOrderItemPath(order.Id),
+	}
+	docOrderRefRef := dbClient.Doc(GetCashOrderRefCodeItemPath(orderRefCode.RefCode))
+	order.RefCode = orderRefCode.OrderRef
+
 	batch := dbClient.Batch()
 	batch.Set(docRef, order.GetAdd())
 	batch.Set(docUserRef, order.GetAdd())
+	batch.Set(docOrderRefRef, orderRefCode.GetAdd())
 	_, err := batch.Commit(context.Background())
 
 	return err
@@ -65,6 +78,7 @@ func (dao CashDao) FinishCashOrder(order *bean.CashOrder, cash *bean.CashStore) 
 	docRef := dbClient.Doc(GetCashOrderItemPath(order.Id))
 	docUserRef := dbClient.Doc(GetCashOrderUserItemPath(order.UID, order.Id))
 	cashRef := dbClient.Doc(GetCashStorePath(order.UID))
+	docOrderRefRef := dbClient.Doc(GetCashOrderRefCodeItemPath(order.RefCode))
 
 	err := dbClient.RunTransaction(context.Background(), func(ctx context.Context, tx *firestore.Transaction) error {
 		var txErr error
@@ -94,6 +108,10 @@ func (dao CashDao) FinishCashOrder(order *bean.CashOrder, cash *bean.CashStore) 
 			return txErr
 		}
 		txErr = tx.Set(cashRef, cash.GetUpdateProfit(), firestore.MergeAll)
+		if txErr != nil {
+			return txErr
+		}
+		txErr = tx.Delete(docOrderRefRef)
 		if txErr != nil {
 			return txErr
 		}
@@ -174,6 +192,11 @@ func (dao CashDao) UpdateCashStorePayment(payment *bean.CashStorePayment, addAmo
 	return err
 }
 
+func (dao CashDao) GetCashOrderRefCode(refCode string) (t TransferObject) {
+	GetObject(GetCashOrderRefCodeItemPath(refCode), &t, snapshotToCashOrderRefCode)
+	return
+}
+
 func GetCashStorePath(userId string) string {
 	return fmt.Sprintf("cash/%s", userId)
 }
@@ -202,6 +225,10 @@ func GetCashStorePaymentItemPath(orderId string) string {
 	return fmt.Sprintf("cash_payments/%s", orderId)
 }
 
+func GetCashOrderRefCodeItemPath(refCode string) string {
+	return fmt.Sprintf("cash_order_refs/%s", refCode)
+}
+
 func snapshotToCashStore(snapshot *firestore.DocumentSnapshot) interface{} {
 	var obj bean.CashStore
 	snapshot.DataTo(&obj)
@@ -222,6 +249,12 @@ func snapshotToCashCenter(snapshot *firestore.DocumentSnapshot) interface{} {
 
 func snapshotToCashStorePayment(snapshot *firestore.DocumentSnapshot) interface{} {
 	var obj bean.CashStorePayment
+	snapshot.DataTo(&obj)
+	return obj
+}
+
+func snapshotToCashOrderRefCode(snapshot *firestore.DocumentSnapshot) interface{} {
+	var obj bean.CashOrderRefCode
 	snapshot.DataTo(&obj)
 	return obj
 }

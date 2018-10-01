@@ -12,6 +12,7 @@ const CC_TRANSACTION_TYPE = "instant_buy"
 
 const CC_PROVIDER_STRIPE = "stripe"
 const CC_PROVIDER_CHECKOUT = "checkout"
+const CC_PROVIDER_ADYEN = "adyen"
 
 type CCTransaction struct {
 	Id           string      `json:"id" firestore:"id"`
@@ -26,7 +27,7 @@ type CCTransaction struct {
 	Type         string      `json:"-" firestore:"type"`
 	DataRef      string      `json:"-" firestore:"data_ref"`
 	Email        string      `json:"email" firestore:"email"`
-	CreatedAt    time.Time   `json:"created_at" firestore:"created_at"`
+	CreatedAt    time.Time   `json:"created_at" firestor			e:"created_at"`
 	UpdatedAt    time.Time   `json:"updated_at" firestore:"updated_at"`
 }
 

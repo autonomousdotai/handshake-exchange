@@ -272,8 +272,14 @@ func (s CashService) AddOrder(userId string, orderBody bean.CashOrder) (order be
 	return
 }
 
-func (s CashService) FinishOrder(orderId string, amount string, fiatCurrency string) (order bean.CashOrder, overSpent string, ce SimpleContextError) {
-	cashOrderTO := s.dao.GetCashOrder(orderId)
+func (s CashService) FinishOrder(refCode string, amount string, fiatCurrency string) (order bean.CashOrder, overSpent string, ce SimpleContextError) {
+	cashOrderRefCodeTO := s.dao.GetCashOrderRefCode(refCode)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, cashOrderRefCodeTO) {
+		return
+	}
+	orderRefCode := cashOrderRefCodeTO.Object.(bean.CashOrderRefCode)
+
+	cashOrderTO := s.dao.GetCashOrderByPath(orderRefCode.OrderRef)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, cashOrderTO) {
 		return
 	}
@@ -285,7 +291,7 @@ func (s CashService) FinishOrder(orderId string, amount string, fiatCurrency str
 	}
 	cash := cashTO.Object.(bean.CashStore)
 
-	storePaymentTO := s.dao.GetCashStorePayment(orderId)
+	storePaymentTO := s.dao.GetCashStorePayment(order.Id)
 	if storePaymentTO.Error != nil {
 		ce.FeedDaoTransfer(api_error.GetDataFailed, cashTO)
 		return
@@ -299,7 +305,7 @@ func (s CashService) FinishOrder(orderId string, amount string, fiatCurrency str
 		totalInputAmount = totalInputAmount.Add(paymentAmount)
 	} else {
 		storePayment = bean.CashStorePayment{
-			Order:        orderId,
+			Order:        order.Id,
 			FiatAmount:   amount,
 			FiatCurrency: fiatCurrency,
 		}

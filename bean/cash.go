@@ -111,6 +111,7 @@ type CashOrder struct {
 	ProviderWithdrawData      interface{} `json:"provider_withdraw_data" firestore:"provider_withdraw_data"`
 	ProviderWithdrawDataExtra interface{} `json:"-" firestore:"provider_withdraw_data_extra"`
 	ReceiptURL                string      `json:"receipt_url" firestore:"receipt_url"`
+	RefCode                   string      `json:"ref_code" firestore:"ref_code"`
 	FCM                       string      `json:"fcm" firestore:"fcm"`
 	Language                  string      `json:"language" firestore:"language"`
 	ChainId                   int64       `json:"chain_id" firestore:"chain_id"`
@@ -146,6 +147,7 @@ func (b CashOrder) GetAdd() map[string]interface{} {
 		"address":                 b.Address,
 		"provider":                b.Provider,
 		"provider_data":           b.ProviderData,
+		"ref_code":                b.RefCode,
 		"language":                b.Language,
 		"fcm":                     b.FCM,
 		"chain_id":                b.ChainId,
@@ -213,5 +215,18 @@ func (b CashStorePayment) GetUpdate() map[string]interface{} {
 		"over_spent":  b.OverSpent,
 		"status":      b.Status,
 		"updated_at":  firestore.ServerTimestamp,
+	}
+}
+
+type CashOrderRefCode struct {
+	RefCode  string `json:"ref_code" firestore:"ref_code"`
+	OrderRef string `json:"order_ref" firestore:"order_ref"`
+}
+
+func (b CashOrderRefCode) GetAdd() map[string]interface{} {
+	return map[string]interface{}{
+		"ref_code":   b.RefCode,
+		"order_ref":  b.OrderRef,
+		"created_at": firestore.ServerTimestamp,
 	}
 }

@@ -723,20 +723,19 @@ var cashOrderStatusMap = map[string]int{
 }
 
 type SolrCashOrderExtraData struct {
-	Id                string      `json:"id" firestore:"id"`
-	UID               string      `json:"-" firestore:"uid"`
-	ToUID             string      `json:"-" firestore:"to_uid"`
-	Amount            string      `json:"amount" firestore:"amount" validate:"required"`
-	Currency          string      `json:"currency" firestore:"currency" validate:"required"`
-	FiatAmount        string      `json:"fiat_amount" firestore:"fiat_amount" validate:"required"`
-	FiatCurrency      string      `json:"fiat_currency" firestore:"fiat_currency" validate:"required"`
-	FiatLocalAmount   string      `json:"fiat_local_amount" firestore:"fiat_local_amount"`
-	FiatLocalCurrency string      `json:"fiat_local_currency" firestore:"fiat_local_currency"`
-	StoreFee          string      `json:"store_fee" firestore:"store_fee"`
-	Status            string      `json:"status" firestore:"status"`
-	Center            string      `json:"center" firestore:"center"`
-	Address           string      `json:"address" firestore:"address" validate:"required"`
-	TxHash            interface{} `json:"tx_hash" firestore:"tx_hash"`
+	Id                string      `json:"id"`
+	RefCode           string      `json:"ref_code"`
+	Amount            string      `json:"amount"`
+	Currency          string      `json:"currency"`
+	FiatAmount        string      `json:"fiat_amount"`
+	FiatCurrency      string      `json:"fiat_currency"`
+	FiatLocalAmount   string      `json:"fiat_local_amount"`
+	FiatLocalCurrency string      `json:"fiat_local_currency"`
+	StoreFee          string      `json:"store_fee"`
+	Status            string      `json:"status"`
+	Center            string      `json:"center"`
+	Address           string      `json:"address"`
+	TxHash            interface{} `json:"tx_hash"`
 }
 
 func NewSolrFromCashOrder(order CashOrder, cash CashStore) (solr SolrOfferObject) {
@@ -763,8 +762,7 @@ func NewSolrFromCashOrder(order CashOrder, cash CashStore) (solr SolrOfferObject
 
 	extraData := SolrCashOrderExtraData{
 		Id:                order.Id,
-		UID:               order.UID,
-		ToUID:             order.ToUID,
+		RefCode:           order.RefCode,
 		Amount:            order.Amount,
 		Currency:          order.Currency,
 		FiatAmount:        order.FiatAmount,
