@@ -621,13 +621,14 @@ func (api MiscApi) TestAnything(context *gin.Context) {
 }
 
 func (api MiscApi) AdyenRedirect(context *gin.Context) {
+	urlStr := fmt.Sprintf("https://handshake-app-1-pr-817.herokuapp.com/cc-payment?MD=%s&PaRes=%s", context.PostForm("MD"), context.PostForm("PaRes"))
 	str := `<!DOCTYPE HTML>
 <html lang="en-US">
     <head>
         <meta charset="UTF-8">
-        <meta http-equiv="refresh" content="1;url=https://handshake-app-1-pr-817.herokuapp.com/cc-payment?MD=%s&PaRes=%s">
+        <meta http-equiv="refresh" content="1;url=%s">
         <script type="text/javascript">
-            window.location.href = "http://example.com"
+            window.location.href = "%s"
         </script>
         <title>Page Redirection</title>
     </head>
@@ -635,6 +636,6 @@ func (api MiscApi) AdyenRedirect(context *gin.Context) {
     </body>
 </html>`
 
-	finalStr := fmt.Sprintf(str, context.PostForm("MD"), context.PostForm("PaRes"))
+	finalStr := fmt.Sprintf(str, urlStr, urlStr)
 	context.Data(http.StatusOK, "text/html; charset=utf-8", []byte(finalStr))
 }
