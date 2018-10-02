@@ -404,11 +404,20 @@ func (s CashService) UpdateOrderReceipt(orderId string, cashOrder bean.CashOrder
 	}
 	order = cashOrderTO.Object.(bean.CashOrder)
 	order.ReceiptURL = cashOrder.ReceiptURL
+	order.Status = bean.CASH_ORDER_STATUS_TRANSFERRING
 
 	err := s.dao.UpdateCashStoreReceipt(&order)
 	if ce.SetError(api_error.AddDataFailed, err) {
 		return
 	}
+
+	cashTO := s.dao.GetCashStore(order.UID)
+	if cashTO.Error != nil {
+		ce.FeedDaoTransfer(api_error.GetDataFailed, cashTO)
+		return
+	}
+	cash := cashTO.Object.(bean.CashStore)
+	solr_service.UpdateObject(bean.NewSolrFromCashOrder(order, cash))
 
 	return
 }

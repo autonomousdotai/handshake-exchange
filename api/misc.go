@@ -8,6 +8,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/dao"
 	"github.com/ninjadotorg/handshake-exchange/integration/adyen_service"
+	"net/http"
 	"time"
 
 	"github.com/ninjadotorg/handshake-exchange/integration/bitpay_service"
@@ -617,4 +618,23 @@ func (api MiscApi) TestAnything(context *gin.Context) {
 	})
 	fmt.Print(err)
 	bean.SuccessResponse(context, resp)
+}
+
+func (api MiscApi) AdyenRedirect(context *gin.Context) {
+	str := `<!DOCTYPE HTML>
+<html lang="en-US">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="refresh" content="1;url=https://handshake-app-1-pr-817.herokuapp.com/cc-payment?MD=%s&PaRes=%s">
+        <script type="text/javascript">
+            window.location.href = "http://example.com"
+        </script>
+        <title>Page Redirection</title>
+    </head>
+    <body>
+    </body>
+</html>`
+
+	finalStr := fmt.Sprintf(str, context.PostForm("MD"), context.PostForm("PaRes"))
+	context.Data(http.StatusOK, "text/html; charset=utf-8", []byte(finalStr))
 }

@@ -166,6 +166,7 @@ func (b CashOrder) GetUpdate() map[string]interface{} {
 
 func (b CashOrder) GetReceiptUpdate() map[string]interface{} {
 	return map[string]interface{}{
+		"status":      b.Status,
 		"receipt_url": b.ReceiptURL,
 		"updated_at":  firestore.ServerTimestamp,
 	}
