@@ -263,6 +263,21 @@ func (dao CreditCardDao) UpdateNotificationInitInstantOffer(providerId string, d
 	return err
 }
 
+func (dao CreditCardDao) GetInitInstantOffer(providerId string) (t TransferObject) {
+	GetObject(GetInitInstantOfferItemPath(providerId), &t, snapshotToInitInstantOffer)
+	return
+}
+
+func (dao CreditCardDao) AddInitInstantOffer(providerId string, data map[string]interface{}) error {
+	dbClient := firebase_service.FirestoreClient
+
+	path := GetInitInstantOfferItemPath(providerId)
+	docRef := dbClient.Doc(path)
+	_, err := docRef.Set(context.Background(), data)
+
+	return err
+}
+
 func GetUserCCTransactionPath(userId string) string {
 	return fmt.Sprintf("users/%s/cc_transactions", userId)
 }
@@ -307,6 +322,10 @@ func GetGlobalCCLimitPath() string {
 	return "cc_global_limit/1"
 }
 
+func GetInitInstantOfferItemPath(providerId string) string {
+	return fmt.Sprintf("init_instant_offers/%s", providerId)
+}
+
 // Firebase
 func GetNotificationInstantOfferItemPath(userId string, offerId string) string {
 	return fmt.Sprintf("users/%s/offers/instant_%s", userId, offerId)
@@ -341,6 +360,13 @@ func snapshotToGlobalCCLimit(snapshot *firestore.DocumentSnapshot) interface{} {
 
 func snapshotToPendingInstantOfferTransfer(snapshot *firestore.DocumentSnapshot) interface{} {
 	var obj bean.PendingInstantOfferTransfer
+	snapshot.DataTo(&obj)
+
+	return obj
+}
+
+func snapshotToInitInstantOffer(snapshot *firestore.DocumentSnapshot) interface{} {
+	var obj map[string]string
 	snapshot.DataTo(&obj)
 
 	return obj

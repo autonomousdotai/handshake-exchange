@@ -113,6 +113,9 @@ func (url CronJobUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	group.POST("/authorise-receive", func(context *gin.Context) {
 		miscApi.AdyenRedirect(context)
 	})
+	group.GET("/authorise-receive/:id", func(context *gin.Context) {
+		miscApi.AdyenData(context)
+	})
 
 	group.POST("/script-update-xyz-123", func(context *gin.Context) {
 		miscApi.ScriptUpdateAllOfferStoreSolr(context)

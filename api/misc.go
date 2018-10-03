@@ -623,7 +623,7 @@ func (api MiscApi) TestAnything(context *gin.Context) {
 
 func (api MiscApi) AdyenRedirect(context *gin.Context) {
 	id := fmt.Sprintf("%d", time.Now().UTC().Unix())
-	dao.CreditCardDaoInst.UpdateNotificationInitInstantOffer(id,
+	dao.CreditCardDaoInst.AddInitInstantOffer(id,
 		adyen_service.GetNotificationData(context.PostForm("MD"), context.PostForm("PaRes")))
 	urlStr := fmt.Sprintf("%s/cc-payment?MD=%s", os.Getenv("ADYEN_REDIRECT_URL"), id)
 	str := `<!DOCTYPE HTML>
@@ -642,4 +642,11 @@ func (api MiscApi) AdyenRedirect(context *gin.Context) {
 
 	finalStr := fmt.Sprintf(str, urlStr, urlStr)
 	context.Data(http.StatusOK, "text/html; charset=utf-8", []byte(finalStr))
+}
+
+func (api MiscApi) AdyenData(context *gin.Context) {
+	id := context.Param("id")
+	t := dao.CreditCardDaoInst.GetInitInstantOffer(id)
+
+	bean.SuccessResponse(context, t.Object)
 }
