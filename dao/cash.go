@@ -49,6 +49,19 @@ func (dao CashDao) GetCashOrderByPath(path string) (t TransferObject) {
 	return
 }
 
+func (dao CashDao) ListCashOrders(status string, limit int, startAt interface{}) (t TransferObject) {
+	ListPagingObjects(GetCashOrderPath(), &t, limit, startAt, func(collRef *firestore.CollectionRef) firestore.Query {
+		query := collRef.OrderBy("created_at", firestore.Desc)
+		if status != "" {
+			query = query.Where("status", "==", status)
+		}
+
+		return query
+	}, snapshotToCashOrder)
+
+	return
+}
+
 func (dao CashDao) AddCashOrder(order *bean.CashOrder) error {
 	dbClient := firebase_service.FirestoreClient
 

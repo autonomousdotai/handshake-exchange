@@ -83,7 +83,7 @@ type CashOrder struct {
 	Id                        string            `json:"id" firestore:"id"`
 	UID                       string            `json:"-" firestore:"uid"`
 	ToUID                     string            `json:"-" firestore:"to_uid"`
-	UserInfo                  map[string]string `json:"-" firestore:"user_info"`
+	UserInfo                  map[string]string `json:"user_info" firestore:"user_info"`
 	Amount                    string            `json:"amount" firestore:"amount" validate:"required"`
 	Currency                  string            `json:"currency" firestore:"currency" validate:"required"`
 	FiatAmount                string            `json:"fiat_amount" firestore:"fiat_amount" validate:"required"`
@@ -179,6 +179,10 @@ func (b CashOrder) GetNotificationUpdate() map[string]interface{} {
 		"status": b.Status,
 		"type":   "cash_order",
 	}
+}
+
+func (b CashOrder) GetPageValue() interface{} {
+	return b.CreatedAt
 }
 
 type CashCenter struct {

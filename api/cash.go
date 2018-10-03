@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/ninjadotorg/handshake-exchange/bean"
 	"github.com/ninjadotorg/handshake-exchange/common"
+	"github.com/ninjadotorg/handshake-exchange/dao"
 	"github.com/ninjadotorg/handshake-exchange/service"
 	"strconv"
 )
@@ -73,6 +74,18 @@ func (api CashApi) CashStorePrice(context *gin.Context) {
 	}
 
 	bean.SuccessResponse(context, order)
+}
+
+func (api CashApi) ListCashStoreOrders(context *gin.Context) {
+	status := context.DefaultQuery("status", "")
+	startAt, limit := common.ExtractTimePagingParams(context)
+
+	to := dao.CashDaoInst.ListCashOrders(status, limit, startAt)
+	if to.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessPagingResponse(context, to.Objects, to.CanMove, to.Page)
 }
 
 func (api CashApi) CashStoreOrder(context *gin.Context) {

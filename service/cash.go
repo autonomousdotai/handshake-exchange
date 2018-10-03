@@ -353,7 +353,7 @@ func (s CashService) FinishOrder(refCode string, amount string, fiatCurrency str
 		return
 	}
 
-	if order.Status != bean.CASH_ORDER_STATUS_PROCESSING {
+	if order.Status != bean.CASH_ORDER_STATUS_TRANSFERRING {
 		ce.SetStatusKey(api_error.CashOrderStatusInvalid)
 		return
 	}
