@@ -313,7 +313,7 @@ func GetNotificationInstantOfferItemPath(userId string, offerId string) string {
 }
 
 func GetNotificationInitInstantOfferItemPath(providerId string) string {
-	return fmt.Sprintf("init_offers/%s", providerId)
+	return fmt.Sprintf("users/000/init_offers/%s", providerId)
 }
 
 func snapshotToCCTransaction(snapshot *firestore.DocumentSnapshot) interface{} {
