@@ -59,6 +59,13 @@ type AdyenAuthoriseResponse struct {
 	ResultCode     string                 `json:"resultCode"`
 }
 
+func GetNotificationData(md string, paRes string) map[string]interface{} {
+	return map[string]interface{}{
+		"md":     md,
+		"pa_res": paRes,
+	}
+}
+
 type AdyenClient struct {
 	url             string
 	apiUsername     string

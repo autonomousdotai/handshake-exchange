@@ -254,6 +254,15 @@ func (dao CreditCardDao) RemovePendingInstantOfferTransfer(pendingTransfer *bean
 	return err
 }
 
+func (dao CreditCardDao) UpdateNotificationInitInstantOffer(providerId string, data map[string]interface{}) error {
+	dbClient := firebase_service.NotificationFirebaseClient
+
+	ref := dbClient.NewRef(GetNotificationInitInstantOfferItemPath(providerId))
+	err := ref.Set(context.Background(), data)
+
+	return err
+}
+
 func GetUserCCTransactionPath(userId string) string {
 	return fmt.Sprintf("users/%s/cc_transactions", userId)
 }
@@ -301,6 +310,10 @@ func GetGlobalCCLimitPath() string {
 // Firebase
 func GetNotificationInstantOfferItemPath(userId string, offerId string) string {
 	return fmt.Sprintf("users/%s/offers/instant_%s", userId, offerId)
+}
+
+func GetNotificationInitInstantOfferItemPath(providerId string) string {
+	return fmt.Sprintf("init_offers/%s", providerId)
 }
 
 func snapshotToCCTransaction(snapshot *firestore.DocumentSnapshot) interface{} {

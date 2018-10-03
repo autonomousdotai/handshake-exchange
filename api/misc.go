@@ -621,7 +621,9 @@ func (api MiscApi) TestAnything(context *gin.Context) {
 }
 
 func (api MiscApi) AdyenRedirect(context *gin.Context) {
-	urlStr := fmt.Sprintf("https://handshake-app-1-pr-817.herokuapp.com/cc-payment?MD=%s&PaRes=%s", context.PostForm("MD"), context.PostForm("PaRes"))
+	dao.CreditCardDaoInst.UpdateNotificationInitInstantOffer(context.PostForm("MD"),
+		adyen_service.GetNotificationData(context.PostForm("MD"), context.PostForm("PaRes")))
+	urlStr := fmt.Sprintf("https://handshake-app-1-pr-817.herokuapp.com/cc-payment?MD=%s", context.PostForm("MD"))
 	str := `<!DOCTYPE HTML>
 <html lang="en-US">
     <head>
