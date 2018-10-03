@@ -9,6 +9,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/dao"
 	"github.com/ninjadotorg/handshake-exchange/integration/adyen_service"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/ninjadotorg/handshake-exchange/integration/bitpay_service"
@@ -623,7 +624,7 @@ func (api MiscApi) TestAnything(context *gin.Context) {
 func (api MiscApi) AdyenRedirect(context *gin.Context) {
 	dao.CreditCardDaoInst.UpdateNotificationInitInstantOffer(context.PostForm("MD"),
 		adyen_service.GetNotificationData(context.PostForm("MD"), context.PostForm("PaRes")))
-	urlStr := fmt.Sprintf("https://handshake-app-1-pr-817.herokuapp.com/cc-payment?MD=%s", context.PostForm("MD"))
+	urlStr := fmt.Sprintf("%s/cc-payment?MD=%s", os.Getenv("ADYEN_REDIRECT_URL"), context.PostForm("MD"))
 	str := `<!DOCTYPE HTML>
 <html lang="en-US">
     <head>
