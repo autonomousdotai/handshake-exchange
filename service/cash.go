@@ -257,6 +257,10 @@ func (s CashService) AddOrder(userId string, orderBody bean.CashOrder) (order be
 	}
 
 	if isSuccess {
+		orderBody.UserInfo = map[string]string{
+			"name":  cash.Name,
+			"phone": cash.Phone,
+		}
 		setupCashOrder(&orderBody, orderTest, *creditTrans)
 		err := s.dao.AddCashOrder(&orderBody)
 		order = orderBody

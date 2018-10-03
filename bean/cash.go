@@ -80,43 +80,44 @@ type CashOrderUpdateInput struct {
 }
 
 type CashOrder struct {
-	Id                        string      `json:"id" firestore:"id"`
-	UID                       string      `json:"-" firestore:"uid"`
-	ToUID                     string      `json:"-" firestore:"to_uid"`
-	Amount                    string      `json:"amount" firestore:"amount" validate:"required"`
-	Currency                  string      `json:"currency" firestore:"currency" validate:"required"`
-	FiatAmount                string      `json:"fiat_amount" firestore:"fiat_amount" validate:"required"`
-	FiatCurrency              string      `json:"fiat_currency" firestore:"fiat_currency" validate:"required"`
-	FiatLocalAmount           string      `json:"fiat_local_amount" firestore:"fiat_local_amount"`
-	FiatLocalCurrency         string      `json:"fiat_local_currency" firestore:"fiat_local_currency"`
-	LocalStoreFee             string      `json:"local_store_fee" firestore:"local_store_fee"`
-	RawFiatAmount             string      `json:"-" firestore:"raw_fiat_amount"`
-	Price                     string      `json:"price" firestore:"price"`
-	Status                    string      `json:"status" firestore:"status"`
-	Type                      string      `json:"type" firestore:"type"`
-	Duration                  int64       `json:"-" firestore:"duration"`
-	FeePercentage             string      `json:"-" firestore:"fee_percentage"`
-	Fee                       string      `json:"-" firestore:"fee"`
-	StoreFeePercentage        string      `json:"-" firestore:"store_fee_percentage"`
-	StoreFee                  string      `json:"store_fee" firestore:"store_fee"`
-	ExternalFeePercentage     string      `json:"-" firestore:"external_fee_percentage"`
-	ExternalFee               string      `json:"-" firestore:"external_fee"`
-	PaymentMethod             string      `json:"-" firestore:"payment_method"`
-	PaymentMethodRef          string      `json:"-" firestore:"payment_method_ref"`
-	PaymentMethodData         interface{} `json:"payment_method_data"`
-	Provider                  string      `json:"-" firestore:"provider"`
-	ProviderData              interface{} `json:"-" firestore:"provider_data"`
-	Center                    string      `json:"center" firestore:"center"`
-	Address                   string      `json:"address" firestore:"address" validate:"required"`
-	ProviderWithdrawData      interface{} `json:"provider_withdraw_data" firestore:"provider_withdraw_data"`
-	ProviderWithdrawDataExtra interface{} `json:"-" firestore:"provider_withdraw_data_extra"`
-	ReceiptURL                string      `json:"receipt_url" firestore:"receipt_url"`
-	RefCode                   string      `json:"ref_code" firestore:"ref_code"`
-	FCM                       string      `json:"fcm" firestore:"fcm"`
-	Language                  string      `json:"language" firestore:"language"`
-	ChainId                   int64       `json:"chain_id" firestore:"chain_id"`
-	CreatedAt                 time.Time   `json:"created_at" firestore:"created_at"`
-	UpdatedAt                 time.Time   `json:"updated_at" firestore:"updated_at"`
+	Id                        string            `json:"id" firestore:"id"`
+	UID                       string            `json:"-" firestore:"uid"`
+	ToUID                     string            `json:"-" firestore:"to_uid"`
+	UserInfo                  map[string]string `json:"-" firestore:"user_info"`
+	Amount                    string            `json:"amount" firestore:"amount" validate:"required"`
+	Currency                  string            `json:"currency" firestore:"currency" validate:"required"`
+	FiatAmount                string            `json:"fiat_amount" firestore:"fiat_amount" validate:"required"`
+	FiatCurrency              string            `json:"fiat_currency" firestore:"fiat_currency" validate:"required"`
+	FiatLocalAmount           string            `json:"fiat_local_amount" firestore:"fiat_local_amount"`
+	FiatLocalCurrency         string            `json:"fiat_local_currency" firestore:"fiat_local_currency"`
+	LocalStoreFee             string            `json:"local_store_fee" firestore:"local_store_fee"`
+	RawFiatAmount             string            `json:"-" firestore:"raw_fiat_amount"`
+	Price                     string            `json:"price" firestore:"price"`
+	Status                    string            `json:"status" firestore:"status"`
+	Type                      string            `json:"type" firestore:"type"`
+	Duration                  int64             `json:"-" firestore:"duration"`
+	FeePercentage             string            `json:"-" firestore:"fee_percentage"`
+	Fee                       string            `json:"-" firestore:"fee"`
+	StoreFeePercentage        string            `json:"-" firestore:"store_fee_percentage"`
+	StoreFee                  string            `json:"store_fee" firestore:"store_fee"`
+	ExternalFeePercentage     string            `json:"-" firestore:"external_fee_percentage"`
+	ExternalFee               string            `json:"-" firestore:"external_fee"`
+	PaymentMethod             string            `json:"-" firestore:"payment_method"`
+	PaymentMethodRef          string            `json:"-" firestore:"payment_method_ref"`
+	PaymentMethodData         interface{}       `json:"payment_method_data"`
+	Provider                  string            `json:"-" firestore:"provider"`
+	ProviderData              interface{}       `json:"-" firestore:"provider_data"`
+	Center                    string            `json:"center" firestore:"center"`
+	Address                   string            `json:"address" firestore:"address" validate:"required"`
+	ProviderWithdrawData      interface{}       `json:"provider_withdraw_data" firestore:"provider_withdraw_data"`
+	ProviderWithdrawDataExtra interface{}       `json:"-" firestore:"provider_withdraw_data_extra"`
+	ReceiptURL                string            `json:"receipt_url" firestore:"receipt_url"`
+	RefCode                   string            `json:"ref_code" firestore:"ref_code"`
+	FCM                       string            `json:"fcm" firestore:"fcm"`
+	Language                  string            `json:"language" firestore:"language"`
+	ChainId                   int64             `json:"chain_id" firestore:"chain_id"`
+	CreatedAt                 time.Time         `json:"created_at" firestore:"created_at"`
+	UpdatedAt                 time.Time         `json:"updated_at" firestore:"updated_at"`
 }
 
 func (b CashOrder) GetAdd() map[string]interface{} {

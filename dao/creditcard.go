@@ -256,9 +256,9 @@ func (dao CreditCardDao) RemovePendingInstantOfferTransfer(pendingTransfer *bean
 
 func (dao CreditCardDao) UpdateNotificationInitInstantOffer(providerId string, data map[string]interface{}) error {
 	dbClient := firebase_service.NotificationFirebaseClient
-
 	ref := dbClient.NewRef(GetNotificationInitInstantOfferItemPath(providerId))
 	err := ref.Set(context.Background(), data)
+	fmt.Println(err)
 
 	return err
 }

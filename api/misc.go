@@ -622,9 +622,10 @@ func (api MiscApi) TestAnything(context *gin.Context) {
 }
 
 func (api MiscApi) AdyenRedirect(context *gin.Context) {
-	dao.CreditCardDaoInst.UpdateNotificationInitInstantOffer(context.PostForm("MD"),
+	id := fmt.Sprintf("%d", time.Now().UTC().Unix())
+	dao.CreditCardDaoInst.UpdateNotificationInitInstantOffer(id,
 		adyen_service.GetNotificationData(context.PostForm("MD"), context.PostForm("PaRes")))
-	urlStr := fmt.Sprintf("%s/cc-payment?MD=%s", os.Getenv("ADYEN_REDIRECT_URL"), context.PostForm("MD"))
+	urlStr := fmt.Sprintf("%s/cc-payment?MD=%s", os.Getenv("ADYEN_REDIRECT_URL"), id)
 	str := `<!DOCTYPE HTML>
 <html lang="en-US">
     <head>
