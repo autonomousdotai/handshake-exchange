@@ -124,6 +124,7 @@ func (b CashOrder) GetAdd() map[string]interface{} {
 	return map[string]interface{}{
 		"id":                      b.Id,
 		"uid":                     b.UID,
+		"user_info":               b.UserInfo,
 		"amount":                  b.Amount,
 		"currency":                b.Currency,
 		"fiat_amount":             b.FiatAmount,
