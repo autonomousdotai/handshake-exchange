@@ -529,6 +529,7 @@ func (s CreditService) AddCreditTransaction(trans *bean.CreditTransaction) (ce S
 
 	if len(selectedOrders) == 0 {
 		ce.SetStatusKey(api_error.CreditPriceChanged)
+		return
 	}
 
 	err := s.dao.AddCreditTransaction(&pool, trans, userTransList, selectedOrders)

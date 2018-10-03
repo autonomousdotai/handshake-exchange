@@ -486,6 +486,10 @@ func (dao CreditDao) AddCreditTransaction(pool *bean.CreditPool, trans *bean.Cre
 		return txErr
 	})
 
+	if err == nil {
+		dao.SetCreditPoolCache(*pool)
+	}
+
 	return err
 }
 
