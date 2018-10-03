@@ -18,6 +18,9 @@ func (url CreditCardUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	group.GET("/:offerId", func(context *gin.Context) {
 		creditCardApi.GetInstantOffers(context)
 	})
+	group.POST("/init-payment", func(context *gin.Context) {
+		creditCardApi.InitAdyenPayment(context)
+	})
 
 	return group
 }

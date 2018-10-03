@@ -3,6 +3,7 @@ package ethereum_service
 import (
 	"context"
 	"crypto/ecdsa"
+	"encoding/hex"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -47,6 +48,29 @@ func (c *EthereumClient) Initialize() (err error) {
 	c.address = crypto.PubkeyToAddress(*c.publicKey)
 
 	return
+}
+
+func (c *EthereumClient) InitializeWithKey(key string) (err error) {
+	c.client, err = ethclient.Dial(os.Getenv("ETH_NETWORK"))
+	if err != nil {
+		return
+	}
+
+	c.privateKey, err = crypto.HexToECDSA(key)
+	if err != nil {
+		return
+	}
+
+	publicKey := c.privateKey.Public()
+	c.publicKey, _ = publicKey.(*ecdsa.PublicKey)
+
+	c.address = crypto.PubkeyToAddress(*c.publicKey)
+
+	return
+}
+
+func (c *EthereumClient) GetAddress() string {
+	return c.address.Hex()
 }
 
 func (c *EthereumClient) Close() {
@@ -147,4 +171,19 @@ func (c *EthereumClient) GetTransactionReceipt(txHash string) (status bool, isPe
 	c.Close()
 
 	return
+}
+
+func GenerateAddress() (string, string) {
+	// Create an account
+	key, _ := crypto.GenerateKey()
+
+	// Get the address
+	address := crypto.PubkeyToAddress(key.PublicKey).Hex()
+	// 0x8ee3333cDE801ceE9471ADf23370c48b011f82a6
+
+	// Get the private key
+	privateKey := hex.EncodeToString(key.D.Bytes())
+	// 05b14254a1d0c77a49eae3bdf080f926a2df17d8e2ebdf7af941ea001481e57f
+
+	return address, privateKey
 }

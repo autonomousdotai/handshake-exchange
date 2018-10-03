@@ -1,12 +1,15 @@
 package api
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/ninjadotorg/handshake-exchange/bean"
 	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/dao"
+	"github.com/ninjadotorg/handshake-exchange/integration/adyen_service"
 	"github.com/ninjadotorg/handshake-exchange/service"
 	"strconv"
+	"time"
 )
 
 type CreditCardApi struct {
@@ -73,4 +76,15 @@ func (api CreditCardApi) GetInstantOffers(context *gin.Context) {
 	offer := offerTO.Object.(bean.InstantOffer)
 
 	bean.SuccessResponse(context, offer)
+}
+
+func (api CreditCardApi) InitAdyenPayment(context *gin.Context) {
+	var body adyen_service.AdyenAuthorise
+	if common.ValidateBody(context, &body) != nil {
+		return
+	}
+	body.Reference = fmt.Sprintf("%d", time.Now().UTC().Unix())
+	resp, err := adyen_service.Authorise(body)
+	fmt.Print(err)
+	bean.SuccessResponse(context, resp)
 }

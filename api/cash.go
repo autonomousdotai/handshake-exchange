@@ -1,9 +1,11 @@
 package api
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/ninjadotorg/handshake-exchange/bean"
 	"github.com/ninjadotorg/handshake-exchange/common"
+	"github.com/ninjadotorg/handshake-exchange/dao"
 	"github.com/ninjadotorg/handshake-exchange/service"
 	"strconv"
 )
@@ -74,32 +76,77 @@ func (api CashApi) CashStorePrice(context *gin.Context) {
 	bean.SuccessResponse(context, order)
 }
 
-func (api CashApi) CashStoreOrder(context *gin.Context) {
-	//userId := common.GetUserId(context)
-	//
-	var body bean.CashStore
-	if common.ValidateBody(context, &body) != nil {
+func (api CashApi) ListCashStoreOrders(context *gin.Context) {
+	status := context.DefaultQuery("status", "")
+	startAt, limit := common.ExtractTimePagingParams(context)
+
+	to := dao.CashDaoInst.ListCashOrders(status, limit, startAt)
+	if to.ContextValidate(context) {
 		return
 	}
-	//withdraw, ce := service.CreditServiceInst.AddCreditWithdraw(userId, body)
-	//if ce.ContextValidate(context) {
-	//	return
-	//}
 
-	bean.SuccessResponse(context, bean.CashOrder{})
+	bean.SuccessPagingResponse(context, to.Objects, to.CanMove, to.Page)
 }
 
-func (api CashApi) CashStoreRemoveOrder(context *gin.Context) {
-	//userId := common.GetUserId(context)
-	//
-	var body bean.CashStore
+func (api CashApi) CashStoreOrder(context *gin.Context) {
+	userId := common.GetUserId(context)
+
+	var body bean.CashOrder
 	if common.ValidateBody(context, &body) != nil {
 		return
 	}
-	//withdraw, ce := service.CreditServiceInst.AddCreditWithdraw(userId, body)
-	//if ce.ContextValidate(context) {
-	//	return
-	//}
+	order, ce := service.CashServiceInst.AddOrder(userId, body)
+	if ce.ContextValidate(context) {
+		return
+	}
 
-	bean.SuccessResponse(context, true)
+	bean.SuccessResponse(context, order)
+}
+
+func (api CashApi) FinishCashOrder(context *gin.Context) {
+	id := context.Param("id")
+	amount := context.Param("amount")
+	order, overSpent, ce := service.CashServiceInst.FinishOrder(id, amount, "USD")
+	if ce.ContextValidate(context) {
+		return
+	}
+	fmt.Println(overSpent)
+
+	bean.SuccessResponse(context, order)
+}
+
+func (api CashApi) RejectCashOrder(context *gin.Context) {
+	id := context.Param("id")
+
+	order, ce := service.CashServiceInst.RejectOrder(id)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, order)
+}
+
+func (api CashApi) UpdateCashOrder(context *gin.Context) {
+	id := context.Param("id")
+
+	var body bean.CashOrderUpdateInput
+	if common.ValidateBody(context, &body) != nil {
+		return
+	}
+	order, ce := service.CashServiceInst.UpdateOrderReceipt(id, body)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, order)
+}
+
+func (api CashApi) ListCashCenter(context *gin.Context) {
+	country := context.Param("country")
+	cashCenters, ce := service.CashServiceInst.ListCashCenter(country)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, cashCenters)
 }

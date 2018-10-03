@@ -12,6 +12,7 @@ const CC_TRANSACTION_TYPE = "instant_buy"
 
 const CC_PROVIDER_STRIPE = "stripe"
 const CC_PROVIDER_CHECKOUT = "checkout"
+const CC_PROVIDER_ADYEN = "adyen"
 
 type CCTransaction struct {
 	Id           string      `json:"id" firestore:"id"`
@@ -80,37 +81,38 @@ const INSTANT_OFFER_PROVIDER_CREDIT = "credit"
 const INSTANT_OFFER_PAYMENT_METHOD_CC = "creditcard"
 
 type InstantOffer struct {
-	Id                    string      `json:"id" firestore:"id"`
-	UID                   string      `json:"uid" firestore:"uid"`
-	Username              string      `json:"username" firestore:"username"`
-	Amount                string      `json:"amount" firestore:"amount" validate:"required"`
-	Currency              string      `json:"currency" firestore:"currency" validate:"required"`
-	FiatAmount            string      `json:"fiat_amount" firestore:"fiat_amount" validate:"required"`
-	RawFiatAmount         string      `json:"-" firestore:"raw_fiat_amount"`
-	FiatCurrency          string      `json:"fiat_currency" firestore:"fiat_currency" validate:"required"`
-	Price                 string      `json:"price" firestore:"price"`
-	Status                string      `json:"status" firestore:"status"`
-	Type                  string      `json:"type" firestore:"type"`
-	Duration              int64       `json:"-" firestore:"duration"`
-	Fee                   string      `json:"-" firestore:"fee"`
-	ExternalFeePercentage string      `json:"-" firestore:"external_fee_percentage"`
-	ExternalFee           string      `json:"-" firestore:"external_fee"`
-	PaymentMethod         string      `json:"-" firestore:"payment_method"`
-	PaymentMethodRef      string      `json:"-" firestore:"payment_method_ref"`
-	PaymentMethodData     interface{} `json:"payment_method_data" validate:"required"`
-	FeePercentage         string      `json:"-" firestore:"fee_percentage"`
-	Provider              string      `json:"-" firestore:"provider"`
-	ProviderData          interface{} `json:"-" firestore:"provider_data"`
-	ProviderWithdrawData  interface{} `json:"-" firestore:"provider_withdraw_data"`
-	TransactionRef        string      `json:"-" firestore:"transaction_ref"`
-	CCMode                string      `json:"-" firestore:"cc_mode"`
-	Address               string      `json:"address" firestore:"address" validate:"required"`
-	Email                 string      `json:"email" firestore:"email"`
-	FCM                   string      `json:"fcm" firestore:"fcm"`
-	Language              string      `json:"language" firestore:"language"`
-	ChainId               int64       `json:"chain_id" firestore:"chain_id"`
-	CreatedAt             time.Time   `json:"created_at" firestore:"created_at"`
-	UpdatedAt             time.Time   `json:"updated_at" firestore:"updated_at"`
+	Id                        string      `json:"id" firestore:"id"`
+	UID                       string      `json:"uid" firestore:"uid"`
+	Username                  string      `json:"username" firestore:"username"`
+	Amount                    string      `json:"amount" firestore:"amount" validate:"required"`
+	Currency                  string      `json:"currency" firestore:"currency" validate:"required"`
+	FiatAmount                string      `json:"fiat_amount" firestore:"fiat_amount" validate:"required"`
+	RawFiatAmount             string      `json:"-" firestore:"raw_fiat_amount"`
+	FiatCurrency              string      `json:"fiat_currency" firestore:"fiat_currency" validate:"required"`
+	Price                     string      `json:"price" firestore:"price"`
+	Status                    string      `json:"status" firestore:"status"`
+	Type                      string      `json:"type" firestore:"type"`
+	Duration                  int64       `json:"-" firestore:"duration"`
+	Fee                       string      `json:"-" firestore:"fee"`
+	ExternalFeePercentage     string      `json:"-" firestore:"external_fee_percentage"`
+	ExternalFee               string      `json:"-" firestore:"external_fee"`
+	PaymentMethod             string      `json:"-" firestore:"payment_method"`
+	PaymentMethodRef          string      `json:"-" firestore:"payment_method_ref"`
+	PaymentMethodData         interface{} `json:"payment_method_data" validate:"required"`
+	FeePercentage             string      `json:"-" firestore:"fee_percentage"`
+	Provider                  string      `json:"-" firestore:"provider"`
+	ProviderData              interface{} `json:"-" firestore:"provider_data"`
+	ProviderWithdrawData      interface{} `json:"-" firestore:"provider_withdraw_data"`
+	ProviderWithdrawDataExtra interface{} `json:"-" firestore:"provider_withdraw_data_extra"`
+	TransactionRef            string      `json:"-" firestore:"transaction_ref"`
+	CCMode                    string      `json:"-" firestore:"cc_mode"`
+	Address                   string      `json:"address" firestore:"address" validate:"required"`
+	Email                     string      `json:"email" firestore:"email"`
+	FCM                       string      `json:"fcm" firestore:"fcm"`
+	Language                  string      `json:"language" firestore:"language"`
+	ChainId                   int64       `json:"chain_id" firestore:"chain_id"`
+	CreatedAt                 time.Time   `json:"created_at" firestore:"created_at"`
+	UpdatedAt                 time.Time   `json:"updated_at" firestore:"updated_at"`
 }
 
 type CreditCardInfo struct {
@@ -161,10 +163,11 @@ func (offer InstantOffer) GetAddInstantOffer() map[string]interface{} {
 
 func (offer InstantOffer) GetUpdate() map[string]interface{} {
 	return map[string]interface{}{
-		"provider_data":          offer.ProviderData,
-		"provider_withdraw_data": offer.ProviderWithdrawData,
-		"status":                 offer.Status,
-		"updated_at":             firestore.ServerTimestamp,
+		"provider_data":                offer.ProviderData,
+		"provider_withdraw_data":       offer.ProviderWithdrawData,
+		"provider_withdraw_data_extra": offer.ProviderWithdrawDataExtra,
+		"status":                       offer.Status,
+		"updated_at":                   firestore.ServerTimestamp,
 	}
 }
 

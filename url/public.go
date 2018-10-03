@@ -79,6 +79,7 @@ func (url CronJobUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	group.POST("/setup-credit-pool-cache", func(context *gin.Context) {
 		miscApi.SetupCreditPoolCache(context)
 	})
+	group.POST("/setup-contract-keys", miscApi.SetupContractKeys)
 
 	//CRON JOB
 	group.POST("/finish-credit-tracking", func(context *gin.Context) {
@@ -97,7 +98,24 @@ func (url CronJobUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	group.POST("/sync-to-credit-withdraw-solr/:id", func(context *gin.Context) {
 		miscApi.SyncCreditWithdrawToSolr(context)
 	})
-	group.GET("/nonce", miscApi.Nonce)
+	group.POST("/eth-address", miscApi.GenerateAddress)
+	group.POST("/add-address/:address", miscApi.AddAdminAddress)
+
+	group.POST("/sync-to-cash-store-solr/:id", func(context *gin.Context) {
+		miscApi.SyncCashStoreToSolr(context)
+	})
+	group.POST("/sync-to-cash-order-solr/:id", func(context *gin.Context) {
+		miscApi.SyncCashOrderToSolr(context)
+	})
+	group.GET("/server-time", func(context *gin.Context) {
+		miscApi.ServerTime(context)
+	})
+	group.POST("/authorise-receive", func(context *gin.Context) {
+		miscApi.AdyenRedirect(context)
+	})
+	group.GET("/authorise-receive/:id", func(context *gin.Context) {
+		miscApi.AdyenData(context)
+	})
 
 	group.POST("/script-update-xyz-123", func(context *gin.Context) {
 		miscApi.ScriptUpdateAllOfferStoreSolr(context)
@@ -110,6 +128,10 @@ func (url CronJobUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	})
 	group.GET("/btc-confirmations/:txId", func(context *gin.Context) {
 		miscApi.GetBTCConfirmation(context)
+	})
+
+	group.POST("/test-anything", func(context *gin.Context) {
+		miscApi.TestAnything(context)
 	})
 
 	return group

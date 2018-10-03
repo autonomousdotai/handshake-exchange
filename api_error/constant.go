@@ -50,6 +50,7 @@ const CreditOutOfStock = "CreditOutOfStock"
 const CreditItemStatusInvalid = "CreditItemStatusInvalid"
 
 const CashStoreExists = "CashStoreExists"
+const CashOrderStatusInvalid = "CashOrderStatusInvalid"
 
 var CodeMessage = map[string]struct {
 	StatusCode int
@@ -102,4 +103,5 @@ var CodeMessage = map[string]struct {
 	CreditOutOfStock:               {http.StatusBadRequest, -326, "Credit out of stock"},
 	CreditItemStatusInvalid:        {http.StatusBadRequest, -327, "Credit item status is invalid"},
 	CashStoreExists:                {http.StatusBadRequest, -328, "Cash store exists"},
+	CashOrderStatusInvalid:         {http.StatusBadRequest, -329, "Cash order status invalid"},
 }

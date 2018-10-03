@@ -7,11 +7,16 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/bean"
 	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/dao"
+	"github.com/ninjadotorg/handshake-exchange/integration/adyen_service"
+	"net/http"
+	"os"
+	"time"
 
 	"github.com/ninjadotorg/handshake-exchange/integration/bitpay_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/coinapi_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
-	"github.com/ninjadotorg/handshake-exchange/integration/exchangecreditatm_service"
+	"github.com/ninjadotorg/handshake-exchange/integration/ethereum_service"
+	// "github.com/ninjadotorg/handshake-exchange/integration/exchangecreditatm_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/openexchangerates_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/solr_service"
 	"github.com/ninjadotorg/handshake-exchange/service"
@@ -451,19 +456,31 @@ func (api MiscApi) SendBtc(context *gin.Context) {
 	//fmt.Println(err)
 	//bean.SuccessResponse(context, tx)
 
-	amountStr := ""
-	address := ""
-	offchainId := "refund"
+	//amountStr := ""
+	//address := ""
+	//offchainId := "refund"
+	////
+	//client := exchangecreditatm_service.ExchangeCreditAtmClient{}
+	//amount := common.StringToDecimal(amountStr)
+	//txHash, _, onChainErr := client.ReleasePartialFund(offchainId, 1, amount, address, uint64(0), false, "")
+	//if onChainErr != nil {
+	//	fmt.Println(onChainErr)
+	//} else {
+	//}
+	//fmt.Println(txHash)
+	//bean.SuccessResponse(context, txHash)
 
-	client := exchangecreditatm_service.ExchangeCreditAtmClient{}
-	amount := common.StringToDecimal(amountStr)
-	txHash, _, onChainErr := client.ReleasePartialFund(offchainId, 1, amount, address, uint64(0), false)
-	if onChainErr != nil {
-		fmt.Println(onChainErr)
-	} else {
-	}
-	fmt.Println(txHash)
-	bean.SuccessResponse(context, txHash)
+	//coinbaseTx, errWithdraw := coinbase_service.SendTransaction(address, amountStr, "BTC",
+	//	fmt.Sprintf("Withdraw tx = %s", "6044"), "i55dcuEH20bketepu37k")
+	//if errWithdraw != nil {
+	//	fmt.Println(errWithdraw)
+	//}
+	//fmt.Println(coinbaseTx.Id)
+
+	//coinbaseTx, _ := coinbase_service.GetTransaction("59baebcb-ad50-5508-a729-4422c8a31ddc", "BTC")
+	//fmt.Println(coinbaseTx.Id, coinbaseTx.Status, coinbaseTx.Amount, coinbaseTx.Description, coinbaseTx.CreatedAt)
+
+	//bean.SuccessResponse(context, coinbaseTx.Id)
 }
 
 func (api MiscApi) FinishCreditTracking(context *gin.Context) {
@@ -533,15 +550,103 @@ func (api MiscApi) SyncCreditWithdrawToSolr(context *gin.Context) {
 	bean.SuccessResponse(context, obj)
 }
 
-func (api MiscApi) Nonce(context *gin.Context) {
-	ce := service.SimpleContextError{}
-	nonce := service.CreditServiceInst.GetInstantTransferNonce(&ce)
+func (api MiscApi) SyncCashStoreToSolr(context *gin.Context) {
+	id := context.Param("id")
+
+	obj, ce := service.CashServiceInst.SyncCashStoreToSolr(id)
 	if ce.ContextValidate(context) {
 		return
 	}
-	newNonce := nonce
-	newNonce += 1
-	service.CreditServiceInst.SetNonceToCache(newNonce)
 
-	bean.SuccessResponse(context, nonce)
+	bean.SuccessResponse(context, obj)
+}
+
+func (api MiscApi) SyncCashOrderToSolr(context *gin.Context) {
+	id := context.Param("id")
+
+	obj, ce := service.CashServiceInst.SyncCashOrderToSolr(id)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, obj)
+}
+
+func (api MiscApi) GenerateAddress(context *gin.Context) {
+	address, key := ethereum_service.GenerateAddress()
+
+	bean.SuccessResponse(context, map[string]string{
+		"address": address,
+		"key":     key,
+	})
+}
+
+func (api MiscApi) SetupContractKeys(context *gin.Context) {
+	service.CreditServiceInst.SetupContractKey("ETH_HIGH_ADMIN_KEYS")
+	service.CreditServiceInst.SetupContractKey("ETH_LOW_ADMIN_KEYS")
+
+	bean.SuccessResponse(context, true)
+}
+
+func (api MiscApi) AddAdminAddress(context *gin.Context) {
+	address := context.Param("address")
+	service.CreditServiceInst.AddAdminAddressToContract(address)
+
+	bean.SuccessResponse(context, "ok")
+}
+
+func (api MiscApi) ServerTime(context *gin.Context) {
+	bean.SuccessResponse(context, time.Now().UTC().Format("2006-01-02T15:04:05.000+00:00"))
+}
+
+func (api MiscApi) TestAnything(context *gin.Context) {
+	resp, err := adyen_service.Authorise(adyen_service.AdyenAuthorise{
+		//Card: map[string]string{
+		//	"number":      "5432123412341234",
+		//	"expiryMonth": "12",
+		//	"expiryYear":  "2020",
+		//	"cvc":         "123",
+		//},
+
+		Amount: adyen_service.AdyenAmount{
+			Value:    1500,
+			Currency: "USD",
+		},
+		Reference: "abc123",
+		AdditionalData: map[string]interface{}{
+			"card.encrypted.json": "adyenjs_0_1_22$e1AviVdDImBzMpmnzNGZVpLXPKY9Kbj1tBPNs3MtuKDMYmOrHgGqFfPPkFogfu80p+NXcMsI/vSei2pnSAqjf0PiqSk14b6VGRJW/jJgp9N+d4Tb8u7R0diPCmoYE6XI8iu6XV+7Wgn3j7XTu6NfittLKuDVUMbmWhNjchwdNJQAowBdvak9KCCfl2P8pn6v+jsz4A6J5bd3nYPm8jh2Jr+1Hetf+9bPJkBzE4fIEUZtRi9XLO/HfQ/kQGXrcC5Xu2SGoIkYtZLTVk2Q0ZcaE0dw5APxrNEmZZUmmOKd1+M7l97hFrc2q16F+4pXUiLcJVfomQuY1iV4a7/fJlZGhQ==$kqZVSQ0IB8QfY0181+nt3Rx6PCeeIR7E9aJubZ74rog2cYqZ8eCGjos1czkl7UOBECeTmAdGUIzIr+n05uTwza/O0k0KbPG829eTXe1DSEVZFJx5ieT5Q92KNEWxZDmKPexEgMnLTW3Y1STiUXESJ4oc6twI1d1W/pEX8F5f0X4YTeeJ7Q1GeC9p6QC4jU+l2/6ts9se4UYSCzx57qkBW3QSft9euSQtLhel4HEh1tb+uhyvODW8FtNHNWs/2tNvZaYhU5/HZUL88fhhm60RwmXwAuGmce7NxGz5SJmrKPmvaWYnDEm11VP4whd8pQ3CLlJAQUTBm2ePamrDnWJxzB3eD5qgc3Cf5cMfOFJmdAmggBeuxaXP5UMw8NuovuJ/5eLThfo0Glxg6SXEIPiixvENtZXooxxyEH2I+s5YIaci3ppI3tfupuFM/BMGyNQiEP38pVrdyQtc8JuXXvypSQrpsjKNFKQ68Z4Ax+oBWXjJil7oIuoMtw==",
+		},
+	})
+	fmt.Print(err)
+	bean.SuccessResponse(context, resp)
+}
+
+func (api MiscApi) AdyenRedirect(context *gin.Context) {
+	id := fmt.Sprintf("%d", time.Now().UTC().Unix())
+	dao.CreditCardDaoInst.AddInitInstantOffer(id,
+		adyen_service.GetNotificationData(context.PostForm("MD"), context.PostForm("PaRes")))
+	urlStr := fmt.Sprintf("%s/cc-payment?MD=%s", os.Getenv("ADYEN_REDIRECT_URL"), id)
+	str := `<!DOCTYPE HTML>
+<html lang="en-US">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="refresh" content="1;url=%s">
+        <script type="text/javascript">
+            window.location.href = "%s"
+        </script>
+        <title>Page Redirection</title>
+    </head>
+    <body>
+    </body>
+</html>`
+
+	finalStr := fmt.Sprintf(str, urlStr, urlStr)
+	context.Data(http.StatusOK, "text/html; charset=utf-8", []byte(finalStr))
+}
+
+func (api MiscApi) AdyenData(context *gin.Context) {
+	id := context.Param("id")
+	t := dao.CreditCardDaoInst.GetInitInstantOffer(id)
+
+	bean.SuccessResponse(context, t.Object)
 }

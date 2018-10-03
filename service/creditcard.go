@@ -7,14 +7,13 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/bean"
 	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/dao"
+	"github.com/ninjadotorg/handshake-exchange/integration/adyen_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/crypto_service"
-	"github.com/ninjadotorg/handshake-exchange/integration/exchangecreditatm_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/gdax_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/stripe_service"
 	"github.com/ninjadotorg/handshake-exchange/service/notification"
 	"github.com/shopspring/decimal"
-	"github.com/stripe/stripe-go"
 	"os"
 	"strconv"
 	"strings"
@@ -50,22 +49,16 @@ func (s CreditCardService) GetProposeInstantOffer(amountStr string, currency str
 		ce.SetError(api_error.GetDataFailed, err)
 		return
 	}
-	externalFeePercentage := decimal.NewFromFloat(float64(percentage)).Div(decimal.NewFromFloat(100))
 
 	price := decimal.NewFromFloat(cryptoRate.Buy).Round(2)
-
-	// =max(system fee * tx value, tx revenue*90%)
 	totalWOFee := amount.Mul(price)
+
 	feePercentage := decimal.NewFromFloat(systemFee.Value).Round(10)
+	externalFeePercentage := decimal.NewFromFloat(float64(percentage)).Div(decimal.NewFromFloat(100))
 
-	total, externalFee := dao.AddFeePercentage(totalWOFee, externalFeePercentage)
-	_, internalFee1 := dao.AddFeePercentage(total, feePercentage)
-	internalFee2 := externalFee.Mul(decimal.NewFromFloat(0.9))
-
-	internalFee := internalFee1
-	if internalFee2.GreaterThan(internalFee1) {
-		internalFee = internalFee2
-	}
+	total, internalFee := dao.AddFeePercentage(totalWOFee, feePercentage)
+	_, externalFee := dao.AddFeePercentage(totalWOFee, externalFeePercentage)
+	total = total.Add(externalFee)
 
 	offer.FiatAmount = total.Round(2).String()
 	offer.FiatCurrency = bean.USD.Code
@@ -213,8 +206,9 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 	}
 
 	fiatAmount, _ := decimal.NewFromString(offerBody.FiatAmount)
-	fee := common.StringToDecimal(offerTest.ExternalFee)
-	fiatAmountWithoutFee := fiatAmount.Sub(fee)
+	fee := common.StringToDecimal(offerTest.Fee)
+	externalFee := common.StringToDecimal(offerTest.ExternalFee)
+	fiatAmountWithoutFee := fiatAmount.Sub(fee).Sub(externalFee)
 
 	ccGlobalLimit := s.checkGlobalLimit(fiatAmountWithoutFee.String())
 	if ccGlobalLimit {
@@ -239,30 +233,39 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 		ce.SetStatusKey(api_error.InvalidCC)
 		return
 	} else {
-		chargeable, chkErr := stripe_service.GetSourceChargeable(token, paymentMethodData.ClientSecret)
-		if ce.SetError(api_error.InvalidCC, chkErr) {
-			return
-		}
-		if !chargeable {
-			ce.SetStatusKey(api_error.InvalidCC)
-			return
-		}
+		//Only for Stripe
+		//chargeable, chkErr := stripe_service.GetSourceChargeable(token, paymentMethodData.ClientSecret)
+		//if ce.SetError(api_error.InvalidCC, chkErr) {
+		//	return
+		//}
+		//if !chargeable {
+		//	ce.SetStatusKey(api_error.InvalidCC)
+		//	return
+		//}
 	}
 
-	statement := ""
-	mapCrypto := map[string]int{
-		bean.BTC.Code: 1,
-		bean.ETH.Code: 2,
-		bean.LTC.Code: 3,
-		bean.BCH.Code: 4,
-	}
-	description := fmt.Sprintf("%s of %d", offerBody.Amount, mapCrypto[offerBody.Currency])
+	//statement := ""
+	//mapCrypto := map[string]int{
+	//	bean.BTC.Code: 1,
+	//	bean.ETH.Code: 2,
+	//	bean.LTC.Code: 3,
+	//	bean.BCH.Code: 4,
+	//}
+	//description := fmt.Sprintf("%s of %d", offerBody.Amount, mapCrypto[offerBody.Currency])
 
-	stripeCharge, err := stripe_service.Charge(token, paymentMethodData.Token, fiatAmount, statement, description)
+	// stripeCharge, err := stripe_service.Charge(token, paymentMethodData.Token, fiatAmount, statement, description)
+	adyenAuth, err := adyen_service.Authorise3D(adyen_service.AdyenAuthorise3D{
+		MD:         token,
+		PAResponse: paymentMethodData.ClientSecret,
+	})
 	if ce.SetError(api_error.ChargeCCFailed, err) {
 		return
 	}
-	if stripeCharge.Status == "failed" || stripeCharge.FailCode == "card_declined" {
+	//if stripeCharge.Status == "failed" || stripeCharge.FailCode == "card_declined" {
+	//	ce.SetStatusKey(api_error.ChargeCCFailed)
+	//	return
+	//}
+	if adyenAuth.ResultCode != "Authorised" {
 		ce.SetStatusKey(api_error.ChargeCCFailed)
 		return
 	}
@@ -274,7 +277,7 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 	var gdaxResponse bean.GdaxOrderResponse
 	var creditTrans *bean.CreditTransaction
 
-	setupCCTransaction(&ccTran, offerBody, stripeCharge)
+	setupCCTransaction(&ccTran, offerBody, adyenAuth)
 	ccTran, err = s.dao.AddCCTransaction(ccTran)
 	ccMode := systemConfig.Value
 	if ce.SetError(api_error.AddDataFailed, err) {
@@ -323,11 +326,19 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 
 	if !isSuccess {
 		// If failed, do refund
-		stripeRefund, err := stripe_service.Refund(ccTran.ExternalId)
+		//stripeRefund, err := stripe_service.Refund(ccTran.ExternalId)
+		adyenRefund, err := adyen_service.CancelOrRefund(adyen_service.AdyenCancel{
+			OriginalReference: ccTran.ExternalId,
+			Reference:         fmt.Sprintf("%d", time.Now().UTC().Unix()),
+		})
 		if ce.SetError(api_error.ExternalApiFailed, err) {
 			return
 		}
-		if stripeRefund.Status == "failed" {
+		//if stripeRefund.Status == "failed" {
+		//	ce.SetStatusKey(api_error.ExternalApiFailed)
+		//	return
+		//}
+		if adyenRefund.PSPReference == "" {
 			ce.SetStatusKey(api_error.ExternalApiFailed)
 			return
 		}
@@ -462,9 +473,19 @@ func (s CreditCardService) FinishInstantOfferTransfers() (finishedInstantOffers 
 		}
 		offer := offerTO.Object.(bean.InstantOffer)
 
-		client := exchangecreditatm_service.ExchangeCreditAtmClient{}
-		amount := common.StringToDecimal(offer.Amount)
-		txHash, outNonce, onChainErr := client.ReleasePartialFund(offer.Id, 1, amount, offer.Address, nonce, false)
+		txHash, outNonce, outAddress, onChainErr := ReleaseContractFund(*s.miscDao, offer.Address, offer.Amount, offer.Id, 1, "ETH_HIGH_ADMIN_KEYS")
+		if onChainErr != nil {
+			continue
+		}
+
+		offer.ProviderWithdrawData = txHash
+		if onChainErr != nil {
+			offer.ProviderWithdrawData = onChainErr.Error()
+		}
+		offer.ProviderWithdrawDataExtra = map[string]interface{}{
+			"nonce":   fmt.Sprintf("%d", outNonce),
+			"address": outAddress,
+		}
 
 		if onChainErr != nil {
 			fmt.Println(onChainErr)
@@ -538,7 +559,16 @@ func (s CreditCardService) finishInstantOffer(pendingOffer *bean.PendingInstantO
 		return
 	}
 	ccTran := ccTranTO.Object.(bean.CCTransaction)
-	_, err := stripe_service.Capture(ccTran.ExternalId)
+	//_, err := stripe_service.Capture(ccTran.ExternalId)
+	sendFiatAmount := common.StringToDecimal(offer.FiatAmount).Mul(common.StringToDecimal("100"))
+	_, err := adyen_service.Capture(adyen_service.AdyenCapture{
+		OriginalReference: ccTran.ExternalId,
+		ModificationAmount: adyen_service.AdyenAmount{
+			Value:    int(sendFiatAmount.IntPart()),
+			Currency: ccTran.Currency,
+		},
+		Reference: fmt.Sprintf("%d", time.Now().UTC().Unix()),
+	})
 	if ce.SetError(api_error.ExternalApiFailed, err) {
 		return
 	}
@@ -593,8 +623,9 @@ func (s CreditCardService) finishInstantOfferCredit(pendingOffer *bean.PendingIn
 	offer.Status = bean.INSTANT_OFFER_STATUS_SUCCESS
 
 	offerRef := dao.GetInstantOfferItemPath(pendingOffer.UID, pendingOffer.InstantOffer)
-	revenue := common.StringToDecimal(offer.FiatAmount)
-	fee := common.StringToDecimal(offer.Fee)
+	fiatAmount := common.StringToDecimal(offer.RawFiatAmount)
+	revenue := common.StringToDecimal(offer.ExternalFee).Add(fiatAmount)
+	fee := common.Zero
 
 	ccCE := CreditServiceInst.FinishCreditTransaction(offer.Currency, offer.ProviderData.(string), offerRef, revenue, fee)
 	if ccCE.HasError() {
@@ -608,7 +639,16 @@ func (s CreditCardService) finishInstantOfferCredit(pendingOffer *bean.PendingIn
 		return
 	}
 	ccTran := ccTranTO.Object.(bean.CCTransaction)
-	_, err := stripe_service.Capture(ccTran.ExternalId)
+	//_, err := stripe_service.Capture(ccTran.ExternalId)
+	sendFiatAmount := common.StringToDecimal(offer.FiatAmount).Mul(common.StringToDecimal("100"))
+	_, err := adyen_service.Capture(adyen_service.AdyenCapture{
+		OriginalReference: ccTran.ExternalId,
+		ModificationAmount: adyen_service.AdyenAmount{
+			Value:    int(sendFiatAmount.IntPart()),
+			Currency: ccTran.Currency,
+		},
+		Reference: fmt.Sprintf("%d", time.Now().UTC().Unix()),
+	})
 	if ce.SetError(api_error.ExternalApiFailed, err) {
 		return
 	}
@@ -634,29 +674,27 @@ func (s CreditCardService) finishInstantOfferCredit(pendingOffer *bean.PendingIn
 			offer.ProviderWithdrawData = errWithdraw.Error()
 		}
 	} else {
-		// txHash, errWithdraw := crypto_service.SendTransaction(offer.Address, offer.Amount, offer.Currency)
-
 		if offer.Currency == bean.ETH.Code {
-			//client := exchangecreditatm_service.ExchangeCreditAtmClient{}
-			//amount := common.StringToDecimal(offer.Amount)
-			//txHash, onChainErr := client.ReleasePartialFund(offer.Id, 1, amount, offer.Address)
-			//if onChainErr != nil {
-			//	fmt.Println(onChainErr)
-			//	offer.ProviderWithdrawData = onChainErr.Error()
-			//} else {
-			//	offer.ProviderWithdrawData = txHash
-			//}
-			//fmt.Println(txHash)
-
-			offer.Status = bean.INSTANT_OFFER_STATUS_TRANSFERRING
-			pendingTransfer := bean.PendingInstantOfferTransfer{
-				Amount:          offer.Amount,
-				Address:         offer.Address,
-				InstantOffer:    offer.Id,
-				InstantOfferRef: pendingOffer.InstantOfferRef,
+			txHash, outNonce, outAddress, onChainErr := ReleaseContractFund(*s.miscDao, offer.Address, offer.Amount, offer.Id, 1, "ETH_HIGH_ADMIN_KEYS")
+			if onChainErr == nil {
+				offer.ProviderWithdrawData = txHash
+				if onChainErr != nil {
+					offer.ProviderWithdrawData = onChainErr.Error()
+				}
+				offer.ProviderWithdrawDataExtra = map[string]interface{}{
+					"nonce":   fmt.Sprintf("%d", outNonce),
+					"address": outAddress,
+				}
+			} else {
+				offer.Status = bean.INSTANT_OFFER_STATUS_TRANSFERRING
+				pendingTransfer := bean.PendingInstantOfferTransfer{
+					Amount:          offer.Amount,
+					Address:         offer.Address,
+					InstantOffer:    offer.Id,
+					InstantOfferRef: pendingOffer.InstantOfferRef,
+				}
+				s.dao.AddPendingInstantOfferTransfer(&pendingTransfer)
 			}
-			s.dao.AddPendingInstantOfferTransfer(&pendingTransfer)
-
 		} else {
 			coinbaseTx, errWithdraw := coinbase_service.SendTransaction(offer.Address, offer.Amount, offer.Currency,
 				fmt.Sprintf("Withdraw tx = %s", offer.Id), offer.Id)
@@ -698,7 +736,11 @@ func (s CreditCardService) cancelInstantOffer(pendingOffer *bean.PendingInstantO
 	}
 
 	ccTran := ccTranTO.Object.(bean.CCTransaction)
-	_, err = stripe_service.Refund(ccTran.ExternalId)
+	//_, err = stripe_service.Refund(ccTran.ExternalId)
+	_, err = adyen_service.CancelOrRefund(adyen_service.AdyenCancel{
+		OriginalReference: ccTran.ExternalId,
+		Reference:         fmt.Sprintf("%d", time.Now().UTC().Unix()),
+	})
 	if ce.SetError(api_error.ExternalApiFailed, err) {
 		// return
 	} else {
@@ -773,9 +815,10 @@ func setupInstantOffer(offer *bean.InstantOffer, offerTest bean.InstantOffer, gd
 
 func setupInstantOfferCredit(offer *bean.InstantOffer, offerTest bean.InstantOffer, creditTrans bean.CreditTransaction) {
 	fiatAmount, _ := decimal.NewFromString(offer.FiatAmount)
-	fee, _ := decimal.NewFromString(offerTest.ExternalFee)
+	fee, _ := decimal.NewFromString(offerTest.Fee)
+	externalFee, _ := decimal.NewFromString(offerTest.ExternalFee)
 
-	offer.RawFiatAmount = fiatAmount.Sub(fee).String()
+	offer.RawFiatAmount = fiatAmount.Sub(fee).Sub(externalFee).String()
 	offer.Status = bean.INSTANT_OFFER_STATUS_PROCESSING
 	offer.Type = bean.INSTANT_OFFER_TYPE_BUY
 	offer.Provider = bean.INSTANT_OFFER_PROVIDER_CREDIT
@@ -789,18 +832,19 @@ func setupInstantOfferCredit(offer *bean.InstantOffer, offerTest bean.InstantOff
 	offer.Duration = int64(duration)
 }
 
-func setupCCTransaction(ccTran *bean.CCTransaction, offerBody bean.InstantOffer, stripeCharge *stripe.Charge) {
+// func setupCCTransaction(ccTran *bean.CCTransaction, offerBody bean.InstantOffer, stripeCharge *stripe.Charge) {
+func setupCCTransaction(ccTran *bean.CCTransaction, offerBody bean.InstantOffer, adyenResponse adyen_service.AdyenAuthoriseResponse) {
 	ccTran.Status = bean.CC_TRANSACTION_STATUS_PURCHASED
-	ccTran.Provider = bean.CC_PROVIDER_STRIPE
-	if stripeCharge.Tx != nil {
-		ccTran.ProviderData = stripeCharge.Tx.ID
-	}
+	// ccTran.Provider = bean.CC_PROVIDER_STRIPE
+	ccTran.Provider = bean.CC_PROVIDER_ADYEN
+	ccTran.ProviderData = adyenResponse
+
 	ccTran.Currency = bean.USD.Code
 	ccTran.Amount = offerBody.FiatAmount
 	ccTran.UID = offerBody.UID
 	ccTran.Username = offerBody.Username
 	ccTran.Type = bean.CC_TRANSACTION_TYPE
-	ccTran.ExternalId = stripeCharge.ID
+	ccTran.ExternalId = adyenResponse.PSPReference
 }
 
 func (s CreditCardService) ScriptCheckFailedTransfer() error {
