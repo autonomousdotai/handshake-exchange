@@ -159,6 +159,33 @@ func (s CashService) GetProposeCashOrder(amountStr string, currency string, fiat
 	return
 }
 
+func (s CashService) GetProposeCashAmount(currency string, fiatCurrency string) (offer bean.CashOrder, ce SimpleContextError) {
+	_, amountStr, err := CreditServiceInst.GetCreditPoolLeastAmountByCache(currency)
+	if err != nil {
+		if strings.Contains(err.Error(), "not enough") {
+			ce.SetStatusKey(api_error.CreditOutOfStock)
+			return
+		}
+		ce.SetError(api_error.GetDataFailed, err)
+		return
+	}
+
+	offer, ce = s.GetProposeCashOrder(amountStr, currency, fiatCurrency)
+	offer.StoreFee = ""
+	offer.Price = ""
+	leastAmount := common.StringToDecimal(offer.Amount)
+	fiatAmount := common.StringToDecimal(offer.FiatAmount)
+
+	offer.FiatAmount = fiatAmount.Div(leastAmount).RoundBank(2).String()
+	if fiatCurrency != "" {
+		fiatLocalAmount := common.StringToDecimal(offer.FiatLocalAmount)
+		offer.FiatLocalAmount = fiatLocalAmount.Div(leastAmount).RoundBank(2).String()
+	}
+	offer.Amount = "1"
+
+	return
+}
+
 func (s CashService) AddOrder(userId string, orderBody bean.CashOrder) (order bean.CashOrder, ce SimpleContextError) {
 	cashTO := s.dao.GetCashStore(userId)
 	if cashTO.Error != nil {

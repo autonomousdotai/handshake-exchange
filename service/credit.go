@@ -432,6 +432,29 @@ func (s CreditService) GetCreditPoolPercentageByCache(currency string, amount de
 	return 0, errors.New("not enough")
 }
 
+func (s CreditService) GetCreditPoolLeastAmountByCache(currency string) (int, string, error) {
+	percentage := 0
+	for percentage <= 15 {
+		level := fmt.Sprintf("%03d", percentage)
+
+		creditPoolTO := s.dao.GetCreditPoolCache(currency, level)
+		if creditPoolTO.HasError() {
+			return 0, "0", creditPoolTO.Error
+		}
+		if creditPoolTO.Found {
+			creditPool := creditPoolTO.Object.(bean.CreditPool)
+			remainingBalance := common.StringToDecimal(creditPool.Balance).Sub(common.StringToDecimal(creditPool.CapturedBalance))
+			if remainingBalance.GreaterThan(common.Zero) {
+				return percentage, remainingBalance.String(), nil
+			}
+		}
+
+		percentage += 1
+	}
+
+	return 0, "0", errors.New("not enough")
+}
+
 func (s CreditService) AddCreditTransaction(trans *bean.CreditTransaction) (ce SimpleContextError) {
 	poolTO := s.dao.GetCreditPool(trans.Currency, int(common.StringToDecimal(trans.Percentage).IntPart()))
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, poolTO) {

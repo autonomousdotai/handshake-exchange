@@ -66,9 +66,9 @@ func (api CashApi) CashStoreUpdate(context *gin.Context) {
 func (api CashApi) CashStorePrice(context *gin.Context) {
 	amount := context.DefaultQuery("amount", "")
 	currency := context.DefaultQuery("currency", "")
-	fiat_currency := context.DefaultQuery("fiat_currency", "")
+	fiatCurrency := context.DefaultQuery("fiat_currency", "")
 
-	order, ce := service.CashServiceInst.GetProposeCashOrder(amount, currency, fiat_currency)
+	order, ce := service.CashServiceInst.GetProposeCashOrder(amount, currency, fiatCurrency)
 	if ce.ContextValidate(context) {
 		return
 	}
@@ -149,4 +149,24 @@ func (api CashApi) ListCashCenter(context *gin.Context) {
 	}
 
 	bean.SuccessResponse(context, cashCenters)
+}
+
+func (api CashApi) ListProposeQuotes(context *gin.Context) {
+	fiatCurrency := context.DefaultQuery("fiat_currency", "")
+
+	result := make([]bean.CashOrder, 0)
+	btcOrder, ce := service.CashServiceInst.GetProposeCashAmount(bean.BTC.Code, fiatCurrency)
+	if !ce.HasError() {
+		result = append(result, btcOrder)
+	}
+	bchOrder, ce := service.CashServiceInst.GetProposeCashAmount(bean.ETH.Code, fiatCurrency)
+	if !ce.HasError() {
+		result = append(result, bchOrder)
+	}
+	ethOrder, ce := service.CashServiceInst.GetProposeCashAmount(bean.BCH.Code, fiatCurrency)
+	if !ce.HasError() {
+		result = append(result, ethOrder)
+	}
+
+	bean.SuccessResponse(context, result)
 }

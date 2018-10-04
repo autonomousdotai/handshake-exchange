@@ -13,6 +13,7 @@ func (url CashUrl) Create(router *gin.Engine) *gin.RouterGroup {
 
 	cashApi := api.CashApi{}
 
+	group.GET("/quotes", cashApi.ListProposeQuotes)
 	group.GET("/store", cashApi.CashStore)
 	group.POST("/store", cashApi.CashStoreCreate)
 	group.PUT("/store", cashApi.CashStoreUpdate)
