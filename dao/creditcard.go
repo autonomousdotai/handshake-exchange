@@ -3,12 +3,15 @@ package dao
 import (
 	"cloud.google.com/go/firestore"
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/ninjadotorg/handshake-exchange/bean"
 	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/integration/firebase_service"
+	"github.com/ninjadotorg/handshake-exchange/service/cache"
 	"github.com/shopspring/decimal"
 	"google.golang.org/api/iterator"
+	"time"
 )
 
 type CreditCardDao struct {
@@ -264,18 +267,23 @@ func (dao CreditCardDao) UpdateNotificationInitInstantOffer(providerId string, d
 }
 
 func (dao CreditCardDao) GetInitInstantOffer(providerId string) (t TransferObject) {
-	GetObject(GetInitInstantOfferItemPath(providerId), &t, snapshotToInitInstantOffer)
+	key := GetInitInstantOfferItemKey(providerId)
+	var to TransferObject
+	GetCacheObject(key, &to, func(val string) interface{} {
+		var data map[string]string
+		json.Unmarshal([]byte(val), &data)
+		return data
+	})
+
 	return
 }
 
 func (dao CreditCardDao) AddInitInstantOffer(providerId string, data map[string]interface{}) error {
-	dbClient := firebase_service.FirestoreClient
+	b, _ := json.Marshal(&data)
+	key := GetInitInstantOfferItemKey(providerId)
+	cmd := cache.RedisClient.Set(key, string(b), 1*time.Minute)
 
-	path := GetInitInstantOfferItemPath(providerId)
-	docRef := dbClient.Doc(path)
-	_, err := docRef.Set(context.Background(), data)
-
-	return err
+	return cmd.Err()
 }
 
 func GetUserCCTransactionPath(userId string) string {
@@ -322,8 +330,8 @@ func GetGlobalCCLimitPath() string {
 	return "cc_global_limit/1"
 }
 
-func GetInitInstantOfferItemPath(providerId string) string {
-	return fmt.Sprintf("init_instant_offers/%s", providerId)
+func GetInitInstantOfferItemKey(providerId string) string {
+	return fmt.Sprintf("init_instant_offers.%s", providerId)
 }
 
 // Firebase
