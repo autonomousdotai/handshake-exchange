@@ -154,18 +154,44 @@ func (api CashApi) ListCashCenter(context *gin.Context) {
 func (api CashApi) ListProposeQuotes(context *gin.Context) {
 	fiatCurrency := context.DefaultQuery("fiat_currency", "")
 
-	result := make([]bean.CashOrder, 0)
+	type quoteStruct struct {
+		Currency          string
+		FiatCurrency      string
+		Price             string
+		FiatLocalCurrency string
+		LocalPrice        string
+	}
+
+	result := make([]quoteStruct, 0)
 	btcOrder, ce := service.CashServiceInst.GetProposeCashAmount(bean.BTC.Code, fiatCurrency)
 	if !ce.HasError() {
-		result = append(result, btcOrder)
+		result = append(result, quoteStruct{
+			Currency:          btcOrder.Currency,
+			FiatCurrency:      btcOrder.FiatCurrency,
+			Price:             btcOrder.FiatAmount,
+			FiatLocalCurrency: btcOrder.FiatLocalCurrency,
+			LocalPrice:        btcOrder.FiatLocalAmount,
+		})
 	}
 	bchOrder, ce := service.CashServiceInst.GetProposeCashAmount(bean.ETH.Code, fiatCurrency)
 	if !ce.HasError() {
-		result = append(result, bchOrder)
+		result = append(result, quoteStruct{
+			Currency:          bchOrder.Currency,
+			FiatCurrency:      bchOrder.FiatCurrency,
+			Price:             bchOrder.FiatAmount,
+			FiatLocalCurrency: bchOrder.FiatLocalCurrency,
+			LocalPrice:        bchOrder.FiatLocalAmount,
+		})
 	}
 	ethOrder, ce := service.CashServiceInst.GetProposeCashAmount(bean.BCH.Code, fiatCurrency)
 	if !ce.HasError() {
-		result = append(result, ethOrder)
+		result = append(result, quoteStruct{
+			Currency:          ethOrder.Currency,
+			FiatCurrency:      ethOrder.FiatCurrency,
+			Price:             ethOrder.FiatAmount,
+			FiatLocalCurrency: ethOrder.FiatLocalCurrency,
+			LocalPrice:        ethOrder.FiatLocalAmount,
+		})
 	}
 
 	bean.SuccessResponse(context, result)
