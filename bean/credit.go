@@ -145,7 +145,7 @@ func (b CreditItem) GetUpdateDeactivate() map[string]interface{} {
 
 func (b CreditItem) GetUpdateLockedSale() map[string]interface{} {
 	return map[string]interface{}{
-		"locked_sale": true,
+		"locked_sale": b.LockedSale,
 	}
 }
 

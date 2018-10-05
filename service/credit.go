@@ -149,6 +149,7 @@ func (s CreditService) DeactivateCredit(userId string, currency string) (credit 
 		s.dao.UpdateCreditBalanceHistory(userId, currency, &itemHistory)
 	} else {
 		ce.SetStatusKey(api_error.CreditItemStatusInvalid)
+		return
 	}
 
 	return
@@ -542,6 +543,7 @@ func (s CreditService) AddCreditTransaction(trans *bean.CreditTransaction) (ce S
 		}
 	}
 
+	items := make([]bean.CreditItem, 0)
 	trans.Status = bean.CREDIT_TRANSACTION_STATUS_CREATE
 	var transUserId string
 	for k, v := range userTransMap {
@@ -549,6 +551,14 @@ func (s CreditService) AddCreditTransaction(trans *bean.CreditTransaction) (ce S
 		userTransList = append(userTransList, v)
 
 		transUserId = k
+
+		itemTO := s.dao.GetCreditItem(k, trans.Currency)
+		if ce.FeedDaoTransfer(api_error.GetDataFailed, itemTO) {
+			return
+		}
+		item := itemTO.Object.(bean.CreditItem)
+		item.LockedSale = true
+		items = append(items, item)
 	}
 
 	if len(selectedOrders) == 0 {
@@ -556,7 +566,7 @@ func (s CreditService) AddCreditTransaction(trans *bean.CreditTransaction) (ce S
 		return
 	}
 
-	err := s.dao.AddCreditTransaction(&pool, trans, userTransList, selectedOrders)
+	err := s.dao.AddCreditTransaction(&pool, items, trans, userTransList, selectedOrders)
 	if err != nil {
 		if strings.Contains(err.Error(), "out of stock") {
 			ce.SetStatusKey(api_error.CreditPriceChanged)
@@ -632,6 +642,7 @@ func (s CreditService) FinishCreditTransaction(currency string, id string, offer
 			return
 		}
 		item := itemTO.Object.(bean.CreditItem)
+		item.LockedSale = false
 		items = append(items, item)
 
 		userTransTO := s.dao.GetCreditTransactionUser(userId, trans.Currency, trans.Id)
@@ -712,6 +723,7 @@ func (s CreditService) RevertCreditTransaction(currency string, id string, offer
 
 	pool := poolTO.Object.(bean.CreditPool)
 
+	items := make([]bean.CreditItem, 0)
 	transList := make([]*bean.CreditTransaction, 0)
 	var transUID string
 	for _, userId := range trans.UIDs {
@@ -730,6 +742,14 @@ func (s CreditService) RevertCreditTransaction(currency string, id string, offer
 		transList = append(transList, &userTrans)
 
 		transUID = userTrans.UID
+
+		itemTO := s.dao.GetCreditItem(userId, trans.Currency)
+		if ce.FeedDaoTransfer(api_error.GetDataFailed, itemTO) {
+			return
+		}
+		item := itemTO.Object.(bean.CreditItem)
+		item.LockedSale = true
+		items = append(items, item)
 	}
 
 	orders := make([]bean.CreditPoolOrder, 0)
@@ -743,7 +763,7 @@ func (s CreditService) RevertCreditTransaction(currency string, id string, offer
 		orders = append(orders, order)
 	}
 
-	err := s.dao.RevertCreditTransaction(&pool, orders, &trans, transList)
+	err := s.dao.RevertCreditTransaction(&pool, orders, items, &trans, transList)
 	if err != nil {
 		ce.SetError(api_error.UpdateDataFailed, err)
 		return

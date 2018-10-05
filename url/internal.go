@@ -12,9 +12,10 @@ func (url InternalUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	group := router.Group("/internal")
 
 	creditApi := api.CreditApi{}
+	internalApi := api.InternalApi{}
 	group.GET("credit/withdraw", creditApi.ListWithdraw)
 	group.POST("credit/withdraw/:id", creditApi.UpdateProcessedWithdraw)
-	// group.POST("redeem")
+	group.POST("redeem", internalApi.Redeem)
 
 	return group
 }

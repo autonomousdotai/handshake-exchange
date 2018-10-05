@@ -364,7 +364,7 @@ func (dao CreditDao) GetCreditTransactionUser(userId string, currency string, id
 	return
 }
 
-func (dao CreditDao) AddCreditTransaction(pool *bean.CreditPool, trans *bean.CreditTransaction,
+func (dao CreditDao) AddCreditTransaction(pool *bean.CreditPool, items []bean.CreditItem, trans *bean.CreditTransaction,
 	userTransList []*bean.CreditTransaction, selectedOrders []bean.CreditPoolOrder) (err error) {
 
 	dbClient := firebase_service.FirestoreClient
@@ -374,11 +374,15 @@ func (dao CreditDao) AddCreditTransaction(pool *bean.CreditPool, trans *bean.Cre
 	trans.Id = transDocRef.ID
 	//pendingTransDocRef := dbClient.Doc(GetCreditPendingTransactionItemPath(pool.Currency, trans.Id))
 
+	creditItemDocRefs := make([]*firestore.DocumentRef, 0)
 	transUserDocRefs := make([]*firestore.DocumentRef, 0)
 	for userTransIndex, userTrans := range userTransList {
 		userTransPath := GetCreditTransactionItemUserPath(userTrans.UID, pool.Currency, trans.Id)
 		transUserDocRefs = append(transUserDocRefs, dbClient.Doc(userTransPath))
 		userTransList[userTransIndex].Id = trans.Id
+
+		creditItemDocRefs = append(creditItemDocRefs,
+			dbClient.Doc(GetCreditItemItemPath(items[userTransIndex].UID, items[userTransIndex].Currency)))
 	}
 
 	poolOrderDocRefs := make([]*firestore.DocumentRef, 0)
@@ -466,6 +470,11 @@ func (dao CreditDao) AddCreditTransaction(pool *bean.CreditPool, trans *bean.Cre
 
 		for transIndex, userTransDocRef := range transUserDocRefs {
 			txErr = tx.Set(userTransDocRef, userTransList[transIndex].GetAdd())
+			if txErr != nil {
+				return txErr
+			}
+
+			txErr = tx.Set(creditItemDocRefs[transIndex], items[transIndex].GetUpdateLockedSale())
 			if txErr != nil {
 				return txErr
 			}
@@ -715,6 +724,7 @@ func (dao CreditDao) FinishCreditTransaction(pool *bean.CreditPool, poolHistory 
 }
 
 func (dao CreditDao) RevertCreditTransaction(pool *bean.CreditPool, poolOrders []bean.CreditPoolOrder,
+	items []bean.CreditItem,
 	trans *bean.CreditTransaction, transList []*bean.CreditTransaction) (err error) {
 
 	dbClient := firebase_service.FirestoreClient
@@ -723,9 +733,13 @@ func (dao CreditDao) RevertCreditTransaction(pool *bean.CreditPool, poolOrders [
 
 	transDocRef := dbClient.Doc(GetCreditTransactionItemPath(trans.Currency, trans.Id))
 	transUserDocRefs := make([]*firestore.DocumentRef, 0)
-	for _, item := range transList {
+	creditItemDocRefs := make([]*firestore.DocumentRef, 0)
+	for index, item := range transList {
 		transUserDocRef := dbClient.Doc(GetCreditTransactionItemUserPath(item.UID, item.Currency, item.Id))
 		transUserDocRefs = append(transUserDocRefs, transUserDocRef)
+
+		creditItemDocRefs = append(creditItemDocRefs,
+			dbClient.Doc(GetCreditItemItemPath(items[index].UID, items[index].Currency)))
 	}
 
 	poolOrderDocRefs := make([]*firestore.DocumentRef, 0)
@@ -797,6 +811,11 @@ func (dao CreditDao) RevertCreditTransaction(pool *bean.CreditPool, poolOrders [
 
 		for itemIndex, transUserDocRef := range transUserDocRefs {
 			txErr = tx.Set(transUserDocRef, transList[itemIndex].GetUpdate(), firestore.MergeAll)
+			if txErr != nil {
+				return txErr
+			}
+
+			txErr = tx.Set(creditItemDocRefs[itemIndex], items[itemIndex].GetUpdateLockedSale())
 			if txErr != nil {
 				return txErr
 			}
