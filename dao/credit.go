@@ -474,7 +474,7 @@ func (dao CreditDao) AddCreditTransaction(pool *bean.CreditPool, items []bean.Cr
 				return txErr
 			}
 
-			txErr = tx.Set(creditItemDocRefs[transIndex], items[transIndex].GetUpdateLockedSale())
+			txErr = tx.Set(creditItemDocRefs[transIndex], items[transIndex].GetUpdateLockedSale(), firestore.MergeAll)
 			if txErr != nil {
 				return txErr
 			}
@@ -815,7 +815,7 @@ func (dao CreditDao) RevertCreditTransaction(pool *bean.CreditPool, poolOrders [
 				return txErr
 			}
 
-			txErr = tx.Set(creditItemDocRefs[itemIndex], items[itemIndex].GetUpdateLockedSale())
+			txErr = tx.Set(creditItemDocRefs[itemIndex], items[itemIndex].GetUpdateLockedSale(), firestore.MergeAll)
 			if txErr != nil {
 				return txErr
 			}
