@@ -73,6 +73,8 @@ func (b CashStore) GetUpdateProfit() map[string]interface{} {
 const CASH_ORDER_STATUS_PROCESSING = "processing"
 const CASH_ORDER_STATUS_SUCCESS = "success"
 const CASH_ORDER_STATUS_TRANSFERRING = "transferring"
+const CASH_ORDER_STATUS_TRANSFER_FAILED = "transfer_failed"
+const CASH_ORDER_STATUS_FIAT_TRANSFERRING = "fiat_transferring"
 const CASH_ORDER_STATUS_CANCELLED = "cancelled"
 
 type CashOrderUpdateInput struct {

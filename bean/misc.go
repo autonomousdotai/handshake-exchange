@@ -23,8 +23,10 @@ const CC_MODE_INVENTORY = "inventory"
 const CC_MODE_CREDIT = "credit"
 
 const CONFIG_BTC_WALLET = "BTC_WALLET"
+const ETH_WALLET_NETWORK = "network"
 const BTC_WALLET_COINBASE = "coinbase"
 const BTC_WALLET_BLOCKCHAINIO = "blockchainio"
+const BCH_WALLET_COINBASE = "coinbase"
 
 const CONFIG_OFFER_REJECT_LOCK = "OFFER_REJECT_LOCK"
 

@@ -380,7 +380,7 @@ func (s CashService) FinishOrder(refCode string, amount string, fiatCurrency str
 		return
 	}
 
-	if order.Status != bean.CASH_ORDER_STATUS_TRANSFERRING {
+	if order.Status != bean.CASH_ORDER_STATUS_FIAT_TRANSFERRING {
 		ce.SetStatusKey(api_error.CashOrderStatusInvalid)
 		return
 	}
@@ -401,8 +401,10 @@ func (s CashService) FinishOrder(refCode string, amount string, fiatCurrency str
 		txHash, outNonce, outAddress, onChainErr := ReleaseContractFund(*s.miscDao, order.Address, order.Amount, order.Id, 1, "ETH_LOW_ADMIN_KEYS")
 
 		order.ProviderWithdrawData = txHash
+		order.Status = bean.CASH_ORDER_STATUS_TRANSFERRING
 		if onChainErr != nil {
 			order.ProviderWithdrawData = onChainErr.Error()
+			order.Status = bean.CASH_ORDER_STATUS_TRANSFER_FAILED
 		}
 		order.ProviderWithdrawDataExtra = map[string]interface{}{
 			"nonce":   fmt.Sprintf("%d", outNonce),
@@ -413,16 +415,36 @@ func (s CashService) FinishOrder(refCode string, amount string, fiatCurrency str
 			fmt.Sprintf("Withdraw tx = %s", order.Id), order.Id)
 		if errWithdraw == nil {
 			order.ProviderWithdrawData = coinbaseTx.Id
+			order.Status = bean.CASH_ORDER_STATUS_TRANSFERRING
 		} else {
 			order.ProviderWithdrawData = errWithdraw.Error()
+			order.Status = bean.CASH_ORDER_STATUS_TRANSFER_FAILED
 		}
 	}
 
-	order.Status = bean.CASH_ORDER_STATUS_SUCCESS
 	err := s.dao.FinishCashOrder(&order, &cash)
 	if ce.SetError(api_error.AddDataFailed, err) {
 		return
 	}
+
+	if order.Status == bean.CASH_ORDER_STATUS_TRANSFERRING {
+		provider := bean.ETH_WALLET_NETWORK
+		if order.Currency != bean.ETH.Code {
+			// BCH and BTC
+			provider = bean.BTC_WALLET_COINBASE
+		}
+		s.miscDao.AddCryptoTransferLog(bean.CryptoTransferLog{
+			Provider:         provider,
+			ProviderResponse: order.ProviderWithdrawData,
+			DataType:         bean.OFFER_ADDRESS_MAP_CASH_ORDER,
+			DataRef:          dao.GetCashOrderItemPath(order.Id),
+			UID:              order.UID,
+			Description:      "",
+			Amount:           order.Amount,
+			Currency:         order.Currency,
+		})
+	}
+
 	solr_service.UpdateObject(bean.NewSolrFromCashOrder(order, cash))
 
 	return
@@ -435,7 +457,31 @@ func (s CashService) UpdateOrderReceipt(orderId string, cashOrder bean.CashOrder
 	}
 	order = cashOrderTO.Object.(bean.CashOrder)
 	order.ReceiptURL = cashOrder.ReceiptURL
-	order.Status = bean.CASH_ORDER_STATUS_TRANSFERRING
+	order.Status = bean.CASH_ORDER_STATUS_FIAT_TRANSFERRING
+
+	err := s.dao.UpdateCashStoreReceipt(&order)
+	if ce.SetError(api_error.AddDataFailed, err) {
+		return
+	}
+
+	cashTO := s.dao.GetCashStore(order.UID)
+	if cashTO.Error != nil {
+		ce.FeedDaoTransfer(api_error.GetDataFailed, cashTO)
+		return
+	}
+	cash := cashTO.Object.(bean.CashStore)
+	solr_service.UpdateObject(bean.NewSolrFromCashOrder(order, cash))
+
+	return
+}
+
+func (s CashService) FinishCashOrderPendingTransfer(ref string) (order bean.CashOrder, ce SimpleContextError) {
+	cashOrderTO := s.dao.GetCashOrderByPath(ref)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, cashOrderTO) {
+		return
+	}
+	order = cashOrderTO.Object.(bean.CashOrder)
+	order.Status = bean.CASH_ORDER_STATUS_SUCCESS
 
 	err := s.dao.UpdateCashStoreReceipt(&order)
 	if ce.SetError(api_error.AddDataFailed, err) {

@@ -357,7 +357,8 @@ func (s CreditService) FinishTracking() (ce SimpleContextError) {
 			}
 
 			fmt.Println(fmt.Sprintf("%s %s %s %s", trackingItem.Id, trackingItem.UID, trackingItem.TxHash, amount.String()))
-			confirmationRequired := s.getConfirmationRange(amount)
+			// confirmationRequired := s.getConfirmationRange(amount)
+			confirmationRequired := 6
 			if errChain == nil {
 				if confirmation >= confirmationRequired && amount.GreaterThan(common.Zero) && address == deposit.SystemAddress {
 					trackingItem.Amount = amount.String()
@@ -392,7 +393,7 @@ func (s CreditService) FinishTracking() (ce SimpleContextError) {
 			}
 
 			fmt.Println(fmt.Sprintf("%s %s %s %s", trackingItem.Id, trackingItem.UID, trackingItem.TxHash, amount.String()))
-			confirmationRequired := 3
+			confirmationRequired := 6
 			if errChain == nil {
 				if confirmation >= confirmationRequired && amount.GreaterThan(common.Zero) && address == deposit.SystemAddress {
 					trackingItem.Amount = amount.String()

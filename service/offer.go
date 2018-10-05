@@ -7,6 +7,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/bean"
 	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/dao"
+	"github.com/ninjadotorg/handshake-exchange/integration/bitpay_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/blockchainio_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/chainso_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
@@ -913,16 +914,44 @@ func (s OfferService) FinishCryptoTransfer() (finishedInstantOffers []bean.Offer
 			} else if pendingOffer.Currency == bean.BTC.Code {
 				fiatAmountUSD := common.StringToDecimal(pendingOffer.FiatAmountUSD)
 				confirmationRequired := s.getConfirmationRange(fiatAmountUSD)
-				// bodyTransaction, err := coinbase_service.GetTransaction(pendingOffer.ExternalId, pendingOffer.Currency)
-				confirmation, errChain := chainso_service.GetConfirmations(pendingOffer.TxHash, pendingOffer.Currency)
-				if errChain == nil {
-					if confirmation >= confirmationRequired {
+				if pendingOffer.Provider == bean.BTC_WALLET_COINBASE {
+					txInfo, errChain := coinbase_service.GetTransaction(pendingOffer.TxHash, pendingOffer.Currency)
+					err = errChain
+					if err == nil && txInfo.Status == "completed" {
 						onchainCompleted = true
 					}
 				} else {
+					// bodyTransaction, err := coinbase_service.GetTransaction(pendingOffer.ExternalId, pendingOffer.Currency)
+					confirmation, errChain := chainso_service.GetConfirmations(pendingOffer.TxHash, pendingOffer.Currency)
+					if errChain == nil {
+						if confirmation >= confirmationRequired {
+							onchainCompleted = true
+						}
+					} else {
+						err = errChain
+					}
+				}
+
+			} else if pendingOffer.Currency == bean.BCH.Code {
+				confirmationRequired := 3
+				if pendingOffer.Provider == bean.BCH_WALLET_COINBASE {
+					txInfo, errChain := coinbase_service.GetTransaction(pendingOffer.TxHash, pendingOffer.Currency)
 					err = errChain
+					if err == nil && txInfo.Status == "completed" {
+						onchainCompleted = true
+					}
+				} else {
+					_, _, confirmation, errChain := bitpay_service.GetBCHTransaction(pendingOffer.TxHash)
+					if errChain == nil {
+						if confirmation >= confirmationRequired {
+							onchainCompleted = true
+						}
+					} else {
+						err = errChain
+					}
 				}
 			}
+
 			if err == nil && onchainCompleted {
 				completed := false
 				if pendingOffer.DataType == bean.OFFER_ADDRESS_MAP_OFFER {
@@ -933,6 +962,9 @@ func (s OfferService) FinishCryptoTransfer() (finishedInstantOffers []bean.Offer
 					completed = !ce.HasError()
 				} else if pendingOffer.DataType == bean.OFFER_ADDRESS_MAP_OFFER_STORE_SHAKE {
 					_, ce = OfferStoreServiceInst.FinishOfferStoreShakePendingTransfer(pendingOffer.DataRef)
+					completed = !ce.HasError()
+				} else if pendingOffer.DataType == bean.OFFER_ADDRESS_MAP_CASH_ORDER {
+					_, ce = CashServiceInst.FinishCashOrderPendingTransfer(pendingOffer.DataRef)
 					completed = !ce.HasError()
 				}
 
