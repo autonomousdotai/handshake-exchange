@@ -1,6 +1,9 @@
 package bean
 
-import "time"
+import (
+	"cloud.google.com/go/firestore"
+	"time"
+)
 
 const REDEEM_STATUS_SUCCESS = "success"
 const REDEEM_STATUS_FAILED = "failed"
@@ -36,4 +39,11 @@ type RedeemLimit struct {
 	Usage     string    `json:"usage" firestore:"usage"`
 	CreatedAt time.Time `json:"created_at" firestore:"created_at"`
 	UpdatedAt time.Time `json:"updated_at" firestore:"updated_at"`
+}
+
+func (b RedeemLimit) GetUpdateUsage() map[string]interface{} {
+	return map[string]interface{}{
+		"usage":      b.Usage,
+		"updated_at": firestore.ServerTimestamp,
+	}
 }

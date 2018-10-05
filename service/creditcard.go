@@ -375,11 +375,12 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 		} else {
 			token = paymentMethodData.Token
 		}
-		if token != "" {
-			// Update CC Track amount
-			s.userDao.UpdateUserCCLimitAmount(userId, token, fiatAmount)
-			s.updateGlobalLimit(fiatAmountWithoutFee)
-		}
+		//if token != "" {
+		//	// Update CC Track amount
+		//}
+		// Update CC Track amount
+		s.userDao.UpdateUserCCLimitAmount(userId, token, fiatAmount)
+		s.updateGlobalLimit(fiatAmountWithoutFee)
 
 		notification.SendInstantOfferNotification(offer)
 	}
