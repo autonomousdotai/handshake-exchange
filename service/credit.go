@@ -1029,7 +1029,7 @@ func (s CreditService) SetupContractKey(keySet string) error {
 
 		data := bean.CreditContractKeyData{
 			Index:   int64(index),
-			Nonce:   int64(nonce),
+			Nonce:   int64(nonce - 1),
 			Address: writeClient.GetAddress(),
 		}
 

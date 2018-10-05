@@ -368,13 +368,16 @@ func (s CreditCardService) PayInstantOffer(userId string, offerBody bean.Instant
 
 	if isSuccess {
 		if saveCard {
-			// Not for now
-			// This CVV is not cvv, it's just a work around to store the CC stripe token
-			// to save CC
-			token, err = s.saveCreditCard(userId, paymentMethodData.CVV, paymentMethodData)
-		} else {
-			token = paymentMethodData.Token
+
 		}
+		//if saveCard {
+		//	// Not for now
+		//	// This CVV is not cvv, it's just a work around to store the CC stripe token
+		//	// to save CC
+		//	token, err = s.saveCreditCard(userId, paymentMethodData.CVV, paymentMethodData)
+		//} else {
+		//	token = paymentMethodData.Token
+		//}
 		//if token != "" {
 		//	// Update CC Track amount
 		//}
@@ -679,14 +682,12 @@ func (s CreditCardService) finishInstantOfferCredit(pendingOffer *bean.PendingIn
 			txHash, outNonce, outAddress, onChainErr := ReleaseContractFund(*s.miscDao, offer.Address, offer.Amount, offer.Id, 1, "ETH_HIGH_ADMIN_KEYS")
 			if onChainErr == nil {
 				offer.ProviderWithdrawData = txHash
-				if onChainErr != nil {
-					offer.ProviderWithdrawData = onChainErr.Error()
-				}
 				offer.ProviderWithdrawDataExtra = map[string]interface{}{
 					"nonce":   fmt.Sprintf("%d", outNonce),
 					"address": outAddress,
 				}
 			} else {
+				offer.ProviderWithdrawData = onChainErr.Error()
 				offer.Status = bean.INSTANT_OFFER_STATUS_TRANSFERRING
 				pendingTransfer := bean.PendingInstantOfferTransfer{
 					Amount:          offer.Amount,
