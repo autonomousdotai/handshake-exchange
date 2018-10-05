@@ -268,8 +268,7 @@ func (dao CreditCardDao) UpdateNotificationInitInstantOffer(providerId string, d
 
 func (dao CreditCardDao) GetInitInstantOffer(providerId string) (t TransferObject) {
 	key := GetInitInstantOfferItemKey(providerId)
-	var to TransferObject
-	GetCacheObject(key, &to, func(val string) interface{} {
+	GetCacheObject(key, &t, func(val string) interface{} {
 		var data map[string]string
 		json.Unmarshal([]byte(val), &data)
 		return data
