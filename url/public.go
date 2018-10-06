@@ -14,6 +14,7 @@ func (url CronJobUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	miscApi := api.MiscApi{}
 	coinbaseApi := api.CoinbaseApi{}
 	blockchainIoApi := api.BlockChainApi{}
+	internalApi := api.InternalApi{}
 
 	// CRON JOB
 	group.POST("/currency-rates", func(context *gin.Context) {
@@ -132,6 +133,11 @@ func (url CronJobUrl) Create(router *gin.Engine) *gin.RouterGroup {
 
 	group.POST("/test-anything", func(context *gin.Context) {
 		miscApi.TestAnything(context)
+	})
+
+	// For autonomous
+	group.POST("/payment", func(context *gin.Context) {
+		internalApi.Payment(context)
 	})
 
 	return group

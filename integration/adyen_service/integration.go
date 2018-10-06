@@ -135,6 +135,22 @@ func Authorise(authoriseObj AdyenAuthorise) (AdyenAuthoriseResponse, error) {
 	return response, err
 }
 
+func AuthoriseNo3D(authoriseObj AdyenAuthorise) (AdyenAuthoriseResponse, error) {
+	client := AdyenClient{}
+
+	var response AdyenAuthoriseResponse
+	authoriseObj.CaptureDelayHours = 1
+	authoriseObj.MerchantAccount = os.Getenv("ADYEN_MERCHANT_ACCOUNT")
+
+	resp, err := client.Post("/authorise", authoriseObj)
+
+	if err == nil {
+		resp.JSON(&response)
+	}
+
+	return response, err
+}
+
 func Authorise3D(authorise3DObj AdyenAuthorise3D) (AdyenAuthoriseResponse, error) {
 	client := AdyenClient{}
 
