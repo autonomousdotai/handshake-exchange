@@ -6,6 +6,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/dao"
 	"github.com/shopspring/decimal"
+	"time"
 )
 
 type CoinService struct {
@@ -22,7 +23,8 @@ func (s CoinService) GetCoinQuote(amountStr string, currency string, fiatLocalCu
 		return
 	}
 	cryptoRate := cryptoRateTO.Object.(bean.CryptoRate)
-	price := amount.Mul(decimal.NewFromFloat(cryptoRate.Buy).Round(2))
+	cryptoPrice := decimal.NewFromFloat(cryptoRate.Buy).Round(2)
+	price := amount.Mul(cryptoPrice)
 
 	configTO := s.miscDao.GetSystemConfigFromCache(bean.COIN_ORDER_LIMIT)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, configTO) {
@@ -68,6 +70,8 @@ func (s CoinService) GetCoinQuote(amountStr string, currency string, fiatLocalCu
 	coinQuote.FiatCurrency = bean.USD.Code
 	coinQuote.FiatLocalCurrency = fiatLocalCurrency
 	coinQuote.FeePercentage = bankFeePercentage.String()
+	coinQuote.RawFiatAmount = price.String()
+	coinQuote.Price = cryptoPrice.String()
 
 	coinQuote.FiatAmount = bankValue.RoundBank(2).String()
 	coinQuote.Fee = bankFeeValue.RoundBank(2).String()
@@ -102,4 +106,106 @@ func (s CoinService) ListCoinCenter(country string) (coinCenters []bean.CoinCent
 	}
 
 	return
+}
+
+func (s CoinService) AddOrder(userId string, orderBody bean.CoinOrder) (order bean.CoinOrder, ce SimpleContextError) {
+
+	orderTest, testOfferCE := s.GetCoinQuote(orderBody.Amount, orderBody.Currency, orderBody.FiatLocalCurrency)
+	if ce.FeedContextError(api_error.GetDataFailed, testOfferCE) {
+		return
+	}
+
+	orderBody.UID = userId
+	if orderTest.FiatAmount != orderBody.FiatAmount {
+		notOk := true
+		testFiatAmount := common.StringToDecimal(orderTest.FiatAmount)
+		if orderBody.Type == bean.COIN_ORDER_TYPE_COD {
+			testFiatAmount = common.StringToDecimal(orderTest.FiatAmountCOD)
+		}
+		inputFiatAmount := common.StringToDecimal(orderBody.FiatAmount)
+		if orderBody.Type == bean.COIN_ORDER_TYPE_COD {
+			inputFiatAmount = common.StringToDecimal(orderBody.FiatLocalAmount)
+		}
+		if inputFiatAmount.GreaterThanOrEqual(testFiatAmount) {
+			notOk = false
+		} else {
+			delta := testFiatAmount.Sub(inputFiatAmount)
+			deltaPercentage := delta.Div(testFiatAmount)
+			if deltaPercentage.LessThanOrEqual(decimal.NewFromFloat(0.01)) {
+				notOk = false
+			}
+		}
+
+		if notOk {
+			ce.SetStatusKey(api_error.InvalidRequestBody)
+			return
+		}
+	}
+
+	if orderBody.Currency == bean.ETH.Code {
+		if !common.CheckETHAddress(orderBody.Address) {
+			ce.SetStatusKey(api_error.InvalidRequestBody)
+			return
+		}
+	} else {
+		if common.CheckETHAddress(orderBody.Address) {
+			ce.SetStatusKey(api_error.InvalidRequestBody)
+			return
+		}
+	}
+
+	if orderBody.Currency != bean.ETH.Code && orderBody.Currency != bean.BTC.Code && orderBody.Currency != bean.BCH.Code {
+		ce.SetStatusKey(api_error.UnsupportedCurrency)
+		return
+	}
+
+	// Minimum amount
+	amount, _ := decimal.NewFromString(orderBody.Amount)
+	if orderBody.Currency == bean.ETH.Code {
+		if amount.LessThan(bean.MIN_ETH) {
+			ce.SetStatusKey(api_error.AmountIsTooSmall)
+			return
+		}
+	}
+	if orderBody.Currency == bean.BTC.Code {
+		if amount.LessThan(bean.MIN_BTC) {
+			ce.SetStatusKey(api_error.AmountIsTooSmall)
+			return
+		}
+	}
+	if orderBody.Currency == bean.BCH.Code {
+		if amount.LessThan(bean.MIN_BCH) {
+			ce.SetStatusKey(api_error.AmountIsTooSmall)
+			return
+		}
+	}
+
+	setupCoinOrder(&orderBody, orderTest)
+	err := s.dao.AddCoinOrder(&orderBody)
+	order = orderBody
+	if ce.SetError(api_error.AddDataFailed, err) {
+		return
+	}
+
+	order.CreatedAt = time.Now().UTC()
+	// solr_service.UpdateObject(bean.NewSolrFromCoinOrder(order))
+
+	return
+}
+
+func setupCoinOrder(order *bean.CoinOrder, coinQuote bean.CoinQuote) {
+	order.Price = coinQuote.Price
+	order.RawFiatAmount = coinQuote.RawFiatAmount
+	order.Status = bean.COIN_ORDER_STATUS_PENDING
+	order.Fee = coinQuote.Fee
+	order.FeePercentage = coinQuote.FeePercentage
+	order.Price = coinQuote.Price
+
+	if order.Type == bean.COIN_ORDER_TYPE_COD {
+		order.Fee = coinQuote.FeeCOD
+		order.FeePercentage = coinQuote.FeePercentageCOD
+	}
+
+	// duration, _ := strconv.Atoi(os.Getenv("CC_LIMIT_DURATION"))
+	order.Duration = int64(30 * 60) // 30 minutes
 }

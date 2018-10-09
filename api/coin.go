@@ -3,6 +3,7 @@ package api
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/ninjadotorg/handshake-exchange/bean"
+	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/service"
 )
 
@@ -37,7 +38,18 @@ func (api CoinApi) CoinOrderType(context *gin.Context) {
 }
 
 func (api CoinApi) CoinOrder(context *gin.Context) {
-	bean.SuccessResponse(context, true)
+	userId := common.GetUserId(context)
+
+	var body bean.CoinOrder
+	if common.ValidateBody(context, &body) != nil {
+		return
+	}
+	order, ce := service.CoinServiceInst.AddOrder(userId, body)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, order)
 }
 
 func (api CoinApi) ListCoinOrders(context *gin.Context) {

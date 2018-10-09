@@ -39,11 +39,6 @@ type CoinOrder struct {
 	Fee                       string            `json:"-" firestore:"fee"`
 	ExternalFeePercentage     string            `json:"-" firestore:"external_fee_percentage"`
 	ExternalFee               string            `json:"-" firestore:"external_fee"`
-	PaymentMethod             string            `json:"-" firestore:"payment_method"`
-	PaymentMethodRef          string            `json:"-" firestore:"payment_method_ref"`
-	PaymentMethodData         interface{}       `json:"payment_method_data"`
-	Provider                  string            `json:"-" firestore:"provider"`
-	ProviderData              interface{}       `json:"-" firestore:"provider_data"`
 	Address                   string            `json:"address" firestore:"address" validate:"required"`
 	ProviderWithdrawData      interface{}       `json:"provider_withdraw_data" firestore:"provider_withdraw_data"`
 	ProviderWithdrawDataExtra interface{}       `json:"-" firestore:"provider_withdraw_data_extra"`
@@ -76,11 +71,7 @@ func (b CoinOrder) GetAdd() map[string]interface{} {
 		"external_fee":            b.ExternalFee,
 		"external_fee_percentage": b.ExternalFeePercentage,
 		"duration":                b.Duration,
-		"payment_method":          b.PaymentMethod,
-		"payment_method_ref":      b.PaymentMethodRef,
 		"address":                 b.Address,
-		"provider":                b.Provider,
-		"provider_data":           b.ProviderData,
 		"ref_code":                b.RefCode,
 		"language":                b.Language,
 		"fcm":                     b.FCM,
@@ -91,10 +82,8 @@ func (b CoinOrder) GetAdd() map[string]interface{} {
 
 func (b CoinOrder) GetUpdate() map[string]interface{} {
 	return map[string]interface{}{
-		"provider_withdraw_data":       b.ProviderWithdrawData,
-		"provider_withdraw_data_extra": b.ProviderWithdrawDataExtra,
-		"status":                       b.Status,
-		"updated_at":                   firestore.ServerTimestamp,
+		"status":     b.Status,
+		"updated_at": firestore.ServerTimestamp,
 	}
 }
 
@@ -110,7 +99,7 @@ func (b CoinOrder) GetNotificationUpdate() map[string]interface{} {
 	return map[string]interface{}{
 		"id":     b.Id,
 		"status": b.Status,
-		"type":   "cash_order",
+		"type":   "coin_order",
 	}
 }
 
@@ -177,11 +166,13 @@ type CoinQuote struct {
 	FiatLocalCurrency  string `json:"fiat_local_currency"`
 	FiatAmountCOD      string `json:"fiat_amount_cod"`
 	FiatLocalAmountCOD string `json:"fiat_local_amount_cod"`
-	Fee                string `json:"fee"`
-	FeeLocal           string `json:"fee_local"`
-	FeePercentage      string `json:"fee_percentage"`
-	FeeCOD             string `json:"fee_cod"`
-	FeeLocalCOD        string `json:"fee_local_cod"`
-	FeePercentageCOD   string `json:"fee_percentage_cod"`
+	Fee                string `json:"-"`
+	FeeLocal           string `json:"-"`
+	FeePercentage      string `json:"-"`
+	FeeCOD             string `json:"-"`
+	FeeLocalCOD        string `json:"-"`
+	FeePercentageCOD   string `json:"-"`
+	RawFiatAmount      string `json:"-"`
+	Price              string `json:"-"`
 	Limit              string `json:"limit"`
 }
