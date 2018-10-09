@@ -45,3 +45,9 @@ var CashServiceInst = CashService{
 	miscDao: &dao.MiscDaoInst,
 	userDao: &dao.UserDaoInst,
 }
+
+var CoinServiceInst = CoinService{
+	dao:     &dao.CoinDaoInst,
+	miscDao: &dao.MiscDaoInst,
+	userDao: &dao.UserDaoInst,
+}

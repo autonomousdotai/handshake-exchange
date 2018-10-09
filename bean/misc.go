@@ -16,6 +16,9 @@ const FEE_KEY_EXCHANGE_COMMISSION = "exchange_commission"
 const FEE_KEY_INSTANT_BUY_CRYPTO = "instant_buy_crypto"
 const FEE_KEY_CASH_BUY_CRYPTO = "cash_buy_crypto"
 const FEE_KEY_CASH_STORE_SELL_CRYPTO = "cash_store_sell_crypto"
+const FEE_COIN_ORDER_COD = "coin_order_cod"
+const FEE_COIN_ORDER_BANK = "coin_order_bank"
+const FEE_COIN_ORDER_BANK_HIGH = "coin_order_bank_high"
 
 const CONFIG_KEY_CC_MODE = "CC_MODE"
 const CC_MODE_GDAX = "gdax"
@@ -35,6 +38,8 @@ const OFFER_STORE_FREE_START_ON = "1"
 const OFFER_STORE_FREE_START_OFF = "0"
 
 const CONFIG_OFFER_STORE_REFERRAL_PERCENTAGE = "OFFER_STORE_REFERRAL_PERCENTAGE"
+
+const COIN_ORDER_LIMIT = "COIN_ORDER_LIMIT"
 
 type SystemFee struct {
 	Key   string  `json:"key" firestore:"key"`

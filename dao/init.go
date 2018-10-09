@@ -10,3 +10,4 @@ var OnChainDaoInst = OnChainDao{}
 var ReferralDaoInst = ReferralDao{}
 var CreditDaoInst = CreditDao{}
 var CashDaoInst = CashDao{}
+var CoinDaoInst = CoinDao{}

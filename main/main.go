@@ -113,6 +113,8 @@ func main() {
 	creditUrl.Create(router)
 	cashUrl := url.CashUrl{}
 	cashUrl.Create(router)
+	coinUrl := url.CoinUrl{}
+	coinUrl.Create(router)
 
 	log.Printf(":%s", os.Getenv("SERVICE_PORT"))
 	router.Run(fmt.Sprintf(":%s", os.Getenv("SERVICE_PORT")))
