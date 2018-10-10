@@ -164,7 +164,7 @@ func snapshotToCoinOrderRefCode(snapshot *firestore.DocumentSnapshot) interface{
 }
 
 func snapshotToCoinPool(snapshot *firestore.DocumentSnapshot) interface{} {
-	var obj bean.CoinOrderRefCode
+	var obj bean.CoinPool
 	snapshot.DataTo(&obj)
 	return obj
 }
