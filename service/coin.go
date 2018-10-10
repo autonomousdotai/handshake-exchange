@@ -7,8 +7,10 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/dao"
 	"github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
+	"github.com/ninjadotorg/handshake-exchange/integration/crypto_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/solr_service"
 	"github.com/shopspring/decimal"
+	"os"
 	"strings"
 	"time"
 )
@@ -131,22 +133,39 @@ func (s CoinService) AddOrder(userId string, orderBody bean.CoinOrder) (order be
 	}
 	orderBody.UID = userId
 	needToCheckAmount := false
+	limit := common.StringToDecimal(orderTest.Limit)
+	fiatAmount := common.StringToDecimal(orderBody.FiatAmount)
 	if orderTest.FiatAmount != orderBody.FiatAmount {
 		needToCheckAmount = true
 	}
-	if orderBody.Type == bean.COIN_ORDER_TYPE_COD && orderTest.FiatLocalAmountCOD != orderBody.FiatLocalAmount {
-		needToCheckAmount = true
+	if fiatAmount.GreaterThan(limit) {
+		if orderTest.FiatAmount != orderBody.FiatAmount {
+			needToCheckAmount = true
+		}
+	} else {
+		if orderBody.Type == bean.COIN_ORDER_TYPE_COD && orderTest.FiatLocalAmountCOD != orderBody.FiatLocalAmount {
+			needToCheckAmount = true
+		} else if orderTest.FiatLocalAmount != orderBody.FiatLocalAmount {
+			needToCheckAmount = true
+		}
 	}
+
 	if needToCheckAmount {
 		notOk := true
 		testFiatAmount := common.StringToDecimal(orderTest.FiatAmount)
-		if orderBody.Type == bean.COIN_ORDER_TYPE_COD {
-			testFiatAmount = common.StringToDecimal(orderTest.FiatLocalAmountCOD)
-		}
 		inputFiatAmount := common.StringToDecimal(orderBody.FiatAmount)
-		if orderBody.Type == bean.COIN_ORDER_TYPE_COD {
+
+		if fiatAmount.GreaterThan(limit) {
+		} else {
+			if orderBody.Type == bean.COIN_ORDER_TYPE_COD {
+				testFiatAmount = common.StringToDecimal(orderTest.FiatLocalAmountCOD)
+			} else {
+				testFiatAmount = common.StringToDecimal(orderTest.FiatLocalAmount)
+			}
+
 			inputFiatAmount = common.StringToDecimal(orderBody.FiatLocalAmount)
 		}
+
 		if inputFiatAmount.GreaterThanOrEqual(testFiatAmount) {
 			notOk = false
 		} else {
@@ -208,8 +227,8 @@ func (s CoinService) AddOrder(userId string, orderBody bean.CoinOrder) (order be
 	}
 	coinPool := coinPoolTO.Object.(bean.CoinPool)
 	usage := common.StringToDecimal(coinPool.Usage)
-	limit := common.StringToDecimal(coinPool.Limit)
-	if limit.LessThan(usage.Add(amount)) {
+	usageLimit := common.StringToDecimal(coinPool.Limit)
+	if usageLimit.LessThan(usage.Add(amount)) {
 		ce.SetStatusKey(api_error.CreditOutOfStock)
 		return
 	}
@@ -276,14 +295,8 @@ func (s CoinService) RemoveExpiredOrder() (ce SimpleContextError) {
 	return
 }
 
-func (s CoinService) FinishOrder(refCode string, amount string, fiatCurrency string) (order bean.CoinOrder, overSpent string, ce SimpleContextError) {
-	coinOrderRefCodeTO := s.dao.GetCoinOrderRefCode(refCode)
-	if ce.FeedDaoTransfer(api_error.GetDataFailed, coinOrderRefCodeTO) {
-		return
-	}
-	orderRefCode := coinOrderRefCodeTO.Object.(bean.CoinOrderRefCode)
-
-	coinOrderTO := s.dao.GetCoinOrderByPath(orderRefCode.OrderRef)
+func (s CoinService) FinishOrder(id string, amount string, fiatCurrency string) (order bean.CoinOrder, overSpent string, ce SimpleContextError) {
+	coinOrderTO := s.dao.GetCoinOrder(id)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, coinOrderTO) {
 		return
 	}
@@ -341,17 +354,21 @@ func (s CoinService) FinishOrder(refCode string, amount string, fiatCurrency str
 		return
 	}
 
-	if order.Currency == bean.ETH.Code {
-		txHash := ""
-		var onChainErr error
+	if os.Getenv("ENVIRONMENT") == "dev" {
+		if order.Currency == bean.ETH.Code {
+			txHash, onChainErr := crypto_service.SendTransaction(order.Address, order.Amount, order.Currency)
 
-		order.ProviderWithdrawData = txHash
-		order.Status = bean.COIN_ORDER_STATUS_TRANSFERRING
-		if onChainErr != nil {
-			order.ProviderWithdrawData = onChainErr.Error()
-			order.Status = bean.COIN_ORDER_STATUS_TRANSFER_FAILED
+			order.ProviderWithdrawData = txHash
+			order.Status = bean.COIN_ORDER_STATUS_TRANSFERRING
+			if onChainErr != nil {
+				order.ProviderWithdrawData = onChainErr.Error()
+				order.Status = bean.COIN_ORDER_STATUS_TRANSFER_FAILED
+			}
+		} else {
+			order.ProviderWithdrawData = "xxx"
+			order.Status = bean.COIN_ORDER_STATUS_TRANSFERRING
 		}
-	} else {
+	} else if os.Getenv("ENVIRONMENT") == "production" {
 		coinbaseTx, errWithdraw := coinbase_service.SendTransaction(order.Address, order.Amount, order.Currency,
 			fmt.Sprintf("Withdraw tx = %s", order.Id), order.Id)
 		if errWithdraw == nil {
@@ -369,11 +386,7 @@ func (s CoinService) FinishOrder(refCode string, amount string, fiatCurrency str
 	}
 
 	if order.Status == bean.COIN_ORDER_STATUS_TRANSFERRING {
-		provider := bean.ETH_WALLET_NETWORK
-		if order.Currency != bean.ETH.Code {
-			// BCH and BTC
-			provider = bean.BTC_WALLET_BITSTAMP
-		}
+		provider := bean.BTC_WALLET_BITSTAMP
 		s.miscDao.AddCryptoTransferLog(bean.CryptoTransferLog{
 			Provider:         provider,
 			ProviderResponse: order.ProviderWithdrawData,
@@ -422,7 +435,7 @@ func (s CoinService) setupCoinOrder(order *bean.CoinOrder, coinQuote bean.CoinQu
 		order.FeePercentage = coinQuote.FeePercentageCOD
 	}
 
-	order.Duration = int64(30 * 60) // 30 minutes
+	order.Duration = int64(30) // 30 minutes
 }
 
 func (s CoinService) cancelCoinOrder(orderId string, status string, ce *SimpleContextError) (order bean.CoinOrder) {

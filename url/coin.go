@@ -16,7 +16,7 @@ func (url CoinUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	group.GET("/quote", cashApi.GetQuote)
 	group.GET("/order", cashApi.ListCoinOrders)
 	group.POST("/order", cashApi.CoinOrder)
-	group.POST("/order/:id/:amount", cashApi.FinishCoinOrder)
+	group.POST("/order/:id/:currency/:amount", cashApi.FinishCoinOrder)
 	group.DELETE("/order/:id", cashApi.CancelCoinOrder)
 	group.PUT("/order/:id/picked", cashApi.PickCoinOrder)
 	group.PUT("/order/:id", cashApi.UpdateCoinOrder)

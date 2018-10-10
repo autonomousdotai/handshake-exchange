@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/ninjadotorg/handshake-exchange/bean"
 	"github.com/ninjadotorg/handshake-exchange/common"
@@ -53,7 +54,16 @@ func (api CoinApi) ListCoinOrders(context *gin.Context) {
 }
 
 func (api CoinApi) FinishCoinOrder(context *gin.Context) {
-	bean.SuccessResponse(context, true)
+	id := context.Param("id")
+	currency := context.Param("currency")
+	amount := context.Param("amount")
+	order, overSpent, ce := service.CoinServiceInst.FinishOrder(id, amount, currency)
+	if ce.ContextValidate(context) {
+		return
+	}
+	fmt.Println(overSpent)
+
+	bean.SuccessResponse(context, order)
 }
 
 func (api CoinApi) CancelCoinOrder(context *gin.Context) {

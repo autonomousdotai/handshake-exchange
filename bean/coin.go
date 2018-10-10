@@ -158,6 +158,7 @@ type CoinOrderRefCode struct {
 func (b CoinOrderRefCode) GetAdd() map[string]interface{} {
 	return map[string]interface{}{
 		"ref_code":   b.RefCode,
+		"order":      b.Order,
 		"order_ref":  b.OrderRef,
 		"duration":   b.Duration,
 		"created_at": firestore.ServerTimestamp,
