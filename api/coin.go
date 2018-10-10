@@ -33,10 +33,6 @@ func (api CoinApi) ListCoinCenter(context *gin.Context) {
 	bean.SuccessResponse(context, coinCenters)
 }
 
-func (api CoinApi) CoinOrderType(context *gin.Context) {
-	bean.SuccessResponse(context, true)
-}
-
 func (api CoinApi) CoinOrder(context *gin.Context) {
 	userId := common.GetUserId(context)
 
@@ -64,8 +60,19 @@ func (api CoinApi) RejectCoinOrder(context *gin.Context) {
 	bean.SuccessResponse(context, true)
 }
 
-func (api CoinApi) UpdateCashOrder(context *gin.Context) {
-	bean.SuccessResponse(context, true)
+func (api CoinApi) UpdateCoinOrder(context *gin.Context) {
+	id := context.Param("id")
+
+	var body bean.CoinOrderUpdateInput
+	if common.ValidateBody(context, &body) != nil {
+		return
+	}
+	order, ce := service.CoinServiceInst.UpdateOrderReceipt(id, body)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, order)
 }
 
 func (api CoinApi) PickCoinOrder(context *gin.Context) {

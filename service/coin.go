@@ -5,7 +5,9 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/bean"
 	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/dao"
+	"github.com/ninjadotorg/handshake-exchange/integration/solr_service"
 	"github.com/shopspring/decimal"
+	"strings"
 	"time"
 )
 
@@ -90,6 +92,18 @@ func (s CoinService) GetCoinQuote(amountStr string, currency string, fiatLocalCu
 
 	coinQuote.Limit = limit.String()
 
+	coinPoolTO := s.dao.GetCoinPool(currency)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, coinPoolTO) {
+		return
+	}
+	coinPool := coinPoolTO.Object.(bean.CoinPool)
+	usage := common.StringToDecimal(coinPool.Usage)
+	usageLimit := common.StringToDecimal(coinPool.Limit)
+	if usageLimit.LessThan(usage.Add(amount)) {
+		ce.SetStatusKey(api_error.CreditOutOfStock)
+		return
+	}
+
 	return
 }
 
@@ -116,11 +130,18 @@ func (s CoinService) AddOrder(userId string, orderBody bean.CoinOrder) (order be
 	}
 
 	orderBody.UID = userId
+	needToCheckAmount := false
 	if orderTest.FiatAmount != orderBody.FiatAmount {
+		needToCheckAmount = true
+	}
+	if orderBody.Type == bean.COIN_ORDER_TYPE_COD && orderTest.FiatLocalAmountCOD != orderBody.FiatLocalAmount {
+		needToCheckAmount = true
+	}
+	if needToCheckAmount {
 		notOk := true
 		testFiatAmount := common.StringToDecimal(orderTest.FiatAmount)
 		if orderBody.Type == bean.COIN_ORDER_TYPE_COD {
-			testFiatAmount = common.StringToDecimal(orderTest.FiatAmountCOD)
+			testFiatAmount = common.StringToDecimal(orderTest.FiatLocalAmountCOD)
 		}
 		inputFiatAmount := common.StringToDecimal(orderBody.FiatAmount)
 		if orderBody.Type == bean.COIN_ORDER_TYPE_COD {
@@ -180,15 +201,52 @@ func (s CoinService) AddOrder(userId string, orderBody bean.CoinOrder) (order be
 		}
 	}
 
+	coinPoolTO := s.dao.GetCoinPool(order.Currency)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, coinPoolTO) {
+		return
+	}
+	coinPool := coinPoolTO.Object.(bean.CoinPool)
+	usage := common.StringToDecimal(coinPool.Usage)
+	limit := common.StringToDecimal(coinPool.Limit)
+	if limit.LessThan(usage.Add(amount)) {
+		ce.SetStatusKey(api_error.CreditOutOfStock)
+		return
+	}
+
 	setupCoinOrder(&orderBody, orderTest)
 	err := s.dao.AddCoinOrder(&orderBody)
 	order = orderBody
-	if ce.SetError(api_error.AddDataFailed, err) {
+	if strings.Contains(err.Error(), "out of stock") {
+		if ce.SetError(api_error.CreditOutOfStock, err) {
+			return
+		}
+	} else if ce.SetError(api_error.AddDataFailed, err) {
 		return
 	}
 
 	order.CreatedAt = time.Now().UTC()
-	// solr_service.UpdateObject(bean.NewSolrFromCoinOrder(order))
+	s.dao.UpdateNotificationCoinOrder(order)
+	solr_service.UpdateObject(bean.NewSolrFromCoinOrder(order))
+
+	return
+}
+
+func (s CoinService) UpdateOrderReceipt(orderId string, coinOrder bean.CoinOrderUpdateInput) (order bean.CoinOrder, ce SimpleContextError) {
+	coinOrderTO := s.dao.GetCoinOrder(orderId)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, coinOrderTO) {
+		return
+	}
+	order = coinOrderTO.Object.(bean.CoinOrder)
+	order.ReceiptURL = coinOrder.ReceiptURL
+	order.Status = bean.COIN_ORDER_STATUS_FIAT_TRANSFERRING
+
+	err := s.dao.UpdateCoinStoreReceipt(&order)
+	if ce.SetError(api_error.AddDataFailed, err) {
+		return
+	}
+
+	s.dao.UpdateNotificationCoinOrder(order)
+	solr_service.UpdateObject(bean.NewSolrFromCoinOrder(order))
 
 	return
 }
@@ -206,6 +264,5 @@ func setupCoinOrder(order *bean.CoinOrder, coinQuote bean.CoinQuote) {
 		order.FeePercentage = coinQuote.FeePercentageCOD
 	}
 
-	// duration, _ := strconv.Atoi(os.Getenv("CC_LIMIT_DURATION"))
 	order.Duration = int64(30 * 60) // 30 minutes
 }

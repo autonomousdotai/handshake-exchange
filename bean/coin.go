@@ -15,6 +15,7 @@ const COIN_ORDER_STATUS_TRANSFERRING = "transferring"
 const COIN_ORDER_STATUS_SUCCESS = "success"
 const COIN_ORDER_STATUS_TRANSFER_FAILED = "transfer_failed"
 const COIN_ORDER_STATUS_CANCELLED = "cancelled"
+const COIN_ORDER_STATUS_EXPIRED = "expired"
 
 type CoinOrderUpdateInput struct {
 	ReceiptURL string `json:"receipt_url" firestore:"receipt_url"`
@@ -31,7 +32,7 @@ type CoinOrder struct {
 	FiatLocalAmount           string            `json:"fiat_local_amount" firestore:"fiat_local_amount"`
 	FiatLocalCurrency         string            `json:"fiat_local_currency" firestore:"fiat_local_currency"`
 	RawFiatAmount             string            `json:"-" firestore:"raw_fiat_amount"`
-	Price                     string            `json:"price" firestore:"price"`
+	Price                     string            `json:"-" firestore:"price"`
 	Status                    string            `json:"status" firestore:"status"`
 	Type                      string            `json:"type" firestore:"type"`
 	Duration                  int64             `json:"-" firestore:"duration"`
@@ -149,13 +150,28 @@ func (b CoinPayment) GetUpdate() map[string]interface{} {
 type CoinOrderRefCode struct {
 	RefCode  string `json:"ref_code" firestore:"ref_code"`
 	OrderRef string `json:"order_ref" firestore:"order_ref"`
+	Duration int64  `json:"duration" firestore:"duration"`
 }
 
 func (b CoinOrderRefCode) GetAdd() map[string]interface{} {
 	return map[string]interface{}{
 		"ref_code":   b.RefCode,
 		"order_ref":  b.OrderRef,
+		"duration":   b.Duration,
 		"created_at": firestore.ServerTimestamp,
+	}
+}
+
+type CoinPool struct {
+	Currency string `json:"currency" firestore:"currency"`
+	Limit    string `json:"limit" firestore:"limit"`
+	Usage    string `json:"usage" firestore:"usage"`
+}
+
+func (b CoinPool) GetUpdate() map[string]interface{} {
+	return map[string]interface{}{
+		"usage":      b.Usage,
+		"updated_at": firestore.ServerTimestamp,
 	}
 }
 

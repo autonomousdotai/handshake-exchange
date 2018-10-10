@@ -782,3 +782,76 @@ func NewSolrFromCashOrder(order CashOrder, cash CashStore) (solr SolrOfferObject
 
 	return
 }
+
+var coinOrderStatusMap = map[string]int{
+	COIN_ORDER_STATUS_PENDING:           0,
+	CASH_ORDER_STATUS_PROCESSING:        0,
+	CASH_ORDER_STATUS_SUCCESS:           1,
+	CASH_ORDER_STATUS_TRANSFERRING:      2,
+	CASH_ORDER_STATUS_CANCELLED:         3,
+	CASH_ORDER_STATUS_FIAT_TRANSFERRING: 4,
+	CASH_ORDER_STATUS_TRANSFER_FAILED:   5,
+}
+
+type SolrCoinOrderExtraData struct {
+	Id                string            `json:"id"`
+	RefCode           string            `json:"ref_code"`
+	UserInfo          map[string]string `json:"user_info"`
+	Amount            string            `json:"amount"`
+	Currency          string            `json:"currency"`
+	FiatAmount        string            `json:"fiat_amount"`
+	FiatCurrency      string            `json:"fiat_currency"`
+	FiatLocalAmount   string            `json:"fiat_local_amount"`
+	FiatLocalCurrency string            `json:"fiat_local_currency"`
+	Type              string            `json:"type"`
+	ReceiptUrl        string            `json:"receipt_url"`
+	Status            string            `json:"status"`
+	Address           string            `json:"address"`
+	TxHash            interface{}       `json:"tx_hash"`
+}
+
+func NewSolrFromCoinOrder(order CoinOrder) (solr SolrOfferObject) {
+	solr.Id = fmt.Sprintf("exchange_coin_%s", order.Id)
+	solr.Type = 2
+	solr.State = 0
+	solr.IsPrivate = 1
+	solr.Status = cashOrderStatusMap[order.Status]
+	solr.Hid = 0
+	solr.ChainId = order.ChainId
+	uid, _ := strconv.Atoi(order.UID)
+	solr.InitUserId = uid
+	solr.TextSearch = make([]string, 0)
+	// solr.Location = fmt.Sprintf("%f,%f", cash.Latitude, cash.Longitude)
+	solr.InitAt = order.CreatedAt.Unix()
+	solr.LastUpdateAt = time.Now().UTC().Unix()
+
+	solr.OfferFeedType = order.Type
+	// Nothing now
+	solr.OfferType = ""
+	if order.Type == COIN_ORDER_TYPE_COD {
+		solr.FiatCurrency = order.FiatCurrency
+	} else {
+		solr.FiatCurrency = order.FiatLocalCurrency
+	}
+
+	extraData := SolrCoinOrderExtraData{
+		Id:                order.Id,
+		RefCode:           order.RefCode,
+		UserInfo:          order.UserInfo,
+		Amount:            order.Amount,
+		Currency:          order.Currency,
+		FiatAmount:        order.FiatAmount,
+		FiatCurrency:      order.FiatCurrency,
+		FiatLocalAmount:   order.FiatLocalAmount,
+		FiatLocalCurrency: order.FiatLocalCurrency,
+		Type:              order.Type,
+		ReceiptUrl:        order.ReceiptURL,
+		Status:            order.Status,
+		Address:           order.Address,
+		TxHash:            order.ProviderWithdrawData,
+	}
+	b, _ := json.Marshal(&extraData)
+	solr.ExtraData = string(b)
+
+	return
+}

@@ -14,13 +14,12 @@ func (url CoinUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	cashApi := api.CoinApi{}
 
 	group.GET("/quote", cashApi.GetQuote)
-	group.GET("/order-type", cashApi.CoinOrderType)
 	group.GET("/order", cashApi.ListCoinOrders)
 	group.POST("/order", cashApi.CoinOrder)
 	group.POST("/order/:id/:amount", cashApi.FinishCoinOrder)
 	group.DELETE("/order/:id", cashApi.RejectCoinOrder)
 	group.PUT("/order/:id/picked", cashApi.PickCoinOrder)
-	group.PUT("/order/:id", cashApi.UpdateCashOrder)
+	group.PUT("/order/:id", cashApi.UpdateCoinOrder)
 	group.GET("/center/:country", cashApi.ListCoinCenter)
 
 	return group
