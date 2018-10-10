@@ -15,6 +15,7 @@ func (url CronJobUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	coinbaseApi := api.CoinbaseApi{}
 	blockchainIoApi := api.BlockChainApi{}
 	internalApi := api.InternalApi{}
+	coinApi := api.CoinApi{}
 
 	// CRON JOB
 	group.POST("/currency-rates", func(context *gin.Context) {
@@ -118,6 +119,13 @@ func (url CronJobUrl) Create(router *gin.Engine) *gin.RouterGroup {
 		miscApi.AdyenData(context)
 	})
 
+	group.POST("/remove-expired-coin-order", func(context *gin.Context) {
+		coinApi.RemoveExpiredOrder(context)
+	})
+
+	group.POST("/sync-to-coin-order-solr/:id", func(context *gin.Context) {
+		miscApi.SyncCoinOrderToSolr(context)
+	})
 	group.POST("/script-update-xyz-123", func(context *gin.Context) {
 		miscApi.ScriptUpdateAllOfferStoreSolr(context)
 	})

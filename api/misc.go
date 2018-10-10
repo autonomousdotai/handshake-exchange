@@ -572,6 +572,17 @@ func (api MiscApi) SyncCashOrderToSolr(context *gin.Context) {
 	bean.SuccessResponse(context, obj)
 }
 
+func (api MiscApi) SyncCoinOrderToSolr(context *gin.Context) {
+	id := context.Param("id")
+
+	obj, ce := service.CoinServiceInst.SyncCoinOrderToSolr(id)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, obj)
+}
+
 func (api MiscApi) GenerateAddress(context *gin.Context) {
 	address, key := ethereum_service.GenerateAddress()
 

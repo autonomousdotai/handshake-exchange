@@ -825,9 +825,9 @@ func NewSolrFromCoinOrder(order CoinOrder) (solr SolrOfferObject) {
 	solr.InitAt = order.CreatedAt.Unix()
 	solr.LastUpdateAt = time.Now().UTC().Unix()
 
-	solr.OfferFeedType = order.Type
+	solr.OfferFeedType = "coin"
 	// Nothing now
-	solr.OfferType = ""
+	solr.OfferType = order.Type
 	if order.Type == COIN_ORDER_TYPE_COD {
 		solr.FiatCurrency = order.FiatCurrency
 	} else {

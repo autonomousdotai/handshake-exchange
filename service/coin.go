@@ -213,7 +213,7 @@ func (s CoinService) AddOrder(userId string, orderBody bean.CoinOrder) (order be
 		return
 	}
 
-	setupCoinOrder(&orderBody, orderTest)
+	s.setupCoinOrder(&orderBody, orderTest)
 	err := s.dao.AddCoinOrder(&orderBody)
 	order = orderBody
 	if strings.Contains(err.Error(), "out of stock") {
@@ -251,7 +251,46 @@ func (s CoinService) UpdateOrderReceipt(orderId string, coinOrder bean.CoinOrder
 	return
 }
 
-func setupCoinOrder(order *bean.CoinOrder, coinQuote bean.CoinQuote) {
+func (s CoinService) CancelOrder(orderId string) (order bean.CoinOrder, ce SimpleContextError) {
+	order = s.cancelCoinOrder(orderId, bean.COIN_ORDER_STATUS_CANCELLED, &ce)
+	return
+}
+
+func (s CoinService) RemoveExpiredOrder() (ce SimpleContextError) {
+	coinRefCodeTO := s.dao.ListOrderRef()
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, coinRefCodeTO) {
+		return
+	}
+	coinRefCodes := coinRefCodeTO.Objects
+
+	for _, item := range coinRefCodes {
+		coinRefCode := item.(bean.CoinOrderRefCode)
+		if coinRefCode.CreatedAt.Add(time.Minute * time.Duration(coinRefCode.Duration)).Before(time.Now().UTC()) {
+			s.expireOrder(coinRefCode.Order)
+		}
+	}
+
+	return
+}
+
+func (s CoinService) SyncCoinOrderToSolr(id string) (coinOrder bean.CoinOrder, ce SimpleContextError) {
+	coinOrderTO := s.dao.GetCoinOrder(id)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, coinOrderTO) {
+		return
+	}
+	coinOrder = coinOrderTO.Object.(bean.CoinOrder)
+
+	solr_service.UpdateObject(bean.NewSolrFromCoinOrder(coinOrder))
+
+	return
+}
+
+func (s CoinService) expireOrder(orderId string) (order bean.CoinOrder, ce SimpleContextError) {
+	order = s.cancelCoinOrder(orderId, bean.COIN_ORDER_STATUS_EXPIRED, &ce)
+	return
+}
+
+func (s CoinService) setupCoinOrder(order *bean.CoinOrder, coinQuote bean.CoinQuote) {
 	order.Price = coinQuote.Price
 	order.RawFiatAmount = coinQuote.RawFiatAmount
 	order.Status = bean.COIN_ORDER_STATUS_PENDING
@@ -265,4 +304,28 @@ func setupCoinOrder(order *bean.CoinOrder, coinQuote bean.CoinQuote) {
 	}
 
 	order.Duration = int64(30 * 60) // 30 minutes
+}
+
+func (s CoinService) cancelCoinOrder(orderId string, status string, ce *SimpleContextError) (order bean.CoinOrder) {
+	coinOrderTO := s.dao.GetCoinOrder(orderId)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, coinOrderTO) {
+		return
+	}
+	order = coinOrderTO.Object.(bean.CoinOrder)
+
+	if order.Status != bean.COIN_ORDER_STATUS_PENDING && order.Status != bean.COIN_ORDER_STATUS_FIAT_TRANSFERRING {
+		ce.SetStatusKey(api_error.CashOrderStatusInvalid)
+		return
+	}
+
+	order.Status = status
+	err := s.dao.CancelCoinOrder(&order)
+	if ce.SetError(api_error.AddDataFailed, err) {
+		return
+	}
+
+	s.dao.UpdateNotificationCoinOrder(order)
+	solr_service.UpdateObject(bean.NewSolrFromCoinOrder(order))
+
+	return
 }

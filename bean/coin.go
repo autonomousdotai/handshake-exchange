@@ -148,9 +148,11 @@ func (b CoinPayment) GetUpdate() map[string]interface{} {
 }
 
 type CoinOrderRefCode struct {
-	RefCode  string `json:"ref_code" firestore:"ref_code"`
-	OrderRef string `json:"order_ref" firestore:"order_ref"`
-	Duration int64  `json:"duration" firestore:"duration"`
+	RefCode   string    `json:"ref_code" firestore:"ref_code"`
+	Order     string    `json:"order" firestore:"order"`
+	OrderRef  string    `json:"order_ref" firestore:"order_ref"`
+	Duration  int64     `json:"duration" firestore:"duration"`
+	CreatedAt time.Time `json:"created_at" firestore:"created_at"`
 }
 
 func (b CoinOrderRefCode) GetAdd() map[string]interface{} {
