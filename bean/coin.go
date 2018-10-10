@@ -83,8 +83,9 @@ func (b CoinOrder) GetAdd() map[string]interface{} {
 
 func (b CoinOrder) GetUpdate() map[string]interface{} {
 	return map[string]interface{}{
-		"status":     b.Status,
-		"updated_at": firestore.ServerTimestamp,
+		"status":                 b.Status,
+		"provider_withdraw_data": b.ProviderWithdrawData,
+		"updated_at":             firestore.ServerTimestamp,
 	}
 }
 

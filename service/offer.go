@@ -966,6 +966,9 @@ func (s OfferService) FinishCryptoTransfer() (finishedInstantOffers []bean.Offer
 				} else if pendingOffer.DataType == bean.OFFER_ADDRESS_MAP_CASH_ORDER {
 					_, ce = CashServiceInst.FinishCashOrderPendingTransfer(pendingOffer.DataRef)
 					completed = !ce.HasError()
+				} else if pendingOffer.DataType == bean.OFFER_ADDRESS_MAP_COIN_ORDER {
+					_, ce = CoinServiceInst.FinishCoinOrderPendingTransfer(pendingOffer.DataRef)
+					completed = !ce.HasError()
 				}
 
 				if completed {

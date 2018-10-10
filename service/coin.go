@@ -405,6 +405,24 @@ func (s CoinService) FinishOrder(id string, amount string, fiatCurrency string) 
 	return
 }
 
+func (s CoinService) FinishCoinOrderPendingTransfer(ref string) (order bean.CoinOrder, ce SimpleContextError) {
+	cashOrderTO := s.dao.GetCoinOrderByPath(ref)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, cashOrderTO) {
+		return
+	}
+	order = cashOrderTO.Object.(bean.CoinOrder)
+	order.Status = bean.COIN_ORDER_STATUS_SUCCESS
+
+	err := s.dao.UpdateCoinOrderReceipt(&order)
+	if ce.SetError(api_error.AddDataFailed, err) {
+		return
+	}
+
+	solr_service.UpdateObject(bean.NewSolrFromCoinOrder(order))
+
+	return
+}
+
 func (s CoinService) SyncCoinOrderToSolr(id string) (coinOrder bean.CoinOrder, ce SimpleContextError) {
 	coinOrderTO := s.dao.GetCoinOrder(id)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, coinOrderTO) {
@@ -412,6 +430,7 @@ func (s CoinService) SyncCoinOrderToSolr(id string) (coinOrder bean.CoinOrder, c
 	}
 	coinOrder = coinOrderTO.Object.(bean.CoinOrder)
 
+	s.dao.UpdateNotificationCoinOrder(coinOrder)
 	solr_service.UpdateObject(bean.NewSolrFromCoinOrder(coinOrder))
 
 	return

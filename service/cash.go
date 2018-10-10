@@ -397,6 +397,7 @@ func (s CashService) FinishOrder(refCode string, amount string, fiatCurrency str
 		}
 	}
 
+	var txHashResult string
 	if order.Currency == bean.ETH.Code {
 		txHash, outNonce, outAddress, onChainErr := ReleaseContractFund(*s.miscDao, order.Address, order.Amount, order.Id, 1, "ETH_LOW_ADMIN_KEYS")
 
@@ -410,6 +411,7 @@ func (s CashService) FinishOrder(refCode string, amount string, fiatCurrency str
 			"nonce":   fmt.Sprintf("%d", outNonce),
 			"address": outAddress,
 		}
+		txHashResult = txHash
 	} else {
 		coinbaseTx, errWithdraw := coinbase_service.SendTransaction(order.Address, order.Amount, order.Currency,
 			fmt.Sprintf("Withdraw tx = %s", order.Id), order.Id)
@@ -442,6 +444,7 @@ func (s CashService) FinishOrder(refCode string, amount string, fiatCurrency str
 			Description:      "",
 			Amount:           order.Amount,
 			Currency:         order.Currency,
+			TxHash:           txHashResult,
 		})
 	}
 
