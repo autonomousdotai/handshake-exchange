@@ -1,10 +1,12 @@
 package service
 
 import (
+	"fmt"
 	"github.com/ninjadotorg/handshake-exchange/api_error"
 	"github.com/ninjadotorg/handshake-exchange/bean"
 	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/dao"
+	"github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/solr_service"
 	"github.com/shopspring/decimal"
 	"strings"
@@ -123,12 +125,10 @@ func (s CoinService) ListCoinCenter(country string) (coinCenters []bean.CoinCent
 }
 
 func (s CoinService) AddOrder(userId string, orderBody bean.CoinOrder) (order bean.CoinOrder, ce SimpleContextError) {
-
 	orderTest, testOfferCE := s.GetCoinQuote(orderBody.Amount, orderBody.Currency, orderBody.FiatLocalCurrency)
 	if ce.FeedContextError(api_error.GetDataFailed, testOfferCE) {
 		return
 	}
-
 	orderBody.UID = userId
 	needToCheckAmount := false
 	if orderTest.FiatAmount != orderBody.FiatAmount {
@@ -201,7 +201,8 @@ func (s CoinService) AddOrder(userId string, orderBody bean.CoinOrder) (order be
 		}
 	}
 
-	coinPoolTO := s.dao.GetCoinPool(order.Currency)
+	fmt.Println(orderBody.Currency)
+	coinPoolTO := s.dao.GetCoinPool(orderBody.Currency)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, coinPoolTO) {
 		return
 	}
@@ -216,12 +217,14 @@ func (s CoinService) AddOrder(userId string, orderBody bean.CoinOrder) (order be
 	s.setupCoinOrder(&orderBody, orderTest)
 	err := s.dao.AddCoinOrder(&orderBody)
 	order = orderBody
-	if strings.Contains(err.Error(), "out of stock") {
-		if ce.SetError(api_error.CreditOutOfStock, err) {
+	if err != nil {
+		if strings.Contains(err.Error(), "out of stock") {
+			if ce.SetError(api_error.CreditOutOfStock, err) {
+				return
+			}
+		} else if ce.SetError(api_error.AddDataFailed, err) {
 			return
 		}
-	} else if ce.SetError(api_error.AddDataFailed, err) {
-		return
 	}
 
 	order.CreatedAt = time.Now().UTC()
@@ -240,7 +243,7 @@ func (s CoinService) UpdateOrderReceipt(orderId string, coinOrder bean.CoinOrder
 	order.ReceiptURL = coinOrder.ReceiptURL
 	order.Status = bean.COIN_ORDER_STATUS_FIAT_TRANSFERRING
 
-	err := s.dao.UpdateCoinStoreReceipt(&order)
+	err := s.dao.UpdateCoinOrderReceipt(&order)
 	if ce.SetError(api_error.AddDataFailed, err) {
 		return
 	}
@@ -257,7 +260,7 @@ func (s CoinService) CancelOrder(orderId string) (order bean.CoinOrder, ce Simpl
 }
 
 func (s CoinService) RemoveExpiredOrder() (ce SimpleContextError) {
-	coinRefCodeTO := s.dao.ListOrderRef()
+	coinRefCodeTO := s.dao.ListCoinOrderRefCode()
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, coinRefCodeTO) {
 		return
 	}
@@ -269,6 +272,122 @@ func (s CoinService) RemoveExpiredOrder() (ce SimpleContextError) {
 			s.expireOrder(coinRefCode.Order)
 		}
 	}
+
+	return
+}
+
+func (s CoinService) FinishOrder(refCode string, amount string, fiatCurrency string) (order bean.CoinOrder, overSpent string, ce SimpleContextError) {
+	coinOrderRefCodeTO := s.dao.GetCoinOrderRefCode(refCode)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, coinOrderRefCodeTO) {
+		return
+	}
+	orderRefCode := coinOrderRefCodeTO.Object.(bean.CoinOrderRefCode)
+
+	coinOrderTO := s.dao.GetCoinOrderByPath(orderRefCode.OrderRef)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, coinOrderTO) {
+		return
+	}
+	order = coinOrderTO.Object.(bean.CoinOrder)
+
+	storePaymentTO := s.dao.GetCoinPayment(order.Id)
+	if storePaymentTO.Error != nil {
+		ce.FeedDaoTransfer(api_error.GetDataFailed, storePaymentTO)
+		return
+	}
+	inputAmount := common.StringToDecimal(amount)
+	totalInputAmount := inputAmount
+	var coinPayment bean.CoinPayment
+	if storePaymentTO.Found {
+		coinPayment = storePaymentTO.Object.(bean.CoinPayment)
+		paymentAmount := common.StringToDecimal(coinPayment.FiatAmount)
+		totalInputAmount = totalInputAmount.Add(paymentAmount)
+	} else {
+		coinPayment = bean.CoinPayment{
+			Order:        order.Id,
+			FiatAmount:   amount,
+			FiatCurrency: fiatCurrency,
+		}
+	}
+
+	orderAmount := common.Zero
+	if fiatCurrency == order.FiatCurrency {
+		orderAmount = common.StringToDecimal(order.FiatAmount)
+	} else if fiatCurrency == order.FiatLocalCurrency {
+		orderAmount = common.StringToDecimal(order.FiatLocalAmount)
+	}
+
+	if totalInputAmount.LessThan(orderAmount) {
+		coinPayment.Status = bean.COIN_PAYMENT_STATUS_UNDER
+	} else if totalInputAmount.GreaterThan(orderAmount) {
+		overSpent = totalInputAmount.Sub(orderAmount).String()
+		coinPayment.Status = bean.COIN_PAYMENT_STATUS_OVER
+		coinPayment.OverSpent = overSpent
+	} else {
+		coinPayment.Status = bean.COIN_PAYMENT_STATUS_MATCHED
+	}
+
+	if storePaymentTO.Found {
+		s.dao.UpdateCoinPayment(&coinPayment, inputAmount)
+	} else {
+		s.dao.AddCoinPayment(&coinPayment)
+	}
+	if coinPayment.Status == "" || coinPayment.Status == bean.COIN_PAYMENT_STATUS_UNDER {
+		ce.SetStatusKey(api_error.InvalidAmount)
+		return
+	}
+
+	if order.Status != bean.COIN_ORDER_STATUS_FIAT_TRANSFERRING && order.Status != bean.COIN_ORDER_STATUS_PROCESSING {
+		ce.SetStatusKey(api_error.CoinOrderStatusInvalid)
+		return
+	}
+
+	if order.Currency == bean.ETH.Code {
+		txHash := ""
+		var onChainErr error
+
+		order.ProviderWithdrawData = txHash
+		order.Status = bean.COIN_ORDER_STATUS_TRANSFERRING
+		if onChainErr != nil {
+			order.ProviderWithdrawData = onChainErr.Error()
+			order.Status = bean.COIN_ORDER_STATUS_TRANSFER_FAILED
+		}
+	} else {
+		coinbaseTx, errWithdraw := coinbase_service.SendTransaction(order.Address, order.Amount, order.Currency,
+			fmt.Sprintf("Withdraw tx = %s", order.Id), order.Id)
+		if errWithdraw == nil {
+			order.ProviderWithdrawData = coinbaseTx.Id
+			order.Status = bean.COIN_ORDER_STATUS_TRANSFERRING
+		} else {
+			order.ProviderWithdrawData = errWithdraw.Error()
+			order.Status = bean.COIN_ORDER_STATUS_TRANSFER_FAILED
+		}
+	}
+
+	err := s.dao.FinishCoinOrder(&order)
+	if ce.SetError(api_error.AddDataFailed, err) {
+		return
+	}
+
+	if order.Status == bean.COIN_ORDER_STATUS_TRANSFERRING {
+		provider := bean.ETH_WALLET_NETWORK
+		if order.Currency != bean.ETH.Code {
+			// BCH and BTC
+			provider = bean.BTC_WALLET_BITSTAMP
+		}
+		s.miscDao.AddCryptoTransferLog(bean.CryptoTransferLog{
+			Provider:         provider,
+			ProviderResponse: order.ProviderWithdrawData,
+			DataType:         bean.OFFER_ADDRESS_MAP_COIN_ORDER,
+			DataRef:          dao.GetCoinOrderItemPath(order.Id),
+			UID:              order.UID,
+			Description:      "",
+			Amount:           order.Amount,
+			Currency:         order.Currency,
+		})
+	}
+
+	s.dao.UpdateNotificationCoinOrder(order)
+	solr_service.UpdateObject(bean.NewSolrFromCoinOrder(order))
 
 	return
 }
@@ -314,7 +433,7 @@ func (s CoinService) cancelCoinOrder(orderId string, status string, ce *SimpleCo
 	order = coinOrderTO.Object.(bean.CoinOrder)
 
 	if order.Status != bean.COIN_ORDER_STATUS_PENDING && order.Status != bean.COIN_ORDER_STATUS_FIAT_TRANSFERRING {
-		ce.SetStatusKey(api_error.CashOrderStatusInvalid)
+		ce.SetStatusKey(api_error.CoinOrderStatusInvalid)
 		return
 	}
 

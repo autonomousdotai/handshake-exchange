@@ -260,6 +260,7 @@ const OFFER_ADDRESS_MAP_OFFER_STORE = "offer_store"
 const OFFER_ADDRESS_MAP_OFFER_STORE_ITEM = "offer_store_item"
 const OFFER_ADDRESS_MAP_OFFER_STORE_SHAKE = "offer_store_shake"
 const OFFER_ADDRESS_MAP_CASH_ORDER = "cash_order"
+const OFFER_ADDRESS_MAP_COIN_ORDER = "coin_order"
 
 type OfferAddressMap struct {
 	UID      string `json:"uid" firestore:"uid"`

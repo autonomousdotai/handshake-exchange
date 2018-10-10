@@ -8,6 +8,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/bean"
 	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/integration/firebase_service"
+	"github.com/shopspring/decimal"
 	"strings"
 )
 
@@ -21,6 +22,11 @@ func (dao CoinDao) ListCoinCenter(country string) (t TransferObject) {
 
 func (dao CoinDao) GetCoinOrder(id string) (t TransferObject) {
 	GetObject(GetCoinOrderItemPath(id), &t, snapshotToCoinOrder)
+	return
+}
+
+func (dao CoinDao) GetCoinOrderByPath(path string) (t TransferObject) {
+	GetObject(path, &t, snapshotToCoinOrder)
 	return
 }
 
@@ -140,15 +146,31 @@ func (dao CoinDao) CancelCoinOrder(order *bean.CoinOrder) error {
 	return err
 }
 
-func (dao CoinDao) UpdateCoinStoreReceipt(order *bean.CoinOrder) error {
+func (dao CoinDao) UpdateCoinOrderReceipt(order *bean.CoinOrder) error {
 	dbClient := firebase_service.FirestoreClient
 
 	docRef := dbClient.Doc(GetCoinOrderItemPath(order.Id))
+	docUserRef := dbClient.Doc(GetCoinOrderUserItemPath(order.UID, order.Id))
 	docOrderRefRef := dbClient.Doc(GetCoinOrderRefCodeItemPath(order.RefCode))
 
 	batch := dbClient.Batch()
 	batch.Set(docRef, order.GetReceiptUpdate(), firestore.MergeAll)
+	batch.Set(docUserRef, order.GetReceiptUpdate(), firestore.MergeAll)
 	batch.Delete(docOrderRefRef)
+	_, err := batch.Commit(context.Background())
+
+	return err
+}
+
+func (dao CoinDao) FinishCoinOrder(order *bean.CoinOrder) error {
+	dbClient := firebase_service.FirestoreClient
+
+	docRef := dbClient.Doc(GetCoinOrderItemPath(order.Id))
+	docUserRef := dbClient.Doc(GetCoinOrderUserItemPath(order.UID, order.Id))
+
+	batch := dbClient.Batch()
+	batch.Set(docRef, order.GetUpdate(), firestore.MergeAll)
+	batch.Set(docUserRef, order.GetUpdate(), firestore.MergeAll)
 	_, err := batch.Commit(context.Background())
 
 	return err
@@ -163,14 +185,62 @@ func (dao CoinDao) UpdateNotificationCoinOrder(order bean.CoinOrder) error {
 	return err
 }
 
-func (dao CoinDao) ListOrderRef() (t TransferObject) {
+func (dao CoinDao) ListCoinOrderRefCode() (t TransferObject) {
 	ListObjects(GetCoinOrderRefCodePath(), &t, nil, snapshotToCoinOrderRefCode)
+	return
+}
+
+func (dao CoinDao) GetCoinOrderRefCode(refCode string) (t TransferObject) {
+	GetObject(GetCoinOrderRefCodeItemPath(refCode), &t, snapshotToCoinOrderRefCode)
 	return
 }
 
 func (dao CoinDao) GetCoinPool(currency string) (t TransferObject) {
 	GetObject(GetCoinPoolItemPath(currency), &t, snapshotToCoinPool)
 	return
+}
+
+func (dao CoinDao) GetCoinPayment(orderId string) (t TransferObject) {
+	GetObject(GetCoinPaymentItemPath(orderId), &t, snapshotToCoinPayment)
+	return
+}
+
+func (dao CoinDao) AddCoinPayment(payment *bean.CoinPayment) error {
+	dbClient := firebase_service.FirestoreClient
+
+	docRef := dbClient.Doc(GetCoinPaymentItemPath(payment.Order))
+	_, err := docRef.Set(context.Background(), payment.GetAdd())
+
+	return err
+}
+
+func (dao CoinDao) UpdateCoinPayment(payment *bean.CoinPayment, addAmount decimal.Decimal) error {
+	dbClient := firebase_service.FirestoreClient
+
+	docRef := dbClient.Doc(GetCoinPaymentItemPath(payment.Order))
+	err := dbClient.RunTransaction(context.Background(), func(ctx context.Context, tx *firestore.Transaction) error {
+		var txErr error
+
+		paymentDoc, txErr := tx.Get(docRef)
+		if txErr != nil {
+			return txErr
+		}
+		amount, txErr := common.ConvertToDecimal(paymentDoc, "fiat_amount")
+		if txErr != nil {
+			return txErr
+		}
+		amount = amount.Add(addAmount)
+		payment.FiatAmount = amount.String()
+
+		txErr = tx.Set(docRef, payment.GetUpdate(), firestore.MergeAll)
+		if txErr != nil {
+			return txErr
+		}
+
+		return txErr
+	})
+
+	return err
 }
 
 func GetCoinCenterCountryCurrenyPath(country string) string {
@@ -203,6 +273,10 @@ func GetCoinOrderRefCodeItemPath(refCode string) string {
 
 func GetCoinPoolItemPath(currency string) string {
 	return fmt.Sprintf("coin_pools/%s", currency)
+}
+
+func GetCoinPaymentItemPath(orderId string) string {
+	return fmt.Sprintf("coin_payments/%s", orderId)
 }
 
 func snapshotToCoinOrder(snapshot *firestore.DocumentSnapshot) interface{} {

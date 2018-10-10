@@ -785,12 +785,13 @@ func NewSolrFromCashOrder(order CashOrder, cash CashStore) (solr SolrOfferObject
 
 var coinOrderStatusMap = map[string]int{
 	COIN_ORDER_STATUS_PENDING:           0,
-	CASH_ORDER_STATUS_PROCESSING:        0,
-	CASH_ORDER_STATUS_SUCCESS:           1,
-	CASH_ORDER_STATUS_TRANSFERRING:      2,
-	CASH_ORDER_STATUS_CANCELLED:         3,
-	CASH_ORDER_STATUS_FIAT_TRANSFERRING: 4,
-	CASH_ORDER_STATUS_TRANSFER_FAILED:   5,
+	COIN_ORDER_STATUS_PROCESSING:        1,
+	COIN_ORDER_STATUS_FIAT_TRANSFERRING: 2,
+	COIN_ORDER_STATUS_CANCELLED:         3,
+	COIN_ORDER_STATUS_EXPIRED:           4,
+	COIN_ORDER_STATUS_TRANSFERRING:      5,
+	COIN_ORDER_STATUS_TRANSFER_FAILED:   6,
+	COIN_ORDER_STATUS_SUCCESS:           7,
 }
 
 type SolrCoinOrderExtraData struct {
@@ -815,7 +816,7 @@ func NewSolrFromCoinOrder(order CoinOrder) (solr SolrOfferObject) {
 	solr.Type = 2
 	solr.State = 0
 	solr.IsPrivate = 1
-	solr.Status = cashOrderStatusMap[order.Status]
+	solr.Status = coinOrderStatusMap[order.Status]
 	solr.Hid = 0
 	solr.ChainId = order.ChainId
 	uid, _ := strconv.Atoi(order.UID)
