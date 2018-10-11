@@ -30,6 +30,19 @@ func (dao CoinDao) GetCoinOrderByPath(path string) (t TransferObject) {
 	return
 }
 
+func (dao CoinDao) ListCoinOrders(status string, limit int, startAt interface{}) (t TransferObject) {
+	ListPagingObjects(GetCoinOrderPath(), &t, limit, startAt, func(collRef *firestore.CollectionRef) firestore.Query {
+		query := collRef.OrderBy("created_at", firestore.Desc)
+		if status != "" {
+			query = query.Where("status", "==", status)
+		}
+
+		return query
+	}, snapshotToCashOrder)
+
+	return
+}
+
 func (dao CoinDao) AddCoinOrder(order *bean.CoinOrder) error {
 	dbClient := firebase_service.FirestoreClient
 

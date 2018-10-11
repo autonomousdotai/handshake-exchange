@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/ninjadotorg/handshake-exchange/bean"
 	"github.com/ninjadotorg/handshake-exchange/common"
+	"github.com/ninjadotorg/handshake-exchange/dao"
 	"github.com/ninjadotorg/handshake-exchange/service"
 	"strconv"
 )
@@ -61,7 +62,15 @@ func (api CoinApi) CoinOrder(context *gin.Context) {
 }
 
 func (api CoinApi) ListCoinOrders(context *gin.Context) {
-	bean.SuccessResponse(context, true)
+	status := context.DefaultQuery("status", "")
+	startAt, limit := common.ExtractTimePagingParams(context)
+
+	to := dao.CoinDaoInst.ListCoinOrders(status, limit, startAt)
+	if to.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessPagingResponse(context, to.Objects, to.CanMove, to.Page)
 }
 
 func (api CoinApi) FinishCoinOrder(context *gin.Context) {
