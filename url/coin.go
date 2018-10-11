@@ -11,16 +11,17 @@ type CoinUrl struct {
 func (url CoinUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	group := router.Group("/coin")
 
-	cashApi := api.CoinApi{}
+	coinApi := api.CoinApi{}
 
-	group.GET("/quote", cashApi.GetQuote)
-	group.GET("/order", cashApi.ListCoinOrders)
-	group.POST("/order", cashApi.CoinOrder)
-	group.POST("/order/:id/:currency/:amount", cashApi.FinishCoinOrder)
-	group.DELETE("/order/:id", cashApi.CancelCoinOrder)
-	group.PUT("/order/:id/picked", cashApi.PickCoinOrder)
-	group.PUT("/order/:id", cashApi.UpdateCoinOrder)
-	group.GET("/center/:country", cashApi.ListCoinCenter)
+	group.GET("/quote", coinApi.GetQuote)
+	group.GET("/order", coinApi.ListCoinOrders)
+	group.POST("/order", coinApi.CoinOrder)
+	group.POST("/order/:id/:currency/:amount", coinApi.FinishCoinOrder)
+	group.DELETE("/order/:id", coinApi.CancelCoinOrder)
+	group.PUT("/order/:id/pick", coinApi.PickCoinOrder)
+	group.PUT("/order/:id/reject", coinApi.RejectCoinOrder)
+	group.PUT("/order/:id", coinApi.UpdateCoinOrder)
+	group.GET("/center/:country", coinApi.ListCoinCenter)
 
 	return group
 }

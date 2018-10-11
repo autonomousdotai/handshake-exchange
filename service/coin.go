@@ -275,8 +275,32 @@ func (s CoinService) UpdateOrderReceipt(orderId string, coinOrder bean.CoinOrder
 	return
 }
 
+func (s CoinService) UpdateOrder(orderId string) (order bean.CoinOrder, ce SimpleContextError) {
+	coinOrderTO := s.dao.GetCoinOrder(orderId)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, coinOrderTO) {
+		return
+	}
+	order = coinOrderTO.Object.(bean.CoinOrder)
+	order.Status = bean.COIN_ORDER_STATUS_PROCESSING
+
+	err := s.dao.UpdateCoinOrderProcessing(&order)
+	if ce.SetError(api_error.AddDataFailed, err) {
+		return
+	}
+
+	s.dao.UpdateNotificationCoinOrder(order)
+	solr_service.UpdateObject(bean.NewSolrFromCoinOrder(order))
+
+	return
+}
+
 func (s CoinService) CancelOrder(orderId string) (order bean.CoinOrder, ce SimpleContextError) {
 	order = s.cancelCoinOrder(orderId, bean.COIN_ORDER_STATUS_CANCELLED, &ce)
+	return
+}
+
+func (s CoinService) RejectOrder(orderId string) (order bean.CoinOrder, ce SimpleContextError) {
+	order = s.cancelCoinOrder(orderId, bean.COIN_ORDER_STATUS_REJECTED, &ce)
 	return
 }
 

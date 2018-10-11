@@ -113,7 +113,25 @@ func (api CoinApi) UpdateCoinOrder(context *gin.Context) {
 }
 
 func (api CoinApi) PickCoinOrder(context *gin.Context) {
-	bean.SuccessResponse(context, true)
+	id := context.Param("id")
+
+	order, ce := service.CoinServiceInst.UpdateOrder(id)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, order)
+}
+
+func (api CoinApi) RejectCoinOrder(context *gin.Context) {
+	id := context.Param("id")
+
+	order, ce := service.CoinServiceInst.RejectOrder(id)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, order)
 }
 
 func (api CoinApi) RemoveExpiredOrder(context *gin.Context) {

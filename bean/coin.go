@@ -15,6 +15,7 @@ const COIN_ORDER_STATUS_TRANSFERRING = "transferring"
 const COIN_ORDER_STATUS_SUCCESS = "success"
 const COIN_ORDER_STATUS_TRANSFER_FAILED = "transfer_failed"
 const COIN_ORDER_STATUS_CANCELLED = "cancelled"
+const COIN_ORDER_STATUS_REJECTED = "rejected"
 const COIN_ORDER_STATUS_EXPIRED = "expired"
 
 type CoinOrderUpdateInput struct {
