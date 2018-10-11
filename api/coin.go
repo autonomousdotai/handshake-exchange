@@ -16,8 +16,9 @@ func (api CoinApi) GetQuote(context *gin.Context) {
 	amount := context.DefaultQuery("amount", "1")
 	currency := context.DefaultQuery("currency", "")
 	fiatCurrency := context.DefaultQuery("fiat_currency", "USD")
+	check := context.DefaultQuery("check", "")
 
-	coinQuote, ce := service.CoinServiceInst.GetCoinQuote(amount, currency, fiatCurrency)
+	coinQuote, ce := service.CoinServiceInst.GetCoinQuote(amount, currency, fiatCurrency, check)
 	if ce.ContextValidate(context) {
 		return
 	}

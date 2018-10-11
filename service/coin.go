@@ -21,7 +21,7 @@ type CoinService struct {
 	userDao *dao.UserDao
 }
 
-func (s CoinService) GetCoinQuote(amountStr string, currency string, fiatLocalCurrency string) (coinQuote bean.CoinQuote, ce SimpleContextError) {
+func (s CoinService) GetCoinQuote(amountStr string, currency string, fiatLocalCurrency string, check string) (coinQuote bean.CoinQuote, ce SimpleContextError) {
 	amount := common.StringToDecimal(amountStr)
 
 	cryptoRateTO := dao.MiscDaoInst.GetCryptoRateFromCache(currency, bean.INSTANT_OFFER_PROVIDER_COINBASE)
@@ -96,16 +96,18 @@ func (s CoinService) GetCoinQuote(amountStr string, currency string, fiatLocalCu
 
 	coinQuote.Limit = limit.String()
 
-	coinPoolTO := s.dao.GetCoinPool(currency)
-	if ce.FeedDaoTransfer(api_error.GetDataFailed, coinPoolTO) {
-		return
-	}
-	coinPool := coinPoolTO.Object.(bean.CoinPool)
-	usage := common.StringToDecimal(coinPool.Usage)
-	usageLimit := common.StringToDecimal(coinPool.Limit)
-	if usageLimit.LessThan(usage.Add(amount)) {
-		ce.SetStatusKey(api_error.CreditOutOfStock)
-		return
+	if check == "" {
+		coinPoolTO := s.dao.GetCoinPool(currency)
+		if ce.FeedDaoTransfer(api_error.GetDataFailed, coinPoolTO) {
+			return
+		}
+		coinPool := coinPoolTO.Object.(bean.CoinPool)
+		usage := common.StringToDecimal(coinPool.Usage)
+		usageLimit := common.StringToDecimal(coinPool.Limit)
+		if usageLimit.LessThan(usage.Add(amount)) {
+			ce.SetStatusKey(api_error.CreditOutOfStock)
+			return
+		}
 	}
 
 	return
@@ -127,7 +129,7 @@ func (s CoinService) ListCoinCenter(country string) (coinCenters []bean.CoinCent
 }
 
 func (s CoinService) AddOrder(userId string, orderBody bean.CoinOrder) (order bean.CoinOrder, ce SimpleContextError) {
-	orderTest, testOfferCE := s.GetCoinQuote(orderBody.Amount, orderBody.Currency, orderBody.FiatLocalCurrency)
+	orderTest, testOfferCE := s.GetCoinQuote(orderBody.Amount, orderBody.Currency, orderBody.FiatLocalCurrency, "1")
 	if ce.FeedContextError(api_error.GetDataFailed, testOfferCE) {
 		return
 	}
