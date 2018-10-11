@@ -8,20 +8,18 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/dao"
 	"github.com/ninjadotorg/handshake-exchange/integration/adyen_service"
-	"net/http"
-	"os"
-	"time"
-
 	"github.com/ninjadotorg/handshake-exchange/integration/bitpay_service"
+	"github.com/ninjadotorg/handshake-exchange/integration/bitstamp_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/coinapi_service"
-	"github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/ethereum_service"
-	// "github.com/ninjadotorg/handshake-exchange/integration/exchangecreditatm_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/openexchangerates_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/solr_service"
 	"github.com/ninjadotorg/handshake-exchange/service"
 	"github.com/shopspring/decimal"
+	"net/http"
+	"os"
 	"strings"
+	"time"
 )
 
 type MiscApi struct {
@@ -47,7 +45,8 @@ func (api MiscApi) UpdateCryptoRates(context *gin.Context) {
 	allRates := make([]bean.CryptoRate, 0)
 	for _, currency := range []string{bean.BTC.Code, bean.ETH.Code, bean.LTC.Code, bean.BCH.Code} {
 		rates := make([]bean.CryptoRate, 0)
-		resp, _ := coinbase_service.GetBuyPrice(currency)
+		// resp, _ := coinbase_service.GetBuyPrice(currency)
+		resp, _ := bitstamp_service.GetBuyPrice(currency)
 		buy, _ := decimal.NewFromString(resp.Amount)
 		buyFloat, _ := buy.Float64()
 		rate := bean.CryptoRate{
@@ -55,7 +54,7 @@ func (api MiscApi) UpdateCryptoRates(context *gin.Context) {
 			To:       bean.USD.Code,
 			Buy:      buyFloat,
 			Sell:     0,
-			Exchange: bean.INSTANT_OFFER_PROVIDER_COINBASE,
+			Exchange: bean.INSTANT_OFFER_PROVIDER_BITSTAMP,
 		}
 		rates = append(rates, rate)
 		allRates = append(allRates, rate)
@@ -148,7 +147,8 @@ func (api MiscApi) GetSystemConfig(context *gin.Context) {
 func (api MiscApi) GetCryptoRate(context *gin.Context) {
 	currency := context.Param("currency")
 
-	resp, err := coinbase_service.GetBuyPrice(currency)
+	// resp, err := coinbase_service.GetBuyPrice(currency)
+	resp, err := bitstamp_service.GetBuyPrice(currency)
 	if api_error.PropagateErrorAndAbort(context, api_error.GetDataFailed, err) != nil {
 		return
 	}
@@ -162,12 +162,14 @@ func (api MiscApi) GetCryptoRateAll(context *gin.Context) {
 	var resp1, resp2 interface{}
 	var err error
 	if rateType == "buy" {
-		resp1, err = coinbase_service.GetBuyPrice(currency)
+		//resp1, err = coinbase_service.GetBuyPrice(currency)
+		resp1, err = bitstamp_service.GetBuyPrice(currency)
 		if api_error.PropagateErrorAndAbort(context, api_error.GetDataFailed, err) != nil {
 			return
 		}
 	} else {
-		resp2, err = coinbase_service.GetSellPrice(currency)
+		//resp2, err = coinbase_service.GetSellPrice(currency)
+		resp2, err = bitstamp_service.GetSellPrice(currency)
 		if api_error.PropagateErrorAndAbort(context, api_error.GetDataFailed, err) != nil {
 			return
 		}
