@@ -6,6 +6,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/bean"
 	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/service"
+	"strconv"
 )
 
 type CoinApi struct {
@@ -36,11 +37,20 @@ func (api CoinApi) ListCoinCenter(context *gin.Context) {
 
 func (api CoinApi) CoinOrder(context *gin.Context) {
 	userId := common.GetUserId(context)
+	chainId := common.GetChainId(context)
+	language := common.GetLanguage(context)
+	fcm := common.GetFCM(context)
 
 	var body bean.CoinOrder
 	if common.ValidateBody(context, &body) != nil {
 		return
 	}
+
+	id, _ := strconv.Atoi(chainId)
+	body.ChainId = int64(id)
+	body.Language = language
+	body.FCM = fcm
+
 	order, ce := service.CoinServiceInst.AddOrder(userId, body)
 	if ce.ContextValidate(context) {
 		return
