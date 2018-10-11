@@ -91,9 +91,11 @@ func (dao CoinDao) AddCoinOrder(order *bean.CoinOrder) error {
 		if txErr != nil {
 			return txErr
 		}
-		txErr = tx.Set(docOrderRefRef, orderRefCode.GetAdd(), firestore.MergeAll)
-		if txErr != nil {
-			return txErr
+		if order.Type != bean.COIN_ORDER_TYPE_COD {
+			txErr = tx.Set(docOrderRefRef, orderRefCode.GetAdd(), firestore.MergeAll)
+			if txErr != nil {
+				return txErr
+			}
 		}
 		txErr = tx.Set(docPoolRef, bean.CoinPool{
 			Usage: usage.String(),
@@ -142,10 +144,13 @@ func (dao CoinDao) CancelCoinOrder(order *bean.CoinOrder) error {
 		if txErr != nil {
 			return txErr
 		}
-		txErr = tx.Delete(docOrderRefRef)
-		if txErr != nil {
-			return txErr
+		if order.Type != bean.COIN_ORDER_TYPE_COD {
+			txErr = tx.Delete(docOrderRefRef)
+			if txErr != nil {
+				return txErr
+			}
 		}
+
 		txErr = tx.Set(docPoolRef, bean.CoinPool{
 			Usage: usage.String(),
 		}.GetUpdate(), firestore.MergeAll)
@@ -175,17 +180,15 @@ func (dao CoinDao) UpdateCoinOrderReceipt(order *bean.CoinOrder) error {
 	return err
 }
 
-func (dao CoinDao) UpdateCoinOrderProcessing(order *bean.CoinOrder) error {
+func (dao CoinDao) UpdateCoinOrder(order *bean.CoinOrder) error {
 	dbClient := firebase_service.FirestoreClient
 
 	docRef := dbClient.Doc(GetCoinOrderItemPath(order.Id))
 	docUserRef := dbClient.Doc(GetCoinOrderUserItemPath(order.UID, order.Id))
-	docOrderRefRef := dbClient.Doc(GetCoinOrderRefCodeItemPath(order.RefCode))
 
 	batch := dbClient.Batch()
 	batch.Set(docRef, order.GetUpdate(), firestore.MergeAll)
 	batch.Set(docUserRef, order.GetUpdate(), firestore.MergeAll)
-	batch.Delete(docOrderRefRef)
 	_, err := batch.Commit(context.Background())
 
 	return err

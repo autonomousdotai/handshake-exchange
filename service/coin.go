@@ -283,7 +283,7 @@ func (s CoinService) UpdateOrder(orderId string) (order bean.CoinOrder, ce Simpl
 	order = coinOrderTO.Object.(bean.CoinOrder)
 	order.Status = bean.COIN_ORDER_STATUS_PROCESSING
 
-	err := s.dao.UpdateCoinOrderProcessing(&order)
+	err := s.dao.UpdateCoinOrder(&order)
 	if ce.SetError(api_error.AddDataFailed, err) {
 		return
 	}
@@ -478,9 +478,9 @@ func (s CoinService) setupCoinOrder(order *bean.CoinOrder, coinQuote bean.CoinQu
 	if order.Type == bean.COIN_ORDER_TYPE_COD {
 		order.Fee = coinQuote.FeeCOD
 		order.FeePercentage = coinQuote.FeePercentageCOD
+	} else {
+		order.Duration = int64(30) // 30 minutes
 	}
-
-	order.Duration = int64(30) // 30 minutes
 }
 
 func (s CoinService) cancelCoinOrder(orderId string, status string, ce *SimpleContextError) (order bean.CoinOrder) {
@@ -490,7 +490,11 @@ func (s CoinService) cancelCoinOrder(orderId string, status string, ce *SimpleCo
 	}
 	order = coinOrderTO.Object.(bean.CoinOrder)
 
-	if order.Status != bean.COIN_ORDER_STATUS_PENDING && order.Status != bean.COIN_ORDER_STATUS_FIAT_TRANSFERRING {
+	if order.Status != bean.COIN_ORDER_STATUS_PENDING && (status == bean.COIN_ORDER_STATUS_CANCELLED || status == bean.COIN_ORDER_STATUS_EXPIRED) {
+		ce.SetStatusKey(api_error.CoinOrderStatusInvalid)
+		return
+	}
+	if order.Status != bean.COIN_ORDER_STATUS_PROCESSING && status == bean.COIN_ORDER_STATUS_REJECTED {
 		ce.SetStatusKey(api_error.CoinOrderStatusInvalid)
 		return
 	}
