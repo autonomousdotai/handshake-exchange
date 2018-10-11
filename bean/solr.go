@@ -805,6 +805,7 @@ type SolrCoinOrderExtraData struct {
 	FiatLocalAmount   string            `json:"fiat_local_amount"`
 	FiatLocalCurrency string            `json:"fiat_local_currency"`
 	Type              string            `json:"type"`
+	Center            string            `json:"center"`
 	ReceiptUrl        string            `json:"receipt_url"`
 	Status            string            `json:"status"`
 	Address           string            `json:"address"`
@@ -846,6 +847,7 @@ func NewSolrFromCoinOrder(order CoinOrder) (solr SolrOfferObject) {
 		FiatLocalAmount:   order.FiatLocalAmount,
 		FiatLocalCurrency: order.FiatLocalCurrency,
 		Type:              order.Type,
+		Center:            order.Center,
 		ReceiptUrl:        order.ReceiptURL,
 		Status:            order.Status,
 		Address:           order.Address,

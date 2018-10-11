@@ -46,6 +46,7 @@ type CoinOrder struct {
 	ProviderWithdrawDataExtra interface{}       `json:"-" firestore:"provider_withdraw_data_extra"`
 	ReceiptURL                string            `json:"receipt_url" firestore:"receipt_url"`
 	RefCode                   string            `json:"ref_code" firestore:"ref_code"`
+	Center                    string            `json:"center" firestore:"center"`
 	FCM                       string            `json:"fcm" firestore:"fcm"`
 	Language                  string            `json:"language" firestore:"language"`
 	ChainId                   int64             `json:"chain_id" firestore:"chain_id"`
@@ -75,6 +76,7 @@ func (b CoinOrder) GetAdd() map[string]interface{} {
 		"duration":                b.Duration,
 		"address":                 b.Address,
 		"ref_code":                b.RefCode,
+		"center":                  b.Center,
 		"language":                b.Language,
 		"fcm":                     b.FCM,
 		"chain_id":                b.ChainId,
