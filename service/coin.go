@@ -171,10 +171,10 @@ func (s CoinService) GetCoinQuoteReverse(fiatLocalAmountStr string, currency str
 
 	amount := common.Zero
 	if coinQuote.Type == bean.COIN_ORDER_TYPE_BANK {
-		amount := bankValue.Div(cryptoPrice)
+		amount := bankValue.Div(cryptoPrice).Round(6)
 		coinQuote.Amount = amount.String()
 	} else {
-		amount := codValue.Div(cryptoPrice)
+		amount := codValue.Div(cryptoPrice).Round(6)
 		coinQuote.Amount = amount.String()
 	}
 
