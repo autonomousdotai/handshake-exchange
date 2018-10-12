@@ -178,6 +178,8 @@ func (s CoinService) GetCoinQuoteReverse(fiatLocalAmountStr string, currency str
 		coinQuote.Amount = amount.String()
 	}
 
+	coinQuote.FiatAmount = fiatAmount.RoundBank(2).String()
+	coinQuote.FiatCurrency = bean.USD.Code
 	coinQuote.Limit = limit.String()
 
 	if check == "" {
