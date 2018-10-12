@@ -113,6 +113,90 @@ func (s CoinService) GetCoinQuote(amountStr string, currency string, fiatLocalCu
 	return
 }
 
+func (s CoinService) GetCoinQuoteReverse(fiatLocalAmountStr string, currency string, fiatLocalCurrency string,
+	orderType string, check string) (coinQuote bean.CoinQuote, ce SimpleContextError) {
+	fiatLocalAmount := common.StringToDecimal(fiatLocalAmountStr)
+
+	rateTO := dao.MiscDaoInst.GetCurrencyRateFromCache(bean.USD.Code, fiatLocalCurrency)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, rateTO) {
+		return
+	}
+	rate := rateTO.Object.(bean.CurrencyRate)
+	rateNumber := decimal.NewFromFloat(rate.Rate)
+
+	fiatAmount := fiatLocalAmount.Div(rateNumber)
+
+	cryptoRateTO := dao.MiscDaoInst.GetCryptoRateFromCache(currency, bean.INSTANT_OFFER_PROVIDER_COINBASE)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, cryptoRateTO) {
+		return
+	}
+	cryptoRate := cryptoRateTO.Object.(bean.CryptoRate)
+	cryptoPrice := decimal.NewFromFloat(cryptoRate.Buy).Round(2)
+
+	configTO := s.miscDao.GetSystemConfigFromCache(bean.COIN_ORDER_LIMIT)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, configTO) {
+		return
+	}
+	systemConfig := configTO.Object.(bean.SystemConfig)
+	// There is no free start on
+	limit := common.StringToDecimal(systemConfig.Value)
+
+	coinQuote.Currency = currency
+	if orderType == bean.COIN_ORDER_TYPE_COD {
+		coinQuote.Type = bean.COIN_ORDER_TYPE_COD
+	} else {
+		coinQuote.Type = bean.COIN_ORDER_TYPE_BANK
+	}
+
+	codFeeTO := dao.MiscDaoInst.GetSystemFeeFromCache(bean.FEE_COIN_ORDER_COD)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, codFeeTO) {
+		return
+	}
+	codFee := codFeeTO.Object.(bean.SystemFee)
+	codFeePercentage := decimal.NewFromFloat(codFee.Value).Round(3)
+
+	bankFeeTO := dao.MiscDaoInst.GetSystemFeeFromCache(bean.FEE_COIN_ORDER_BANK)
+	if fiatAmount.GreaterThan(limit) {
+		bankFeeTO = dao.MiscDaoInst.GetSystemFeeFromCache(bean.FEE_COIN_ORDER_BANK_HIGH)
+		coinQuote.Type = bean.COIN_ORDER_TYPE_BANK
+	}
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, bankFeeTO) {
+		return
+	}
+	bankFee := bankFeeTO.Object.(bean.SystemFee)
+	bankFeePercentage := decimal.NewFromFloat(bankFee.Value).Round(3)
+
+	codValue, _ := dao.RemoveFeePercentage(fiatAmount, codFeePercentage)
+	bankValue, _ := dao.RemoveFeePercentage(fiatAmount, bankFeePercentage)
+
+	amount := common.Zero
+	if coinQuote.Type == bean.COIN_ORDER_TYPE_BANK {
+		amount := bankValue.Div(cryptoPrice)
+		coinQuote.Amount = amount.String()
+	} else {
+		amount := codValue.Div(cryptoPrice)
+		coinQuote.Amount = amount.String()
+	}
+
+	coinQuote.Limit = limit.String()
+
+	if check == "" {
+		coinPoolTO := s.dao.GetCoinPool(currency)
+		if ce.FeedDaoTransfer(api_error.GetDataFailed, coinPoolTO) {
+			return
+		}
+		coinPool := coinPoolTO.Object.(bean.CoinPool)
+		usage := common.StringToDecimal(coinPool.Usage)
+		usageLimit := common.StringToDecimal(coinPool.Limit)
+		if usageLimit.LessThan(usage.Add(amount)) {
+			ce.SetStatusKey(api_error.CreditOutOfStock)
+			return
+		}
+	}
+
+	return
+}
+
 func (s CoinService) ListCoinCenter(country string) (coinCenters []bean.CoinCenter, ce SimpleContextError) {
 	coinCenterTO := s.dao.ListCoinCenter(country)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, coinCenterTO) {

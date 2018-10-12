@@ -27,6 +27,21 @@ func (api CoinApi) GetQuote(context *gin.Context) {
 	bean.SuccessResponse(context, coinQuote)
 }
 
+func (api CoinApi) GetQuoteReverse(context *gin.Context) {
+	amount := context.DefaultQuery("fiat_amount", "")
+	currency := context.DefaultQuery("currency", "")
+	fiatCurrency := context.DefaultQuery("fiat_currency", "USD")
+	check := context.DefaultQuery("check", "")
+	orderType := context.DefaultQuery("type", bean.COIN_ORDER_TYPE_BANK)
+
+	coinQuote, ce := service.CoinServiceInst.GetCoinQuoteReverse(amount, currency, fiatCurrency, orderType, check)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, coinQuote)
+}
+
 func (api CoinApi) ListCoinCenter(context *gin.Context) {
 	country := context.Param("country")
 	coinCenters, ce := service.CoinServiceInst.ListCoinCenter(country)

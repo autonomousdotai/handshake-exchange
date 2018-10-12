@@ -14,6 +14,7 @@ func (url CoinUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	coinApi := api.CoinApi{}
 
 	group.GET("/quote", coinApi.GetQuote)
+	group.GET("/quote-reverse", coinApi.GetQuoteReverse)
 	group.GET("/order", coinApi.ListCoinOrders)
 	group.POST("/order", coinApi.CoinOrder)
 	group.POST("/order/:id/:currency/:amount", coinApi.FinishCoinOrder)

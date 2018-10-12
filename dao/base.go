@@ -253,6 +253,12 @@ func DeductFeePercentage(amount decimal.Decimal, feePercentage decimal.Decimal) 
 	return amount.Sub(fee), fee
 }
 
+func RemoveFeePercentage(amount decimal.Decimal, feePercentage decimal.Decimal) (decimal.Decimal, decimal.Decimal) {
+	rawAmount := amount.Div(decimal.NewFromFloat(1).Round(0).Add(feePercentage))
+	fee := rawAmount.Mul(feePercentage)
+	return rawAmount, fee
+}
+
 func ClearCache(keyPattern string) {
 	keys, err := cache.RedisClient.Keys(keyPattern).Result()
 	if err == nil {

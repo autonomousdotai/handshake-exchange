@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/levigross/grequests"
 	"github.com/ninjadotorg/handshake-exchange/api_error"
+	"github.com/ninjadotorg/handshake-exchange/bean"
 	"os"
 	"strconv"
 	"strings"
@@ -55,7 +56,7 @@ func (c BitstampClient) Get(uri string) (*grequests.Response, error) {
 	return resp, err
 }
 
-func (c BitstampClient) Post(uri string, body interface{}) (*grequests.Response, error) {
+func (c BitstampClient) Post(uri string, params map[string]string, body interface{}) (*grequests.Response, error) {
 	url := c.url + uri
 
 	bodyStr := ""
@@ -70,6 +71,11 @@ func (c BitstampClient) Post(uri string, body interface{}) (*grequests.Response,
 
 	authParams := c.buildAuthParameters()
 	url += "?" + authParams
+
+	for key, value := range params {
+		url += fmt.Sprintf("&%s=%s", key, value)
+	}
+
 	ro := &grequests.RequestOptions{RequestBody: r}
 	resp, err := grequests.Post(url, ro)
 
@@ -111,9 +117,37 @@ func GetSellPrice(currency string) (TickerResponse, error) {
 	return response, err
 }
 
+func SendTransaction(address string, amount string, currency string, description string, withdrawId string) (TransferResponse, error) {
+	client := BitstampClient{}
+	client.Initialize()
+
+	var response TransferResponse
+
+	currencyMapping := map[string]string{
+		bean.BTC.Code: "bitcoin_withdrawal",
+		bean.ETH.Code: "v2/eth_withdrawal",
+		bean.BCH.Code: "v2/bch_withdrawal",
+	}
+
+	resp, err := client.Post(fmt.Sprintf("/%s/", currencyMapping[currency]), map[string]string{
+		"amount":  amount,
+		"address": address,
+	}, nil)
+
+	if err == nil {
+		resp.JSON(&response)
+	}
+
+	return response, err
+}
+
 type TickerResponse struct {
 	Last   string `json:"last"`
 	Bid    string `json:"bid"`
 	Ask    string `json:"ask"`
 	Amount string
+}
+
+type TransferResponse struct {
+	Id string `json:"id"`
 }

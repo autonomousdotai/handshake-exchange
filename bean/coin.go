@@ -198,4 +198,7 @@ type CoinQuote struct {
 	RawFiatAmount      string `json:"-"`
 	Price              string `json:"-"`
 	Limit              string `json:"limit"`
+	Type               string `json:"type"`
+	Amount             string `json:"amount"`
+	Currency           string `json:"currency"`
 }
