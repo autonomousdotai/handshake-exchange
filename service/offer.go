@@ -8,6 +8,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/dao"
 	"github.com/ninjadotorg/handshake-exchange/integration/bitpay_service"
+	"github.com/ninjadotorg/handshake-exchange/integration/bitstamp_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/blockchainio_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/chainso_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
@@ -903,13 +904,25 @@ func (s OfferService) FinishCryptoTransfer() (finishedInstantOffers []bean.Offer
 			// bodyTransaction, err := coinbase_service.GetTransaction(pendingOffer.ExternalId, pendingOffer.Currency)
 			onchainCompleted := false
 			if pendingOffer.Currency == bean.ETH.Code {
-				isSuccess, isPending, _, errChain := crypto_service.GetTransactionReceipt(pendingOffer.TxHash, pendingOffer.Currency)
-				if errChain == nil {
-					if isSuccess && !isPending {
-						onchainCompleted = true
+				if pendingOffer.Provider == bean.BTC_WALLET_BITSTAMP {
+					cacheTO := dao.MiscDaoInst.GetBitstampWithdrawRequestFromCache()
+					if cacheTO.Error != nil {
+						err = cacheTO.Error
+					} else {
+						data := cacheTO.Object.(map[string]bitstamp_service.WithdrawRequestResponse)
+						if data[pendingOffer.ExternalId].Status == 2 {
+							onchainCompleted = true
+						}
 					}
 				} else {
-					err = errChain
+					isSuccess, isPending, _, errChain := crypto_service.GetTransactionReceipt(pendingOffer.TxHash, pendingOffer.Currency)
+					if errChain == nil {
+						if isSuccess && !isPending {
+							onchainCompleted = true
+						}
+					} else {
+						err = errChain
+					}
 				}
 			} else if pendingOffer.Currency == bean.BTC.Code {
 				fiatAmountUSD := common.StringToDecimal(pendingOffer.FiatAmountUSD)
@@ -919,6 +932,16 @@ func (s OfferService) FinishCryptoTransfer() (finishedInstantOffers []bean.Offer
 					err = errChain
 					if err == nil && txInfo.Status == "completed" {
 						onchainCompleted = true
+					}
+				} else if pendingOffer.Provider == bean.BTC_WALLET_BITSTAMP {
+					cacheTO := dao.MiscDaoInst.GetBitstampWithdrawRequestFromCache()
+					if cacheTO.Error != nil {
+						err = cacheTO.Error
+					} else {
+						data := cacheTO.Object.(map[string]bitstamp_service.WithdrawRequestResponse)
+						if data[pendingOffer.ExternalId].Status == 2 {
+							onchainCompleted = true
+						}
 					}
 				} else {
 					// bodyTransaction, err := coinbase_service.GetTransaction(pendingOffer.ExternalId, pendingOffer.Currency)
@@ -939,6 +962,16 @@ func (s OfferService) FinishCryptoTransfer() (finishedInstantOffers []bean.Offer
 					err = errChain
 					if err == nil && txInfo.Status == "completed" {
 						onchainCompleted = true
+					}
+				} else if pendingOffer.Provider == bean.BTC_WALLET_BITSTAMP {
+					cacheTO := dao.MiscDaoInst.GetBitstampWithdrawRequestFromCache()
+					if cacheTO.Error != nil {
+						err = cacheTO.Error
+					} else {
+						data := cacheTO.Object.(map[string]bitstamp_service.WithdrawRequestResponse)
+						if data[pendingOffer.ExternalId].Status == 2 {
+							onchainCompleted = true
+						}
 					}
 				} else {
 					_, _, confirmation, errChain := bitpay_service.GetBCHTransaction(pendingOffer.TxHash)

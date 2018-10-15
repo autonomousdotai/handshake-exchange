@@ -601,6 +601,14 @@ func (api MiscApi) SetupContractKeys(context *gin.Context) {
 	bean.SuccessResponse(context, true)
 }
 
+func (api MiscApi) LoadBitstampWithdrawToCache(context *gin.Context) {
+	resp, err := bitstamp_service.WithdrawalRequests(0)
+	if err == nil {
+		dao.MiscDaoInst.BitstampWithdrawRequestToCache(resp)
+	}
+	bean.SuccessResponse(context, true)
+}
+
 func (api MiscApi) AddAdminAddress(context *gin.Context) {
 	address := context.Param("address")
 	service.CreditServiceInst.AddAdminAddressToContract(address)

@@ -140,7 +140,6 @@ func WithdrawalRequests(timeDelta uint64) ([]WithdrawRequestResponse, error) {
 	resp, err := client.Post("/v2/withdrawal-requests/", nil, nil)
 
 	if err == nil {
-		fmt.Println(resp.String())
 		resp.JSON(&response)
 	}
 

@@ -468,6 +468,7 @@ func (s CoinService) FinishOrder(id string, amount string, fiatCurrency string) 
 		return
 	}
 
+	var externalId string
 	if os.Getenv("ENVIRONMENT") == "dev" {
 		if order.Currency == bean.ETH.Code {
 			txHash, onChainErr := crypto_service.SendTransaction(order.Address, order.Amount, order.Currency)
@@ -489,6 +490,7 @@ func (s CoinService) FinishOrder(id string, amount string, fiatCurrency string) 
 			fmt.Sprintf("Withdraw tx = %s", order.Id), order.Id)
 
 		if errWithdraw == nil {
+			externalId = fmt.Sprintf("%d", bitstampTx.Id)
 			order.ProviderWithdrawData = bitstampTx.Id
 			order.Status = bean.COIN_ORDER_STATUS_TRANSFERRING
 		} else {
@@ -513,6 +515,7 @@ func (s CoinService) FinishOrder(id string, amount string, fiatCurrency string) 
 			Description:      "",
 			Amount:           order.Amount,
 			Currency:         order.Currency,
+			ExternalId:       externalId,
 		})
 	}
 

@@ -362,7 +362,7 @@ func (dao MiscDao) BitstampWithdrawRequestToCache(data []bitstamp_service.Withdr
 	return cmd.Err()
 }
 
-func (dao MiscDao) GetBitstampWithdrawRequestFromCache(address string) (t TransferObject) {
+func (dao MiscDao) GetBitstampWithdrawRequestFromCache() (t TransferObject) {
 	GetCacheObject(GetBitstampWithdrawStatusCacheKey(), &t, func(val string) interface{} {
 		var obj map[string]bitstamp_service.WithdrawRequestResponse
 		json.Unmarshal([]byte(val), &obj)
