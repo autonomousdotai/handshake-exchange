@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/ninjadotorg/handshake-exchange/api_error"
 	"github.com/ninjadotorg/handshake-exchange/bean"
+	"github.com/ninjadotorg/handshake-exchange/integration/bitstamp_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/firebase_service"
 	"github.com/ninjadotorg/handshake-exchange/service/cache"
 	"github.com/shopspring/decimal"
@@ -349,6 +350,28 @@ func (dao MiscDao) GetCreditContractKeyDataFromCache(address string) (t Transfer
 	return
 }
 
+func (dao MiscDao) BitstampWithdrawRequestToCache(data []bitstamp_service.WithdrawRequestResponse) error {
+	keyData := map[string]bitstamp_service.WithdrawRequestResponse{}
+	for _, dataItem := range data {
+		keyData[fmt.Sprintf("%d", dataItem.Id)] = dataItem
+	}
+	b, _ := json.Marshal(&keyData)
+	key := GetBitstampWithdrawStatusCacheKey()
+	cmd := cache.RedisClient.Set(key, string(b), 0)
+
+	return cmd.Err()
+}
+
+func (dao MiscDao) GetBitstampWithdrawRequestFromCache(address string) (t TransferObject) {
+	GetCacheObject(GetBitstampWithdrawStatusCacheKey(), &t, func(val string) interface{} {
+		var obj map[string]bitstamp_service.WithdrawRequestResponse
+		json.Unmarshal([]byte(val), &obj)
+		return obj
+	})
+
+	return
+}
+
 func GetCurrencyRateItemPath(currency string) string {
 	return fmt.Sprintf("currency_rates/%s", currency)
 }
@@ -419,4 +442,8 @@ func GetCreditContractKeyIndexCacheKey(keySet string) string {
 
 func GetCreditContractKeyDataCacheKey(address string) string {
 	return fmt.Sprintf("handshake_exchange.credit_atm.key_data.%s", address)
+}
+
+func GetBitstampWithdrawStatusCacheKey() string {
+	return "handshake_exchange.bitstamp_withdraw"
 }

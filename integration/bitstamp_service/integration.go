@@ -66,6 +66,7 @@ func (c BitstampClient) Post(uri string, params map[string]string, body interfac
 	r := bytes.NewReader([]byte(authParams))
 	ro := &grequests.RequestOptions{Headers: map[string]string{
 		"Content-Type": "application/x-www-form-urlencoded",
+		"Accept":       "application/json",
 	}, RequestBody: r}
 	resp, err := grequests.Post(url, ro)
 
@@ -131,6 +132,21 @@ func SendTransaction(address string, amount string, currency string, description
 	return response, err
 }
 
+func WithdrawalRequests(timeDelta uint64) ([]WithdrawRequestResponse, error) {
+	client := BitstampClient{}
+	client.Initialize()
+
+	var response []WithdrawRequestResponse
+	resp, err := client.Post("/v2/withdrawal-requests/", nil, nil)
+
+	if err == nil {
+		fmt.Println(resp.String())
+		resp.JSON(&response)
+	}
+
+	return response, err
+}
+
 type TickerResponse struct {
 	Last   string `json:"last"`
 	Bid    string `json:"bid"`
@@ -139,16 +155,16 @@ type TickerResponse struct {
 }
 
 type TransferResponse struct {
-	Id string `json:"id"`
+	Id uint64 `json:"id"`
 }
 
 type WithdrawRequestResponse struct {
-	Id            string                 `json:"id"`
+	Id            uint64                 `json:"id"`
 	DateTime      string                 `json:"datetime"`
-	Type          string                 `json:"type"`
+	Type          uint                   `json:"type"`
 	Currency      string                 `json:"currency"`
 	Amount        string                 `json:"amount"`
-	Status        string                 `json:"status"`
+	Status        uint                   `json:"status"`
 	Data          map[string]interface{} `json:"data"`
 	Address       string                 `json:"address"`
 	TransactionId string                 `json:"transaction_id"`
@@ -158,7 +174,7 @@ func (b WithdrawRequestResponse) GetCurrency() string {
 	if b.Currency != "" {
 		return b.Currency
 	}
-	if b.Type == "1" {
+	if b.Type == 1 {
 		return bean.BTC.Code
 	}
 

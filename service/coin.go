@@ -6,7 +6,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/bean"
 	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/dao"
-	"github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
+	"github.com/ninjadotorg/handshake-exchange/integration/bitstamp_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/crypto_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/solr_service"
 	"github.com/shopspring/decimal"
@@ -483,10 +483,13 @@ func (s CoinService) FinishOrder(id string, amount string, fiatCurrency string) 
 			order.Status = bean.COIN_ORDER_STATUS_TRANSFERRING
 		}
 	} else if os.Getenv("ENVIRONMENT") == "production" {
-		coinbaseTx, errWithdraw := coinbase_service.SendTransaction(order.Address, order.Amount, order.Currency,
+		// coinbaseTx, errWithdraw := coinbase_service.SendTransaction(order.Address, order.Amount, order.Currency,
+		// fmt.Sprintf("Withdraw tx = %s", order.Id), order.Id)
+		bitstampTx, errWithdraw := bitstamp_service.SendTransaction(order.Address, order.Amount, order.Currency,
 			fmt.Sprintf("Withdraw tx = %s", order.Id), order.Id)
+
 		if errWithdraw == nil {
-			order.ProviderWithdrawData = coinbaseTx.Id
+			order.ProviderWithdrawData = bitstampTx.Id
 			order.Status = bean.COIN_ORDER_STATUS_TRANSFERRING
 		} else {
 			order.ProviderWithdrawData = errWithdraw.Error()

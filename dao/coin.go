@@ -30,11 +30,14 @@ func (dao CoinDao) GetCoinOrderByPath(path string) (t TransferObject) {
 	return
 }
 
-func (dao CoinDao) ListCoinOrders(status string, limit int, startAt interface{}) (t TransferObject) {
+func (dao CoinDao) ListCoinOrders(status string, orderType string, limit int, startAt interface{}) (t TransferObject) {
 	ListPagingObjects(GetCoinOrderPath(), &t, limit, startAt, func(collRef *firestore.CollectionRef) firestore.Query {
 		query := collRef.OrderBy("created_at", firestore.Desc)
 		if status != "" {
 			query = query.Where("status", "==", status)
+		}
+		if orderType != "" {
+			query = query.Where("type", "==", orderType)
 		}
 
 		return query

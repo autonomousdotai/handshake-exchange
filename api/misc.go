@@ -613,9 +613,9 @@ func (api MiscApi) ServerTime(context *gin.Context) {
 }
 
 func (api MiscApi) TestAnything(context *gin.Context) {
-	trans, err := bitstamp_service.SendTransaction("0xd71AddD45378AfE324592fe61fA9DBb6e0C0Ba56", "0.001", "ETH", "", "")
+	response, err := bitstamp_service.WithdrawalRequests(0)
 	fmt.Println(err)
-	bean.SuccessResponse(context, trans.Id)
+	bean.SuccessResponse(context, response)
 }
 
 func (api MiscApi) AdyenRedirect(context *gin.Context) {
