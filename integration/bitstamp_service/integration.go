@@ -35,9 +35,10 @@ func (c BitstampClient) buildAuthParameters() string {
 	message := []byte(timestamp + c.custonerId + c.apiKey)
 	mac := hmac.New(sha256.New, []byte(c.apiSecret))
 	mac.Write(message)
-	sign := hex.EncodeToString(mac.Sum(nil))
+	sign := strings.ToUpper(hex.EncodeToString(mac.Sum(nil)))
 
 	requestParams := fmt.Sprintf("key=%s&signature=%s&nonce=%s", c.apiKey, sign, timestamp)
+	fmt.Println(sign)
 
 	return requestParams
 }
