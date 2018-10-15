@@ -90,9 +90,9 @@ func (api CoinApi) ListCoinOrders(context *gin.Context) {
 
 func (api CoinApi) FinishCoinOrder(context *gin.Context) {
 	id := context.Param("id")
-	currency := context.Param("currency")
-	amount := context.Param("amount")
-	order, overSpent, ce := service.CoinServiceInst.FinishOrder(id, amount, currency)
+	// currency := context.Param("currency")
+	// amount := context.Param("amount")
+	order, overSpent, ce := service.CoinServiceInst.FinishOrder(id, "", "")
 	if ce.ContextValidate(context) {
 		return
 	}

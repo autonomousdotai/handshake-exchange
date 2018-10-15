@@ -5,7 +5,6 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"github.com/levigross/grequests"
 	"github.com/ninjadotorg/handshake-exchange/api_error"
@@ -59,24 +58,14 @@ func (c BitstampClient) Get(uri string) (*grequests.Response, error) {
 func (c BitstampClient) Post(uri string, params map[string]string, body interface{}) (*grequests.Response, error) {
 	url := c.url + uri
 
-	bodyStr := ""
-	if body != nil {
-		b, errBody := json.Marshal(&body)
-		if errBody != nil {
-			return nil, errBody
-		}
-		bodyStr = string(b)
-	}
-	r := bytes.NewReader([]byte(bodyStr))
-
 	authParams := c.buildAuthParameters()
-	url += "?" + authParams
-
 	for key, value := range params {
-		url += fmt.Sprintf("&%s=%s", key, value)
+		authParams += fmt.Sprintf("&%s=%s", key, value)
 	}
-
-	ro := &grequests.RequestOptions{RequestBody: r}
+	r := bytes.NewReader([]byte(authParams))
+	ro := &grequests.RequestOptions{Headers: map[string]string{
+		"Content-Type": "application/x-www-form-urlencoded",
+	}, RequestBody: r}
 	resp, err := grequests.Post(url, ro)
 
 	if resp.Ok != true {
@@ -92,7 +81,7 @@ func GetBuyPrice(currency string) (TickerResponse, error) {
 
 	var response TickerResponse
 
-	uri := fmt.Sprintf("/ticker/%susd/", strings.ToLower(currency))
+	uri := fmt.Sprintf("/v2/ticker/%susd/", strings.ToLower(currency))
 	resp, err := client.Get(uri)
 	if err == nil {
 		resp.JSON(&response)
@@ -108,7 +97,7 @@ func GetSellPrice(currency string) (TickerResponse, error) {
 
 	var response TickerResponse
 
-	resp, err := client.Get(fmt.Sprintf("/ticker/%s/", strings.ToLower(fmt.Sprintf(currency, "usd"))))
+	resp, err := client.Get(fmt.Sprintf("/v2/ticker/%s/", strings.ToLower(fmt.Sprintf(currency, "usd"))))
 	if err == nil {
 		resp.JSON(&response)
 	}

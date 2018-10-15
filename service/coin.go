@@ -413,6 +413,8 @@ func (s CoinService) FinishOrder(id string, amount string, fiatCurrency string) 
 		return
 	}
 	order = coinOrderTO.Object.(bean.CoinOrder)
+	amount = order.Amount
+	fiatCurrency = order.FiatCurrency
 
 	storePaymentTO := s.dao.GetCoinPayment(order.Id)
 	if storePaymentTO.Error != nil {
