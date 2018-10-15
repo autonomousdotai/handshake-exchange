@@ -151,3 +151,26 @@ type TickerResponse struct {
 type TransferResponse struct {
 	Id string `json:"id"`
 }
+
+type WithdrawRequestResponse struct {
+	Id            string                 `json:"id"`
+	DateTime      string                 `json:"datetime"`
+	Type          string                 `json:"type"`
+	Currency      string                 `json:"currency"`
+	Amount        string                 `json:"amount"`
+	Status        string                 `json:"status"`
+	Data          map[string]interface{} `json:"data"`
+	Address       string                 `json:"address"`
+	TransactionId string                 `json:"transaction_id"`
+}
+
+func (b WithdrawRequestResponse) GetCurrency() string {
+	if b.Currency != "" {
+		return b.Currency
+	}
+	if b.Type == "1" {
+		return bean.BTC.Code
+	}
+
+	return ""
+}
