@@ -79,9 +79,10 @@ func (api CoinApi) CoinOrder(context *gin.Context) {
 func (api CoinApi) ListCoinOrders(context *gin.Context) {
 	status := context.DefaultQuery("status", "")
 	orderType := context.DefaultQuery("type", "")
+	refCode := context.DefaultQuery("ref_code", "")
 	startAt, limit := common.ExtractTimePagingParams(context)
 
-	to := dao.CoinDaoInst.ListCoinOrders(status, orderType, limit, startAt)
+	to := dao.CoinDaoInst.ListCoinOrders(status, orderType, refCode, limit, startAt)
 	if to.ContextValidate(context) {
 		return
 	}

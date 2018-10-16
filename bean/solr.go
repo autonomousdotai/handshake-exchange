@@ -792,6 +792,7 @@ var coinOrderStatusMap = map[string]int{
 	COIN_ORDER_STATUS_TRANSFERRING:      5,
 	COIN_ORDER_STATUS_TRANSFER_FAILED:   6,
 	COIN_ORDER_STATUS_SUCCESS:           7,
+	COIN_ORDER_STATUS_REJECTED:          8,
 }
 
 type SolrCoinOrderExtraData struct {
