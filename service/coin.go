@@ -469,10 +469,12 @@ func (s CoinService) FinishOrder(id string, amount string, fiatCurrency string) 
 	}
 
 	var externalId string
+	var provider string
 	if os.Getenv("ENVIRONMENT") == "dev" {
 		if order.Currency == bean.ETH.Code {
 			txHash, onChainErr := crypto_service.SendTransaction(order.Address, order.Amount, order.Currency)
 
+			provider = bean.ETH_WALLET_NETWORK
 			order.ProviderWithdrawData = txHash
 			order.Status = bean.COIN_ORDER_STATUS_TRANSFERRING
 			if onChainErr != nil {
@@ -490,6 +492,7 @@ func (s CoinService) FinishOrder(id string, amount string, fiatCurrency string) 
 			fmt.Sprintf("Withdraw tx = %s", order.Id), order.Id)
 
 		if errWithdraw == nil {
+			provider = bean.BTC_WALLET_BITSTAMP
 			externalId = fmt.Sprintf("%d", bitstampTx.Id)
 			order.ProviderWithdrawData = bitstampTx.Id
 			order.Status = bean.COIN_ORDER_STATUS_TRANSFERRING
@@ -505,7 +508,6 @@ func (s CoinService) FinishOrder(id string, amount string, fiatCurrency string) 
 	}
 
 	if order.Status == bean.COIN_ORDER_STATUS_TRANSFERRING {
-		provider := bean.BTC_WALLET_BITSTAMP
 		s.miscDao.AddCryptoTransferLog(bean.CryptoTransferLog{
 			Provider:         provider,
 			ProviderResponse: order.ProviderWithdrawData,
@@ -516,6 +518,7 @@ func (s CoinService) FinishOrder(id string, amount string, fiatCurrency string) 
 			Amount:           order.Amount,
 			Currency:         order.Currency,
 			ExternalId:       externalId,
+			TxHash:           order.ProviderWithdrawData.(string),
 		})
 	}
 
