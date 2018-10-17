@@ -159,3 +159,29 @@ func (api CoinApi) RemoveExpiredOrder(context *gin.Context) {
 
 	bean.SuccessResponse(context, true)
 }
+
+func (api CoinApi) AddReview(context *gin.Context) {
+	userId := common.GetUserId(context)
+	var body bean.CoinReview
+	if common.ValidateBody(context, &body) != nil {
+		return
+	}
+	body.UID = userId
+	ce := service.CoinServiceInst.AddCoinReview(body)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, body)
+}
+
+func (api CoinApi) ListReview(context *gin.Context) {
+	startAt, limit := common.ExtractTimePagingParams(context)
+
+	to := dao.CoinDaoInst.ListReviews(limit, startAt)
+	if to.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessPagingResponse(context, to.Objects, to.CanMove, to.Page)
+}

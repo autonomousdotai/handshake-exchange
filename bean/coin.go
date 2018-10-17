@@ -202,3 +202,25 @@ type CoinQuote struct {
 	Amount             string `json:"amount"`
 	Currency           string `json:"currency"`
 }
+
+type CoinReview struct {
+	Id        string    `json:"id" firestore:"id"`
+	UID       string    `json:"uid" firestore:"uid"`
+	Name      string    `json:"name" firestore:"name"`
+	Review    string    `json:"review" firestore:"review" validate:"required"`
+	CreatedAt time.Time `json:"created_at" firestore:"created_at"`
+}
+
+func (b CoinReview) GetAdd() map[string]interface{} {
+	return map[string]interface{}{
+		"id":         b.Id,
+		"uid":        b.UID,
+		"name":       b.Name,
+		"review":     b.Review,
+		"created_at": firestore.ServerTimestamp,
+	}
+}
+
+func (b CoinReview) GetPageValue() interface{} {
+	return b.CreatedAt
+}

@@ -546,6 +546,16 @@ func (s CoinService) FinishCoinOrderPendingTransfer(ref string) (order bean.Coin
 	return
 }
 
+func (s CoinService) AddCoinReview(review bean.CoinReview) (ce SimpleContextError) {
+	err := s.dao.AddCoinReview(&review)
+	if err != nil {
+		ce.SetError(api_error.AddDataFailed, err)
+		return
+	}
+
+	return
+}
+
 func (s CoinService) SyncCoinOrderToSolr(id string) (coinOrder bean.CoinOrder, ce SimpleContextError) {
 	coinOrderTO := s.dao.GetCoinOrder(id)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, coinOrderTO) {

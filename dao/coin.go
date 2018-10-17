@@ -282,6 +282,25 @@ func (dao CoinDao) UpdateCoinPayment(payment *bean.CoinPayment, addAmount decima
 	return err
 }
 
+func (dao CoinDao) ListReviews(limit int, startAt interface{}) (t TransferObject) {
+	ListPagingObjects(GetCoinReviewPath(), &t, limit, startAt, func(collRef *firestore.CollectionRef) firestore.Query {
+		query := collRef.OrderBy("created_at", firestore.Desc)
+		return query
+	}, snapshotToCoinReview)
+
+	return
+}
+
+func (dao CoinDao) AddCoinReview(review *bean.CoinReview) error {
+	dbClient := firebase_service.FirestoreClient
+
+	docRef := dbClient.Collection(GetCoinReviewPath()).NewDoc()
+	review.Id = docRef.ID
+	_, err := docRef.Set(context.Background(), review.GetAdd())
+
+	return err
+}
+
 func GetCoinCenterCountryCurrenyPath(country string) string {
 	return fmt.Sprintf("coin_centers/%s/currency", country)
 }
@@ -318,6 +337,14 @@ func GetCoinPaymentItemPath(orderId string) string {
 	return fmt.Sprintf("coin_payments/%s", orderId)
 }
 
+func GetCoinReviewPath() string {
+	return fmt.Sprintf("coin_reviews")
+}
+
+func GetCoinReviewItemPath(id string) string {
+	return fmt.Sprintf("coin_reviews/%s", id)
+}
+
 func snapshotToCoinOrder(snapshot *firestore.DocumentSnapshot) interface{} {
 	var obj bean.CoinOrder
 	snapshot.DataTo(&obj)
@@ -344,6 +371,12 @@ func snapshotToCoinOrderRefCode(snapshot *firestore.DocumentSnapshot) interface{
 
 func snapshotToCoinPool(snapshot *firestore.DocumentSnapshot) interface{} {
 	var obj bean.CoinPool
+	snapshot.DataTo(&obj)
+	return obj
+}
+
+func snapshotToCoinReview(snapshot *firestore.DocumentSnapshot) interface{} {
+	var obj bean.CoinReview
 	snapshot.DataTo(&obj)
 	return obj
 }
