@@ -315,6 +315,59 @@ func (dao CoinDao) AddCoinReview(review *bean.CoinReview) error {
 	return err
 }
 
+func (dao CoinDao) GetCoinUserLimit(id string) (t TransferObject) {
+	GetObject(GetCoinUserLimitItemPath(id), &t, snapshotToCoinUserLimit)
+	return
+}
+
+func (dao CoinDao) AddCoinUserLimit(userLimit *bean.CoinUserLimit) error {
+	dbClient := firebase_service.FirestoreClient
+
+	docRef := dbClient.Doc(GetCoinUserLimitItemPath(userLimit.UID))
+	_, err := docRef.Set(context.Background(), userLimit.GetAdd())
+
+	return err
+}
+
+func (dao CoinDao) ResetCoinUserLimit(uid string) error {
+	dbClient := firebase_service.FirestoreClient
+
+	docRef := dbClient.Doc(GetCoinUserLimitItemPath(uid))
+	_, err := docRef.Set(context.Background(), bean.CoinUserLimit{
+		Usage: common.Zero.String(),
+	}.GetUpdate())
+	return err
+}
+
+func (dao CoinDao) UpdateCoinUserLimit(uid string, amount decimal.Decimal, userLimit bean.CoinUserLimit) error {
+	dbClient := firebase_service.FirestoreClient
+
+	docRef := dbClient.Doc(GetCoinUserLimitItemPath(uid))
+	err := dbClient.RunTransaction(context.Background(), func(ctx context.Context, tx *firestore.Transaction) error {
+		var txErr error
+
+		paymentDoc, txErr := tx.Get(docRef)
+		if txErr != nil {
+			return txErr
+		}
+		usage, txErr := common.ConvertToDecimal(paymentDoc, "usage")
+		if txErr != nil {
+			return txErr
+		}
+		usage = usage.Add(amount)
+		userLimit.Usage = usage.String()
+
+		txErr = tx.Set(docRef, userLimit.GetUpdate(), firestore.MergeAll)
+		if txErr != nil {
+			return txErr
+		}
+
+		return txErr
+	})
+
+	return err
+}
+
 func GetCoinCenterCountryCurrenyPath(country string) string {
 	return fmt.Sprintf("coin_centers/%s/currency", country)
 }
@@ -359,6 +412,14 @@ func GetCoinReviewItemPath(id string) string {
 	return fmt.Sprintf("coin_reviews/%s", id)
 }
 
+func GetCoinUserLimitPath() string {
+	return fmt.Sprintf("coin_user_limits")
+}
+
+func GetCoinUserLimitItemPath(id string) string {
+	return fmt.Sprintf("coin_user_limits/%s", id)
+}
+
 func snapshotToCoinOrder(snapshot *firestore.DocumentSnapshot) interface{} {
 	var obj bean.CoinOrder
 	snapshot.DataTo(&obj)
@@ -391,6 +452,12 @@ func snapshotToCoinPool(snapshot *firestore.DocumentSnapshot) interface{} {
 
 func snapshotToCoinReview(snapshot *firestore.DocumentSnapshot) interface{} {
 	var obj bean.CoinReview
+	snapshot.DataTo(&obj)
+	return obj
+}
+
+func snapshotToCoinUserLimit(snapshot *firestore.DocumentSnapshot) interface{} {
+	var obj bean.CoinUserLimit
 	snapshot.DataTo(&obj)
 	return obj
 }

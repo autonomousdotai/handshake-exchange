@@ -309,7 +309,6 @@ func (s CoinService) AddOrder(userId string, orderBody bean.CoinOrder) (order be
 		}
 	}
 
-	fmt.Println(orderBody.Currency)
 	coinPoolTO := s.dao.GetCoinPool(orderBody.Currency)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, coinPoolTO) {
 		return
@@ -569,7 +568,9 @@ func (s CoinService) AddCoinReview(review bean.CoinReview) (ce SimpleContextErro
 		return
 	}
 	order.Reviewed = true
+
 	s.dao.UpdateCoinOrderReview(&order)
+	solr_service.UpdateObject(bean.NewSolrFromCoinOrder(order))
 
 	return
 }

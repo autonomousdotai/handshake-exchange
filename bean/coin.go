@@ -233,3 +233,25 @@ func (b CoinReview) GetAdd() map[string]interface{} {
 func (b CoinReview) GetPageValue() interface{} {
 	return b.CreatedAt
 }
+
+type CoinUserLimit struct {
+	UID   string `json:"uid" firestore:"uid"`
+	Limit string `json:"limit" firestore:"limit"`
+	Usage string `json:"usage" firestore:"usage"`
+}
+
+func (b CoinUserLimit) GetAdd() map[string]interface{} {
+	return map[string]interface{}{
+		"uid":        b.UID,
+		"limit":      b.Limit,
+		"usage":      b.Usage,
+		"created_at": firestore.ServerTimestamp,
+	}
+}
+
+func (b CoinUserLimit) GetUpdate() map[string]interface{} {
+	return map[string]interface{}{
+		"usage":      b.Usage,
+		"updated_at": firestore.ServerTimestamp,
+	}
+}
