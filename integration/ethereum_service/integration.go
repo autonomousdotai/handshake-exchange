@@ -79,10 +79,11 @@ func (c *EthereumClient) Close() {
 
 func (c *EthereumClient) SendTransaction(address string, amount decimal.Decimal) (string, error) {
 	c.Initialize()
-
 	nonce, err := c.client.PendingNonceAt(context.Background(), c.address)
 	if err == nil {
-		value := big.NewInt(amount.Mul(WeiDecimal).IntPart()) // in wei
+		bigAmount := big.NewInt(amount.IntPart())
+		bigWei := big.NewInt(WeiDecimal.IntPart())
+		value := bigAmount.Mul(bigAmount, bigWei) // in wei
 		gasLimit := uint64(21000)
 		gasPrice, err := c.client.SuggestGasPrice(context.Background())
 		if err == nil {

@@ -473,7 +473,6 @@ func (s CoinService) FinishOrder(id string, amount string, fiatCurrency string) 
 	if os.Getenv("ENVIRONMENT") == "dev" {
 		if order.Currency == bean.ETH.Code {
 			txHash, onChainErr := crypto_service.SendTransaction(order.Address, order.Amount, order.Currency)
-
 			provider = bean.ETH_WALLET_NETWORK
 			order.ProviderWithdrawData = txHash
 			order.Status = bean.COIN_ORDER_STATUS_TRANSFERRING
