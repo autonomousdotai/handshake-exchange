@@ -9,6 +9,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/integration/bitstamp_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/crypto_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/solr_service"
+	"github.com/ninjadotorg/handshake-exchange/integration/twilio_service"
 	"github.com/shopspring/decimal"
 	"os"
 	"strings"
@@ -337,6 +338,9 @@ func (s CoinService) AddOrder(userId string, orderBody bean.CoinOrder) (order be
 	order.CreatedAt = time.Now().UTC()
 	s.dao.UpdateNotificationCoinOrder(order)
 	solr_service.UpdateObject(bean.NewSolrFromCoinOrder(order))
+	if order.Type == bean.COIN_ORDER_TYPE_COD {
+		s.notifyNewCoinOrder(order)
+	}
 
 	return
 }
@@ -357,6 +361,9 @@ func (s CoinService) UpdateOrderReceipt(orderId string, coinOrder bean.CoinOrder
 
 	s.dao.UpdateNotificationCoinOrder(order)
 	solr_service.UpdateObject(bean.NewSolrFromCoinOrder(order))
+	if order.Type == bean.COIN_ORDER_TYPE_BANK {
+		s.notifyNewCoinOrder(order)
+	}
 
 	return
 }
@@ -627,4 +634,12 @@ func (s CoinService) cancelCoinOrder(orderId string, status string, ce *SimpleCo
 	solr_service.UpdateObject(bean.NewSolrFromCoinOrder(order))
 
 	return
+}
+
+func (c CoinService) notifyNewCoinOrder(order bean.CoinOrder) error {
+	smsBody := fmt.Sprintf("You have new order, please check %s/admin/buy_coin/%s/%s",
+		os.Getenv("FRONTEND_HOST"), order.Type, order.RefCode)
+
+	_, err := twilio_service.SendSMS(os.Getenv("COIN_ORDER_TO_NUMBER"), smsBody)
+	return err
 }

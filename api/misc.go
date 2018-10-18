@@ -621,9 +621,7 @@ func (api MiscApi) ServerTime(context *gin.Context) {
 }
 
 func (api MiscApi) TestAnything(context *gin.Context) {
-	response, err := bitstamp_service.WithdrawalRequests(0)
-	fmt.Println(err)
-	bean.SuccessResponse(context, response)
+	bean.SuccessResponse(context, true)
 }
 
 func (api MiscApi) AdyenRedirect(context *gin.Context) {
