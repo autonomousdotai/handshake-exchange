@@ -811,6 +811,7 @@ type SolrCoinOrderExtraData struct {
 	Status            string            `json:"status"`
 	Address           string            `json:"address"`
 	TxHash            interface{}       `json:"tx_hash"`
+	Reviewed          bool              `json:"reviewed"`
 }
 
 func NewSolrFromCoinOrder(order CoinOrder) (solr SolrOfferObject) {
@@ -853,6 +854,7 @@ func NewSolrFromCoinOrder(order CoinOrder) (solr SolrOfferObject) {
 		Status:            order.Status,
 		Address:           order.Address,
 		TxHash:            order.ProviderWithdrawData,
+		Reviewed:          order.Reviewed,
 	}
 	b, _ := json.Marshal(&extraData)
 	solr.ExtraData = string(b)

@@ -547,11 +547,23 @@ func (s CoinService) FinishCoinOrderPendingTransfer(ref string) (order bean.Coin
 }
 
 func (s CoinService) AddCoinReview(review bean.CoinReview) (ce SimpleContextError) {
+	cashOrderTO := s.dao.GetCoinOrder(review.Order)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, cashOrderTO) {
+		return
+	}
+	order := cashOrderTO.Object.(bean.CoinOrder)
+	if order.Reviewed {
+		ce.SetStatusKey(api_error.InvalidRequestBody)
+		return
+	}
+
 	err := s.dao.AddCoinReview(&review)
 	if err != nil {
 		ce.SetError(api_error.AddDataFailed, err)
 		return
 	}
+	order.Reviewed = true
+	s.dao.UpdateCoinOrderReview(&order)
 
 	return
 }

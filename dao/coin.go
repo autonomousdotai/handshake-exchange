@@ -201,6 +201,20 @@ func (dao CoinDao) UpdateCoinOrder(order *bean.CoinOrder) error {
 	return err
 }
 
+func (dao CoinDao) UpdateCoinOrderReview(order *bean.CoinOrder) error {
+	dbClient := firebase_service.FirestoreClient
+
+	docRef := dbClient.Doc(GetCoinOrderItemPath(order.Id))
+	docUserRef := dbClient.Doc(GetCoinOrderUserItemPath(order.UID, order.Id))
+
+	batch := dbClient.Batch()
+	batch.Set(docRef, order.GetReviewUpdate(), firestore.MergeAll)
+	batch.Set(docUserRef, order.GetReviewUpdate(), firestore.MergeAll)
+	_, err := batch.Commit(context.Background())
+
+	return err
+}
+
 func (dao CoinDao) FinishCoinOrder(order *bean.CoinOrder) error {
 	dbClient := firebase_service.FirestoreClient
 

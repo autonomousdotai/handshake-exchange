@@ -47,6 +47,7 @@ type CoinOrder struct {
 	ReceiptURL                string            `json:"receipt_url" firestore:"receipt_url"`
 	RefCode                   string            `json:"ref_code" firestore:"ref_code"`
 	Center                    string            `json:"center" firestore:"center"`
+	Reviewed                  bool              `json:"reviewed" firestore:"reviewed"`
 	FCM                       string            `json:"fcm" firestore:"fcm"`
 	Language                  string            `json:"language" firestore:"language"`
 	ChainId                   int64             `json:"chain_id" firestore:"chain_id"`
@@ -97,6 +98,12 @@ func (b CoinOrder) GetReceiptUpdate() map[string]interface{} {
 		"status":      b.Status,
 		"receipt_url": b.ReceiptURL,
 		"updated_at":  firestore.ServerTimestamp,
+	}
+}
+
+func (b CoinOrder) GetReviewUpdate() map[string]interface{} {
+	return map[string]interface{}{
+		"reviewed": b.Reviewed,
 	}
 }
 
@@ -208,6 +215,7 @@ type CoinReview struct {
 	UID       string    `json:"uid" firestore:"uid"`
 	Name      string    `json:"name" firestore:"name"`
 	Review    string    `json:"review" firestore:"review" validate:"required"`
+	Order     string    `json:"order" firestore:"order" validate:"required"`
 	CreatedAt time.Time `json:"created_at" firestore:"created_at"`
 }
 
@@ -217,6 +225,7 @@ func (b CoinReview) GetAdd() map[string]interface{} {
 		"uid":        b.UID,
 		"name":       b.Name,
 		"review":     b.Review,
+		"order":      b.Order,
 		"created_at": firestore.ServerTimestamp,
 	}
 }
