@@ -604,7 +604,6 @@ func (s CoinService) GetUserLimit(uid string, currency string, level string) (li
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, limitTO) {
 		return
 	}
-	limit = limitTO.Object.(bean.CoinUserLimit)
 
 	configTO := s.miscDao.GetSystemConfigFromCache(fmt.Sprintf("%s_%s_%s", bean.COIN_ORDER_LIMIT, "1", currency))
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, configTO) {
