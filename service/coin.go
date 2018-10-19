@@ -384,6 +384,7 @@ func (s CoinService) UpdateOrderReceipt(orderId string, coinOrder bean.CoinOrder
 
 	s.dao.UpdateNotificationCoinOrder(order)
 	solr_service.UpdateObject(bean.NewSolrFromCoinOrder(order))
+	fmt.Println(order.Type)
 	if order.Type == bean.COIN_ORDER_TYPE_BANK {
 		s.notifyNewCoinOrder(order)
 	}
@@ -726,9 +727,8 @@ func (s CoinService) cancelCoinOrder(orderId string, status string, ce *SimpleCo
 }
 
 func (s CoinService) notifyNewCoinOrder(order bean.CoinOrder) error {
-	smsBody := fmt.Sprintf("You have new order, please check %s/admin/coin/%s?ref_code=%s",
-		os.Getenv("FRONTEND_HOST"), order.Type, order.RefCode)
-
+	// os.Getenv("FRONTEND_HOST")
+	smsBody := fmt.Sprintf("You have new %s order, please check ref code: %s", order.Type, order.RefCode)
 	_, err := twilio_service.SendSMS(os.Getenv("COIN_ORDER_TO_NUMBER"), smsBody)
 	return err
 }
