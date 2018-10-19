@@ -366,6 +366,11 @@ func (dao CoinDao) GetCoinUserLimit(id string) (t TransferObject) {
 	return
 }
 
+func (dao CoinDao) ListCoinUserLimit() (t TransferObject) {
+	ListObjects(GetCoinUserLimitPath(), &t, nil, snapshotToCoinCenter)
+	return
+}
+
 func (dao CoinDao) AddCoinUserLimit(userLimit *bean.CoinUserLimit) error {
 	dbClient := firebase_service.FirestoreClient
 

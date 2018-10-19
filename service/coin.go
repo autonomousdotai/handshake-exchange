@@ -613,11 +613,11 @@ func (s CoinService) GetUserLimit(uid string, currency string, level string) (li
 	if limitTO.Found {
 		limit = limitTO.Object.(bean.CoinUserLimit)
 		limit.LimitCOD = systemConfig.Value
-		if limit.Currency != currency {
+		if limit.Currency != currency && !common.StringToDecimal(limit.Usage).Equal(common.Zero) {
 			ce.SetStatusKey(api_error.InvalidRequestBody)
 			return
 		}
-		if limit.Level != level {
+		if limit.Level != level || limit.Currency != currency {
 			configTO := s.miscDao.GetSystemConfigFromCache(fmt.Sprintf("%s_%s_%s", bean.COIN_ORDER_LIMIT, level, currency))
 			if ce.FeedDaoTransfer(api_error.GetDataFailed, configTO) {
 				return
@@ -636,6 +636,12 @@ func (s CoinService) GetUserLimit(uid string, currency string, level string) (li
 		limit.Currency = currency
 		s.dao.AddCoinUserLimit(&limit)
 	}
+
+	return
+}
+
+func (s CoinService) ResetCoinUserLimit() (ce SimpleContextError) {
+	s.dao.ListCoinUserLimit()
 
 	return
 }
