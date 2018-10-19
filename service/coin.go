@@ -200,6 +200,7 @@ func (s CoinService) GetCoinQuoteReverse(userId string, fiatLocalAmountStr strin
 	coinQuote.FiatCurrency = bean.USD.Code
 	coinQuote.Limit = userLimitCOD.String()
 
+	coinQuote.FiatLocalCurrency = currency
 	if coinQuote.Type == bean.COIN_ORDER_TYPE_COD {
 		coinQuote.FiatLocalAmountCOD = fiatLocalAmountStr
 	} else {
