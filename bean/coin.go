@@ -247,19 +247,19 @@ type CoinUserLimit struct {
 
 func (b CoinUserLimit) GetAdd() map[string]interface{} {
 	return map[string]interface{}{
-		"uid":        b.UID,
-		"currency":   b.Currency,
-		"limit":      b.Limit,
-		"usage":      b.Usage,
-		"level":      b.Level,
+		"uid":      b.UID,
+		"currency": b.Currency,
+		"limit":    b.Limit,
+		"usage":    b.Usage,
+		// "level":      b.Level,
 		"created_at": firestore.ServerTimestamp,
 	}
 }
 
 func (b CoinUserLimit) GetUpdateLevel() map[string]interface{} {
 	return map[string]interface{}{
-		"limit":      b.Limit,
-		"level":      b.Level,
+		"limit": b.Limit,
+		// "level":      b.Level,
 		"currency":   b.Currency,
 		"updated_at": firestore.ServerTimestamp,
 	}

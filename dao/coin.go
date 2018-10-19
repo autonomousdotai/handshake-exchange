@@ -384,6 +384,7 @@ func (dao CoinDao) UpdateCoinUserLimitLevel(userLimit *bean.CoinUserLimit) error
 	dbClient := firebase_service.FirestoreClient
 
 	docRef := dbClient.Doc(GetCoinUserLimitItemPath(userLimit.UID))
+	fmt.Println(GetCoinUserLimitItemPath(userLimit.UID))
 	_, err := docRef.Set(context.Background(), userLimit.GetUpdateLevel(), firestore.MergeAll)
 
 	return err
