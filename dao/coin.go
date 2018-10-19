@@ -69,6 +69,8 @@ func (dao CoinDao) AddCoinOrder(order *bean.CoinOrder) error {
 
 	docPoolRef := dbClient.Doc(GetCoinPoolItemPath(order.Currency))
 
+	docUserLimitRef := dbClient.Doc(GetCoinUserLimitItemPath(order.UID))
+
 	err := dbClient.RunTransaction(context.Background(), func(ctx context.Context, tx *firestore.Transaction) error {
 		var txErr error
 
@@ -88,6 +90,21 @@ func (dao CoinDao) AddCoinOrder(order *bean.CoinOrder) error {
 		usage = usage.Add(amount)
 		if usage.GreaterThan(limit) {
 			return errors.New("out of stock")
+		}
+
+		userLimitDoc, txErr := tx.Get(docUserLimitRef)
+		userUsage, txErr := common.ConvertToDecimal(userLimitDoc, "usage")
+		if txErr != nil {
+			return txErr
+		}
+		userLimit, txErr := common.ConvertToDecimal(userLimitDoc, "limit")
+		if txErr != nil {
+			return txErr
+		}
+		fiatAmount := common.StringToDecimal(order.FiatLocalAmount)
+		userUsage = userUsage.Add(fiatAmount)
+		if usage.GreaterThan(userLimit) {
+			return errors.New("over limit")
 		}
 
 		txErr = tx.Set(docRef, order.GetAdd(), firestore.MergeAll)
@@ -111,6 +128,13 @@ func (dao CoinDao) AddCoinOrder(order *bean.CoinOrder) error {
 			return txErr
 		}
 
+		txErr = tx.Set(docUserLimitRef, bean.CoinUserLimit{
+			Usage: usage.String(),
+		}.GetUpdate(), firestore.MergeAll)
+		if txErr != nil {
+			return txErr
+		}
+
 		return txErr
 	})
 
@@ -125,6 +149,7 @@ func (dao CoinDao) CancelCoinOrder(order *bean.CoinOrder) error {
 	docOrderRefRef := dbClient.Doc(GetCoinOrderRefCodeItemPath(order.RefCode))
 
 	docPoolRef := dbClient.Doc(GetCoinPoolItemPath(order.Currency))
+	docUserLimitRef := dbClient.Doc(GetCoinUserLimitItemPath(order.UID))
 
 	err := dbClient.RunTransaction(context.Background(), func(ctx context.Context, tx *firestore.Transaction) error {
 		var txErr error
@@ -143,6 +168,20 @@ func (dao CoinDao) CancelCoinOrder(order *bean.CoinOrder) error {
 			usage = common.Zero
 		}
 
+		userLimitDoc, txErr := tx.Get(docUserLimitRef)
+		if txErr != nil {
+			return txErr
+		}
+		userUsage, txErr := common.ConvertToDecimal(userLimitDoc, "usage")
+		if txErr != nil {
+			return txErr
+		}
+		fiatAmount := common.StringToDecimal(order.FiatLocalAmount)
+		userUsage = userUsage.Add(fiatAmount)
+		if userUsage.LessThan(common.Zero) {
+			userUsage = common.Zero
+		}
+
 		txErr = tx.Set(docRef, order.GetUpdate(), firestore.MergeAll)
 		if txErr != nil {
 			return txErr
@@ -159,6 +198,13 @@ func (dao CoinDao) CancelCoinOrder(order *bean.CoinOrder) error {
 		}
 
 		txErr = tx.Set(docPoolRef, bean.CoinPool{
+			Usage: usage.String(),
+		}.GetUpdate(), firestore.MergeAll)
+		if txErr != nil {
+			return txErr
+		}
+
+		txErr = tx.Set(docUserLimitRef, bean.CoinUserLimit{
 			Usage: usage.String(),
 		}.GetUpdate(), firestore.MergeAll)
 		if txErr != nil {

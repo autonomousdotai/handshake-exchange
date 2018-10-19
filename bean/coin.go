@@ -48,7 +48,7 @@ type CoinOrder struct {
 	RefCode                   string            `json:"ref_code" firestore:"ref_code"`
 	Center                    string            `json:"center" firestore:"center"`
 	Reviewed                  bool              `json:"reviewed" firestore:"reviewed"`
-	Level                     string            `json:"level" firestore:"level"`
+	Level                     string            `json:"level" firestore:"level" validator:"oneof=1 2"`
 	FCM                       string            `json:"fcm" firestore:"fcm"`
 	Language                  string            `json:"language" firestore:"language"`
 	ChainId                   int64             `json:"chain_id" firestore:"chain_id"`
