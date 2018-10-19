@@ -602,6 +602,7 @@ func (s CoinService) GetUserLimit(uid string, currency string, level string) (li
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, limitTO) {
 		return
 	}
+	limit = limitTO.Object.(bean.CoinUserLimit)
 
 	configTO := s.miscDao.GetSystemConfigFromCache(fmt.Sprintf("%s_%s_%s", bean.COIN_ORDER_LIMIT, "1", currency))
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, configTO) {
@@ -611,25 +612,24 @@ func (s CoinService) GetUserLimit(uid string, currency string, level string) (li
 	limit.LimitCOD = systemConfig.Value
 
 	if limitTO.Found {
-		//limit = limitTO.Object.(bean.CoinUserLimit)
-		//limit.LimitCOD = systemConfig.Value
-		//if limit.Currency != currency && !common.StringToDecimal(limit.Usage).Equal(common.Zero) {
-		//	ce.SetStatusKey(api_error.InvalidRequestBody)
-		//	return
-		//}
-		//if limit.Level != level || limit.Currency != currency {
-		//	configTO := s.miscDao.GetSystemConfigFromCache(fmt.Sprintf("%s_%s_%s", bean.COIN_ORDER_LIMIT, level, currency))
-		//	if ce.FeedDaoTransfer(api_error.GetDataFailed, configTO) {
-		//		return
-		//	}
-		//	systemConfig := configTO.Object.(bean.SystemConfig)
-		//
-		//	limit.Level = level
-		//	limit.Limit = systemConfig.Value
-		//	fmt.Println("Go here", limit.UID)
-		//	err := s.dao.UpdateCoinUserLimitLevel(&limit)
-		//	fmt.Println(err)
-		//}
+		limit = limitTO.Object.(bean.CoinUserLimit)
+		limit.LimitCOD = systemConfig.Value
+		if limit.Currency != currency && !common.StringToDecimal(limit.Usage).Equal(common.Zero) {
+			ce.SetStatusKey(api_error.InvalidRequestBody)
+			return
+		}
+		if limit.Level != level || limit.Currency != currency {
+			configTO := s.miscDao.GetSystemConfigFromCache(fmt.Sprintf("%s_%s_%s", bean.COIN_ORDER_LIMIT, "2", currency))
+			if ce.FeedDaoTransfer(api_error.GetDataFailed, configTO) {
+				return
+			}
+			systemConfig := configTO.Object.(bean.SystemConfig)
+
+			limit.Currency = currency
+			limit.Level = level
+			limit.Limit = systemConfig.Value
+			s.dao.UpdateCoinUserLimitLevel(&limit)
+		}
 		// do nothing
 	} else {
 		configTO := s.miscDao.GetSystemConfigFromCache(fmt.Sprintf("%s_%s_%s", bean.COIN_ORDER_LIMIT, "2", currency))

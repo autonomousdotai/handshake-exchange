@@ -258,8 +258,8 @@ func (b CoinUserLimit) GetAdd() map[string]interface{} {
 
 func (b CoinUserLimit) GetUpdateLevel() map[string]interface{} {
 	return map[string]interface{}{
-		"limit": b.Limit,
 		// "level":      b.Level,
+		"limit":      b.Limit,
 		"currency":   b.Currency,
 		"updated_at": firestore.ServerTimestamp,
 	}
