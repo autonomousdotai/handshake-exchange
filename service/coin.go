@@ -638,7 +638,7 @@ func (s CoinService) cancelCoinOrder(orderId string, status string, ce *SimpleCo
 }
 
 func (c CoinService) notifyNewCoinOrder(order bean.CoinOrder) error {
-	smsBody := fmt.Sprintf("You have new order, please check %s/admin/buy_coin/%s/%s",
+	smsBody := fmt.Sprintf("You have new order, please check %s/admin/coin/%s?ref_code=%s",
 		os.Getenv("FRONTEND_HOST"), order.Type, order.RefCode)
 
 	_, err := twilio_service.SendSMS(os.Getenv("COIN_ORDER_TO_NUMBER"), smsBody)
