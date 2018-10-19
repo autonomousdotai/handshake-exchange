@@ -103,7 +103,7 @@ func (dao CoinDao) AddCoinOrder(order *bean.CoinOrder) error {
 		}
 		fiatAmount := common.StringToDecimal(order.FiatLocalAmount)
 		userUsage = userUsage.Add(fiatAmount)
-		if usage.GreaterThan(userLimit) {
+		if userUsage.GreaterThan(userLimit) {
 			return errors.New("over limit")
 		}
 
@@ -129,7 +129,7 @@ func (dao CoinDao) AddCoinOrder(order *bean.CoinOrder) error {
 		}
 
 		txErr = tx.Set(docUserLimitRef, bean.CoinUserLimit{
-			Usage: usage.String(),
+			Usage: userUsage.String(),
 		}.GetUpdate(), firestore.MergeAll)
 		if txErr != nil {
 			return txErr
@@ -205,7 +205,7 @@ func (dao CoinDao) CancelCoinOrder(order *bean.CoinOrder) error {
 		}
 
 		txErr = tx.Set(docUserLimitRef, bean.CoinUserLimit{
-			Usage: usage.String(),
+			Usage: userUsage.String(),
 		}.GetUpdate(), firestore.MergeAll)
 		if txErr != nil {
 			return txErr
