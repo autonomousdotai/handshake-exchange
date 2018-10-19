@@ -41,6 +41,7 @@ func (s CoinService) GetCoinQuote(userId string, amountStr string, currency stri
 	userLimitObj, limitCE := s.GetUserLimit(userId, fiatValidLocalCurrency, level)
 	if limitCE.HasError() {
 		ce.SetError(api_error.InvalidRequestBody, limitCE.Error)
+		return
 	}
 	userLimit := common.StringToDecimal(userLimitObj.Limit)
 	userUsage := common.StringToDecimal(userLimitObj.Usage)
