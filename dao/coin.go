@@ -177,7 +177,7 @@ func (dao CoinDao) CancelCoinOrder(order *bean.CoinOrder) error {
 			return txErr
 		}
 		fiatAmount := common.StringToDecimal(order.FiatLocalAmount)
-		userUsage = userUsage.Add(fiatAmount)
+		userUsage = userUsage.Sub(fiatAmount)
 		if userUsage.LessThan(common.Zero) {
 			userUsage = common.Zero
 		}
