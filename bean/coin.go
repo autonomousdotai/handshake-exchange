@@ -48,6 +48,7 @@ type CoinOrder struct {
 	RefCode                   string            `json:"ref_code" firestore:"ref_code"`
 	Center                    string            `json:"center" firestore:"center"`
 	Reviewed                  bool              `json:"reviewed" firestore:"reviewed"`
+	Level                     string            `json:"level" firestore:"level"`
 	FCM                       string            `json:"fcm" firestore:"fcm"`
 	Language                  string            `json:"language" firestore:"language"`
 	ChainId                   int64             `json:"chain_id" firestore:"chain_id"`
@@ -78,6 +79,7 @@ func (b CoinOrder) GetAdd() map[string]interface{} {
 		"address":                 b.Address,
 		"ref_code":                b.RefCode,
 		"center":                  b.Center,
+		"level":                   b.Level,
 		"language":                b.Language,
 		"fcm":                     b.FCM,
 		"chain_id":                b.ChainId,
@@ -235,17 +237,30 @@ func (b CoinReview) GetPageValue() interface{} {
 }
 
 type CoinUserLimit struct {
-	UID   string `json:"uid" firestore:"uid"`
-	Limit string `json:"limit" firestore:"limit"`
-	Usage string `json:"usage" firestore:"usage"`
+	UID      string `json:"uid" firestore:"uid"`
+	Currency string `json:"currency" firestore:"currency"`
+	Limit    string `json:"limit" firestore:"limit"`
+	LimitCOD string
+	Usage    string `json:"usage" firestore:"usage"`
+	Level    string `json:"level" firestore:"level"`
 }
 
 func (b CoinUserLimit) GetAdd() map[string]interface{} {
 	return map[string]interface{}{
 		"uid":        b.UID,
+		"currency":   b.Currency,
 		"limit":      b.Limit,
 		"usage":      b.Usage,
+		"level":      b.Level,
 		"created_at": firestore.ServerTimestamp,
+	}
+}
+
+func (b CoinUserLimit) GetUpdateLevel() map[string]interface{} {
+	return map[string]interface{}{
+		"limit":      b.Limit,
+		"level":      b.Level,
+		"updated_at": firestore.ServerTimestamp,
 	}
 }
 

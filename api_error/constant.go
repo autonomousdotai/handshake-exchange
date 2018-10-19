@@ -53,6 +53,7 @@ const CashStoreExists = "CashStoreExists"
 const CashOrderStatusInvalid = "CashOrderStatusInvalid"
 
 const CoinOrderStatusInvalid = "CoinOrderStatusInvalid"
+const CoinOverLimit = "CoinOverLimit"
 
 var CodeMessage = map[string]struct {
 	StatusCode int
@@ -107,4 +108,5 @@ var CodeMessage = map[string]struct {
 	CashStoreExists:                {http.StatusBadRequest, -328, "Cash store exists"},
 	CashOrderStatusInvalid:         {http.StatusBadRequest, -329, "Cash order status invalid"},
 	CoinOrderStatusInvalid:         {http.StatusBadRequest, -330, "Coin order status invalid"},
+	CoinOverLimit:                  {http.StatusBadRequest, -331, "Coin over limit"},
 }

@@ -59,6 +59,13 @@ var HKD = Currency{
 	2,
 }
 
+var VND = Currency{
+	"Vietnam Dong",
+	"VND",
+	CURRENCY_FIAT,
+	0,
+}
+
 var CurrencyMapping = map[string]Currency{
 	USD.Code: USD,
 	// HKD.Code: HKD,

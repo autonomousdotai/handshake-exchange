@@ -14,12 +14,15 @@ type CoinApi struct {
 }
 
 func (api CoinApi) GetQuote(context *gin.Context) {
+	userId := common.GetUserId(context)
+
 	amount := context.DefaultQuery("amount", "1")
 	currency := context.DefaultQuery("currency", "")
 	fiatCurrency := context.DefaultQuery("fiat_currency", "USD")
+	level := context.DefaultQuery("level", "1")
 	check := context.DefaultQuery("check", "")
 
-	coinQuote, ce := service.CoinServiceInst.GetCoinQuote(amount, currency, fiatCurrency, check)
+	coinQuote, ce := service.CoinServiceInst.GetCoinQuote(userId, amount, currency, fiatCurrency, level, check)
 	if ce.ContextValidate(context) {
 		return
 	}
@@ -28,13 +31,16 @@ func (api CoinApi) GetQuote(context *gin.Context) {
 }
 
 func (api CoinApi) GetQuoteReverse(context *gin.Context) {
+	userId := common.GetUserId(context)
+
 	amount := context.DefaultQuery("fiat_amount", "")
 	currency := context.DefaultQuery("currency", "")
 	fiatCurrency := context.DefaultQuery("fiat_currency", "USD")
+	level := context.DefaultQuery("level", "1")
 	check := context.DefaultQuery("check", "")
 	orderType := context.DefaultQuery("type", bean.COIN_ORDER_TYPE_BANK)
 
-	coinQuote, ce := service.CoinServiceInst.GetCoinQuoteReverse(amount, currency, fiatCurrency, orderType, check)
+	coinQuote, ce := service.CoinServiceInst.GetCoinQuoteReverse(userId, amount, currency, fiatCurrency, orderType, level, check)
 	if ce.ContextValidate(context) {
 		return
 	}
