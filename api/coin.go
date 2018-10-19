@@ -166,6 +166,15 @@ func (api CoinApi) RemoveExpiredOrder(context *gin.Context) {
 	bean.SuccessResponse(context, true)
 }
 
+func (api CoinApi) ResetCoinUserLimit(context *gin.Context) {
+	ce := service.CoinServiceInst.ResetCoinUserLimit()
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, true)
+}
+
 func (api CoinApi) AddReview(context *gin.Context) {
 	userId := common.GetUserId(context)
 	var body bean.CoinReview

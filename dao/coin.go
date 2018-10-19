@@ -367,7 +367,10 @@ func (dao CoinDao) GetCoinUserLimit(id string) (t TransferObject) {
 }
 
 func (dao CoinDao) ListCoinUserLimit() (t TransferObject) {
-	ListObjects(GetCoinUserLimitPath(), &t, nil, snapshotToCoinCenter)
+	ListObjects(GetCoinUserLimitPath(), &t, func(collRef *firestore.CollectionRef) firestore.Query {
+		query := collRef.Where("usage", ">", "0")
+		return query
+	}, snapshotToCoinUserLimit)
 	return
 }
 
@@ -396,7 +399,7 @@ func (dao CoinDao) ResetCoinUserLimit(uid string) error {
 	docRef := dbClient.Doc(GetCoinUserLimitItemPath(uid))
 	_, err := docRef.Set(context.Background(), bean.CoinUserLimit{
 		Usage: common.Zero.String(),
-	}.GetUpdate())
+	}.GetUpdate(), firestore.MergeAll)
 	return err
 }
 

@@ -650,7 +650,14 @@ func (s CoinService) GetUserLimit(uid string, currency string, level string) (li
 }
 
 func (s CoinService) ResetCoinUserLimit() (ce SimpleContextError) {
-	s.dao.ListCoinUserLimit()
+	userLimitTO := s.dao.ListCoinUserLimit()
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, userLimitTO) {
+		return
+	}
+	for _, item := range userLimitTO.Objects {
+		userLimit := item.(bean.CoinUserLimit)
+		s.dao.ResetCoinUserLimit(userLimit.UID)
+	}
 
 	return
 }

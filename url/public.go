@@ -123,6 +123,11 @@ func (url CronJobUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	group.POST("/load-bitstamp-withdraw-to-cache", func(context *gin.Context) {
 		miscApi.LoadBitstampWithdrawToCache(context)
 	})
+	//CRON JOB
+	group.POST("/reset-coin-user-limit", func(context *gin.Context) {
+		coinApi.ResetCoinUserLimit(context)
+	})
+	//CRON JOB
 	group.POST("/remove-expired-coin-order", func(context *gin.Context) {
 		coinApi.RemoveExpiredOrder(context)
 	})
