@@ -524,7 +524,7 @@ func (s CoinService) FinishOrder(id string, amount string, fiatCurrency string) 
 		if errWithdraw == nil {
 			provider = bean.BTC_WALLET_BITSTAMP
 			externalId = fmt.Sprintf("%d", bitstampTx.Id)
-			order.ProviderWithdrawData = bitstampTx.Id
+			order.ProviderWithdrawData = externalId
 			order.Status = bean.COIN_ORDER_STATUS_TRANSFERRING
 		} else {
 			order.ProviderWithdrawData = errWithdraw.Error()
