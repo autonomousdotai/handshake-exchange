@@ -494,7 +494,7 @@ func (s CoinService) FinishOrder(id string, amount string, fiatCurrency string) 
 		return
 	}
 
-	if order.Status != bean.COIN_ORDER_STATUS_FIAT_TRANSFERRING && order.Status != bean.COIN_ORDER_STATUS_PROCESSING {
+	if order.Status != bean.COIN_ORDER_STATUS_FIAT_TRANSFERRING && order.Status != bean.COIN_ORDER_STATUS_PROCESSING && order.Status != bean.COIN_ORDER_STATUS_TRANSFER_FAILED {
 		ce.SetStatusKey(api_error.CoinOrderStatusInvalid)
 		return
 	}
@@ -521,11 +521,16 @@ func (s CoinService) FinishOrder(id string, amount string, fiatCurrency string) 
 		bitstampTx, errWithdraw := bitstamp_service.SendTransaction(order.Address, order.Amount, order.Currency,
 			fmt.Sprintf("Withdraw tx = %s", order.Id), order.Id)
 
-		if errWithdraw == nil {
+		if errWithdraw == nil{
 			provider = bean.BTC_WALLET_BITSTAMP
-			externalId = fmt.Sprintf("%d", bitstampTx.Id)
-			order.ProviderWithdrawData = externalId
-			order.Status = bean.COIN_ORDER_STATUS_TRANSFERRING
+			if bitstampTx.Id == 0 {
+				order.ProviderWithdrawData = "Out of coin"
+				order.Status = bean.COIN_ORDER_STATUS_TRANSFER_FAILED
+			} else {
+				externalId = fmt.Sprintf("%d", bitstampTx.Id)
+				order.ProviderWithdrawData = externalId
+				order.Status = bean.COIN_ORDER_STATUS_TRANSFERRING
+			}
 		} else {
 			order.ProviderWithdrawData = errWithdraw.Error()
 			order.Status = bean.COIN_ORDER_STATUS_TRANSFER_FAILED
