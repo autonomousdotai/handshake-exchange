@@ -31,3 +31,8 @@ func SendEmailWithTemplate(fromName string, fromAddress string, toName string, t
 
 	return err
 }
+
+func SendEmail(fromName string, fromAddress string, toName string, toAddress string, subject string, content string) error {
+	err := sendgrid_service.SendEmail(fromName, fromAddress, toName, toAddress, subject, content)
+	return err
+}

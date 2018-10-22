@@ -9,7 +9,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/integration/bitstamp_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/crypto_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/solr_service"
-	"github.com/ninjadotorg/handshake-exchange/integration/twilio_service"
+	"github.com/ninjadotorg/handshake-exchange/service/email"
 	"github.com/shopspring/decimal"
 	"os"
 	"strings"
@@ -733,7 +733,12 @@ func (s CoinService) cancelCoinOrder(orderId string, status string, ce *SimpleCo
 
 func (s CoinService) notifyNewCoinOrder(order bean.CoinOrder) error {
 	// os.Getenv("FRONTEND_HOST")
-	smsBody := fmt.Sprintf("You have new %s order, please check ref code: %s", order.Type, order.RefCode)
-	_, err := twilio_service.SendSMS(os.Getenv("COIN_ORDER_TO_NUMBER"), smsBody)
+	content := fmt.Sprintf("[%s] [ORDER] You have new order, please check ref code: %s", strings.ToUpper(order.Type), order.RefCode)
+	// _, err := twilio_service.SendSMS(os.Getenv("COIN_ORDER_TO_NUMBER"), smsBody)
+	if os.Getenv("ENVIRONMENT") == "dev" {
+		content = "TEST -- " + content
+	}
+	err := email.SendEmail("System", "dojo@ninja.org", "Admin", os.Getenv("COIN_ORDER_TO_EMAIL"), content, "")
+
 	return err
 }
