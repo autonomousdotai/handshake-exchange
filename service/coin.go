@@ -8,6 +8,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/dao"
 	"github.com/ninjadotorg/handshake-exchange/integration/bitstamp_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/crypto_service"
+	"github.com/ninjadotorg/handshake-exchange/integration/slack_integration"
 	"github.com/ninjadotorg/handshake-exchange/integration/solr_service"
 	"github.com/ninjadotorg/handshake-exchange/service/email"
 	"github.com/shopspring/decimal"
@@ -738,6 +739,8 @@ func (s CoinService) notifyNewCoinOrder(order bean.CoinOrder) error {
 	if os.Getenv("ENVIRONMENT") == "dev" {
 		content = "TEST -- " + content
 	}
+
+	slack_integration.SendSlack(content)
 	err := email.SendEmail("System", "dojo@ninja.org", "Admin", os.Getenv("COIN_ORDER_TO_EMAIL"), content, " ")
 
 	return err

@@ -1,5 +1,5 @@
-hash: 2022a32233fee0b2702a54b3dfb573f96d52c28573493a3e869e00c9d3b1cc25
-updated: 2018-08-24T17:41:53.003346+07:00
+hash: a0e95d8c0e1276dcf1f3ce8548cc19af2ae933e3f522cb338778bec617d0540b
+updated: 2018-10-22T16:14:12.062133+07:00
 imports:
 - name: cloud.google.com/go
   version: aad3f485ee528456e0768f20397b4d9dd941e755
@@ -31,6 +31,8 @@ imports:
   - monotime
 - name: github.com/blockcypher/gobcy
   version: 6eace16b4b81ea8dbdcde5417d6b1cc3828a3d1f
+- name: github.com/bluele/slack
+  version: b4b4d354a079fbf4bd948faad01b32cecb2ffe03
 - name: github.com/boj/redistore
   version: 4562487a4bee9a7c272b72bfaeda4917d0a47ab9
 - name: github.com/btcsuite/btcd
