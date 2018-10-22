@@ -521,7 +521,7 @@ func (s CoinService) FinishOrder(id string, amount string, fiatCurrency string) 
 		bitstampTx, errWithdraw := bitstamp_service.SendTransaction(order.Address, order.Amount, order.Currency,
 			fmt.Sprintf("Withdraw tx = %s", order.Id), order.Id)
 
-		if errWithdraw == nil{
+		if errWithdraw == nil {
 			provider = bean.BTC_WALLET_BITSTAMP
 			if bitstampTx.Id == 0 {
 				order.ProviderWithdrawData = "Out of coin"
