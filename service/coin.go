@@ -738,7 +738,7 @@ func (s CoinService) notifyNewCoinOrder(order bean.CoinOrder) error {
 	if os.Getenv("ENVIRONMENT") == "dev" {
 		content = "TEST -- " + content
 	}
-	err := email.SendEmail("System", "dojo@ninja.org", "Admin", os.Getenv("COIN_ORDER_TO_EMAIL"), content, "")
+	err := email.SendEmail("System", "dojo@ninja.org", "Admin", os.Getenv("COIN_ORDER_TO_EMAIL"), content, " ")
 
 	return err
 }
