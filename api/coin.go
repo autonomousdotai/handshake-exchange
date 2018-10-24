@@ -21,13 +21,21 @@ func (api CoinApi) GetQuote(context *gin.Context) {
 	fiatCurrency := context.DefaultQuery("fiat_currency", "USD")
 	level := context.DefaultQuery("level", "1")
 	check := context.DefaultQuery("check", "")
+	direction := context.DefaultQuery("direction", "buy")
 
-	coinQuote, ce := service.CoinServiceInst.GetCoinQuote(userId, amount, currency, fiatCurrency, level, check)
-	if ce.ContextValidate(context) {
-		return
+	if direction == "sell" {
+		coinQuote, ce := service.CoinServiceInst.GetCoinSellingQuote(userId, amount, currency, fiatCurrency, level, check)
+		if ce.ContextValidate(context) {
+			return
+		}
+		bean.SuccessResponse(context, coinQuote)
+	} else {
+		coinQuote, ce := service.CoinServiceInst.GetCoinQuote(userId, amount, currency, fiatCurrency, level, check)
+		if ce.ContextValidate(context) {
+			return
+		}
+		bean.SuccessResponse(context, coinQuote)
 	}
-
-	bean.SuccessResponse(context, coinQuote)
 }
 
 func (api CoinApi) GetQuoteReverse(context *gin.Context) {
@@ -39,13 +47,21 @@ func (api CoinApi) GetQuoteReverse(context *gin.Context) {
 	level := context.DefaultQuery("level", "1")
 	check := context.DefaultQuery("check", "")
 	orderType := context.DefaultQuery("type", bean.COIN_ORDER_TYPE_BANK)
+	direction := context.DefaultQuery("direction", "buy")
 
-	coinQuote, ce := service.CoinServiceInst.GetCoinQuoteReverse(userId, amount, currency, fiatCurrency, orderType, level, check)
-	if ce.ContextValidate(context) {
-		return
+	if direction == "sell" {
+		coinQuote, ce := service.CoinServiceInst.GetCoinSellingQuoteReverse(userId, amount, currency, fiatCurrency, orderType, level, check)
+		if ce.ContextValidate(context) {
+			return
+		}
+		bean.SuccessResponse(context, coinQuote)
+	} else {
+		coinQuote, ce := service.CoinServiceInst.GetCoinQuoteReverse(userId, amount, currency, fiatCurrency, orderType, level, check)
+		if ce.ContextValidate(context) {
+			return
+		}
+		bean.SuccessResponse(context, coinQuote)
 	}
-
-	bean.SuccessResponse(context, coinQuote)
 }
 
 func (api CoinApi) ListCoinCenter(context *gin.Context) {
@@ -167,9 +183,17 @@ func (api CoinApi) RemoveExpiredOrder(context *gin.Context) {
 }
 
 func (api CoinApi) ResetCoinUserLimit(context *gin.Context) {
-	ce := service.CoinServiceInst.ResetCoinUserLimit()
-	if ce.ContextValidate(context) {
-		return
+	direction := context.DefaultQuery("direction", "buy")
+	if direction == "sell" {
+		ce := service.CoinServiceInst.ResetCoinSellingUserLimit()
+		if ce.ContextValidate(context) {
+			return
+		}
+	} else {
+		ce := service.CoinServiceInst.ResetCoinUserLimit()
+		if ce.ContextValidate(context) {
+			return
+		}
 	}
 
 	bean.SuccessResponse(context, true)

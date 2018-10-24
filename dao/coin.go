@@ -299,6 +299,11 @@ func (dao CoinDao) GetCoinPool(currency string) (t TransferObject) {
 	return
 }
 
+func (dao CoinDao) GetCoinSellingPool(currency string) (t TransferObject) {
+	GetObject(GetCoinSellingPoolItemPath(currency), &t, snapshotToCoinPool)
+	return
+}
+
 func (dao CoinDao) GetCoinPayment(orderId string) (t TransferObject) {
 	GetObject(GetCoinPaymentItemPath(orderId), &t, snapshotToCoinPayment)
 	return
@@ -366,8 +371,21 @@ func (dao CoinDao) GetCoinUserLimit(id string) (t TransferObject) {
 	return
 }
 
+func (dao CoinDao) GetCoinSellingUserLimit(id string) (t TransferObject) {
+	GetObject(GetCoinSellingUserLimitItemPath(id), &t, snapshotToCoinUserLimit)
+	return
+}
+
 func (dao CoinDao) ListCoinUserLimit() (t TransferObject) {
 	ListObjects(GetCoinUserLimitPath(), &t, func(collRef *firestore.CollectionRef) firestore.Query {
+		query := collRef.Where("usage", ">", "0")
+		return query
+	}, snapshotToCoinUserLimit)
+	return
+}
+
+func (dao CoinDao) ListCoinSellingUserLimit() (t TransferObject) {
+	ListObjects(GetCoinSellingUserLimitPath(), &t, func(collRef *firestore.CollectionRef) firestore.Query {
 		query := collRef.Where("usage", ">", "0")
 		return query
 	}, snapshotToCoinUserLimit)
@@ -383,10 +401,28 @@ func (dao CoinDao) AddCoinUserLimit(userLimit *bean.CoinUserLimit) error {
 	return err
 }
 
+func (dao CoinDao) AddCoinSellingUserLimit(userLimit *bean.CoinUserLimit) error {
+	dbClient := firebase_service.FirestoreClient
+
+	docRef := dbClient.Doc(GetCoinSellingUserLimitItemPath(userLimit.UID))
+	_, err := docRef.Set(context.Background(), userLimit.GetAdd())
+
+	return err
+}
+
 func (dao CoinDao) UpdateCoinUserLimitLevel(userLimit *bean.CoinUserLimit) error {
 	dbClient := firebase_service.FirestoreClient
 
 	docRef := dbClient.Doc(GetCoinUserLimitItemPath(userLimit.UID))
+	_, err := docRef.Set(context.Background(), userLimit.GetUpdateLevel(), firestore.MergeAll)
+
+	return err
+}
+
+func (dao CoinDao) UpdateCoinSellingUserLimitLevel(userLimit *bean.CoinUserLimit) error {
+	dbClient := firebase_service.FirestoreClient
+
+	docRef := dbClient.Doc(GetCoinSellingUserLimitItemPath(userLimit.UID))
 	_, err := docRef.Set(context.Background(), userLimit.GetUpdateLevel(), firestore.MergeAll)
 
 	return err
@@ -402,10 +438,49 @@ func (dao CoinDao) ResetCoinUserLimit(uid string) error {
 	return err
 }
 
+func (dao CoinDao) ResetCoinSellingUserLimit(uid string) error {
+	dbClient := firebase_service.FirestoreClient
+
+	docRef := dbClient.Doc(GetCoinSellingUserLimitItemPath(uid))
+	_, err := docRef.Set(context.Background(), bean.CoinUserLimit{
+		Usage: common.Zero.String(),
+	}.GetUpdate(), firestore.MergeAll)
+	return err
+}
+
 func (dao CoinDao) UpdateCoinUserLimit(uid string, amount decimal.Decimal, userLimit bean.CoinUserLimit) error {
 	dbClient := firebase_service.FirestoreClient
 
 	docRef := dbClient.Doc(GetCoinUserLimitItemPath(uid))
+	err := dbClient.RunTransaction(context.Background(), func(ctx context.Context, tx *firestore.Transaction) error {
+		var txErr error
+
+		paymentDoc, txErr := tx.Get(docRef)
+		if txErr != nil {
+			return txErr
+		}
+		usage, txErr := common.ConvertToDecimal(paymentDoc, "usage")
+		if txErr != nil {
+			return txErr
+		}
+		usage = usage.Add(amount)
+		userLimit.Usage = usage.String()
+
+		txErr = tx.Set(docRef, userLimit.GetUpdate(), firestore.MergeAll)
+		if txErr != nil {
+			return txErr
+		}
+
+		return txErr
+	})
+
+	return err
+}
+
+func (dao CoinDao) UpdateCoinSellingUserLimit(uid string, amount decimal.Decimal, userLimit bean.CoinUserLimit) error {
+	dbClient := firebase_service.FirestoreClient
+
+	docRef := dbClient.Doc(GetCoinSellingUserLimitItemPath(uid))
 	err := dbClient.RunTransaction(context.Background(), func(ctx context.Context, tx *firestore.Transaction) error {
 		var txErr error
 
@@ -463,6 +538,10 @@ func GetCoinPoolItemPath(currency string) string {
 	return fmt.Sprintf("coin_pools/%s", currency)
 }
 
+func GetCoinSellingPoolItemPath(currency string) string {
+	return fmt.Sprintf("coin_selling_pools/%s", currency)
+}
+
 func GetCoinPaymentItemPath(orderId string) string {
 	return fmt.Sprintf("coin_payments/%s", orderId)
 }
@@ -481,6 +560,14 @@ func GetCoinUserLimitPath() string {
 
 func GetCoinUserLimitItemPath(id string) string {
 	return fmt.Sprintf("coin_user_limits/%s", id)
+}
+
+func GetCoinSellingUserLimitPath() string {
+	return fmt.Sprintf("coin_selling_user_limits")
+}
+
+func GetCoinSellingUserLimitItemPath(id string) string {
+	return fmt.Sprintf("coin_selling_user_limits/%s", id)
 }
 
 func snapshotToCoinOrder(snapshot *firestore.DocumentSnapshot) interface{} {

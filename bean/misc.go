@@ -19,6 +19,7 @@ const FEE_KEY_CASH_STORE_SELL_CRYPTO = "cash_store_sell_crypto"
 const FEE_COIN_ORDER_COD = "coin_order_cod"
 const FEE_COIN_ORDER_BANK = "coin_order_bank"
 const FEE_COIN_ORDER_BANK_HIGH = "coin_order_bank_high"
+const FEE_COIN_SELLING_ORDER_BANK = "coin_selling_order_bank"
 
 const CONFIG_KEY_CC_MODE = "CC_MODE"
 const CC_MODE_GDAX = "gdax"

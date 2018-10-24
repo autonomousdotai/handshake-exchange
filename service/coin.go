@@ -225,6 +225,171 @@ func (s CoinService) GetCoinQuoteReverse(userId string, fiatLocalAmountStr strin
 	return
 }
 
+func (s CoinService) GetCoinSellingQuote(userId string, amountStr string, currency string, fiatLocalCurrency string, level string, check string) (coinQuote bean.CoinQuote, ce SimpleContextError) {
+	amount := common.StringToDecimal(amountStr)
+
+	cryptoRateTO := dao.MiscDaoInst.GetCryptoRateFromCache(currency, bean.INSTANT_OFFER_PROVIDER_BITSTAMP)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, cryptoRateTO) {
+		return
+	}
+	cryptoRate := cryptoRateTO.Object.(bean.CryptoRate)
+	cryptoPrice := decimal.NewFromFloat(cryptoRate.Buy).Round(2)
+	price := amount.Mul(cryptoPrice)
+
+	fiatValidLocalCurrency := fiatLocalCurrency
+	if fiatValidLocalCurrency != bean.USD.Code && fiatValidLocalCurrency != bean.HKD.Code && fiatValidLocalCurrency != bean.VND.Code {
+		fiatValidLocalCurrency = bean.USD.Code
+	}
+
+	userLimitObj, limitCE := s.GetSellingUserLimit(userId, fiatValidLocalCurrency, level)
+	if limitCE.HasError() {
+		ce.SetError(api_error.InvalidRequestBody, limitCE.Error)
+		return
+	}
+	userLimit := common.StringToDecimal(userLimitObj.Limit)
+	userUsage := common.StringToDecimal(userLimitObj.Usage)
+
+	rateTO := dao.MiscDaoInst.GetCurrencyRateFromCache(bean.USD.Code, fiatLocalCurrency)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, rateTO) {
+		return
+	}
+	rate := rateTO.Object.(bean.CurrencyRate)
+	rateNumber := decimal.NewFromFloat(rate.Rate)
+	localPrice := price.Mul(rateNumber)
+
+	if userLimit.LessThan(userUsage.Add(localPrice)) {
+		ce.SetStatusKey(api_error.CoinOverLimit)
+		return
+	}
+
+	bankFeeTO := dao.MiscDaoInst.GetSystemFeeFromCache(bean.FEE_COIN_SELLING_ORDER_BANK)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, bankFeeTO) {
+		return
+	}
+	bankFee := bankFeeTO.Object.(bean.SystemFee)
+	bankFeePercentage := decimal.NewFromFloat(bankFee.Value).Round(3)
+
+	bankValue, bankFeeValue := dao.AddFeePercentage(price, bankFeePercentage)
+
+	bankValueLocal := bankValue.Mul(rateNumber)
+	bankFeeLocal := bankFeeValue.Mul(rateNumber)
+
+	coinQuote.FiatCurrency = bean.USD.Code
+	coinQuote.FiatLocalCurrency = fiatLocalCurrency
+	coinQuote.FeePercentage = bankFeePercentage.String()
+	coinQuote.RawFiatAmount = price.String()
+	coinQuote.Price = cryptoPrice.String()
+
+	coinQuote.FiatAmount = bankValue.RoundBank(2).String()
+	coinQuote.Fee = bankFeeValue.RoundBank(2).String()
+
+	coinQuote.FiatLocalAmount = bankValueLocal.RoundBank(2).String()
+	coinQuote.FeeLocal = bankFeeLocal.RoundBank(2).String()
+
+	userLimitCOD := common.StringToDecimal(userLimitObj.LimitCOD)
+	coinQuote.Limit = userLimitCOD.String()
+
+	if check == "" {
+		coinPoolTO := s.dao.GetCoinPool(currency)
+		if ce.FeedDaoTransfer(api_error.GetDataFailed, coinPoolTO) {
+			return
+		}
+		coinPool := coinPoolTO.Object.(bean.CoinPool)
+		usage := common.StringToDecimal(coinPool.Usage)
+		usageLimit := common.StringToDecimal(coinPool.Limit)
+		if usageLimit.LessThan(usage.Add(amount)) {
+			ce.SetStatusKey(api_error.CreditOutOfStock)
+			return
+		}
+	}
+
+	return
+}
+
+func (s CoinService) GetCoinSellingQuoteReverse(userId string, fiatLocalAmountStr string, currency string, fiatLocalCurrency string,
+	orderType string, level string, check string) (coinQuote bean.CoinQuote, ce SimpleContextError) {
+	fiatLocalAmount := common.StringToDecimal(fiatLocalAmountStr)
+
+	rateTO := dao.MiscDaoInst.GetCurrencyRateFromCache(bean.USD.Code, fiatLocalCurrency)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, rateTO) {
+		return
+	}
+	rate := rateTO.Object.(bean.CurrencyRate)
+	rateNumber := decimal.NewFromFloat(rate.Rate)
+
+	fiatAmount := fiatLocalAmount.Div(rateNumber)
+
+	cryptoRateTO := dao.MiscDaoInst.GetCryptoRateFromCache(currency, bean.INSTANT_OFFER_PROVIDER_BITSTAMP)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, cryptoRateTO) {
+		return
+	}
+	cryptoRate := cryptoRateTO.Object.(bean.CryptoRate)
+	cryptoPrice := decimal.NewFromFloat(cryptoRate.Buy).Round(2)
+
+	fiatValidLocalCurrency := fiatLocalCurrency
+	if fiatValidLocalCurrency != bean.USD.Code && fiatValidLocalCurrency != bean.HKD.Code && fiatValidLocalCurrency != bean.VND.Code {
+		fiatValidLocalCurrency = bean.USD.Code
+	}
+
+	userLimitObj, limitCE := s.GetSellingUserLimit(userId, fiatValidLocalCurrency, level)
+	if limitCE.HasError() {
+		ce.SetError(api_error.InvalidRequestBody, limitCE.Error)
+	}
+	userLimit := common.StringToDecimal(userLimitObj.Limit)
+	userUsage := common.StringToDecimal(userLimitObj.Usage)
+
+	if userLimit.LessThan(userUsage.Add(fiatLocalAmount)) {
+		ce.SetStatusKey(api_error.CoinOverLimit)
+		return
+	}
+
+	userLimitCOD := common.StringToDecimal(userLimitObj.LimitCOD)
+	coinQuote.Currency = currency
+	coinQuote.Type = bean.COIN_ORDER_TYPE_BANK
+
+	bankFeeTO := dao.MiscDaoInst.GetSystemFeeFromCache(bean.FEE_COIN_SELLING_ORDER_BANK)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, bankFeeTO) {
+		return
+	}
+	bankFee := bankFeeTO.Object.(bean.SystemFee)
+	bankFeePercentage := decimal.NewFromFloat(bankFee.Value).Round(3)
+
+	bankValue, _ := dao.RemoveFeePercentage(fiatAmount, bankFeePercentage)
+
+	amount := common.Zero
+	if coinQuote.Type == bean.COIN_ORDER_TYPE_BANK {
+		amount = bankValue.Div(cryptoPrice).Round(6)
+		coinQuote.Amount = amount.String()
+	}
+
+	coinQuote.FiatAmount = fiatAmount.RoundBank(2).String()
+	coinQuote.FiatCurrency = bean.USD.Code
+	coinQuote.Limit = userLimitCOD.String()
+
+	coinQuote.FiatLocalCurrency = fiatLocalCurrency
+	if coinQuote.Type == bean.COIN_ORDER_TYPE_COD {
+		coinQuote.FiatLocalAmountCOD = fiatLocalAmountStr
+	} else {
+		coinQuote.FiatLocalAmount = fiatLocalAmountStr
+	}
+
+	if check == "" {
+		coinPoolTO := s.dao.GetCoinPool(currency)
+		if ce.FeedDaoTransfer(api_error.GetDataFailed, coinPoolTO) {
+			return
+		}
+		coinPool := coinPoolTO.Object.(bean.CoinPool)
+		usage := common.StringToDecimal(coinPool.Usage)
+		usageLimit := common.StringToDecimal(coinPool.Limit)
+		if usageLimit.LessThan(usage.Add(amount)) {
+			ce.SetStatusKey(api_error.CreditOutOfStock)
+			return
+		}
+	}
+
+	return
+}
+
 func (s CoinService) ListCoinCenter(country string) (coinCenters []bean.CoinCenter, ce SimpleContextError) {
 	coinCenterTO := s.dao.ListCoinCenter(country)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, coinCenterTO) {
@@ -657,6 +822,57 @@ func (s CoinService) GetUserLimit(uid string, currency string, level string) (li
 	return
 }
 
+func (s CoinService) GetSellingUserLimit(uid string, currency string, level string) (limit bean.CoinUserLimit, ce SimpleContextError) {
+	limitTO := s.dao.GetCoinSellingUserLimit(uid)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, limitTO) {
+		return
+	}
+
+	configTO := s.miscDao.GetSystemConfigFromCache(fmt.Sprintf("%s_%s_%s", bean.COIN_ORDER_LIMIT, "1", currency))
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, configTO) {
+		return
+	}
+	systemConfig := configTO.Object.(bean.SystemConfig)
+	limit.LimitCOD = systemConfig.Value
+
+	if limitTO.Found {
+		limit = limitTO.Object.(bean.CoinUserLimit)
+		limit.LimitCOD = systemConfig.Value
+		if limit.Currency != currency && !common.StringToDecimal(limit.Usage).Equal(common.Zero) {
+			ce.SetStatusKey(api_error.InvalidRequestBody)
+			return
+		}
+		if limit.Level != level || limit.Currency != currency {
+			configTO := s.miscDao.GetSystemConfigFromCache(fmt.Sprintf("%s_%s_%s", bean.COIN_ORDER_LIMIT, "2", currency))
+			if ce.FeedDaoTransfer(api_error.GetDataFailed, configTO) {
+				return
+			}
+			systemConfig := configTO.Object.(bean.SystemConfig)
+
+			limit.Currency = currency
+			limit.Level = level
+			limit.Limit = systemConfig.Value
+			s.dao.UpdateCoinSellingUserLimitLevel(&limit)
+		}
+		// do nothing
+	} else {
+		configTO := s.miscDao.GetSystemConfigFromCache(fmt.Sprintf("%s_%s_%s", bean.COIN_ORDER_LIMIT, "2", currency))
+		if ce.FeedDaoTransfer(api_error.GetDataFailed, configTO) {
+			return
+		}
+		systemConfig := configTO.Object.(bean.SystemConfig)
+
+		limit.Level = level
+		limit.UID = uid
+		limit.Limit = systemConfig.Value
+		limit.Usage = common.Zero.String()
+		limit.Currency = currency
+		s.dao.AddCoinSellingUserLimit(&limit)
+	}
+
+	return
+}
+
 func (s CoinService) ResetCoinUserLimit() (ce SimpleContextError) {
 	userLimitTO := s.dao.ListCoinUserLimit()
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, userLimitTO) {
@@ -665,6 +881,19 @@ func (s CoinService) ResetCoinUserLimit() (ce SimpleContextError) {
 	for _, item := range userLimitTO.Objects {
 		userLimit := item.(bean.CoinUserLimit)
 		s.dao.ResetCoinUserLimit(userLimit.UID)
+	}
+
+	return
+}
+
+func (s CoinService) ResetCoinSellingUserLimit() (ce SimpleContextError) {
+	userLimitTO := s.dao.ListCoinSellingUserLimit()
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, userLimitTO) {
+		return
+	}
+	for _, item := range userLimitTO.Objects {
+		userLimit := item.(bean.CoinUserLimit)
+		s.dao.ResetCoinSellingUserLimit(userLimit.UID)
 	}
 
 	return
