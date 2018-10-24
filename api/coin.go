@@ -98,6 +98,30 @@ func (api CoinApi) CoinOrder(context *gin.Context) {
 	bean.SuccessResponse(context, order)
 }
 
+func (api CoinApi) CoinSellingOrder(context *gin.Context) {
+	userId := common.GetUserId(context)
+	chainId := common.GetChainId(context)
+	language := common.GetLanguage(context)
+	fcm := common.GetFCM(context)
+
+	var body bean.CoinSellingOrder
+	if common.ValidateBody(context, &body) != nil {
+		return
+	}
+
+	id, _ := strconv.Atoi(chainId)
+	body.ChainId = int64(id)
+	body.Language = language
+	body.FCM = fcm
+
+	order, ce := service.CoinServiceInst.AddSellingOrder(userId, body)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, order)
+}
+
 func (api CoinApi) ListCoinOrders(context *gin.Context) {
 	status := context.DefaultQuery("status", "")
 	orderType := context.DefaultQuery("type", "")
@@ -105,6 +129,19 @@ func (api CoinApi) ListCoinOrders(context *gin.Context) {
 	startAt, limit := common.ExtractTimePagingParams(context)
 
 	to := dao.CoinDaoInst.ListCoinOrders(status, orderType, refCode, limit, startAt)
+	if to.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessPagingResponse(context, to.Objects, to.CanMove, to.Page)
+}
+
+func (api CoinApi) ListCoinSellingOrders(context *gin.Context) {
+	status := context.DefaultQuery("status", "")
+	refCode := context.DefaultQuery("ref_code", "")
+	startAt, limit := common.ExtractTimePagingParams(context)
+
+	to := dao.CoinDaoInst.ListCoinSellingOrders(status, refCode, limit, startAt)
 	if to.ContextValidate(context) {
 		return
 	}

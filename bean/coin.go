@@ -121,6 +121,79 @@ func (b CoinOrder) GetPageValue() interface{} {
 	return b.CreatedAt
 }
 
+type CoinSellingOrder struct {
+	Id                    string            `json:"id" firestore:"id"`
+	UID                   string            `json:"-" firestore:"uid"`
+	UserInfo              map[string]string `json:"user_info" firestore:"user_info"`
+	Amount                string            `json:"amount" firestore:"amount" validate:"required"`
+	Currency              string            `json:"currency" firestore:"currency" validate:"required"`
+	FiatAmount            string            `json:"fiat_amount" firestore:"fiat_amount" validate:"required"`
+	FiatCurrency          string            `json:"fiat_currency" firestore:"fiat_currency" validate:"required"`
+	FiatLocalAmount       string            `json:"fiat_local_amount" firestore:"fiat_local_amount"`
+	FiatLocalCurrency     string            `json:"fiat_local_currency" firestore:"fiat_local_currency"`
+	RawFiatAmount         string            `json:"-" firestore:"raw_fiat_amount"`
+	Price                 string            `json:"-" firestore:"price"`
+	Status                string            `json:"status" firestore:"status"`
+	Type                  string            `json:"type" firestore:"type"`
+	Duration              int64             `json:"-" firestore:"duration"`
+	FeePercentage         string            `json:"-" firestore:"fee_percentage"`
+	Fee                   string            `json:"-" firestore:"fee"`
+	ExternalFeePercentage string            `json:"-" firestore:"external_fee_percentage"`
+	ExternalFee           string            `json:"-" firestore:"external_fee"`
+	Address               string            `json:"address" firestore:"address"`
+	TxHash                string            `json:"tx_hash" firestore:"tx_hash"`
+	RefCode               string            `json:"ref_code" firestore:"ref_code"`
+	Reviewed              bool              `json:"reviewed" firestore:"reviewed"`
+	Level                 string            `json:"level" firestore:"level" validator:"oneof=1 2"`
+	FCM                   string            `json:"fcm" firestore:"fcm"`
+	Language              string            `json:"language" firestore:"language"`
+	ChainId               int64             `json:"chain_id" firestore:"chain_id"`
+	CreatedAt             time.Time         `json:"created_at" firestore:"created_at"`
+	UpdatedAt             time.Time         `json:"updated_at" firestore:"updated_at"`
+}
+
+func (b CoinSellingOrder) GetAdd() map[string]interface{} {
+	return map[string]interface{}{
+		"id":                      b.Id,
+		"uid":                     b.UID,
+		"user_info":               b.UserInfo,
+		"amount":                  b.Amount,
+		"currency":                b.Currency,
+		"fiat_amount":             b.FiatAmount,
+		"raw_fiat_amount":         b.RawFiatAmount,
+		"fiat_currency":           b.FiatCurrency,
+		"fiat_local_amount":       b.FiatLocalAmount,
+		"fiat_local_currency":     b.FiatLocalCurrency,
+		"price":                   b.Price,
+		"status":                  b.Status,
+		"type":                    b.Type,
+		"fee":                     b.Fee,
+		"fee_percentage":          b.FeePercentage,
+		"external_fee":            b.ExternalFee,
+		"external_fee_percentage": b.ExternalFeePercentage,
+		"duration":                b.Duration,
+		"address":                 b.Address,
+		"ref_code":                b.RefCode,
+		"level":                   b.Level,
+		"language":                b.Language,
+		"fcm":                     b.FCM,
+		"chain_id":                b.ChainId,
+		"created_at":              firestore.ServerTimestamp,
+	}
+}
+
+func (b CoinSellingOrder) GetNotificationUpdate() map[string]interface{} {
+	return map[string]interface{}{
+		"id":     b.Id,
+		"status": b.Status,
+		"type":   "coin_selling_order",
+	}
+}
+
+func (b CoinSellingOrder) GetPageValue() interface{} {
+	return b.CreatedAt
+}
+
 type CoinCenter struct {
 	Id          string                 `json:"id" firestore:"id"`
 	Country     string                 `json:"country" firestore:"country"`

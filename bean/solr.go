@@ -863,3 +863,64 @@ func NewSolrFromCoinOrder(order CoinOrder) (solr SolrOfferObject) {
 
 	return
 }
+
+type SolrCoinSellingOrderExtraData struct {
+	Id                string            `json:"id"`
+	RefCode           string            `json:"ref_code"`
+	UserInfo          map[string]string `json:"user_info"`
+	Amount            string            `json:"amount"`
+	Currency          string            `json:"currency"`
+	FiatAmount        string            `json:"fiat_amount"`
+	FiatCurrency      string            `json:"fiat_currency"`
+	FiatLocalAmount   string            `json:"fiat_local_amount"`
+	FiatLocalCurrency string            `json:"fiat_local_currency"`
+	Type              string            `json:"type"`
+	Status            string            `json:"status"`
+	Address           string            `json:"address"`
+	TxHash            interface{}       `json:"tx_hash"`
+	Reviewed          bool              `json:"reviewed"`
+	Level             string            `json:"level"`
+}
+
+func NewSolrFromCoinSellingOrder(order CoinSellingOrder) (solr SolrOfferObject) {
+	solr.Id = fmt.Sprintf("exchange_coin_selling_%s", order.Id)
+	solr.Type = 2
+	solr.State = 0
+	solr.IsPrivate = 1
+	solr.Status = coinOrderStatusMap[order.Status]
+	solr.Hid = 0
+	solr.ChainId = order.ChainId
+	uid, _ := strconv.Atoi(order.UID)
+	solr.InitUserId = uid
+	solr.TextSearch = make([]string, 0)
+	// solr.Location = fmt.Sprintf("%f,%f", cash.Latitude, cash.Longitude)
+	solr.InitAt = order.CreatedAt.Unix()
+	solr.LastUpdateAt = time.Now().UTC().Unix()
+
+	solr.OfferFeedType = "coin_selling"
+	// Nothing now
+	solr.OfferType = order.Type
+	solr.FiatCurrency = order.FiatLocalCurrency
+
+	extraData := SolrCoinSellingOrderExtraData{
+		Id:                order.Id,
+		RefCode:           order.RefCode,
+		UserInfo:          order.UserInfo,
+		Amount:            order.Amount,
+		Currency:          order.Currency,
+		FiatAmount:        order.FiatAmount,
+		FiatCurrency:      order.FiatCurrency,
+		FiatLocalAmount:   order.FiatLocalAmount,
+		FiatLocalCurrency: order.FiatLocalCurrency,
+		Type:              order.Type,
+		Status:            order.Status,
+		Address:           order.Address,
+		TxHash:            order.TxHash,
+		Reviewed:          order.Reviewed,
+		Level:             order.Level,
+	}
+	b, _ := json.Marshal(&extraData)
+	solr.ExtraData = string(b)
+
+	return
+}

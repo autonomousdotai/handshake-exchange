@@ -45,7 +45,24 @@ func (dao CoinDao) ListCoinOrders(status string, orderType string, refCode strin
 		}
 
 		return query
-	}, snapshotToCashOrder)
+	}, snapshotToCoinOrder)
+
+	return
+}
+
+func (dao CoinDao) ListCoinSellingOrders(status string, refCode string, limit int, startAt interface{}) (t TransferObject) {
+	ListPagingObjects(GetCoinSellingOrderPath(), &t, limit, startAt, func(collRef *firestore.CollectionRef) firestore.Query {
+		query := collRef.OrderBy("created_at", firestore.Desc)
+		if refCode != "" {
+			query = query.Where("ref_code", "==", refCode)
+		} else {
+			if status != "" {
+				query = query.Where("status", "==", status)
+			}
+		}
+
+		return query
+	}, snapshotToCoinSellingOrder)
 
 	return
 }
@@ -121,6 +138,85 @@ func (dao CoinDao) AddCoinOrder(order *bean.CoinOrder) error {
 				return txErr
 			}
 		}
+		txErr = tx.Set(docPoolRef, bean.CoinPool{
+			Usage: usage.String(),
+		}.GetUpdate(), firestore.MergeAll)
+		if txErr != nil {
+			return txErr
+		}
+
+		txErr = tx.Set(docUserLimitRef, bean.CoinUserLimit{
+			Usage: userUsage.String(),
+		}.GetUpdate(), firestore.MergeAll)
+		if txErr != nil {
+			return txErr
+		}
+
+		return txErr
+	})
+
+	return err
+}
+
+func (dao CoinDao) AddCoinSellingOrder(order *bean.CoinSellingOrder) error {
+	dbClient := firebase_service.FirestoreClient
+
+	docRef := dbClient.Collection(GetCoinSellingOrderPath()).NewDoc()
+	order.Id = docRef.ID
+	docUserRef := dbClient.Doc(GetCoinSellingOrderUserItemPath(order.UID, order.Id))
+
+	refCode := strings.ToLower(order.Id[:6])
+	order.RefCode = refCode
+
+	docPoolRef := dbClient.Doc(GetCoinSellingPoolItemPath(order.Currency))
+
+	docUserLimitRef := dbClient.Doc(GetCoinSellingUserLimitItemPath(order.UID))
+
+	err := dbClient.RunTransaction(context.Background(), func(ctx context.Context, tx *firestore.Transaction) error {
+		var txErr error
+
+		poolDoc, txErr := tx.Get(docPoolRef)
+		if txErr != nil {
+			return txErr
+		}
+		usage, txErr := common.ConvertToDecimal(poolDoc, "usage")
+		if txErr != nil {
+			return txErr
+		}
+		limit, txErr := common.ConvertToDecimal(poolDoc, "limit")
+		if txErr != nil {
+			return txErr
+		}
+		amount := common.StringToDecimal(order.Amount)
+		usage = usage.Add(amount)
+		if usage.GreaterThan(limit) {
+			return errors.New("out of stock")
+		}
+
+		userLimitDoc, txErr := tx.Get(docUserLimitRef)
+		userUsage, txErr := common.ConvertToDecimal(userLimitDoc, "usage")
+		if txErr != nil {
+			return txErr
+		}
+		userLimit, txErr := common.ConvertToDecimal(userLimitDoc, "limit")
+		if txErr != nil {
+			return txErr
+		}
+		fiatAmount := common.StringToDecimal(order.FiatLocalAmount)
+		userUsage = userUsage.Add(fiatAmount)
+		if userUsage.GreaterThan(userLimit) {
+			return errors.New("over limit")
+		}
+
+		txErr = tx.Set(docRef, order.GetAdd(), firestore.MergeAll)
+		if txErr != nil {
+			return txErr
+		}
+		txErr = tx.Set(docUserRef, order.GetAdd(), firestore.MergeAll)
+		if txErr != nil {
+			return txErr
+		}
+
 		txErr = tx.Set(docPoolRef, bean.CoinPool{
 			Usage: usage.String(),
 		}.GetUpdate(), firestore.MergeAll)
@@ -279,6 +375,15 @@ func (dao CoinDao) UpdateNotificationCoinOrder(order bean.CoinOrder) error {
 	dbClient := firebase_service.NotificationFirebaseClient
 
 	ref := dbClient.NewRef(GetNotificationCoinOrderPath(order.UID, order.Id))
+	err := ref.Set(context.Background(), order.GetNotificationUpdate())
+
+	return err
+}
+
+func (dao CoinDao) UpdateNotificationCoinSellingOrder(order bean.CoinSellingOrder) error {
+	dbClient := firebase_service.NotificationFirebaseClient
+
+	ref := dbClient.NewRef(GetNotificationCoinSellingOrderPath(order.UID, order.Id))
 	err := ref.Set(context.Background(), order.GetNotificationUpdate())
 
 	return err
@@ -518,12 +623,28 @@ func GetCoinOrderItemPath(id string) string {
 	return fmt.Sprintf("coin_orders/%s", id)
 }
 
+func GetCoinSellingOrderPath() string {
+	return fmt.Sprintf("coin_selling_orders")
+}
+
+func GetCoinSellingOrderItemPath(id string) string {
+	return fmt.Sprintf("coin_selling_orders/%s", id)
+}
+
 func GetCoinOrderUserItemPath(userId string, id string) string {
 	return fmt.Sprintf("coin/%s/orders/%s", userId, id)
 }
 
+func GetCoinSellingOrderUserItemPath(userId string, id string) string {
+	return fmt.Sprintf("coin_selling/%s/orders/%s", userId, id)
+}
+
 func GetNotificationCoinOrderPath(userId string, id string) string {
 	return fmt.Sprintf("users/%s/coin/coin_order_%s", userId, id)
+}
+
+func GetNotificationCoinSellingOrderPath(userId string, id string) string {
+	return fmt.Sprintf("users/%s/coin/coin_selling_order_%s", userId, id)
 }
 
 func GetCoinOrderRefCodePath() string {
@@ -572,6 +693,12 @@ func GetCoinSellingUserLimitItemPath(id string) string {
 
 func snapshotToCoinOrder(snapshot *firestore.DocumentSnapshot) interface{} {
 	var obj bean.CoinOrder
+	snapshot.DataTo(&obj)
+	return obj
+}
+
+func snapshotToCoinSellingOrder(snapshot *firestore.DocumentSnapshot) interface{} {
+	var obj bean.CoinSellingOrder
 	snapshot.DataTo(&obj)
 	return obj
 }

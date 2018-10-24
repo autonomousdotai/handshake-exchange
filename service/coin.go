@@ -7,6 +7,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/dao"
 	"github.com/ninjadotorg/handshake-exchange/integration/bitstamp_service"
+	"github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/crypto_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/slack_integration"
 	"github.com/ninjadotorg/handshake-exchange/integration/solr_service"
@@ -534,6 +535,132 @@ func (s CoinService) AddOrder(userId string, orderBody bean.CoinOrder) (order be
 	return
 }
 
+func (s CoinService) AddSellingOrder(userId string, orderBody bean.CoinSellingOrder) (order bean.CoinSellingOrder, ce SimpleContextError) {
+	orderTest, testOfferCE := s.GetCoinSellingQuote(userId, orderBody.Amount, orderBody.Currency, orderBody.FiatLocalCurrency, orderBody.Level, "1")
+	if ce.FeedContextError(testOfferCE.StatusKey, testOfferCE) {
+		return
+	}
+	orderBody.UID = userId
+	needToCheckAmount := false
+	limit := common.StringToDecimal(orderTest.Limit)
+	fiatAmount := common.StringToDecimal(orderBody.FiatAmount)
+	if orderTest.FiatAmount != orderBody.FiatAmount {
+		needToCheckAmount = true
+	}
+	if fiatAmount.GreaterThan(limit) {
+		if orderTest.FiatAmount != orderBody.FiatAmount {
+			needToCheckAmount = true
+		}
+	} else {
+		if orderTest.FiatLocalAmount != orderBody.FiatLocalAmount {
+			needToCheckAmount = true
+		}
+	}
+
+	if needToCheckAmount {
+		notOk := true
+		testFiatAmount := common.StringToDecimal(orderTest.FiatAmount)
+		inputFiatAmount := common.StringToDecimal(orderBody.FiatAmount)
+
+		if fiatAmount.GreaterThan(limit) {
+		} else {
+			testFiatAmount = common.StringToDecimal(orderTest.FiatLocalAmount)
+			inputFiatAmount = common.StringToDecimal(orderBody.FiatLocalAmount)
+		}
+
+		if inputFiatAmount.GreaterThanOrEqual(testFiatAmount) {
+			notOk = false
+		} else {
+			delta := testFiatAmount.Sub(inputFiatAmount)
+			deltaPercentage := delta.Div(testFiatAmount)
+			if deltaPercentage.LessThanOrEqual(decimal.NewFromFloat(0.01)) {
+				notOk = false
+			}
+		}
+
+		if notOk {
+			ce.SetStatusKey(api_error.InvalidRequestBody)
+			return
+		}
+	}
+
+	if orderBody.Currency == bean.ETH.Code {
+		if !common.CheckETHAddress(orderBody.Address) {
+			ce.SetStatusKey(api_error.InvalidRequestBody)
+			return
+		}
+	} else {
+		if common.CheckETHAddress(orderBody.Address) {
+			ce.SetStatusKey(api_error.InvalidRequestBody)
+			return
+		}
+	}
+
+	if orderBody.Currency != bean.ETH.Code && orderBody.Currency != bean.BTC.Code && orderBody.Currency != bean.BCH.Code {
+		ce.SetStatusKey(api_error.UnsupportedCurrency)
+		return
+	}
+
+	// Minimum amount
+	amount, _ := decimal.NewFromString(orderBody.Amount)
+	if orderBody.Currency == bean.ETH.Code {
+		if amount.LessThan(bean.MIN_ETH) {
+			ce.SetStatusKey(api_error.AmountIsTooSmall)
+			return
+		}
+	}
+	if orderBody.Currency == bean.BTC.Code {
+		if amount.LessThan(bean.MIN_BTC) {
+			ce.SetStatusKey(api_error.AmountIsTooSmall)
+			return
+		}
+	}
+	if orderBody.Currency == bean.BCH.Code {
+		if amount.LessThan(bean.MIN_BCH) {
+			ce.SetStatusKey(api_error.AmountIsTooSmall)
+			return
+		}
+	}
+
+	coinPoolTO := s.dao.GetCoinSellingPool(orderBody.Currency)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, coinPoolTO) {
+		return
+	}
+	coinPool := coinPoolTO.Object.(bean.CoinPool)
+	usage := common.StringToDecimal(coinPool.Usage)
+	usageLimit := common.StringToDecimal(coinPool.Limit)
+	if usageLimit.LessThan(usage.Add(amount)) {
+		ce.SetStatusKey(api_error.CreditOutOfStock)
+		return
+	}
+
+	addressResponse, errCoinBase := coinbase_service.GenerateAddress(orderBody.Currency)
+	if errCoinBase != nil {
+		ce.SetError(api_error.ExternalApiFailed, errCoinBase)
+		return
+	}
+	orderBody.Address = addressResponse.Data.Address
+
+	s.setupCoinSellingOrder(&orderBody, orderTest)
+	err := s.dao.AddCoinSellingOrder(&orderBody)
+	order = orderBody
+	if err != nil {
+		if strings.Contains(err.Error(), "out of stock") {
+			if ce.SetError(api_error.CreditOutOfStock, err) {
+				return
+			}
+		} else if ce.SetError(api_error.AddDataFailed, err) {
+			return
+		}
+	}
+
+	order.CreatedAt = time.Now().UTC()
+	s.dao.UpdateNotificationCoinSellingOrder(order)
+	solr_service.UpdateObject(bean.NewSolrFromCoinSellingOrder(order))
+
+	return
+}
+
 func (s CoinService) UpdateOrderReceipt(orderId string, coinOrder bean.CoinOrderUpdateInput) (order bean.CoinOrder, ce SimpleContextError) {
 	coinOrderTO := s.dao.GetCoinOrder(orderId)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, coinOrderTO) {
@@ -933,6 +1060,21 @@ func (s CoinService) setupCoinOrder(order *bean.CoinOrder, coinQuote bean.CoinQu
 	}
 }
 
+func (s CoinService) setupCoinSellingOrder(order *bean.CoinSellingOrder, coinQuote bean.CoinQuote) {
+	order.Price = coinQuote.Price
+	order.RawFiatAmount = coinQuote.RawFiatAmount
+	order.Status = bean.COIN_ORDER_STATUS_PENDING
+	order.Fee = coinQuote.Fee
+	order.FeePercentage = coinQuote.FeePercentage
+	order.Price = coinQuote.Price
+
+	if order.Currency == bean.ETH.Code {
+		order.Duration = int64(30) // 30 minutes
+	} else {
+		order.Duration = int64(90) // 90 minutes
+	}
+}
+
 func (s CoinService) cancelCoinOrder(orderId string, status string, ce *SimpleContextError) (order bean.CoinOrder) {
 	coinOrderTO := s.dao.GetCoinOrder(orderId)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, coinOrderTO) {
@@ -963,7 +1105,21 @@ func (s CoinService) cancelCoinOrder(orderId string, status string, ce *SimpleCo
 
 func (s CoinService) NotifyNewCoinOrder(order bean.CoinOrder) error {
 	// os.Getenv("FRONTEND_HOST")
-	content := fmt.Sprintf("[%s] [ORDER] You have new order, please check ref code: %s", strings.ToUpper(order.Type), order.RefCode)
+	content := fmt.Sprintf("[%s] [ORDER] You have new BUY order, please check ref code: %s", strings.ToUpper(order.Type), order.RefCode)
+	// _, err := twilio_service.SendSMS(os.Getenv("COIN_ORDER_TO_NUMBER"), smsBody)
+	if os.Getenv("ENVIRONMENT") == "dev" {
+		content = "TEST -- " + content
+	}
+
+	slack_integration.SendSlack(content)
+	err := email.SendEmail("System", "dojo@ninja.org", "Admin", os.Getenv("COIN_ORDER_TO_EMAIL"), content, " ")
+
+	return err
+}
+
+func (s CoinService) NotifyNewCoinSellingOrder(order bean.CoinSellingOrder) error {
+	// os.Getenv("FRONTEND_HOST")
+	content := fmt.Sprintf("[%s] [ORDER] You have new SELL order, please check ref code: %s", strings.ToUpper(order.Type), order.RefCode)
 	// _, err := twilio_service.SendSMS(os.Getenv("COIN_ORDER_TO_NUMBER"), smsBody)
 	if os.Getenv("ENVIRONMENT") == "dev" {
 		content = "TEST -- " + content
