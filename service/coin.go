@@ -584,18 +584,6 @@ func (s CoinService) AddSellingOrder(userId string, orderBody bean.CoinSellingOr
 		}
 	}
 
-	if orderBody.Currency == bean.ETH.Code {
-		if !common.CheckETHAddress(orderBody.Address) {
-			ce.SetStatusKey(api_error.InvalidRequestBody)
-			return
-		}
-	} else {
-		if common.CheckETHAddress(orderBody.Address) {
-			ce.SetStatusKey(api_error.InvalidRequestBody)
-			return
-		}
-	}
-
 	if orderBody.Currency != bean.ETH.Code && orderBody.Currency != bean.BTC.Code && orderBody.Currency != bean.BCH.Code {
 		ce.SetStatusKey(api_error.UnsupportedCurrency)
 		return
