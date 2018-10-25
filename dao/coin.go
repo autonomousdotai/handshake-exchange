@@ -523,6 +523,11 @@ func (dao CoinDao) GetCoinOrderRefCode(refCode string) (t TransferObject) {
 	return
 }
 
+func (dao CoinDao) GetCoinSellingOrderRefCode(refCode string) (t TransferObject) {
+	GetObject(GetCoinSellingOrderRefCodeItemPath(refCode), &t, snapshotToCoinOrderRefCode)
+	return
+}
+
 func (dao CoinDao) GetCoinPool(currency string) (t TransferObject) {
 	GetObject(GetCoinPoolItemPath(currency), &t, snapshotToCoinPool)
 	return
