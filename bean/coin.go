@@ -182,6 +182,13 @@ func (b CoinSellingOrder) GetAdd() map[string]interface{} {
 	}
 }
 
+func (b CoinSellingOrder) GetUpdate() map[string]interface{} {
+	return map[string]interface{}{
+		"status":     b.Status,
+		"updated_at": firestore.ServerTimestamp,
+	}
+}
+
 func (b CoinSellingOrder) GetNotificationUpdate() map[string]interface{} {
 	return map[string]interface{}{
 		"id":     b.Id,
@@ -230,6 +237,35 @@ func (b CoinPayment) GetUpdate() map[string]interface{} {
 		"over_spent":  b.OverSpent,
 		"status":      b.Status,
 		"updated_at":  firestore.ServerTimestamp,
+	}
+}
+
+type CoinSellingPayment struct {
+	Order     string    `json:"order" firestore:"order"`
+	Amount    string    `json:"amount" firestore:"amount"`
+	Currency  string    `json:"currency" firestore:"currency"`
+	OverSpent string    `json:"over_spent" firestore:"over_spent"`
+	Status    string    `json:"status" firestore:"status"`
+	CreatedAt time.Time `json:"created_at" firestore:"created_at"`
+}
+
+func (b CoinSellingPayment) GetAdd() map[string]interface{} {
+	return map[string]interface{}{
+		"order":      b.Order,
+		"amount":     b.Amount,
+		"currency":   b.Currency,
+		"over_spent": b.OverSpent,
+		"status":     b.Status,
+		"created_at": firestore.ServerTimestamp,
+	}
+}
+
+func (b CoinSellingPayment) GetUpdate() map[string]interface{} {
+	return map[string]interface{}{
+		"amount":     b.Amount,
+		"over_spent": b.OverSpent,
+		"status":     b.Status,
+		"updated_at": firestore.ServerTimestamp,
 	}
 }
 

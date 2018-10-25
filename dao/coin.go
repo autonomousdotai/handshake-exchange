@@ -25,6 +25,11 @@ func (dao CoinDao) GetCoinOrder(id string) (t TransferObject) {
 	return
 }
 
+func (dao CoinDao) GetCoinSellingOrder(id string) (t TransferObject) {
+	GetObject(GetCoinSellingOrderItemPath(id), &t, snapshotToCoinSellingOrder)
+	return
+}
+
 func (dao CoinDao) GetCoinOrderByPath(path string) (t TransferObject) {
 	GetObject(path, &t, snapshotToCoinOrder)
 	return
@@ -166,6 +171,13 @@ func (dao CoinDao) AddCoinSellingOrder(order *bean.CoinSellingOrder) error {
 	docUserRef := dbClient.Doc(GetCoinSellingOrderUserItemPath(order.UID, order.Id))
 
 	refCode := strings.ToLower(order.Id[:6])
+	orderRefCode := bean.CoinOrderRefCode{
+		RefCode:  refCode,
+		OrderRef: GetCoinOrderItemPath(order.Id),
+		Order:    order.Id,
+		Duration: order.Duration,
+	}
+	docOrderRefRef := dbClient.Doc(GetCoinSellingOrderRefCodeItemPath(order.Address))
 	order.RefCode = refCode
 
 	docPoolRef := dbClient.Doc(GetCoinSellingPoolItemPath(order.Currency))
@@ -216,6 +228,10 @@ func (dao CoinDao) AddCoinSellingOrder(order *bean.CoinSellingOrder) error {
 		if txErr != nil {
 			return txErr
 		}
+		txErr = tx.Set(docOrderRefRef, orderRefCode.GetAdd(), firestore.MergeAll)
+		if txErr != nil {
+			return txErr
+		}
 
 		txErr = tx.Set(docPoolRef, bean.CoinPool{
 			Usage: usage.String(),
@@ -242,7 +258,7 @@ func (dao CoinDao) CancelCoinOrder(order *bean.CoinOrder) error {
 
 	docRef := dbClient.Doc(GetCoinOrderItemPath(order.Id))
 	docUserRef := dbClient.Doc(GetCoinOrderUserItemPath(order.UID, order.Id))
-	docOrderRefRef := dbClient.Doc(GetCoinOrderRefCodeItemPath(order.RefCode))
+	docOrderRefRef := dbClient.Doc(GetCoinOrderRefCodeItemPath(order.Address))
 
 	docPoolRef := dbClient.Doc(GetCoinPoolItemPath(order.Currency))
 	docUserLimitRef := dbClient.Doc(GetCoinUserLimitItemPath(order.UID))
@@ -313,6 +329,81 @@ func (dao CoinDao) CancelCoinOrder(order *bean.CoinOrder) error {
 	return err
 }
 
+func (dao CoinDao) CancelCoinSellingOrder(order *bean.CoinSellingOrder) error {
+	dbClient := firebase_service.FirestoreClient
+
+	docRef := dbClient.Doc(GetCoinSellingOrderItemPath(order.Id))
+	docUserRef := dbClient.Doc(GetCoinSellingOrderUserItemPath(order.UID, order.Id))
+	docOrderRefRef := dbClient.Doc(GetCoinSellingOrderRefCodeItemPath(order.RefCode))
+
+	docPoolRef := dbClient.Doc(GetCoinSellingPoolItemPath(order.Currency))
+	docUserLimitRef := dbClient.Doc(GetCoinSellingUserLimitItemPath(order.UID))
+
+	err := dbClient.RunTransaction(context.Background(), func(ctx context.Context, tx *firestore.Transaction) error {
+		var txErr error
+
+		poolDoc, txErr := tx.Get(docPoolRef)
+		if txErr != nil {
+			return txErr
+		}
+		usage, txErr := common.ConvertToDecimal(poolDoc, "usage")
+		if txErr != nil {
+			return txErr
+		}
+		amount := common.StringToDecimal(order.Amount)
+		usage = usage.Sub(amount)
+		if usage.LessThan(common.Zero) {
+			usage = common.Zero
+		}
+
+		userLimitDoc, txErr := tx.Get(docUserLimitRef)
+		if txErr != nil {
+			return txErr
+		}
+		userUsage, txErr := common.ConvertToDecimal(userLimitDoc, "usage")
+		if txErr != nil {
+			return txErr
+		}
+		fiatAmount := common.StringToDecimal(order.FiatLocalAmount)
+		userUsage = userUsage.Sub(fiatAmount)
+		if userUsage.LessThan(common.Zero) {
+			userUsage = common.Zero
+		}
+
+		txErr = tx.Set(docRef, order.GetUpdate(), firestore.MergeAll)
+		if txErr != nil {
+			return txErr
+		}
+		txErr = tx.Set(docUserRef, order.GetUpdate(), firestore.MergeAll)
+		if txErr != nil {
+			return txErr
+		}
+
+		txErr = tx.Delete(docOrderRefRef)
+		if txErr != nil {
+			return txErr
+		}
+
+		txErr = tx.Set(docPoolRef, bean.CoinPool{
+			Usage: usage.String(),
+		}.GetUpdate(), firestore.MergeAll)
+		if txErr != nil {
+			return txErr
+		}
+
+		txErr = tx.Set(docUserLimitRef, bean.CoinUserLimit{
+			Usage: userUsage.String(),
+		}.GetUpdate(), firestore.MergeAll)
+		if txErr != nil {
+			return txErr
+		}
+
+		return txErr
+	})
+
+	return err
+}
+
 func (dao CoinDao) UpdateCoinOrderReceipt(order *bean.CoinOrder) error {
 	dbClient := firebase_service.FirestoreClient
 
@@ -334,6 +425,20 @@ func (dao CoinDao) UpdateCoinOrder(order *bean.CoinOrder) error {
 
 	docRef := dbClient.Doc(GetCoinOrderItemPath(order.Id))
 	docUserRef := dbClient.Doc(GetCoinOrderUserItemPath(order.UID, order.Id))
+
+	batch := dbClient.Batch()
+	batch.Set(docRef, order.GetUpdate(), firestore.MergeAll)
+	batch.Set(docUserRef, order.GetUpdate(), firestore.MergeAll)
+	_, err := batch.Commit(context.Background())
+
+	return err
+}
+
+func (dao CoinDao) UpdateCoinSellingOrder(order *bean.CoinSellingOrder) error {
+	dbClient := firebase_service.FirestoreClient
+
+	docRef := dbClient.Doc(GetCoinSellingOrderItemPath(order.Id))
+	docUserRef := dbClient.Doc(GetCoinSellingOrderUserItemPath(order.UID, order.Id))
 
 	batch := dbClient.Batch()
 	batch.Set(docRef, order.GetUpdate(), firestore.MergeAll)
@@ -371,6 +476,20 @@ func (dao CoinDao) FinishCoinOrder(order *bean.CoinOrder) error {
 	return err
 }
 
+func (dao CoinDao) FinishCoinSellingOrder(order *bean.CoinSellingOrder) error {
+	dbClient := firebase_service.FirestoreClient
+
+	docRef := dbClient.Doc(GetCoinSellingOrderItemPath(order.Id))
+	docUserRef := dbClient.Doc(GetCoinSellingOrderUserItemPath(order.UID, order.Id))
+
+	batch := dbClient.Batch()
+	batch.Set(docRef, order.GetUpdate(), firestore.MergeAll)
+	batch.Set(docUserRef, order.GetUpdate(), firestore.MergeAll)
+	_, err := batch.Commit(context.Background())
+
+	return err
+}
+
 func (dao CoinDao) UpdateNotificationCoinOrder(order bean.CoinOrder) error {
 	dbClient := firebase_service.NotificationFirebaseClient
 
@@ -394,6 +513,11 @@ func (dao CoinDao) ListCoinOrderRefCode() (t TransferObject) {
 	return
 }
 
+func (dao CoinDao) ListCoinSellingOrderRefCode() (t TransferObject) {
+	ListObjects(GetCoinSellingOrderRefCodePath(), &t, nil, snapshotToCoinOrderRefCode)
+	return
+}
+
 func (dao CoinDao) GetCoinOrderRefCode(refCode string) (t TransferObject) {
 	GetObject(GetCoinOrderRefCodeItemPath(refCode), &t, snapshotToCoinOrderRefCode)
 	return
@@ -414,10 +538,24 @@ func (dao CoinDao) GetCoinPayment(orderId string) (t TransferObject) {
 	return
 }
 
+func (dao CoinDao) GetCoinSellingPayment(orderId string) (t TransferObject) {
+	GetObject(GetCoinSellingPaymentItemPath(orderId), &t, snapshotToCoinSellingPayment)
+	return
+}
+
 func (dao CoinDao) AddCoinPayment(payment *bean.CoinPayment) error {
 	dbClient := firebase_service.FirestoreClient
 
 	docRef := dbClient.Doc(GetCoinPaymentItemPath(payment.Order))
+	_, err := docRef.Set(context.Background(), payment.GetAdd())
+
+	return err
+}
+
+func (dao CoinDao) AddCoinSellingPayment(payment *bean.CoinSellingPayment) error {
+	dbClient := firebase_service.FirestoreClient
+
+	docRef := dbClient.Doc(GetCoinSellingPaymentItemPath(payment.Order))
 	_, err := docRef.Set(context.Background(), payment.GetAdd())
 
 	return err
@@ -440,6 +578,35 @@ func (dao CoinDao) UpdateCoinPayment(payment *bean.CoinPayment, addAmount decima
 		}
 		amount = amount.Add(addAmount)
 		payment.FiatAmount = amount.String()
+
+		txErr = tx.Set(docRef, payment.GetUpdate(), firestore.MergeAll)
+		if txErr != nil {
+			return txErr
+		}
+
+		return txErr
+	})
+
+	return err
+}
+
+func (dao CoinDao) UpdateCoinSellingPayment(payment *bean.CoinSellingPayment, addAmount decimal.Decimal) error {
+	dbClient := firebase_service.FirestoreClient
+
+	docRef := dbClient.Doc(GetCoinSellingPaymentItemPath(payment.Order))
+	err := dbClient.RunTransaction(context.Background(), func(ctx context.Context, tx *firestore.Transaction) error {
+		var txErr error
+
+		paymentDoc, txErr := tx.Get(docRef)
+		if txErr != nil {
+			return txErr
+		}
+		amount, txErr := common.ConvertToDecimal(paymentDoc, "amount")
+		if txErr != nil {
+			return txErr
+		}
+		amount = amount.Add(addAmount)
+		payment.Amount = amount.String()
 
 		txErr = tx.Set(docRef, payment.GetUpdate(), firestore.MergeAll)
 		if txErr != nil {
@@ -651,8 +818,16 @@ func GetCoinOrderRefCodePath() string {
 	return fmt.Sprintf("coin_order_refs")
 }
 
+func GetCoinSellingOrderRefCodePath() string {
+	return fmt.Sprintf("coin_selling_order_refs")
+}
+
 func GetCoinOrderRefCodeItemPath(refCode string) string {
 	return fmt.Sprintf("coin_order_refs/%s", refCode)
+}
+
+func GetCoinSellingOrderRefCodeItemPath(refCode string) string {
+	return fmt.Sprintf("coin_selling_order_refs/%s", refCode)
 }
 
 func GetCoinPoolItemPath(currency string) string {
@@ -665,6 +840,10 @@ func GetCoinSellingPoolItemPath(currency string) string {
 
 func GetCoinPaymentItemPath(orderId string) string {
 	return fmt.Sprintf("coin_payments/%s", orderId)
+}
+
+func GetCoinSellingPaymentItemPath(orderId string) string {
+	return fmt.Sprintf("coin_selling_payments/%s", orderId)
 }
 
 func GetCoinReviewPath() string {
@@ -711,6 +890,12 @@ func snapshotToCoinCenter(snapshot *firestore.DocumentSnapshot) interface{} {
 
 func snapshotToCoinPayment(snapshot *firestore.DocumentSnapshot) interface{} {
 	var obj bean.CoinPayment
+	snapshot.DataTo(&obj)
+	return obj
+}
+
+func snapshotToCoinSellingPayment(snapshot *firestore.DocumentSnapshot) interface{} {
+	var obj bean.CoinSellingPayment
 	snapshot.DataTo(&obj)
 	return obj
 }

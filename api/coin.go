@@ -162,10 +162,33 @@ func (api CoinApi) FinishCoinOrder(context *gin.Context) {
 	bean.SuccessResponse(context, order)
 }
 
+func (api CoinApi) CloseCoinSellingOrder(context *gin.Context) {
+	id := context.Param("id")
+	// currency := context.Param("currency")
+	// amount := context.Param("amount")
+	order, ce := service.CoinServiceInst.CloseSellingOrder(id)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, order)
+}
+
 func (api CoinApi) CancelCoinOrder(context *gin.Context) {
 	id := context.Param("id")
 
 	order, ce := service.CoinServiceInst.CancelOrder(id)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, order)
+}
+
+func (api CoinApi) CancelCoinSellingOrder(context *gin.Context) {
+	id := context.Param("id")
+
+	order, ce := service.CoinServiceInst.CancelSellingOrder(id)
 	if ce.ContextValidate(context) {
 		return
 	}

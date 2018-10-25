@@ -704,8 +704,51 @@ func (s CoinService) UpdateOrder(orderId string) (order bean.CoinOrder, ce Simpl
 	return
 }
 
+func (s CoinService) UpdateSellingOrder(orderId string) (order bean.CoinSellingOrder, ce SimpleContextError) {
+	coinOrderTO := s.dao.GetCoinSellingOrder(orderId)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, coinOrderTO) {
+		return
+	}
+	order = coinOrderTO.Object.(bean.CoinSellingOrder)
+	order.Status = bean.COIN_ORDER_STATUS_FIAT_TRANSFERRING
+
+	err := s.dao.UpdateCoinSellingOrder(&order)
+	if ce.SetError(api_error.AddDataFailed, err) {
+		return
+	}
+
+	s.dao.UpdateNotificationCoinSellingOrder(order)
+	solr_service.UpdateObject(bean.NewSolrFromCoinSellingOrder(order))
+
+	return
+}
+
+func (s CoinService) CloseSellingOrder(orderId string) (order bean.CoinSellingOrder, ce SimpleContextError) {
+	coinOrderTO := s.dao.GetCoinSellingOrder(orderId)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, coinOrderTO) {
+		return
+	}
+	order = coinOrderTO.Object.(bean.CoinSellingOrder)
+	order.Status = bean.COIN_ORDER_STATUS_SUCCESS
+
+	err := s.dao.UpdateCoinSellingOrder(&order)
+	if ce.SetError(api_error.AddDataFailed, err) {
+		return
+	}
+
+	s.dao.UpdateNotificationCoinSellingOrder(order)
+	solr_service.UpdateObject(bean.NewSolrFromCoinSellingOrder(order))
+
+	return
+}
+
 func (s CoinService) CancelOrder(orderId string) (order bean.CoinOrder, ce SimpleContextError) {
 	order = s.cancelCoinOrder(orderId, bean.COIN_ORDER_STATUS_CANCELLED, &ce)
+	return
+}
+
+func (s CoinService) CancelSellingOrder(orderId string) (order bean.CoinSellingOrder, ce SimpleContextError) {
+	order = s.cancelCoinSellingOrder(orderId, bean.COIN_ORDER_STATUS_CANCELLED, &ce)
 	return
 }
 
@@ -725,6 +768,23 @@ func (s CoinService) RemoveExpiredOrder() (ce SimpleContextError) {
 		coinRefCode := item.(bean.CoinOrderRefCode)
 		if coinRefCode.CreatedAt.Add(time.Minute * time.Duration(coinRefCode.Duration)).Before(time.Now().UTC()) {
 			s.expireOrder(coinRefCode.Order)
+		}
+	}
+
+	return
+}
+
+func (s CoinService) SellingRemoveExpiredOrder() (ce SimpleContextError) {
+	coinRefCodeTO := s.dao.ListCoinSellingOrderRefCode()
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, coinRefCodeTO) {
+		return
+	}
+	coinRefCodes := coinRefCodeTO.Objects
+
+	for _, item := range coinRefCodes {
+		coinRefCode := item.(bean.CoinOrderRefCode)
+		if coinRefCode.CreatedAt.Add(time.Minute * time.Duration(coinRefCode.Duration)).Before(time.Now().UTC()) {
+			s.expireSellingOrder(coinRefCode.Order)
 		}
 	}
 
@@ -852,6 +912,77 @@ func (s CoinService) FinishOrder(id string, amount string, fiatCurrency string) 
 
 	s.dao.UpdateNotificationCoinOrder(order)
 	solr_service.UpdateObject(bean.NewSolrFromCoinOrder(order))
+
+	return
+}
+
+func (s CoinService) FinishSellingOrder(id string, amount string, currency string) (order bean.CoinSellingOrder, overSpent string, ce SimpleContextError) {
+	coinOrderTO := s.dao.GetCoinSellingOrder(id)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, coinOrderTO) {
+		return
+	}
+	order = coinOrderTO.Object.(bean.CoinSellingOrder)
+	orderAmount := common.StringToDecimal(order.Amount)
+	orderCurrency := order.Currency
+
+	storePaymentTO := s.dao.GetCoinSellingPayment(order.Id)
+	if storePaymentTO.Error != nil {
+		ce.FeedDaoTransfer(api_error.GetDataFailed, storePaymentTO)
+		return
+	}
+	inputAmount := common.StringToDecimal(amount)
+	totalInputAmount := inputAmount
+	var coinPayment bean.CoinSellingPayment
+	if storePaymentTO.Found {
+		coinPayment = storePaymentTO.Object.(bean.CoinSellingPayment)
+		paymentAmount := common.StringToDecimal(coinPayment.Amount)
+		totalInputAmount = totalInputAmount.Add(paymentAmount)
+	} else {
+		coinPayment = bean.CoinSellingPayment{
+			Order:    order.Id,
+			Amount:   amount,
+			Currency: currency,
+		}
+	}
+
+	if currency != orderCurrency {
+		ce.SetStatusKey(api_error.InvalidRequestBody)
+		return
+	}
+
+	if totalInputAmount.LessThan(orderAmount) {
+		coinPayment.Status = bean.COIN_PAYMENT_STATUS_UNDER
+	} else if totalInputAmount.GreaterThan(orderAmount) {
+		overSpent = totalInputAmount.Sub(orderAmount).String()
+		coinPayment.Status = bean.COIN_PAYMENT_STATUS_OVER
+		coinPayment.OverSpent = overSpent
+	} else {
+		coinPayment.Status = bean.COIN_PAYMENT_STATUS_MATCHED
+	}
+
+	if storePaymentTO.Found {
+		s.dao.UpdateCoinSellingPayment(&coinPayment, inputAmount)
+	} else {
+		s.dao.AddCoinSellingPayment(&coinPayment)
+	}
+	if coinPayment.Status == "" || coinPayment.Status == bean.COIN_PAYMENT_STATUS_UNDER {
+		ce.SetStatusKey(api_error.InvalidAmount)
+		return
+	}
+
+	if order.Status != bean.COIN_ORDER_STATUS_TRANSFERRING && order.Status != bean.COIN_ORDER_STATUS_TRANSFER_FAILED {
+		ce.SetStatusKey(api_error.CoinOrderStatusInvalid)
+		return
+	}
+
+	order.Status = bean.COIN_ORDER_STATUS_FIAT_TRANSFERRING
+	err := s.dao.FinishCoinSellingOrder(&order)
+	if ce.SetError(api_error.AddDataFailed, err) {
+		return
+	}
+
+	s.dao.UpdateNotificationCoinSellingOrder(order)
+	solr_service.UpdateObject(bean.NewSolrFromCoinSellingOrder(order))
 
 	return
 }
@@ -1044,6 +1175,11 @@ func (s CoinService) expireOrder(orderId string) (order bean.CoinOrder, ce Simpl
 	return
 }
 
+func (s CoinService) expireSellingOrder(orderId string) (order bean.CoinSellingOrder, ce SimpleContextError) {
+	order = s.cancelCoinSellingOrder(orderId, bean.COIN_ORDER_STATUS_EXPIRED, &ce)
+	return
+}
+
 func (s CoinService) setupCoinOrder(order *bean.CoinOrder, coinQuote bean.CoinQuote) {
 	order.Price = coinQuote.Price
 	order.RawFiatAmount = coinQuote.RawFiatAmount
@@ -1099,6 +1235,34 @@ func (s CoinService) cancelCoinOrder(orderId string, status string, ce *SimpleCo
 
 	s.dao.UpdateNotificationCoinOrder(order)
 	solr_service.UpdateObject(bean.NewSolrFromCoinOrder(order))
+
+	return
+}
+
+func (s CoinService) cancelCoinSellingOrder(orderId string, status string, ce *SimpleContextError) (order bean.CoinSellingOrder) {
+	coinOrderTO := s.dao.GetCoinSellingOrder(orderId)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, coinOrderTO) {
+		return
+	}
+	order = coinOrderTO.Object.(bean.CoinSellingOrder)
+
+	if order.Status != bean.COIN_ORDER_STATUS_PENDING && (status == bean.COIN_ORDER_STATUS_CANCELLED || status == bean.COIN_ORDER_STATUS_EXPIRED) {
+		ce.SetStatusKey(api_error.CoinOrderStatusInvalid)
+		return
+	}
+	if order.Status != bean.COIN_ORDER_STATUS_PROCESSING && status == bean.COIN_ORDER_STATUS_REJECTED {
+		ce.SetStatusKey(api_error.CoinOrderStatusInvalid)
+		return
+	}
+
+	order.Status = status
+	err := s.dao.CancelCoinSellingOrder(&order)
+	if ce.SetError(api_error.AddDataFailed, err) {
+		return
+	}
+
+	s.dao.UpdateNotificationCoinSellingOrder(order)
+	solr_service.UpdateObject(bean.NewSolrFromCoinSellingOrder(order))
 
 	return
 }
