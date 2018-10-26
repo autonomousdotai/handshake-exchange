@@ -24,6 +24,7 @@ func (url CoinUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	group.DELETE("/order/:id", coinApi.CancelCoinOrder)
 	group.DELETE("/selling-order/:id", coinApi.CancelCoinSellingOrder)
 	group.PUT("/order/:id/pick", coinApi.PickCoinOrder)
+	group.PUT("/selling-order/:id/pick", coinApi.PickCoinSellingOrder)
 	group.PUT("/order/:id/reject", coinApi.RejectCoinOrder)
 	group.PUT("/order/:id", coinApi.UpdateCoinOrder)
 	group.GET("/center/:country", coinApi.ListCoinCenter)

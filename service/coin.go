@@ -706,7 +706,11 @@ func (s CoinService) UpdateSellingOrder(orderId string) (order bean.CoinSellingO
 		return
 	}
 	order = coinOrderTO.Object.(bean.CoinSellingOrder)
-	order.Status = bean.COIN_ORDER_STATUS_FIAT_TRANSFERRING
+	if order.Status != bean.COIN_ORDER_STATUS_FIAT_TRANSFERRING {
+		ce.SetStatusKey(api_error.CoinOrderStatusInvalid)
+		return
+	}
+	order.Status = bean.COIN_ORDER_STATUS_PROCESSING
 
 	err := s.dao.UpdateCoinSellingOrder(&order)
 	if ce.SetError(api_error.AddDataFailed, err) {
@@ -966,7 +970,7 @@ func (s CoinService) FinishSellingOrder(id string, amount string, currency strin
 		return
 	}
 
-	if order.Status != bean.COIN_ORDER_STATUS_TRANSFERRING && order.Status != bean.COIN_ORDER_STATUS_TRANSFER_FAILED {
+	if order.Status != bean.COIN_ORDER_STATUS_TRANSFERRING && order.Status != bean.COIN_ORDER_STATUS_PROCESSING && order.Status != bean.COIN_ORDER_STATUS_TRANSFER_FAILED {
 		ce.SetStatusKey(api_error.CoinOrderStatusInvalid)
 		return
 	}

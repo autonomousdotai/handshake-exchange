@@ -222,6 +222,17 @@ func (api CoinApi) PickCoinOrder(context *gin.Context) {
 	bean.SuccessResponse(context, order)
 }
 
+func (api CoinApi) PickCoinSellingOrder(context *gin.Context) {
+	id := context.Param("id")
+
+	order, ce := service.CoinServiceInst.UpdateSellingOrder(id)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, order)
+}
+
 func (api CoinApi) RejectCoinOrder(context *gin.Context) {
 	id := context.Param("id")
 
