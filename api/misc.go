@@ -11,6 +11,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/integration/bitpay_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/bitstamp_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/coinapi_service"
+	"github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/ethereum_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/openexchangerates_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/solr_service"
@@ -45,8 +46,8 @@ func (api MiscApi) UpdateCryptoRates(context *gin.Context) {
 	allRates := make([]bean.CryptoRate, 0)
 	for _, currency := range []string{bean.BTC.Code, bean.ETH.Code, bean.LTC.Code, bean.BCH.Code} {
 		rates := make([]bean.CryptoRate, 0)
-		// resp, _ := coinbase_service.GetBuyPrice(currency)
-		resp, _ := bitstamp_service.GetBuyPrice(currency)
+		resp, _ := coinbase_service.GetBuyPrice(currency)
+		// resp, _ := bitstamp_service.GetBuyPrice(currency)
 		buy, _ := decimal.NewFromString(resp.Amount)
 		buyFloat, _ := buy.Float64()
 		rate := bean.CryptoRate{
