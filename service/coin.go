@@ -679,6 +679,14 @@ func (s CoinService) UpdateOrder(orderId string) (order bean.CoinOrder, ce Simpl
 		return
 	}
 	order = coinOrderTO.Object.(bean.CoinOrder)
+	if order.Type == bean.COIN_ORDER_TYPE_COD && order.Status != bean.COIN_ORDER_STATUS_PENDING {
+		ce.SetStatusKey(api_error.CoinOrderStatusInvalid)
+		return
+	}
+	if order.Type == bean.COIN_ORDER_TYPE_BANK && order.Status != bean.COIN_ORDER_STATUS_FIAT_TRANSFERRING {
+		ce.SetStatusKey(api_error.CoinOrderStatusInvalid)
+		return
+	}
 	order.Status = bean.COIN_ORDER_STATUS_PROCESSING
 
 	err := s.dao.UpdateCoinOrder(&order)
