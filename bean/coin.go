@@ -44,6 +44,7 @@ type CoinOrder struct {
 	Address                   string            `json:"address" firestore:"address" validate:"required"`
 	ProviderWithdrawData      interface{}       `json:"provider_withdraw_data" firestore:"provider_withdraw_data"`
 	ProviderWithdrawDataExtra interface{}       `json:"-" firestore:"provider_withdraw_data_extra"`
+	TxHash                    string            `json:"tx_hash" firestore:"tx_hash"`
 	ReceiptURL                string            `json:"receipt_url" firestore:"receipt_url"`
 	RefCode                   string            `json:"ref_code" firestore:"ref_code"`
 	Center                    string            `json:"center" firestore:"center"`
@@ -99,6 +100,7 @@ func (b CoinOrder) GetReceiptUpdate() map[string]interface{} {
 	return map[string]interface{}{
 		"status":      b.Status,
 		"receipt_url": b.ReceiptURL,
+		"tx_hash":     b.TxHash,
 		"updated_at":  firestore.ServerTimestamp,
 	}
 }
@@ -184,6 +186,7 @@ func (b CoinSellingOrder) GetAdd() map[string]interface{} {
 
 func (b CoinSellingOrder) GetUpdate() map[string]interface{} {
 	return map[string]interface{}{
+		"tx_hash":    b.TxHash,
 		"status":     b.Status,
 		"updated_at": firestore.ServerTimestamp,
 	}

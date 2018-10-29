@@ -916,7 +916,7 @@ func (s CoinService) FinishOrder(id string, amount string, fiatCurrency string) 
 	return
 }
 
-func (s CoinService) FinishSellingOrder(id string, amount string, currency string) (order bean.CoinSellingOrder, overSpent string, ce SimpleContextError) {
+func (s CoinService) FinishSellingOrder(id string, amount string, currency string, txHash string) (order bean.CoinSellingOrder, overSpent string, ce SimpleContextError) {
 	coinOrderTO := s.dao.GetCoinSellingOrder(id)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, coinOrderTO) {
 		return
@@ -976,6 +976,7 @@ func (s CoinService) FinishSellingOrder(id string, amount string, currency strin
 	}
 
 	order.Status = bean.COIN_ORDER_STATUS_FIAT_TRANSFERRING
+	order.TxHash = txHash
 	err := s.dao.FinishCoinSellingOrder(&order)
 	if ce.SetError(api_error.AddDataFailed, err) {
 		return
@@ -987,13 +988,14 @@ func (s CoinService) FinishSellingOrder(id string, amount string, currency strin
 	return
 }
 
-func (s CoinService) FinishCoinOrderPendingTransfer(ref string) (order bean.CoinOrder, ce SimpleContextError) {
+func (s CoinService) FinishCoinOrderPendingTransfer(ref string, txHash string) (order bean.CoinOrder, ce SimpleContextError) {
 	cashOrderTO := s.dao.GetCoinOrderByPath(ref)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, cashOrderTO) {
 		return
 	}
 	order = cashOrderTO.Object.(bean.CoinOrder)
 	order.Status = bean.COIN_ORDER_STATUS_SUCCESS
+	order.TxHash = txHash
 
 	err := s.dao.UpdateCoinOrderReceipt(&order)
 	if ce.SetError(api_error.AddDataFailed, err) {
@@ -1157,6 +1159,39 @@ func (s CoinService) ResetCoinSellingUserLimit() (ce SimpleContextError) {
 	return
 }
 
+func (s CoinService) OrderCallNotification() (hasOrder bool, ce SimpleContextError) {
+	hasOrder = false
+	coinOrderTO := dao.CoinDaoInst.ListCoinOrders("pending", "cod", "", 10, nil)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, coinOrderTO) {
+		return
+	}
+	if len(coinOrderTO.Objects) > 0 {
+		hasOrder = true
+	}
+
+	if !hasOrder {
+		coinOrderTO := dao.CoinDaoInst.ListCoinOrders("fiat_transferring", "bank", "", 10, nil)
+		if ce.FeedDaoTransfer(api_error.GetDataFailed, coinOrderTO) {
+			return
+		}
+		if len(coinOrderTO.Objects) > 0 {
+			hasOrder = true
+		}
+	}
+
+	if !hasOrder {
+		coinOrderTO := dao.CoinDaoInst.ListCoinSellingOrders("fiat_transferring", "", 10, nil)
+		if ce.FeedDaoTransfer(api_error.GetDataFailed, coinOrderTO) {
+			return
+		}
+		if len(coinOrderTO.Objects) > 0 {
+			hasOrder = true
+		}
+	}
+
+	return
+}
+
 func (s CoinService) SyncCoinOrderToSolr(id string) (coinOrder bean.CoinOrder, ce SimpleContextError) {
 	coinOrderTO := s.dao.GetCoinOrder(id)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, coinOrderTO) {
@@ -1277,29 +1312,49 @@ func (s CoinService) cancelCoinSellingOrder(orderId string, status string, ce *S
 }
 
 func (s CoinService) NotifyNewCoinOrder(order bean.CoinOrder) error {
-	// os.Getenv("FRONTEND_HOST")
+	host := os.Getenv("FRONTEND_HOST")
 	content := fmt.Sprintf("[%s] [ORDER] You have new BUY order, please check ref code: %s", strings.ToUpper(order.Type), order.RefCode)
 	// _, err := twilio_service.SendSMS(os.Getenv("COIN_ORDER_TO_NUMBER"), smsBody)
 	if os.Getenv("ENVIRONMENT") == "dev" {
 		content = "TEST -- " + content
 	}
 
+	body := `Hi,
+
+There is new BUY order please check the following link:
+%s/internal-admin-dashboard?tab=%s&refCode=%s
+`
+
+	orderType := "Bank"
+	if order.Type == bean.COIN_ORDER_TYPE_COD {
+		orderType = "Cod"
+	}
+	body = fmt.Sprintf(body, host, fmt.Sprintf("buyCoin%s", orderType))
+
 	slack_integration.SendSlack(content)
-	err := email.SendEmail("System", "dojo@ninja.org", "Admin", os.Getenv("COIN_ORDER_TO_EMAIL"), content, " ")
+	err := email.SendEmail("System", "dojo@ninja.org", "Admin", os.Getenv("COIN_ORDER_TO_EMAIL"), content, body)
 
 	return err
 }
 
 func (s CoinService) NotifyNewCoinSellingOrder(order bean.CoinSellingOrder) error {
-	// os.Getenv("FRONTEND_HOST")
+	host := os.Getenv("FRONTEND_HOST")
 	content := fmt.Sprintf("[%s] [ORDER] You have new SELL order, please check ref code: %s", strings.ToUpper(order.Type), order.RefCode)
 	// _, err := twilio_service.SendSMS(os.Getenv("COIN_ORDER_TO_NUMBER"), smsBody)
 	if os.Getenv("ENVIRONMENT") == "dev" {
 		content = "TEST -- " + content
 	}
 
+	body := `Hi,
+
+There is new SELL order please check the following link:
+%s/internal-admin-dashboard?tab=%s&refCode=%s
+`
+
+	body = fmt.Sprintf(body, host, "sellCoinBank")
+
 	slack_integration.SendSlack(content)
-	err := email.SendEmail("System", "dojo@ninja.org", "Admin", os.Getenv("COIN_ORDER_TO_EMAIL"), content, " ")
+	err := email.SendEmail("System", "dojo@ninja.org", "Admin", os.Getenv("COIN_ORDER_TO_EMAIL"), content, body)
 
 	return err
 }

@@ -910,6 +910,7 @@ func (s OfferService) FinishCryptoTransfer() (finishedInstantOffers []bean.Offer
 						err = cacheTO.Error
 					} else {
 						data := cacheTO.Object.(map[string]bitstamp_service.WithdrawRequestResponse)
+						pendingOffer.TxHash = data[pendingOffer.ExternalId].TransactionId
 						if data[pendingOffer.ExternalId].Status == 2 {
 							onchainCompleted = true
 						}
@@ -1000,7 +1001,7 @@ func (s OfferService) FinishCryptoTransfer() (finishedInstantOffers []bean.Offer
 					_, ce = CashServiceInst.FinishCashOrderPendingTransfer(pendingOffer.DataRef)
 					completed = !ce.HasError()
 				} else if pendingOffer.DataType == bean.OFFER_ADDRESS_MAP_COIN_ORDER {
-					_, ce = CoinServiceInst.FinishCoinOrderPendingTransfer(pendingOffer.DataRef)
+					_, ce = CoinServiceInst.FinishCoinOrderPendingTransfer(pendingOffer.DataRef, pendingOffer.TxHash)
 					completed = !ce.HasError()
 				}
 

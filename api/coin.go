@@ -318,3 +318,12 @@ func (api CoinApi) VoiceOrderNotification(context *gin.Context) {
 
 	context.Data(http.StatusOK, "text/xml; charset=utf-8", []byte(str))
 }
+
+func (api CoinApi) OrderCallNotification(context *gin.Context) {
+	resp, ce := service.CoinServiceInst.OrderCallNotification()
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, resp)
+}
