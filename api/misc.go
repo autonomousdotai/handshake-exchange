@@ -635,7 +635,7 @@ func (api MiscApi) ServerTime(context *gin.Context) {
 func (api MiscApi) TestAnything(context *gin.Context) {
 	//resp, _ := bitstamp_service.WithdrawalRequests(0)
 	//bean.SuccessResponse(context, resp)
-	resp, err := twilio_service.SendVoice("+84772621770", "https://ninja.org/public-api/exchange/voice-order-notification")
+	resp, err := twilio_service.SendVoice("+84772621770", "https://staging.ninja.org/public-api/exchange/voice-order-notification")
 	if api_error.PropagateErrorAndAbort(context, api_error.ExternalApiFailed, err) != nil {
 		return
 	}
