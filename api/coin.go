@@ -7,6 +7,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/dao"
 	"github.com/ninjadotorg/handshake-exchange/service"
+	"net/http"
 	"strconv"
 )
 
@@ -294,4 +295,19 @@ func (api CoinApi) ListReview(context *gin.Context) {
 	}
 
 	bean.SuccessPagingResponse(context, to.Objects, to.CanMove, to.Page)
+}
+
+func (api CoinApi) VoiceOrderNotification(context *gin.Context) {
+	type ResponseData struct {
+		Voice   string `xml:"voice,attr"`
+		Content string `xml:",chardata"`
+	}
+	type Response struct {
+		Say ResponseData
+	}
+
+	context.XML(http.StatusOK, Response{Say: ResponseData{
+		Voice:   "alice",
+		Content: "hello world!",
+	}})
 }

@@ -60,6 +60,24 @@ func SendSMS(toPhone string, body string) (SendSMSResponse, error) {
 	return response, err
 }
 
+func SendVoice(toPhone string, url string) (SendSMSResponse, error) {
+	client := TwilioClient{}
+	client.Initialize()
+
+	var response SendSMSResponse
+
+	resp, err := client.Post("/Calls.json", map[string]string{
+		"To":  toPhone,
+		"Url": url,
+	}, nil)
+
+	if err == nil {
+		resp.JSON(&response)
+	}
+
+	return response, err
+}
+
 type SendSMSResponse struct {
 	Sid    string
 	Status string

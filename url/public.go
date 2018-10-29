@@ -132,6 +132,10 @@ func (url CronJobUrl) Create(router *gin.Engine) *gin.RouterGroup {
 		coinApi.RemoveExpiredOrder(context)
 	})
 
+	group.GET("/voice-order-notification", func(context *gin.Context) {
+		coinApi.VoiceOrderNotification(context)
+	})
+
 	group.POST("/sync-to-coin-order-solr/:id", func(context *gin.Context) {
 		miscApi.SyncCoinOrderToSolr(context)
 	})

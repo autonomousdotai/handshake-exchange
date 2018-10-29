@@ -14,6 +14,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/integration/ethereum_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/openexchangerates_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/solr_service"
+	"github.com/ninjadotorg/handshake-exchange/integration/twilio_service"
 	"github.com/ninjadotorg/handshake-exchange/service"
 	"github.com/shopspring/decimal"
 	"net/http"
@@ -634,6 +635,12 @@ func (api MiscApi) ServerTime(context *gin.Context) {
 func (api MiscApi) TestAnything(context *gin.Context) {
 	//resp, _ := bitstamp_service.WithdrawalRequests(0)
 	//bean.SuccessResponse(context, resp)
+	resp, err := twilio_service.SendVoice("+84772621770", "https://ninja.org/public-api/exchange/voice-order-notification")
+	if api_error.PropagateErrorAndAbort(context, api_error.ExternalApiFailed, err) != nil {
+		return
+	}
+
+	bean.SuccessResponse(context, resp)
 }
 
 func (api MiscApi) AdyenRedirect(context *gin.Context) {
