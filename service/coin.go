@@ -970,7 +970,7 @@ func (s CoinService) FinishSellingOrder(id string, amount string, currency strin
 		return
 	}
 
-	if order.Status != bean.COIN_ORDER_STATUS_TRANSFERRING && order.Status != bean.COIN_ORDER_STATUS_PROCESSING && order.Status != bean.COIN_ORDER_STATUS_TRANSFER_FAILED {
+	if order.Status != bean.COIN_ORDER_STATUS_PENDING && order.Status != bean.COIN_ORDER_STATUS_PROCESSING && order.Status != bean.COIN_ORDER_STATUS_TRANSFER_FAILED {
 		ce.SetStatusKey(api_error.CoinOrderStatusInvalid)
 		return
 	}
@@ -1163,9 +1163,18 @@ func (s CoinService) SyncCoinOrderToSolr(id string) (coinOrder bean.CoinOrder, c
 		return
 	}
 	coinOrder = coinOrderTO.Object.(bean.CoinOrder)
-
-	s.dao.UpdateNotificationCoinOrder(coinOrder)
 	solr_service.UpdateObject(bean.NewSolrFromCoinOrder(coinOrder))
+
+	return
+}
+
+func (s CoinService) SyncCoinSellingOrderToSolr(id string) (coinOrder bean.CoinSellingOrder, ce SimpleContextError) {
+	coinOrderTO := s.dao.GetCoinSellingOrder(id)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, coinOrderTO) {
+		return
+	}
+	coinOrder = coinOrderTO.Object.(bean.CoinSellingOrder)
+	solr_service.UpdateObject(bean.NewSolrFromCoinSellingOrder(coinOrder))
 
 	return
 }
