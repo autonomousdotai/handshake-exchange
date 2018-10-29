@@ -1329,7 +1329,7 @@ There is new BUY order please check the following link:
 	if order.Type == bean.COIN_ORDER_TYPE_COD {
 		orderType = "Cod"
 	}
-	body = fmt.Sprintf(body, host, fmt.Sprintf("buyCoin%s", orderType))
+	body = fmt.Sprintf(body, host, fmt.Sprintf("buyCoin%s", orderType), order.RefCode)
 
 	slack_integration.SendSlack(content)
 	err := email.SendEmail("System", "dojo@ninja.org", "Admin", os.Getenv("COIN_ORDER_TO_EMAIL"), content, body)
@@ -1351,7 +1351,7 @@ There is new SELL order please check the following link:
 %s/internal-admin-dashboard?tab=%s&refCode=%s
 `
 
-	body = fmt.Sprintf(body, host, "sellCoinBank")
+	body = fmt.Sprintf(body, host, "sellCoinBank", order.RefCode)
 
 	slack_integration.SendSlack(content)
 	err := email.SendEmail("System", "dojo@ninja.org", "Admin", os.Getenv("COIN_ORDER_TO_EMAIL"), content, body)
