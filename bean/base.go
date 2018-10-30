@@ -20,6 +20,7 @@ type BasePagingResponse struct {
 	Data       interface{} `json:"data"`
 	Page       interface{} `json:"page"`
 	CanMove    bool        `json:"can_move"`
+	Count      int64       `json:"count"`
 }
 
 func DefaultSuccessResponse(context *gin.Context) {
@@ -39,7 +40,7 @@ func SuccessResponse(context *gin.Context, data interface{}) {
 	context.Set("ResponseData", data)
 }
 
-func SuccessPagingResponse(context *gin.Context, data interface{}, canMove bool, nextAt interface{}) {
+func SuccessPagingResponse(context *gin.Context, data interface{}, canMove bool, nextAt interface{}, count int64) {
 	context.JSON(http.StatusOK, BasePagingResponse{
 		http.StatusOK,
 		api_error.CodeMessage[api_error.Success].Code,
@@ -47,6 +48,7 @@ func SuccessPagingResponse(context *gin.Context, data interface{}, canMove bool,
 		data,
 		nextAt,
 		canMove,
+		count,
 	})
 }
 

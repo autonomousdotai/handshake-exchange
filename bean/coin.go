@@ -200,6 +200,12 @@ func (b CoinSellingOrder) GetNotificationUpdate() map[string]interface{} {
 	}
 }
 
+func (b CoinSellingOrder) GetReviewUpdate() map[string]interface{} {
+	return map[string]interface{}{
+		"reviewed": b.Reviewed,
+	}
+}
+
 func (b CoinSellingOrder) GetPageValue() interface{} {
 	return b.CreatedAt
 }
@@ -346,6 +352,18 @@ func (b CoinReview) GetAdd() map[string]interface{} {
 
 func (b CoinReview) GetPageValue() interface{} {
 	return b.CreatedAt
+}
+
+type CoinReviewCount struct {
+	Count     int64     `json:"count" firestore:"count"`
+	UpdatedAt time.Time `json:"created_at" firestore:"created_at"`
+}
+
+func (b CoinReviewCount) GetUpdate() map[string]interface{} {
+	return map[string]interface{}{
+		"count":      b.Count,
+		"updated_at": firestore.ServerTimestamp,
+	}
 }
 
 type CoinUserLimit struct {

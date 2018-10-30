@@ -107,7 +107,7 @@ func (api ProfileApi) ListTransactions(context *gin.Context) {
 		return
 	}
 
-	bean.SuccessPagingResponse(context, to.Objects, to.CanMove, to.Page)
+	bean.SuccessPagingResponse(context, to.Objects, to.CanMove, to.Page, 0)
 }
 
 func (api ProfileApi) GetCCLimit(context *gin.Context) {

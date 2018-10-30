@@ -462,6 +462,20 @@ func (dao CoinDao) UpdateCoinOrderReview(order *bean.CoinOrder) error {
 	return err
 }
 
+func (dao CoinDao) UpdateCoinSellingOrderReview(order *bean.CoinSellingOrder) error {
+	dbClient := firebase_service.FirestoreClient
+
+	docRef := dbClient.Doc(GetCoinSellingOrderItemPath(order.Id))
+	docUserRef := dbClient.Doc(GetCoinSellingOrderUserItemPath(order.UID, order.Id))
+
+	batch := dbClient.Batch()
+	batch.Set(docRef, order.GetReviewUpdate(), firestore.MergeAll)
+	batch.Set(docUserRef, order.GetReviewUpdate(), firestore.MergeAll)
+	_, err := batch.Commit(context.Background())
+
+	return err
+}
+
 func (dao CoinDao) FinishCoinOrder(order *bean.CoinOrder) error {
 	dbClient := firebase_service.FirestoreClient
 
@@ -624,8 +638,13 @@ func (dao CoinDao) UpdateCoinSellingPayment(payment *bean.CoinSellingPayment, ad
 	return err
 }
 
-func (dao CoinDao) ListReviews(limit int, startAt interface{}) (t TransferObject) {
-	ListPagingObjects(GetCoinReviewPath(), &t, limit, startAt, func(collRef *firestore.CollectionRef) firestore.Query {
+func (dao CoinDao) GetCoinReviewCount(direction string) (t TransferObject) {
+	GetObject(GetCoinReviewCountItemPath(direction), &t, snapshotToCoinReviewCount)
+	return
+}
+
+func (dao CoinDao) ListReviews(direction string, limit int, startAt interface{}) (t TransferObject) {
+	ListPagingObjects(GetCoinReviewPath(direction), &t, limit, startAt, func(collRef *firestore.CollectionRef) firestore.Query {
 		query := collRef.OrderBy("created_at", firestore.Desc)
 		return query
 	}, snapshotToCoinReview)
@@ -633,12 +652,18 @@ func (dao CoinDao) ListReviews(limit int, startAt interface{}) (t TransferObject
 	return
 }
 
-func (dao CoinDao) AddCoinReview(review *bean.CoinReview) error {
+func (dao CoinDao) AddCoinReview(direction string, review *bean.CoinReview, reviewCount *bean.CoinReviewCount) error {
 	dbClient := firebase_service.FirestoreClient
+	batch := dbClient.Batch()
 
-	docRef := dbClient.Collection(GetCoinReviewPath()).NewDoc()
+	docRef := dbClient.Collection(GetCoinReviewPath(direction)).NewDoc()
+	countDocRef := dbClient.Doc(GetCoinReviewCountItemPath(direction))
 	review.Id = docRef.ID
-	_, err := docRef.Set(context.Background(), review.GetAdd())
+
+	batch.Set(docRef, review.GetAdd())
+	batch.Set(countDocRef, reviewCount.GetUpdate(), firestore.MergeAll)
+
+	_, err := batch.Commit(context.Background())
 
 	return err
 }
@@ -851,12 +876,16 @@ func GetCoinSellingPaymentItemPath(orderId string) string {
 	return fmt.Sprintf("coin_selling_payments/%s", orderId)
 }
 
-func GetCoinReviewPath() string {
-	return fmt.Sprintf("coin_reviews")
+func GetCoinReviewCountItemPath(direction string) string {
+	return fmt.Sprintf("coin_reviews/%s", direction)
 }
 
-func GetCoinReviewItemPath(id string) string {
-	return fmt.Sprintf("coin_reviews/%s", id)
+func GetCoinReviewPath(direction string) string {
+	return fmt.Sprintf("coin_reviews/%s/items", direction)
+}
+
+func GetCoinReviewItemPath(direction string, id string) string {
+	return fmt.Sprintf("coin_reviews/%s/items/%s", direction, id)
 }
 
 func GetCoinUserLimitPath() string {
@@ -919,6 +948,12 @@ func snapshotToCoinPool(snapshot *firestore.DocumentSnapshot) interface{} {
 
 func snapshotToCoinReview(snapshot *firestore.DocumentSnapshot) interface{} {
 	var obj bean.CoinReview
+	snapshot.DataTo(&obj)
+	return obj
+}
+
+func snapshotToCoinReviewCount(snapshot *firestore.DocumentSnapshot) interface{} {
+	var obj bean.CoinReviewCount
 	snapshot.DataTo(&obj)
 	return obj
 }

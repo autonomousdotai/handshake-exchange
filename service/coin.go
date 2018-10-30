@@ -1007,26 +1007,49 @@ func (s CoinService) FinishCoinOrderPendingTransfer(ref string, txHash string) (
 	return
 }
 
-func (s CoinService) AddCoinReview(review bean.CoinReview) (ce SimpleContextError) {
-	cashOrderTO := s.dao.GetCoinOrder(review.Order)
-	if ce.FeedDaoTransfer(api_error.GetDataFailed, cashOrderTO) {
-		return
-	}
-	order := cashOrderTO.Object.(bean.CoinOrder)
-	if order.Reviewed {
-		ce.SetStatusKey(api_error.InvalidRequestBody)
-		return
+func (s CoinService) AddCoinReview(direction string, review bean.CoinReview) (ce SimpleContextError) {
+	if direction == "buy" {
+		cashOrderTO := s.dao.GetCoinOrder(review.Order)
+		if ce.FeedDaoTransfer(api_error.GetDataFailed, cashOrderTO) {
+			return
+		}
+		order := cashOrderTO.Object.(bean.CoinOrder)
+		if order.Reviewed {
+			ce.SetStatusKey(api_error.InvalidRequestBody)
+			return
+		}
+		order.Reviewed = true
+
+		s.dao.UpdateCoinOrderReview(&order)
+		solr_service.UpdateObject(bean.NewSolrFromCoinOrder(order))
+	} else if direction == "sell" {
+		cashOrderTO := s.dao.GetCoinSellingOrder(review.Order)
+		if ce.FeedDaoTransfer(api_error.GetDataFailed, cashOrderTO) {
+			return
+		}
+		order := cashOrderTO.Object.(bean.CoinSellingOrder)
+		if order.Reviewed {
+			ce.SetStatusKey(api_error.InvalidRequestBody)
+			return
+		}
+		order.Reviewed = true
+
+		s.dao.UpdateCoinSellingOrderReview(&order)
+		solr_service.UpdateObject(bean.NewSolrFromCoinSellingOrder(order))
 	}
 
-	err := s.dao.AddCoinReview(&review)
+	coinReviewCountTO := s.dao.GetCoinReviewCount(direction)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, coinReviewCountTO) {
+		return
+	}
+	coinReviewCount := coinReviewCountTO.Object.(bean.CoinReviewCount)
+	coinReviewCount.Count += 1
+
+	err := s.dao.AddCoinReview(direction, &review, &coinReviewCount)
 	if err != nil {
 		ce.SetError(api_error.AddDataFailed, err)
 		return
 	}
-	order.Reviewed = true
-
-	s.dao.UpdateCoinOrderReview(&order)
-	solr_service.UpdateObject(bean.NewSolrFromCoinOrder(order))
 
 	return
 }

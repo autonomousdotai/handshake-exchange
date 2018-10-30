@@ -135,7 +135,7 @@ func (api CoinApi) ListCoinOrders(context *gin.Context) {
 		return
 	}
 
-	bean.SuccessPagingResponse(context, to.Objects, to.CanMove, to.Page)
+	bean.SuccessPagingResponse(context, to.Objects, to.CanMove, to.Page, 0)
 }
 
 func (api CoinApi) ListCoinSellingOrders(context *gin.Context) {
@@ -148,7 +148,7 @@ func (api CoinApi) ListCoinSellingOrders(context *gin.Context) {
 		return
 	}
 
-	bean.SuccessPagingResponse(context, to.Objects, to.CanMove, to.Page)
+	bean.SuccessPagingResponse(context, to.Objects, to.CanMove, to.Page, 0)
 }
 
 func (api CoinApi) FinishCoinOrder(context *gin.Context) {
@@ -274,12 +274,14 @@ func (api CoinApi) ResetCoinUserLimit(context *gin.Context) {
 
 func (api CoinApi) AddReview(context *gin.Context) {
 	userId := common.GetUserId(context)
+	direction := context.DefaultQuery("direction", "buy")
+
 	var body bean.CoinReview
 	if common.ValidateBody(context, &body) != nil {
 		return
 	}
 	body.UID = userId
-	ce := service.CoinServiceInst.AddCoinReview(body)
+	ce := service.CoinServiceInst.AddCoinReview(direction, body)
 	if ce.ContextValidate(context) {
 		return
 	}
@@ -289,13 +291,19 @@ func (api CoinApi) AddReview(context *gin.Context) {
 
 func (api CoinApi) ListReview(context *gin.Context) {
 	startAt, limit := common.ExtractTimePagingParams(context)
+	direction := context.DefaultQuery("direction", "buy")
 
-	to := dao.CoinDaoInst.ListReviews(limit, startAt)
+	objTO := dao.CoinDaoInst.GetCoinReviewCount(direction)
+	if objTO.ContextValidate(context) {
+		return
+	}
+	to := dao.CoinDaoInst.ListReviews(direction, limit, startAt)
 	if to.ContextValidate(context) {
 		return
 	}
+	coinReviewCount := objTO.Object.(bean.CoinReviewCount)
 
-	bean.SuccessPagingResponse(context, to.Objects, to.CanMove, to.Page)
+	bean.SuccessPagingResponse(context, to.Objects, to.CanMove, to.Page, coinReviewCount.Count)
 }
 
 func (api CoinApi) VoiceOrderNotification(context *gin.Context) {
