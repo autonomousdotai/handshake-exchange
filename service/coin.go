@@ -24,7 +24,7 @@ type CoinService struct {
 	userDao *dao.UserDao
 }
 
-func (s CoinService) GetCoinQuote(userId string, amountStr string, currency string, fiatLocalCurrency string, level string, check string) (coinQuote bean.CoinQuote, ce SimpleContextError) {
+func (s CoinService) GetCoinQuote(userId string, amountStr string, currency string, fiatLocalCurrency string, level string, check string, userCheck string) (coinQuote bean.CoinQuote, ce SimpleContextError) {
 	amount := common.StringToDecimal(amountStr)
 
 	cryptoRateTO := dao.MiscDaoInst.GetCryptoRateFromCache(currency, bean.INSTANT_OFFER_PROVIDER_BITSTAMP)
@@ -56,7 +56,7 @@ func (s CoinService) GetCoinQuote(userId string, amountStr string, currency stri
 	rateNumber := decimal.NewFromFloat(rate.Rate)
 	localPrice := price.Mul(rateNumber)
 
-	if userLimit.LessThan(userUsage.Add(localPrice)) {
+	if userCheck == "" && userLimit.LessThan(userUsage.Add(localPrice)) {
 		ce.SetStatusKey(api_error.CoinOverLimit)
 		return
 	}
@@ -226,7 +226,7 @@ func (s CoinService) GetCoinQuoteReverse(userId string, fiatLocalAmountStr strin
 	return
 }
 
-func (s CoinService) GetCoinSellingQuote(userId string, amountStr string, currency string, fiatLocalCurrency string, level string, check string) (coinQuote bean.CoinQuote, ce SimpleContextError) {
+func (s CoinService) GetCoinSellingQuote(userId string, amountStr string, currency string, fiatLocalCurrency string, level string, check string, userCheck string) (coinQuote bean.CoinQuote, ce SimpleContextError) {
 	amount := common.StringToDecimal(amountStr)
 
 	cryptoRateTO := dao.MiscDaoInst.GetCryptoRateFromCache(currency, bean.INSTANT_OFFER_PROVIDER_BITSTAMP)
@@ -258,7 +258,7 @@ func (s CoinService) GetCoinSellingQuote(userId string, amountStr string, curren
 	rateNumber := decimal.NewFromFloat(rate.Rate)
 	localPrice := price.Mul(rateNumber)
 
-	if userLimit.LessThan(userUsage.Add(localPrice)) {
+	if userCheck == "" && userLimit.LessThan(userUsage.Add(localPrice)) {
 		ce.SetStatusKey(api_error.CoinOverLimit)
 		return
 	}
@@ -407,7 +407,7 @@ func (s CoinService) ListCoinCenter(country string) (coinCenters []bean.CoinCent
 }
 
 func (s CoinService) AddOrder(userId string, orderBody bean.CoinOrder) (order bean.CoinOrder, ce SimpleContextError) {
-	orderTest, testOfferCE := s.GetCoinQuote(userId, orderBody.Amount, orderBody.Currency, orderBody.FiatLocalCurrency, orderBody.Level, "1")
+	orderTest, testOfferCE := s.GetCoinQuote(userId, orderBody.Amount, orderBody.Currency, orderBody.FiatLocalCurrency, orderBody.Level, "1", "")
 	if ce.FeedContextError(testOfferCE.StatusKey, testOfferCE) {
 		return
 	}
@@ -536,7 +536,7 @@ func (s CoinService) AddOrder(userId string, orderBody bean.CoinOrder) (order be
 }
 
 func (s CoinService) AddSellingOrder(userId string, orderBody bean.CoinSellingOrder) (order bean.CoinSellingOrder, ce SimpleContextError) {
-	orderTest, testOfferCE := s.GetCoinSellingQuote(userId, orderBody.Amount, orderBody.Currency, orderBody.FiatLocalCurrency, orderBody.Level, "1")
+	orderTest, testOfferCE := s.GetCoinSellingQuote(userId, orderBody.Amount, orderBody.Currency, orderBody.FiatLocalCurrency, orderBody.Level, "1", "")
 	if ce.FeedContextError(testOfferCE.StatusKey, testOfferCE) {
 		return
 	}

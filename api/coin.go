@@ -22,16 +22,17 @@ func (api CoinApi) GetQuote(context *gin.Context) {
 	fiatCurrency := context.DefaultQuery("fiat_currency", "USD")
 	level := context.DefaultQuery("level", "1")
 	check := context.DefaultQuery("check", "")
+	userCheck := context.DefaultQuery("user_check", "")
 	direction := context.DefaultQuery("direction", "buy")
 
 	if direction == "sell" {
-		coinQuote, ce := service.CoinServiceInst.GetCoinSellingQuote(userId, amount, currency, fiatCurrency, level, check)
+		coinQuote, ce := service.CoinServiceInst.GetCoinSellingQuote(userId, amount, currency, fiatCurrency, level, check, userCheck)
 		if ce.ContextValidate(context) {
 			return
 		}
 		bean.SuccessResponse(context, coinQuote)
 	} else {
-		coinQuote, ce := service.CoinServiceInst.GetCoinQuote(userId, amount, currency, fiatCurrency, level, check)
+		coinQuote, ce := service.CoinServiceInst.GetCoinQuote(userId, amount, currency, fiatCurrency, level, check, userCheck)
 		if ce.ContextValidate(context) {
 			return
 		}
