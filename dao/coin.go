@@ -16,7 +16,12 @@ type CoinDao struct {
 }
 
 func (dao CoinDao) ListCoinCenter(country string) (t TransferObject) {
-	ListObjects(GetCoinCenterCountryCurrenyPath(country), &t, nil, snapshotToCoinCenter)
+	ListObjects(GetCoinCenterCountryPath(country), &t, nil, snapshotToCoinCenter)
+	return
+}
+
+func (dao CoinDao) ListCoinBank(country string) (t TransferObject) {
+	ListObjects(GetCoinBankCountryPath(country), &t, nil, snapshotToCoinBank)
 	return
 }
 
@@ -504,6 +509,15 @@ func (dao CoinDao) FinishCoinSellingOrder(order *bean.CoinSellingOrder) error {
 	return err
 }
 
+func (dao CoinDao) AddCoinBank(coinBank *bean.CoinBank) error {
+	dbClient := firebase_service.FirestoreClient
+
+	docRef := dbClient.Doc(GetCoinBankCountryItemPath(coinBank.Country, coinBank.Name))
+	_, err := docRef.Set(context.Background(), coinBank.GetAdd())
+
+	return err
+}
+
 func (dao CoinDao) UpdateNotificationCoinOrder(order bean.CoinOrder) error {
 	dbClient := firebase_service.NotificationFirebaseClient
 
@@ -808,8 +822,16 @@ func (dao CoinDao) UpdateCoinSellingUserLimit(uid string, amount decimal.Decimal
 	return err
 }
 
-func GetCoinCenterCountryCurrenyPath(country string) string {
+func GetCoinCenterCountryPath(country string) string {
 	return fmt.Sprintf("coin_centers/%s/currency", country)
+}
+
+func GetCoinBankCountryPath(country string) string {
+	return fmt.Sprintf("coin_banks/%s/items", country)
+}
+
+func GetCoinBankCountryItemPath(country string, name string) string {
+	return fmt.Sprintf("coin_banks/%s/items/%s", country, name)
 }
 
 func GetCoinOrderPath() string {
@@ -918,6 +940,12 @@ func snapshotToCoinSellingOrder(snapshot *firestore.DocumentSnapshot) interface{
 
 func snapshotToCoinCenter(snapshot *firestore.DocumentSnapshot) interface{} {
 	var obj bean.CoinCenter
+	snapshot.DataTo(&obj)
+	return obj
+}
+
+func snapshotToCoinBank(snapshot *firestore.DocumentSnapshot) interface{} {
+	var obj bean.CoinBank
 	snapshot.DataTo(&obj)
 	return obj
 }

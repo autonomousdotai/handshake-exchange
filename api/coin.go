@@ -76,6 +76,16 @@ func (api CoinApi) ListCoinCenter(context *gin.Context) {
 	bean.SuccessResponse(context, coinCenters)
 }
 
+func (api CoinApi) ListCoinBank(context *gin.Context) {
+	country := context.Param("country")
+	coinBanks, ce := service.CoinServiceInst.ListCoinBank(country)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, coinBanks)
+}
+
 func (api CoinApi) CoinOrder(context *gin.Context) {
 	userId := common.GetUserId(context)
 	chainId := common.GetChainId(context)
@@ -335,4 +345,9 @@ func (api CoinApi) OrderCallNotification(context *gin.Context) {
 	}
 
 	bean.SuccessResponse(context, resp)
+}
+
+func (api CoinApi) CoinInitBank(context *gin.Context) {
+	service.CoinServiceInst.InitBank()
+	bean.SuccessResponse(context, "ok")
 }

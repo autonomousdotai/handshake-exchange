@@ -28,6 +28,7 @@ func (url CoinUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	group.PUT("/order/:id/reject", coinApi.RejectCoinOrder)
 	group.PUT("/order/:id", coinApi.UpdateCoinOrder)
 	group.GET("/center/:country", coinApi.ListCoinCenter)
+	group.GET("/bank/:country", coinApi.ListCoinBank)
 	group.GET("/review", coinApi.ListReview)
 	group.POST("/review", coinApi.AddReview)
 

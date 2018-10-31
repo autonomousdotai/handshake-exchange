@@ -406,6 +406,21 @@ func (s CoinService) ListCoinCenter(country string) (coinCenters []bean.CoinCent
 	return
 }
 
+func (s CoinService) ListCoinBank(country string) (coinBanks []bean.CoinBank, ce SimpleContextError) {
+	coinBankTO := s.dao.ListCoinBank(country)
+	if ce.FeedDaoTransfer(api_error.GetDataFailed, coinBankTO) {
+		return
+	}
+
+	coinBanks = make([]bean.CoinBank, 0)
+	for _, item := range coinBankTO.Objects {
+		coinBank := item.(bean.CoinBank)
+		coinBanks = append(coinBanks, coinBank)
+	}
+
+	return
+}
+
 func (s CoinService) AddOrder(userId string, orderBody bean.CoinOrder) (order bean.CoinOrder, ce SimpleContextError) {
 	orderTest, testOfferCE := s.GetCoinQuote(userId, orderBody.Amount, orderBody.Currency, orderBody.FiatLocalCurrency, orderBody.Level, "1", "")
 	if ce.FeedContextError(testOfferCE.StatusKey, testOfferCE) {
@@ -1380,4 +1395,30 @@ There is new SELL order please check the following link:
 	err := email.SendEmail("System", "dojo@ninja.org", "Admin", os.Getenv("COIN_ORDER_TO_EMAIL"), content, body)
 
 	return err
+}
+
+func (s CoinService) InitBank() {
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "VP Bank",
+		Bank:    "VP Bank",
+		Country: "VN",
+	})
+
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "NH Viet Nam Thinh Vuong",
+		Bank:    "VP Bank",
+		Country: "VN",
+	})
+
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "ACB",
+		Bank:    "ACB",
+		Country: "VN",
+	})
+
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "NH A Chau",
+		Bank:    "ACB",
+		Country: "VN",
+	})
 }

@@ -216,6 +216,21 @@ type CoinCenter struct {
 	Information map[string]interface{} `json:"information" firestore:"information"`
 }
 
+type CoinBank struct {
+	Name    string `json:"name" firestore:"name"`
+	Bank    string `json:"bank" firestore:"bank"`
+	Country string `json:"country" firestore:"country"`
+}
+
+func (b CoinBank) GetAdd() map[string]interface{} {
+	return map[string]interface{}{
+		"name":       b.Name,
+		"bank":       b.Bank,
+		"country":    b.Country,
+		"created_at": firestore.ServerTimestamp,
+	}
+}
+
 const COIN_PAYMENT_STATUS_MATCHED = "matched"
 const COIN_PAYMENT_STATUS_UNDER = "under"
 const COIN_PAYMENT_STATUS_OVER = "over"
