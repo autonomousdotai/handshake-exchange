@@ -512,7 +512,7 @@ func (dao CoinDao) FinishCoinSellingOrder(order *bean.CoinSellingOrder) error {
 func (dao CoinDao) AddCoinBank(coinBank *bean.CoinBank) error {
 	dbClient := firebase_service.FirestoreClient
 
-	docRef := dbClient.Doc(GetCoinBankCountryItemPath(coinBank.Country, coinBank.Name))
+	docRef := dbClient.Doc(GetCoinBankCountryItemPath(coinBank.Country, coinBank.Bank))
 	_, err := docRef.Set(context.Background(), coinBank.GetAdd())
 
 	return err

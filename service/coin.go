@@ -637,13 +637,6 @@ func (s CoinService) AddSellingOrder(userId string, orderBody bean.CoinSellingOr
 		return
 	}
 
-	addressResponse, errCoinBase := coinbase_service.GenerateAddress(orderBody.Currency)
-	if errCoinBase != nil {
-		ce.SetError(api_error.ExternalApiFailed, errCoinBase)
-		return
-	}
-	orderBody.Address = addressResponse.Data.Address
-
 	s.setupCoinSellingOrder(&orderBody, orderTest)
 	err := s.dao.AddCoinSellingOrder(&orderBody)
 	order = orderBody
@@ -1252,6 +1245,17 @@ func (s CoinService) SyncCoinSellingOrderToSolr(id string) (coinOrder bean.CoinS
 	return
 }
 
+func (s CoinService) GenerateAddress(currency string) (address string, ce SimpleContextError) {
+	addressResponse, errCoinBase := coinbase_service.GenerateAddress(currency)
+	if errCoinBase != nil {
+		ce.SetError(api_error.ExternalApiFailed, errCoinBase)
+		return
+	}
+	address = addressResponse.Data.Address
+
+	return
+}
+
 func (s CoinService) expireOrder(orderId string) (order bean.CoinOrder, ce SimpleContextError) {
 	order = s.cancelCoinOrder(orderId, bean.COIN_ORDER_STATUS_EXPIRED, &ce)
 	return
@@ -1399,26 +1403,472 @@ There is new SELL order please check the following link:
 
 func (s CoinService) InitBank() {
 	s.dao.AddCoinBank(&bean.CoinBank{
-		Name:    "VP Bank",
+		Name:    "VP Bank - NH Viet Nam Thinh Vuong",
 		Bank:    "VP Bank",
 		Country: "VN",
 	})
 
 	s.dao.AddCoinBank(&bean.CoinBank{
-		Name:    "NH Viet Nam Thinh Vuong",
-		Bank:    "VP Bank",
-		Country: "VN",
-	})
-
-	s.dao.AddCoinBank(&bean.CoinBank{
-		Name:    "ACB",
+		Name:    "ACB - NH A Chau",
 		Bank:    "ACB",
 		Country: "VN",
 	})
 
 	s.dao.AddCoinBank(&bean.CoinBank{
-		Name:    "NH A Chau",
-		Bank:    "ACB",
+		Name:    "Agribank - NH Nong Nghiep va Phat Trien Nong Thon Viet Nam",
+		Bank:    "Agribank",
+		Country: "VN",
+	})
+
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "ANZ Viet Nam",
+		Bank:    "ANZ Viet Nam",
+		Country: "VN",
+	})
+
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "BIDV - NH Dau Tu va Phat Trien Viet Nam",
+		Bank:    "BIDV",
+		Country: "VN",
+	})
+
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "CitiBank Viet Nam",
+		Bank:    "CitiBank Viet Nam",
+		Country: "VN",
+	})
+
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "DongA Bank - NH Dong A",
+		Bank:    "DongA Bank",
+		Country: "VN",
+	})
+
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "Eximbank - NH Xuat Nhap Khau",
+		Bank:    "Eximbank",
+		Country: "VN",
+	})
+
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "HDBank - NH Phat Trien TP HCM",
+		Bank:    "HDBank",
+		Country: "VN",
+	})
+
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "HSBC Viet Nam",
+		Bank:    "HSBC Viet Nam",
+		Country: "VN",
+	})
+
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "MaritimeBank - NH Hang Hai",
+		Bank:    "MaritimeBank",
+		Country: "VN",
+	})
+
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "MBBank - NH Quan Doi",
+		Bank:    "MBBank",
+		Country: "VN",
+	})
+
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "OCB - NH Phuong Dong",
+		Bank:    "OCB",
+		Country: "VN",
+	})
+
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "SacomBank – NH Sai Gon Thuong Tin",
+		Bank:    "SacomBank",
+		Country: "VN",
+	})
+
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "SCB - NH Sai Gon",
+		Bank:    "SCB",
+		Country: "VN",
+	})
+
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "SHBank - NH Sai Gon Ha Noi",
+		Bank:    "SHBank",
+		Country: "VN",
+	})
+
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "Techcombank - NH Ky Thuong",
+		Bank:    "Techcombank",
+		Country: "VN",
+	})
+
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "TPBank - NH Tien Phong",
+		Bank:    "TPBank",
+		Country: "VN",
+	})
+
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "VIB - NH Quoc Te",
+		Bank:    "VIB",
+		Country: "VN",
+	})
+
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "Vietcombank - NH Ngoai Thuong VN",
+		Bank:    "Vietcombank",
+		Country: "VN",
+	})
+
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "VietinBank - NH Cong Thuong VN",
+		Bank:    "VietinBank",
+		Country: "VN",
+	})
+
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "Bangkok Bank – VN Branch",
+		Bank:    "Bangkok Bank – VN Branch",
+		Country: "VN",
+	})
+
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "Bank of China – VN Branch",
+		Bank:    "Bank of China – VN Branch",
+		Country: "VN",
+	})
+
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "Bank of Communication – VN Branch",
+		Bank:    "Bank of Communication – VN Branch",
+		Country: "VN",
+	})
+
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "Bank of Tokyo Mitsubishi – VN Branch",
+		Bank:    "Bank of Tokyo Mitsubishi – VN Branch",
+		Country: "VN",
+	})
+
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "Cathay Bank – VN Branch",
+		Bank:    "Cathay Bank – VN Branch",
+		Country: "VN",
+	})
+
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "Chifon Dai Loan – VN Branch",
+		Bank:    "Chifon Dai Loan – VN Branch",
+		Country: "VN",
+	})
+
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "China Construction Bank  – VN Branch",
+		Bank:    "China Construction Bank  – VN Branch",
+		Country: "VN",
+	})
+
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "Chinatrust Commercial Bank – VN Branch",
+		Bank:    "Chinatrust Commercial Bank – VN Branch",
+		Country: "VN",
+	})
+
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "Commonwealth Bank Viet Nam",
+		Bank:    "Commonwealth Bank Viet Nam",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "Credit Agricole CIB – VN Branch",
+		Bank:    "Credit Agricole CIB – VN Branch",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "DBS Bank Ltd – VN Branch",
+		Bank:    "DBS Bank Ltd – VN Branch",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "Deutsche Bank Viet Nam",
+		Bank:    "Deutsche Bank Viet Nam",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "Far East National Bank – VN Branch",
+		Bank:    "Far East National Bank – VN Branch",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "First Commercial Bank – VN Branch",
+		Bank:    "First Commercial Bank – VN Branch",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "Hong Leong Bank  – VN Branch",
+		Bank:    "Hong Leong Bank  – VN Branch",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "Hua Nan Commercial Bank – VN Branch",
+		Bank:    "Hua Nan Commercial Bank – VN Branch",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "Indovina Bank",
+		Bank:    "Indovina Bank",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "Industrial Bank Of Korea – VN Branch",
+		Bank:    "Industrial Bank Of Korea – VN Branch",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "JP Morgan Chase Bank – VN Branch",
+		Bank:    "JP Morgan Chase Bank – VN Branch",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "Kho bac nha nuoc Viet Nam",
+		Bank:    "Kho bac nha nuoc Viet Nam",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "Kookmin Bank – VN Branch",
+		Bank:    "Kookmin Bank – VN Branch",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "Korea Exchange Bank – VN Branch",
+		Bank:    "Korea Exchange Bank – VN Branch",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "Malayan Banking Berhad – VN Branch",
+		Bank:    "Malayan Banking Berhad – VN Branch",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "May Bank – VN Branch",
+		Bank:    "May Bank – VN Branch",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "Mega ICBC – VN Branch",
+		Bank:    "Mega ICBC – VN Branch",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "Mizuho Corporate Bank, Ltd – VN Branch",
+		Bank:    "Mizuho Corporate Bank, Ltd – VN Branch",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "Natexis Banques Populaires – VN Branch",
+		Bank:    "Natexis Banques Populaires – VN Branch",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "NH An Binh (AnbinhBank)",
+		Bank:    "NH An Binh (AnbinhBank)",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "NH Bac A",
+		Bank:    "NH Bac A",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "NH Ban Viet (VietCapital)",
+		Bank:    "NH Ban Viet (VietCapital)",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "NH Bao Viet",
+		Bank:    "NH Bao Viet",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "NH Buu dien Lien Viet (PostBank)",
+		Bank:    "NH Buu dien Lien Viet (PostBank)",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "NH Chinh sach Xa Hoi",
+		Bank:    "NH Chinh sach Xa Hoi",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "NH Cong Thuong Trung Quoc – VN Branch",
+		Bank:    "NH Cong Thuong Trung Quoc – VN Branch",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "NH Dai A",
+		Bank:    "NH Dai A",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "NH Dai Chung",
+		Bank:    "NH Dai Chung",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "NH Dai Duong (Ocean Bank)",
+		Bank:    "NH Dai Duong (Ocean Bank)",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "NH Dau khi toan cau",
+		Bank:    "NH Dau khi toan cau",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "NH Dau Tu va PT Campuchia – VN Branch",
+		Bank:    "NH Dau Tu va PT Campuchia – VN Branch",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "NH Dong Nam A",
+		Bank:    "NH Dong Nam A",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "NH Hop Tac Xa VN",
+		Bank:    "NH Hop Tac Xa VN",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "NH lien doanh Viet Lao – VN Branch",
+		Bank:    "NH lien doanh Viet Lao – VN Branch",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "NH Lien doanh Viet Nga – VN Branch",
+		Bank:    "NH Lien doanh Viet Nga – VN Branch",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "NH Lien doanh Viet Thai – VN Branch",
+		Bank:    "NH Lien doanh Viet Thai – VN Branch",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "NH Nam A",
+		Bank:    "NH Nam A",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "NH Nha Nuoc Viet Nam",
+		Bank:    "NH Nha Nuoc Viet Nam",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "NH Phat trien Viet Nam",
+		Bank:    "NH Phat trien Viet Nam",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "NH Quoc Dan",
+		Bank:    "NH Quoc Dan",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "NH Sai Gon Cong Thuong",
+		Bank:    "NH Sai Gon Cong Thuong",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "NH VID Public",
+		Bank:    "NH VID Public",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "NH Viet A",
+		Bank:    "NH Viet A",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "NH Viet Nam Thuong Tin",
+		Bank:    "NH Viet Nam Thuong Tin",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "NH Xang dau Petrolimex",
+		Bank:    "NH Xang dau Petrolimex",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "NH Xay Dung VN",
+		Bank:    "NH Xay Dung VN",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "Oversea Chinese Banking Corp – VN Branch",
+		Bank:    "Oversea Chinese Banking Corp – VN Branch",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "PARIBAS – VN Branch",
+		Bank:    "PARIBAS – VN Branch",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "Shanghai Commercial & Savings – VN Branch",
+		Bank:    "Shanghai Commercial & Savings – VN Branch",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "Shinhan Vietnam Bank Limited",
+		Bank:    "Shinhan Vietnam Bank Limited",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "Standard Chartered Viet Nam",
+		Bank:    "Standard Chartered Viet Nam",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "Sumitomo Mitsui Bank – VN Branch",
+		Bank:    "Sumitomo Mitsui Bank – VN Branch",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "Taipei Fubon Bank – VN Branch",
+		Bank:    "Taipei Fubon Bank – VN Branch",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "United Overseas Bank – VN Branch",
+		Bank:    "United Overseas Bank – VN Branch",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "Woori Bank – VN Branch",
+		Bank:    "Woori Bank – VN Branch",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "Bank Of India HCM Branch",
+		Bank:    "Bank Of India HCM Branch",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "NH Kien Long",
+		Bank:    "NH Kien Long",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "NH TNHH MTV CIMB Viet Nam",
+		Bank:    "NH TNHH MTV CIMB Viet Nam",
+		Country: "VN",
+	})
+	s.dao.AddCoinBank(&bean.CoinBank{
+		Name:    "Nong Hyup Bank",
+		Bank:    "Nong Hyup Bank",
 		Country: "VN",
 	})
 }

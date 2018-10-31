@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/ninjadotorg/handshake-exchange/api_error"
 	"github.com/ninjadotorg/handshake-exchange/bean"
 	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/dao"
@@ -265,6 +266,15 @@ func (api CoinApi) RemoveExpiredOrder(context *gin.Context) {
 	bean.SuccessResponse(context, true)
 }
 
+func (api CoinApi) SellingRemoveExpiredOrder(context *gin.Context) {
+	ce := service.CoinServiceInst.SellingRemoveExpiredOrder()
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, true)
+}
+
 func (api CoinApi) ResetCoinUserLimit(context *gin.Context) {
 	direction := context.DefaultQuery("direction", "buy")
 	if direction == "sell" {
@@ -350,4 +360,19 @@ func (api CoinApi) OrderCallNotification(context *gin.Context) {
 func (api CoinApi) CoinInitBank(context *gin.Context) {
 	service.CoinServiceInst.InitBank()
 	bean.SuccessResponse(context, "ok")
+}
+
+func (api CoinApi) CoinGenerateAddress(context *gin.Context) {
+	currency := context.DefaultQuery("currency", "")
+	if currency != bean.BTC.Code && currency != bean.ETH.Code && currency != bean.BCH.Code {
+		api_error.AbortWithValidateErrorSimple(context, api_error.InvalidQueryParam)
+		return
+	}
+
+	addr, ce := service.CoinServiceInst.GenerateAddress(currency)
+	if ce.ContextValidate(context) {
+		return
+	}
+
+	bean.SuccessResponse(context, addr)
 }

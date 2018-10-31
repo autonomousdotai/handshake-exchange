@@ -142,7 +142,7 @@ type CoinSellingOrder struct {
 	Fee                   string            `json:"-" firestore:"fee"`
 	ExternalFeePercentage string            `json:"-" firestore:"external_fee_percentage"`
 	ExternalFee           string            `json:"-" firestore:"external_fee"`
-	Address               string            `json:"address" firestore:"address"`
+	Address               string            `json:"address" firestore:"address" validate:"required"`
 	TxHash                string            `json:"tx_hash" firestore:"tx_hash"`
 	RefCode               string            `json:"ref_code" firestore:"ref_code"`
 	Reviewed              bool              `json:"reviewed" firestore:"reviewed"`

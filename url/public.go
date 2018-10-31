@@ -132,6 +132,10 @@ func (url CronJobUrl) Create(router *gin.Engine) *gin.RouterGroup {
 		coinApi.RemoveExpiredOrder(context)
 	})
 	//CRON JOB
+	group.POST("/remove-expired-coin-selling-order", func(context *gin.Context) {
+		coinApi.SellingRemoveExpiredOrder(context)
+	})
+	//CRON JOB
 	group.POST("/coin-order-call-notification", func(context *gin.Context) {
 		coinApi.OrderCallNotification(context)
 	})

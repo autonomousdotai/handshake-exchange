@@ -31,6 +31,7 @@ func (url CoinUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	group.GET("/bank/:country", coinApi.ListCoinBank)
 	group.GET("/review", coinApi.ListReview)
 	group.POST("/review", coinApi.AddReview)
+	group.POST("/generate-address", coinApi.CoinGenerateAddress)
 
 	return group
 }
