@@ -416,3 +416,15 @@ func (b CoinUserLimit) GetUpdate() map[string]interface{} {
 		"updated_at": firestore.ServerTimestamp,
 	}
 }
+
+type CoinGeneratedAddress struct {
+	Address   string    `json:"uid" firestore:"uid"`
+	CreatedAt time.Time `json:"created_at" firestore:"created_at"`
+}
+
+func (b CoinGeneratedAddress) GetAdd() map[string]interface{} {
+	return map[string]interface{}{
+		"address":    b.Address,
+		"created_at": firestore.ServerTimestamp,
+	}
+}
