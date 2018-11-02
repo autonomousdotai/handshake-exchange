@@ -371,7 +371,7 @@ func (b CoinReview) GetPageValue() interface{} {
 
 type CoinReviewCount struct {
 	Count     int64     `json:"count" firestore:"count"`
-	UpdatedAt time.Time `json:"created_at" firestore:"created_at"`
+	UpdatedAt time.Time `json:"updated_at" firestore:"updated_at"`
 }
 
 func (b CoinReviewCount) GetUpdate() map[string]interface{} {
@@ -418,13 +418,34 @@ func (b CoinUserLimit) GetUpdate() map[string]interface{} {
 }
 
 type CoinGeneratedAddress struct {
-	Address   string    `json:"uid" firestore:"uid"`
+	Address   string    `json:"address" firestore:"address"`
+	Currency  string    `json:"currency" firestore:"currency"`
 	CreatedAt time.Time `json:"created_at" firestore:"created_at"`
 }
 
 func (b CoinGeneratedAddress) GetAdd() map[string]interface{} {
 	return map[string]interface{}{
 		"address":    b.Address,
+		"currency":   b.Currency,
+		"created_at": firestore.ServerTimestamp,
+	}
+}
+
+type CoinAddressTracking struct {
+	Address   string    `json:"address" firestore:"address"`
+	Currency  string    `json:"currency" firestore:"currency"`
+	Order     string    `json:"order" firestore:"order"`
+	OrderRef  string    `json:"order_ref" firestore:"order_ref"`
+	CreatedAt time.Time `json:"created_at" firestore:"created_at"`
+	UpdatedAt time.Time `json:"updated_at" firestore:"updated_at"`
+}
+
+func (b CoinAddressTracking) GetAdd() map[string]interface{} {
+	return map[string]interface{}{
+		"address":    b.Address,
+		"currency":   b.Currency,
+		"order":      b.Order,
+		"order_ref":  b.OrderRef,
 		"created_at": firestore.ServerTimestamp,
 	}
 }

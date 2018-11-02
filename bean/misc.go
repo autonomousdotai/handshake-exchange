@@ -32,6 +32,7 @@ const BTC_WALLET_COINBASE = "coinbase"
 const BTC_WALLET_BLOCKCHAINIO = "blockchainio"
 const BTC_WALLET_BITSTAMP = "bitstamp"
 const BCH_WALLET_COINBASE = "coinbase"
+const CRYPTO_WALLET_NETWORK = "network"
 
 const CONFIG_OFFER_REJECT_LOCK = "OFFER_REJECT_LOCK"
 

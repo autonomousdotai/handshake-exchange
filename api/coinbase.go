@@ -76,12 +76,13 @@ func (api CoinbaseApi) ReceiveCallback(context *gin.Context) {
 						return
 					}
 					refCodeObj := refCodeTO.Object.(bean.CoinOrderRefCode)
-					_, _, errSrv := service.CoinServiceInst.FinishSellingOrder(refCodeObj.Order, amountObj, currencyObj, additionalData.Hash)
+					_, _, _ = service.CoinServiceInst.FinishSellingOrder(refCodeObj.Order, amountObj, currencyObj, additionalData.Hash)
 
-					if errSrv.HasError() {
-						api_error.AbortWithValidateErrorSimple(context, api_error.UpdateDataFailed)
-						return
-					}
+					// Do nothing in this case
+					//if errSrv.HasError() {
+					//	api_error.AbortWithValidateErrorSimple(context, api_error.UpdateDataFailed)
+					//	return
+					//}
 				} else {
 					// Data from Coinbase is not valid
 					api_error.AbortWithValidateErrorSimple(context, api_error.GetDataFailed)

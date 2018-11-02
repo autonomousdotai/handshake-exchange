@@ -6,6 +6,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/bean"
 	"github.com/ninjadotorg/handshake-exchange/common"
 	"github.com/ninjadotorg/handshake-exchange/dao"
+	"github.com/ninjadotorg/handshake-exchange/integration/bitpay_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/bitstamp_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/coinbase_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/crypto_service"
@@ -625,6 +626,13 @@ func (s CoinService) AddSellingOrder(userId string, orderBody bean.CoinSellingOr
 		}
 	}
 
+	// Is it a good address?
+	addressTO := s.dao.GetCoinGenerateAddress(orderBody.Currency, orderBody.Address)
+	if addressTO.HasError() || !addressTO.Found {
+		ce.SetStatusKey(api_error.InvalidRequestBody)
+		return
+	}
+
 	coinPoolTO := s.dao.GetCoinSellingPool(orderBody.Currency)
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, coinPoolTO) {
 		return
@@ -736,6 +744,11 @@ func (s CoinService) CloseSellingOrder(orderId string) (order bean.CoinSellingOr
 	if ce.FeedDaoTransfer(api_error.GetDataFailed, coinOrderTO) {
 		return
 	}
+	if order.Status != bean.COIN_ORDER_STATUS_PROCESSING {
+		ce.SetStatusKey(api_error.CoinOrderStatusInvalid)
+		return
+	}
+
 	order = coinOrderTO.Object.(bean.CoinSellingOrder)
 	order.Status = bean.COIN_ORDER_STATUS_SUCCESS
 
@@ -978,7 +991,9 @@ func (s CoinService) FinishSellingOrder(id string, amount string, currency strin
 		return
 	}
 
-	if order.Status != bean.COIN_ORDER_STATUS_PENDING && order.Status != bean.COIN_ORDER_STATUS_PROCESSING && order.Status != bean.COIN_ORDER_STATUS_TRANSFER_FAILED {
+	if order.Status != bean.COIN_ORDER_STATUS_PENDING &&
+		order.Status != bean.COIN_ORDER_STATUS_TRANSFERRING &&
+		order.Status != bean.COIN_ORDER_STATUS_TRANSFER_FAILED {
 		ce.SetStatusKey(api_error.CoinOrderStatusInvalid)
 		return
 	}
@@ -1252,6 +1267,86 @@ func (s CoinService) GenerateAddress(currency string) (address string, ce Simple
 		return
 	}
 	address = addressResponse.Data.Address
+	err := s.dao.AddCoinGenerateAddress(&bean.CoinGeneratedAddress{
+		Currency: currency,
+		Address:  address,
+	})
+	if ce.SetError(api_error.AddDataFailed, err) {
+		return
+	}
+
+	return
+}
+
+func (s CoinService) TrackAddressDeposit() (ce SimpleContextError) {
+	for _, code := range []string{bean.BTC.Code, bean.ETH.Code, bean.BCH.Code} {
+		addressTrackingTO := s.dao.ListCoinAddressTracking(code)
+		if !addressTrackingTO.HasError() {
+			for _, item := range addressTrackingTO.Objects {
+				addressTracking := item.(bean.CoinAddressTracking)
+				var provider string
+
+				coinOrderTO := s.dao.GetCoinSellingOrder(addressTracking.Order)
+				if ce.FeedDaoTransfer(api_error.GetDataFailed, coinOrderTO) {
+					return
+				}
+				order := coinOrderTO.Object.(bean.CoinSellingOrder)
+
+				amount := common.Zero
+				isValid := false
+				if addressTracking.Currency == bean.ETH.Code {
+					provider = bean.CRYPTO_WALLET_NETWORK
+				} else if addressTracking.Currency == bean.BTC.Code {
+					provider = bean.CRYPTO_WALLET_NETWORK
+
+					tmpTxHash, balance, txCount, bitPayErr := bitpay_service.GetBTCAddress(addressTracking.Address)
+					if bitPayErr == nil {
+						if txCount == 1 {
+							order.TxHash = tmpTxHash
+							amount = decimal.NewFromFloat(balance)
+							isValid = true
+						}
+					}
+				} else if addressTracking.Currency == bean.BCH.Code {
+					provider = bean.CRYPTO_WALLET_NETWORK
+
+					tmpTxHash, balance, txCount, bitPayErr := bitpay_service.GetBTCAddress(addressTracking.Address)
+					if bitPayErr == nil {
+						if txCount == 1 {
+							order.TxHash = tmpTxHash
+							amount = decimal.NewFromFloat(balance)
+							isValid = true
+						}
+					}
+				}
+
+				if isValid {
+					_, logErr := s.miscDao.AddCryptoTransferLog(bean.CryptoTransferLog{
+						Provider:         provider,
+						ProviderResponse: "",
+						DataType:         bean.OFFER_ADDRESS_MAP_COIN_SELLING_ORDER,
+						DataRef:          addressTracking.Order,
+						UID:              order.UID,
+						Description:      "",
+						Amount:           amount.String(),
+						Currency:         addressTracking.Currency,
+						ExternalId:       "",
+						TxHash:           order.TxHash,
+					})
+					order.Status = bean.COIN_ORDER_STATUS_TRANSFERRING
+					fmt.Println(logErr)
+
+					err := s.dao.UpdateCoinSellingOrder(&order)
+					if ce.SetError(api_error.AddDataFailed, err) {
+						return
+					}
+
+					s.dao.UpdateNotificationCoinSellingOrder(order)
+					solr_service.UpdateObject(bean.NewSolrFromCoinSellingOrder(order))
+				}
+			}
+		}
+	}
 
 	return
 }
@@ -1345,6 +1440,10 @@ func (s CoinService) cancelCoinSellingOrder(orderId string, status string, ce *S
 	err := s.dao.CancelCoinSellingOrder(&order)
 	if ce.SetError(api_error.AddDataFailed, err) {
 		return
+	}
+
+	if order.Currency != bean.ETH.Code {
+		s.dao.RemoveCoinAddressTracking(order.Currency, order.Address)
 	}
 
 	s.dao.UpdateNotificationCoinSellingOrder(order)

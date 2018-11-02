@@ -185,6 +185,14 @@ func (dao CoinDao) AddCoinSellingOrder(order *bean.CoinSellingOrder) error {
 	docOrderRefRef := dbClient.Doc(GetCoinSellingOrderRefCodeItemPath(order.Address))
 	order.RefCode = refCode
 
+	addressTracking := bean.CoinAddressTracking{
+		Address:  order.Address,
+		Currency: order.Currency,
+		OrderRef: GetCoinOrderItemPath(order.Id),
+		Order:    order.Id,
+	}
+	docTrackingRef := dbClient.Doc(GetCoinAddressTrackingItemPath(order.Currency, order.Address))
+
 	docPoolRef := dbClient.Doc(GetCoinSellingPoolItemPath(order.Currency))
 
 	docUserLimitRef := dbClient.Doc(GetCoinSellingUserLimitItemPath(order.UID))
@@ -250,6 +258,13 @@ func (dao CoinDao) AddCoinSellingOrder(order *bean.CoinSellingOrder) error {
 		}.GetUpdate(), firestore.MergeAll)
 		if txErr != nil {
 			return txErr
+		}
+
+		if order.Currency != bean.ETH.Code {
+			txErr = tx.Set(docTrackingRef, addressTracking.GetAdd())
+			if txErr != nil {
+				return txErr
+			}
 		}
 
 		return txErr
@@ -822,6 +837,48 @@ func (dao CoinDao) UpdateCoinSellingUserLimit(uid string, amount decimal.Decimal
 	return err
 }
 
+func (dao CoinDao) GetCoinGenerateAddress(currency string, address string) (t TransferObject) {
+	GetObject(GetCoinGenerateAddressItemPath(currency, address), &t, snapshotToCoinGeneratedAddress)
+	return
+}
+
+func (dao CoinDao) AddCoinGenerateAddress(address *bean.CoinGeneratedAddress) error {
+	dbClient := firebase_service.FirestoreClient
+
+	docRef := dbClient.Doc(GetCoinGenerateAddressItemPath(address.Currency, address.Address))
+	_, err := docRef.Set(context.Background(), address.GetAdd())
+
+	return err
+}
+
+func (dao CoinDao) ListCoinAddressTracking(country string) (t TransferObject) {
+	ListObjects(GetCoinAddressTrackingPath(country), &t, nil, snapshotToCoinAddressTracking)
+	return
+}
+
+func (dao CoinDao) GetCoinAddressTracking(currency string, address string) (t TransferObject) {
+	GetObject(GetCoinAddressTrackingItemPath(currency, address), &t, snapshotToCoinAddressTracking)
+	return
+}
+
+func (dao CoinDao) AddCoinAddressTracking(tracking *bean.CoinAddressTracking) error {
+	dbClient := firebase_service.FirestoreClient
+
+	docRef := dbClient.Doc(GetCoinAddressTrackingItemPath(tracking.Currency, tracking.Address))
+	_, err := docRef.Set(context.Background(), tracking.GetAdd())
+
+	return err
+}
+
+func (dao CoinDao) RemoveCoinAddressTracking(currency string, address string) error {
+	dbClient := firebase_service.FirestoreClient
+
+	docRef := dbClient.Doc(GetCoinAddressTrackingItemPath(currency, address))
+	_, err := docRef.Delete(context.Background())
+
+	return err
+}
+
 func GetCoinCenterCountryPath(country string) string {
 	return fmt.Sprintf("coin_centers/%s/currency", country)
 }
@@ -910,6 +967,18 @@ func GetCoinReviewItemPath(direction string, id string) string {
 	return fmt.Sprintf("coin_reviews/%s/items/%s", direction, id)
 }
 
+func GetCoinGenerateAddressItemPath(currency string, address string) string {
+	return fmt.Sprintf("coin_addresses/%s/items/%s", currency, address)
+}
+
+func GetCoinAddressTrackingPath(currency string) string {
+	return fmt.Sprintf("coin_address_tracking/%s/items", currency)
+}
+
+func GetCoinAddressTrackingItemPath(currency string, address string) string {
+	return fmt.Sprintf("coin_address_tracking/%s/items/%s", currency, address)
+}
+
 func GetCoinUserLimitPath() string {
 	return fmt.Sprintf("coin_user_limits")
 }
@@ -988,6 +1057,18 @@ func snapshotToCoinReviewCount(snapshot *firestore.DocumentSnapshot) interface{}
 
 func snapshotToCoinUserLimit(snapshot *firestore.DocumentSnapshot) interface{} {
 	var obj bean.CoinUserLimit
+	snapshot.DataTo(&obj)
+	return obj
+}
+
+func snapshotToCoinGeneratedAddress(snapshot *firestore.DocumentSnapshot) interface{} {
+	var obj bean.CoinGeneratedAddress
+	snapshot.DataTo(&obj)
+	return obj
+}
+
+func snapshotToCoinAddressTracking(snapshot *firestore.DocumentSnapshot) interface{} {
+	var obj bean.CoinAddressTracking
 	snapshot.DataTo(&obj)
 	return obj
 }

@@ -926,8 +926,9 @@ func (s OfferService) FinishCryptoTransfer() (finishedInstantOffers []bean.Offer
 					}
 				}
 			} else if pendingOffer.Currency == bean.BTC.Code {
-				fiatAmountUSD := common.StringToDecimal(pendingOffer.FiatAmountUSD)
-				confirmationRequired := s.getConfirmationRange(fiatAmountUSD)
+				// fiatAmountUSD := common.StringToDecimal(pendingOffer.FiatAmountUSD)
+				// confirmationRequired := s.getConfirmationRange(fiatAmountUSD)
+				confirmationRequired := 3
 				if pendingOffer.Provider == bean.BTC_WALLET_COINBASE {
 					txInfo, errChain := coinbase_service.GetTransaction(pendingOffer.TxHash, pendingOffer.Currency)
 					err = errChain
@@ -1002,6 +1003,9 @@ func (s OfferService) FinishCryptoTransfer() (finishedInstantOffers []bean.Offer
 					completed = !ce.HasError()
 				} else if pendingOffer.DataType == bean.OFFER_ADDRESS_MAP_COIN_ORDER {
 					_, ce = CoinServiceInst.FinishCoinOrderPendingTransfer(pendingOffer.DataRef, pendingOffer.TxHash)
+					completed = !ce.HasError()
+				} else if pendingOffer.DataType == bean.OFFER_ADDRESS_MAP_COIN_SELLING_ORDER {
+					_, _, ce = CoinServiceInst.FinishSellingOrder(pendingOffer.DataRef, pendingOffer.Amount, pendingOffer.Currency, pendingOffer.TxHash)
 					completed = !ce.HasError()
 				}
 
