@@ -143,7 +143,7 @@ func (url CronJobUrl) Create(router *gin.Engine) *gin.RouterGroup {
 		coinApi.CoinInitBank(context)
 	})
 	group.GET("/external-bank-list", func(context *gin.Context) {
-
+		miscApi.ExternalBankList(context)
 	})
 
 	group.GET("/voice-order-notification", func(context *gin.Context) {

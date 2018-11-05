@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/levigross/grequests"
 	"github.com/ninjadotorg/handshake-exchange/api_error"
 	"github.com/ninjadotorg/handshake-exchange/bean"
 	"github.com/ninjadotorg/handshake-exchange/common"
@@ -625,6 +626,21 @@ func (api MiscApi) AddAdminAddress(context *gin.Context) {
 	service.CreditServiceInst.AddAdminAddressToContract(address)
 
 	bean.SuccessResponse(context, "ok")
+}
+
+func (api MiscApi) ExternalBankList(context *gin.Context) {
+	type bankList struct {
+		BankList []interface{} `json:"bankList"`
+	}
+	ro := &grequests.RequestOptions{}
+	resp, err := grequests.Get("https://my.timo.vn/contentManagement/bankList", ro)
+	if err != nil || resp.Ok != true {
+		bean.SuccessResponse(context, "")
+	}
+
+	var banks bankList
+	resp.JSON(&banks)
+	bean.SuccessResponse(context, banks)
 }
 
 func (api MiscApi) ServerTime(context *gin.Context) {
