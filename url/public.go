@@ -139,6 +139,10 @@ func (url CronJobUrl) Create(router *gin.Engine) *gin.RouterGroup {
 	group.POST("/coin-order-call-notification", func(context *gin.Context) {
 		coinApi.OrderCallNotification(context)
 	})
+	//CRON JOB
+	group.POST("/coin-address-tracking-deposit", func(context *gin.Context) {
+		coinApi.AddressTrackingDeposit(context)
+	})
 	group.POST("/coin-init-bank", func(context *gin.Context) {
 		coinApi.CoinInitBank(context)
 	})

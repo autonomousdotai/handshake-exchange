@@ -362,6 +362,11 @@ func (api CoinApi) CoinInitBank(context *gin.Context) {
 	bean.SuccessResponse(context, "ok")
 }
 
+func (api CoinApi) AddressTrackingDeposit(context *gin.Context) {
+	service.CoinServiceInst.TrackAddressDeposit()
+	bean.SuccessResponse(context, "ok")
+}
+
 func (api CoinApi) CoinGenerateAddress(context *gin.Context) {
 	currency := context.DefaultQuery("currency", "")
 	if currency != bean.BTC.Code && currency != bean.ETH.Code && currency != bean.BCH.Code {
