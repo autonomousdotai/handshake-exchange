@@ -12,6 +12,7 @@ import (
 	"github.com/ninjadotorg/handshake-exchange/integration/crypto_service"
 	"github.com/ninjadotorg/handshake-exchange/integration/slack_integration"
 	"github.com/ninjadotorg/handshake-exchange/integration/solr_service"
+	"github.com/ninjadotorg/handshake-exchange/integration/twilio_service"
 	"github.com/ninjadotorg/handshake-exchange/service/email"
 	"github.com/shopspring/decimal"
 	"os"
@@ -986,7 +987,7 @@ func (s CoinService) FinishSellingOrder(id string, amount string, currency strin
 	} else {
 		s.dao.AddCoinSellingPayment(&coinPayment)
 	}
-	if coinPayment.Status == "" || coinPayment.Status == bean.COIN_PAYMENT_STATUS_UNDER {
+	if coinPayment.Status == "" {
 		ce.SetStatusKey(api_error.InvalidAmount)
 		return
 	}
@@ -1000,12 +1001,16 @@ func (s CoinService) FinishSellingOrder(id string, amount string, currency strin
 
 	order.Status = bean.COIN_ORDER_STATUS_FIAT_TRANSFERRING
 	order.TxHash = txHash
-	err := s.dao.FinishCoinSellingOrder(&order)
-	if ce.SetError(api_error.AddDataFailed, err) {
-		return
+	if coinPayment.Status == bean.COIN_PAYMENT_STATUS_UNDER {
+		order.Status = bean.COIN_ORDER_STATUS_TRANSFERRING
+		s.dao.UpdateCoinSellingOrder(&order)
+	} else {
+		err := s.dao.FinishCoinSellingOrder(&order)
+		if ce.SetError(api_error.AddDataFailed, err) {
+			return
+		}
+		s.NotifyNewCoinSellingOrder(order)
 	}
-
-	s.NotifyNewCoinSellingOrder(order)
 
 	s.dao.UpdateNotificationCoinSellingOrder(order)
 	solr_service.UpdateObject(bean.NewSolrFromCoinSellingOrder(order))
@@ -1513,7 +1518,8 @@ func (s CoinService) NotifyPendingOrder() error {
 	}
 
 	slack_integration.SendSlack(content)
-	err := email.SendEmail("System", "dojo@ninja.org", "Admin", os.Getenv("COIN_ORDER_TO_EMAIL"), content, "")
+	_, err := twilio_service.SendSMS(os.Getenv("COIN_ORDER_TO_NUMBER"), content)
+	err = email.SendEmail("System", "dojo@ninja.org", "Admin", os.Getenv("COIN_ORDER_TO_EMAIL"), content, "")
 
 	return err
 }
