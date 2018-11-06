@@ -1005,6 +1005,8 @@ func (s CoinService) FinishSellingOrder(id string, amount string, currency strin
 		return
 	}
 
+	s.NotifyNewCoinSellingOrder(order)
+
 	s.dao.UpdateNotificationCoinSellingOrder(order)
 	solr_service.UpdateObject(bean.NewSolrFromCoinSellingOrder(order))
 
@@ -1233,6 +1235,10 @@ func (s CoinService) OrderCallNotification() (hasOrder bool, ce SimpleContextErr
 		if len(coinOrderTO.Objects) > 0 {
 			hasOrder = true
 		}
+	}
+
+	if hasOrder {
+		s.NotifyPendingOrder()
 	}
 
 	return
@@ -1496,6 +1502,18 @@ There is new SELL order please check the following link:
 
 	slack_integration.SendSlack(content)
 	err := email.SendEmail("System", "dojo@ninja.org", "Admin", os.Getenv("COIN_ORDER_TO_EMAIL"), content, body)
+
+	return err
+}
+
+func (s CoinService) NotifyPendingOrder() error {
+	content := fmt.Sprintf("You have pending BUY/SELL orders, please process ASAP")
+	if os.Getenv("ENVIRONMENT") == "dev" {
+		content = "TEST -- " + content
+	}
+
+	slack_integration.SendSlack(content)
+	err := email.SendEmail("System", "dojo@ninja.org", "Admin", os.Getenv("COIN_ORDER_TO_EMAIL"), content, "")
 
 	return err
 }
